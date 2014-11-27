@@ -27,7 +27,7 @@ public class Main {
 		//TODO add "=javadoc TimeUnit 2" for second para
 		//TODO add max message size limit
 		//@formatter:off
-		Bot bot = new Bot.Builder("mike.angstadt@outlook.com", "OakBot93")
+		Bot bot = new Bot.Builder(props.getLoginEmail(), props.getLoginPassword())
 		.commands(createJavadocCommand())
 		.heartbeat(props.getHeartbeat())
 		.admins(props.getAdmins().toArray(new Integer[0]))
