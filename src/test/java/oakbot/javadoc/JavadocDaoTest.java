@@ -112,6 +112,13 @@ public class JavadocDaoTest {
 		assertEquals("org.jsoup.nodes.Attribute", info.getFullName());
 		assertEquals("description - org.jsoup.nodes.Attribute", info.getDescription());
 	}
+	
+	@Test
+	public void fullName_case_insensitive() throws Exception {
+		ClassInfo info = dao.getClassInfo("org.jsoup.nodes.attribute");
+		assertEquals("org.jsoup.nodes.Attribute", info.getFullName());
+		assertEquals("description - org.jsoup.nodes.Attribute", info.getDescription());
+	}
 
 	@Test
 	public void cache() throws Exception {

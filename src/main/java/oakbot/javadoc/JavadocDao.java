@@ -16,7 +16,7 @@ import com.google.common.collect.Multimap;
  * @author Michael Angstadt
  */
 public class JavadocDao {
-	private final Multimap<String, String> simpleToFullClassNames = HashMultimap.create();
+	private final Multimap<String, String> aliases = HashMultimap.create();
 	private final Map<String, ClassInfo> cache = Collections.synchronizedMap(new HashMap<>());
 	private final List<JavadocLibrary> libraries = new ArrayList<>();
 
@@ -41,7 +41,9 @@ public class JavadocDao {
 			int dotPos = fullName.lastIndexOf('.');
 			String simpleName = fullName.substring(dotPos + 1);
 
-			simpleToFullClassNames.put(simpleName.toLowerCase(), fullName);
+			aliases.put(simpleName.toLowerCase(), fullName);
+			aliases.put(fullName.toLowerCase(), fullName);
+			aliases.put(fullName, fullName);
 		}
 
 		libraries.add(library);
@@ -57,19 +59,20 @@ public class JavadocDao {
 	 * this method and multiple classes were found that have that name
 	 */
 	public ClassInfo getClassInfo(String className) throws IOException, MultipleClassesFoundException {
-		//convert simple name to fully-qualified name
-		if (!className.contains(".")) {
-			Collection<String> names = simpleToFullClassNames.get(className.toLowerCase());
-			if (names.isEmpty()) {
-				return null;
-			}
-
-			if (names.size() > 1) {
-				throw new MultipleClassesFoundException(names);
-			}
-
-			className = names.iterator().next();
+		Collection<String> names = aliases.get(className);
+		if (names.isEmpty()) {
+			names = aliases.get(className.toLowerCase());
 		}
+
+		if (names.isEmpty()) {
+			return null;
+		}
+
+		if (names.size() > 1) {
+			throw new MultipleClassesFoundException(names);
+		}
+
+		className = names.iterator().next();
 
 		//check the cache
 		ClassInfo info = cache.get(className);
@@ -77,6 +80,7 @@ public class JavadocDao {
 			return info;
 		}
 
+		//parse the class info from the Javadocs
 		for (JavadocLibrary library : libraries) {
 			info = library.getClassInfo(className);
 			if (info != null) {
