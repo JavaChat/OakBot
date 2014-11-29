@@ -43,7 +43,7 @@ public class Bot {
 	}
 
 	/**
-	 * Starts the chat bot.  This call is blocking.
+	 * Starts the chat bot. This call is blocking.
 	 * @throws IOException if there's an I/O problem
 	 */
 	public void connect() throws IOException {
@@ -82,6 +82,10 @@ public class Bot {
 					}
 
 					String content = message.getContent();
+					if (content == null) {
+						continue;
+					}
+
 					Matcher matcher = contentRegex.matcher(content);
 					if (!matcher.find()) {
 						//not a bot command, ignore
