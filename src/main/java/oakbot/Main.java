@@ -1,11 +1,16 @@
 package oakbot;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 
 import oakbot.bot.Bot;
@@ -20,12 +25,37 @@ import oakbot.javadoc.ZipPageLoader;
  * @author Michael Angstadt
  */
 public class Main {
+	public static final String VERSION, URL;
+	public static final Date BUILT;
+	static {
+		Properties props = new Properties();
+		try (InputStream in = Main.class.getResourceAsStream("/info.properties")){
+			props.load(in);
+		} catch (IOException e){
+			throw new RuntimeException(e);
+		}
+
+		VERSION = props.getProperty("version");
+		URL = props.getProperty("url");
+
+		Date built;
+		try {
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+			built = df.parse(props.getProperty("built"));
+		} catch (ParseException e) {
+			//this could happen during development if the properties file is not filtered by Maven
+			built = new Date();
+		}
+		BUILT = built;
+	}
+	
 	public static void main(String[] args) throws Exception {
 		BotProperties props = loadProperties();
+		DateFormat builtFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm Z");
 
-		//TODO make javadoc case-insensitive
 		//TODO add "=javadoc TimeUnit 2" for second para
 		//TODO add max message size limit
+		//TODO re-download fkeys after 1 hour of inactivity
 		//@formatter:off
 		Bot bot = new Bot.Builder(props.getLoginEmail(), props.getLoginPassword())
 		.commands(createJavadocCommand())
@@ -33,7 +63,7 @@ public class Main {
 		.admins(props.getAdmins().toArray(new Integer[0]))
 		.trigger(props.getTrigger())
 		.rooms(props.getRooms().toArray(new Integer[0]))
-		.about("**Oak Bot** by `Michael` | [Source code](http://github.com/mangstadt/OakBot) | Built: TODO") //TODO add build date
+		.about("**Oak Bot** v" + VERSION + " by `Michael` | [source code](" + URL + ") | Built: " + builtFormat.format(BUILT))
 		.build();
 		//@formatter:on
 
