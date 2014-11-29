@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.LogManager;
 
 import oakbot.bot.AboutCommand;
 import oakbot.bot.Bot;
@@ -55,6 +56,7 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
+		setupLogging();
 		BotProperties props = loadProperties();
 
 		List<Command> commands = new ArrayList<>();
@@ -67,6 +69,12 @@ public class Main {
 		//TODO add "=javadoc TimeUnit 2" for second para
 		//TODO add max message size limit
 		//TODO re-download fkeys after 1 hour of inactivity
+		//TODO if someone mentions the bot, give a message like "type =help to see my commands"
+		//TODO google command
+		//TODO wiki command
+		//TODO lib command (displays descriptions of libraries, or you can search for libraries that do certain things)
+		//TODO javadocs: class hierarchy
+		//TODO javadocs: method docs
 		//@formatter:off
 		Bot bot = new Bot.Builder(props.getLoginEmail(), props.getLoginPassword())
 		.commands(commands.toArray(new Command[0]))
@@ -78,6 +86,17 @@ public class Main {
 		//@formatter:on
 
 		bot.connect();
+	}
+
+	private static void setupLogging() throws IOException {
+		Path file = Paths.get("logging.properties");
+		if (!Files.exists(file)) {
+			return;
+		}
+
+		try (InputStream in = Files.newInputStream(file)) {
+			LogManager.getLogManager().readConfiguration(in);
+		}
 	}
 
 	private static BotProperties loadProperties() throws IOException {
