@@ -5,6 +5,7 @@ import static oakbot.util.ChatUtils.reply;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,38 +66,35 @@ public class Bot {
 			chat.postMessage(room, "OakBot Online.");
 		}
 
-		//listen for, and reply to, messages
+		//listen for and reply to messages
 		Pattern contentRegex = Pattern.compile("^" + Pattern.quote(trigger) + "\\s*(.*?)(\\s+(.*)|$)");
 		while (true) {
 			long start = System.currentTimeMillis();
 
 			for (Integer room : rooms) {
 				logger.fine("Pinging room " + room);
-				long prevMessageId = prevMessageIds.get(room);
-				List<ChatMessage> messages = chat.getMessages(room, 5); //TODO keep adding 5 until we reach an old message to ensure that we respond to all messages
-				for (ChatMessage message : messages) {
-					if (message.getMessageId() <= prevMessageId) {
-						//already handled, ignore
-						continue;
-					}
 
+				//get new messages since last ping
+				List<ChatMessage> messages = getNewMessages(room);
+				logger.fine(messages.size() + " new messages found.");
+				if (messages.isEmpty()) {
+					continue;
+				}
+
+				for (ChatMessage message : messages) {
 					String content = message.getContent();
 					if (content == null) {
-						//user deleted his/her message
-						prevMessageId = message.getMessageId();
-						prevMessageIds.put(room, prevMessageId);
+						//user deleted his/her message, ignore
 						continue;
 					}
 
 					Matcher matcher = contentRegex.matcher(content);
 					if (!matcher.find()) {
 						//not a bot command, ignore
-						prevMessageId = message.getMessageId();
-						prevMessageIds.put(room, prevMessageId);
 						continue;
 					}
 
-					logger.fine("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+					logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
 
 					List<String> replies = new ArrayList<>();
 					String commandName = matcher.group(1);
@@ -124,12 +122,13 @@ public class Bot {
 						for (String reply : replies) {
 							chat.postMessage(room, reply);
 						}
-						prevMessageId = message.getMessageId();
-						prevMessageIds.put(room, prevMessageId);
 					} catch (IOException e) {
 						logger.log(Level.SEVERE, "Problem sending chat message.", e);
 					}
 				}
+
+				ChatMessage latestMessage = messages.get(messages.size() - 1);
+				prevMessageIds.put(room, latestMessage.getMessageId());
 			}
 
 			long elapsed = System.currentTimeMillis() - start;
@@ -142,6 +141,31 @@ public class Bot {
 				}
 			}
 		}
+	}
+
+	private List<ChatMessage> getNewMessages(int room) throws IOException {
+		long prevMessageId = prevMessageIds.get(room);
+
+		//keep retrieving more and more messages until we got all of the ones that came in since we last pinged
+		List<ChatMessage> messages;
+		for (int count = 5; true; count += 5) {
+			messages = chat.getMessages(room, count);
+			if (messages.isEmpty() || messages.get(0).getMessageId() <= prevMessageId) {
+				break;
+			}
+		}
+
+		//only return the new messages
+		int pos = -1;
+		for (int i = 0; i < messages.size(); i++) {
+			ChatMessage message = messages.get(i);
+			if (message.getMessageId() > prevMessageId) {
+				pos = i;
+				break;
+			}
+		}
+
+		return (pos < 0) ? Collections.emptyList() : messages.subList(pos, messages.size());
 	}
 
 	/**
