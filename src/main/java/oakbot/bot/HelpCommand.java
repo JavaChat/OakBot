@@ -41,11 +41,15 @@ public class HelpCommand implements Command {
 		if (commandText != null) {
 			StringBuilder sb = new StringBuilder();
 			for (Command command : commands) {
-				if (command.name().equals(commandText)) {
-					if (sb.length() > 0) {
-						sb.append("\n\n");
-					}
-					sb.append(reply(message, "`" + command.name() + ":` " + command.helpText()));
+				if (!command.name().equals(commandText)) {
+					continue;
+				}
+
+				String text = "`" + command.name() + ":` " + command.helpText();
+				if (sb.length() == 0) {
+					sb.append(reply(message, text));
+				} else {
+					sb.append("\n\n").append(text);
 				}
 			}
 			if (sb.length() == 0) {
@@ -55,9 +59,8 @@ public class HelpCommand implements Command {
 		}
 
 		//TODO split help message up into multiple messages if necessary
-		//build each line of the reply
+		//build each line of the reply and keep them sorted alphabetically
 		Multimap<String, String> lines = TreeMultimap.create();
-		lines.put("shutdown", "Terminates the bot (admins only).");
 		for (Command command : commands) {
 			lines.put(command.name(), command.description());
 		}
