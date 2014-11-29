@@ -99,6 +99,9 @@ public class SOChat {
 			int code = response.getStatusLine().getStatusCode();
 			logger.info("Response code: " + code);
 			EntityUtils.consumeQuietly(response.getEntity());
+			if (code != 200){
+				throw new IOException("Problem sending message: HTTP " + code);
+			}
 
 			//an HTTP 409 response is returned if messages are sent too quickly
 			if (it.hasNext()) {

@@ -1,20 +1,20 @@
 package oakbot.bot;
 
+import static oakbot.util.ChatUtils.reply;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SOChat;
-
-import com.google.common.collect.Multimap;
-import com.google.common.collect.TreeMultimap;
 
 /**
  * A Stackoverflow chat bot.
@@ -23,7 +23,7 @@ import com.google.common.collect.TreeMultimap;
 public class Bot {
 	private static final Logger logger = Logger.getLogger(Bot.class.getName());
 
-	private final String email, password, trigger, about;
+	private final String email, password, trigger;
 	private final SOChat chat;
 	private final int heartbeat;
 	private final List<Integer> rooms, admins;
@@ -35,7 +35,6 @@ public class Bot {
 		email = builder.email;
 		password = builder.password;
 		trigger = builder.trigger;
-		about = builder.about;
 		heartbeat = builder.heartbeat;
 		rooms = builder.rooms;
 		admins = builder.admins;
@@ -83,6 +82,9 @@ public class Bot {
 
 					String content = message.getContent();
 					if (content == null) {
+						//user deleted his/her message
+						prevMessageId = message.getMessageId();
+						prevMessageIds.put(room, prevMessageId);
 						continue;
 					}
 
@@ -99,41 +101,34 @@ public class Bot {
 					List<String> replies = new ArrayList<>();
 					String commandName = matcher.group(1);
 					String text = matcher.group(3);
-					switch (commandName) {
-					case "help":
-						replies.addAll(handleHelp(text, message));
-						break;
-					case "about":
-						replies.add(about);
-						break;
-					case "shutdown":
-						if (admins.contains(message.getUserId())) {
-							broadcast("Shutting down.  See you later.");
-							return;
-						} else {
-							replies.add(reply(message, "Only admins can shut me down."));
-						}
-						break;
-					default:
-						message.setContent(text);
+					boolean isAdmin = admins.contains(message.getUserId());
+					message.setContent(text);
+
+					try {
 						for (Command command : getCommands(commandName)) {
-							String reply = command.onMessage(message);
+							String reply = command.onMessage(message, isAdmin);
 							if (reply != null) {
 								replies.add(reply);
 							}
 						}
-						if (replies.isEmpty()) {
-							replies.add(reply(message, "I don't know that command. o_O"));
+					} catch (ShutdownException e) {
+						broadcast("Shutting down.  See you later.");
+						return;
+					}
+
+					if (replies.isEmpty()) {
+						replies.add(reply(message, "I don't know that command. o_O"));
+					}
+
+					try {
+						for (String reply : replies) {
+							chat.postMessage(room, reply);
 						}
-						break;
+						prevMessageId = message.getMessageId();
+						prevMessageIds.put(room, prevMessageId);
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "Problem sending chat message.", e);
 					}
-
-					for (String reply : replies) {
-						chat.postMessage(room, reply);
-					}
-
-					prevMessageId = message.getMessageId();
-					prevMessageIds.put(room, prevMessageId);
 				}
 			}
 
@@ -176,75 +171,11 @@ public class Bot {
 	}
 
 	/**
-	 * Builds a "reply" message.
-	 * @param replyTo the message to reply to
-	 * @param text the reply
-	 * @return the message text
-	 */
-	private static String reply(ChatMessage replyTo, String text) {
-		return ":" + replyTo.getMessageId() + " " + text;
-	}
-
-	/**
-	 * Builds a response to the "help" command
-	 * @param commandText the text that comes after the command
-	 * @param message the source message
-	 * @return the reply
-	 */
-	private List<String> handleHelp(String commandText, ChatMessage message) {
-		if (commandText != null) {
-			List<String> replies = new ArrayList<>();
-			for (Command command : getCommands(commandText)) {
-				replies.add(reply(message, "`" + command.name() + ":` " + command.helpText()));
-			}
-			if (replies.isEmpty()) {
-				replies.add(reply(message, "No command exists with that name."));
-			}
-			return replies;
-		}
-
-		//TODO split help message up into multiple messages if necessary
-		//build each line of the reply
-		Multimap<String, String> lines = TreeMultimap.create();
-		lines.put("about", "Displays a short description of this bot.");
-		lines.put("help", "Displays this help message.");
-		lines.put("shutdown", "Terminates the bot (admins only).");
-		for (Command command : commands) {
-			lines.put(command.name(), command.description());
-		}
-
-		//get the length of the longest command name
-		int longestName = 0;
-		for (String key : lines.keySet()) {
-			int length = key.length();
-			if (length > longestName) {
-				longestName = length;
-			}
-		}
-
-		//build message
-		StringBuilder sb = new StringBuilder();
-		sb.append("    OakBot Command List\n");
-		for (Map.Entry<String, String> entry : lines.entries()) {
-			String name = entry.getKey();
-			String description = entry.getValue();
-
-			sb.append("    ").append(name);
-			for (int i = name.length(); i < longestName + 2; i++) {
-				sb.append(' ');
-			}
-			sb.append(description).append("\n");
-		}
-
-		return Arrays.asList(sb.toString());
-	}
-
-	/**
 	 * Builds {@link Bot} instances.
 	 * @author Michael Angstadt
 	 */
 	public static class Builder {
-		private String email, password, trigger = "=", about = "Chat Bot.";
+		private String email, password, trigger = "=";
 		private int heartbeat = 3000;
 		private List<Integer> rooms = new ArrayList<>();
 		private List<Integer> admins = new ArrayList<>();
@@ -257,11 +188,6 @@ public class Bot {
 
 		public Builder trigger(String trigger) {
 			this.trigger = trigger;
-			return this;
-		}
-
-		public Builder about(String about) {
-			this.about = about;
 			return this;
 		}
 

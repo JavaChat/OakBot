@@ -8,7 +8,7 @@ import oakbot.chat.ChatMessage;
  */
 public interface Command {
 	/**
-	 * Gets the command's name.  This is what is used to invoke the command.
+	 * Gets the command's name. This is what is used to invoke the command.
 	 * @return the name
 	 */
 	String name();
@@ -30,7 +30,8 @@ public interface Command {
 	/**
 	 * Called when a user invokes this command.
 	 * @param message the message that invoked the command
+	 * @param isAdmin true if the message sender is an admin, false if not
 	 * @return the response
 	 */
-	String onMessage(ChatMessage message);
+	String onMessage(ChatMessage message, boolean isAdmin);
 }

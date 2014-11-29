@@ -32,7 +32,7 @@ public class JavadocCommand implements Command {
 	}
 
 	@Override
-	public String onMessage(ChatMessage message) {
+	public String onMessage(ChatMessage message, boolean isAdmin) {
 		String response;
 		try {
 			response = generateResponse(message.getContent());

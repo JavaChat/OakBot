@@ -10,11 +10,16 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
+import oakbot.bot.AboutCommand;
 import oakbot.bot.Bot;
 import oakbot.bot.Command;
+import oakbot.bot.HelpCommand;
+import oakbot.bot.ShutdownCommand;
 import oakbot.javadoc.Java8PageParser;
 import oakbot.javadoc.JavadocCommand;
 import oakbot.javadoc.PageLoader;
@@ -29,9 +34,9 @@ public class Main {
 	public static final Date BUILT;
 	static {
 		Properties props = new Properties();
-		try (InputStream in = Main.class.getResourceAsStream("/info.properties")){
+		try (InputStream in = Main.class.getResourceAsStream("/info.properties")) {
 			props.load(in);
-		} catch (IOException e){
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 
@@ -48,40 +53,45 @@ public class Main {
 		}
 		BUILT = built;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		BotProperties props = loadProperties();
+
+		List<Command> commands = new ArrayList<>();
 		DateFormat builtFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm Z");
+		commands.add(new AboutCommand("**Oak Bot** v" + VERSION + " by `Michael` | [source code](" + URL + ") | Built: " + builtFormat.format(BUILT)));
+		commands.add(new HelpCommand(commands));
+		commands.add(createJavadocCommand());
+		commands.add(new ShutdownCommand());
 
 		//TODO add "=javadoc TimeUnit 2" for second para
 		//TODO add max message size limit
 		//TODO re-download fkeys after 1 hour of inactivity
 		//@formatter:off
 		Bot bot = new Bot.Builder(props.getLoginEmail(), props.getLoginPassword())
-		.commands(createJavadocCommand())
+		.commands(commands.toArray(new Command[0]))
 		.heartbeat(props.getHeartbeat())
 		.admins(props.getAdmins().toArray(new Integer[0]))
 		.trigger(props.getTrigger())
 		.rooms(props.getRooms().toArray(new Integer[0]))
-		.about("**Oak Bot** v" + VERSION + " by `Michael` | [source code](" + URL + ") | Built: " + builtFormat.format(BUILT))
 		.build();
 		//@formatter:on
 
 		bot.connect();
 	}
-	
-	private static BotProperties loadProperties() throws IOException{
-    	Path file = Paths.get("bot.properties");
-    	Properties properties = new Properties();
-    	try (Reader reader = Files.newBufferedReader(file, Charset.forName("UTF-8"))){
-    		properties.load(reader);
-    	}
-    	return new BotProperties(properties);
-    }
-	
-	private static Command createJavadocCommand() throws IOException{
+
+	private static BotProperties loadProperties() throws IOException {
+		Path file = Paths.get("bot.properties");
+		Properties properties = new Properties();
+		try (Reader reader = Files.newBufferedReader(file, Charset.forName("UTF-8"))) {
+			properties.load(reader);
+		}
+		return new BotProperties(properties);
+	}
+
+	private static Command createJavadocCommand() throws IOException {
 		JavadocCommand javadocCommand = new JavadocCommand();
-		
+
 		Path dir = Paths.get("javadocs");
 		Path java8Api = dir.resolve("java8.zip");
 		if (Files.exists(java8Api)) {
@@ -98,11 +108,11 @@ public class Main {
 				javadocCommand.addLibrary(loader, parser);
 			}
 		}
-		
+
 		return javadocCommand;
 	}
-	
-	private static Command createHttpCommand(){
+
+	private static Command createHttpCommand() {
 		//TODO
 		return null;
 	}
