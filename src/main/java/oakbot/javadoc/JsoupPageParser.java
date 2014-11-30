@@ -43,7 +43,7 @@ public class JsoupPageParser implements PageParser {
 
 		List<String> modifiers;
 		{
-			Element element = document.select("dt").get(1);
+			Element element = document.select("dt pre").get(0);
 			modifiers = Arrays.asList(element.text().trim().split(" "));
 			String simpleName = className.substring(className.lastIndexOf('.') + 1);
 			int pos = modifiers.indexOf(simpleName);
