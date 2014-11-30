@@ -37,7 +37,7 @@ public class Java8PageParser implements PageParser {
 			Element descriptionElement = document.select(".block").first();
 			DescriptionNodeVisitor visitor = new DescriptionNodeVisitor();
 			descriptionElement.traverse(visitor);
-			description = visitor.getStringBuilder().toString().trim();
+			description = visitor.getDescription();
 		}
 
 		String url = getBaseUrl() + "?" + className.replace('.', '/') + ".html";

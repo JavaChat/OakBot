@@ -66,7 +66,6 @@ public class Main {
 		commands.add(createJavadocCommand());
 		commands.add(new ShutdownCommand());
 
-		//TODO add "=javadoc TimeUnit 2" for second para
 		//TODO add max message size limit
 		//TODO re-download fkeys after 1 hour of inactivity
 		//TODO if someone mentions the bot, give a message like "type =help to see my commands"

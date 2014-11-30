@@ -44,7 +44,7 @@ public class Java8PageParserTest {
 	public void getClassInfo() throws Exception {
 		Document document;
 		try (InputStream in = getClass().getResourceAsStream("String.html")) {
-			document = Jsoup.parse(in, "UTF-8", "");
+			document = Jsoup.parse(in, "UTF-8", "http://root.com/folder/");
 		}
 
 		Java8PageParser parser = new Java8PageParser();
@@ -58,29 +58,39 @@ public class Java8PageParserTest {
 		//@formatter:off
 		assertEquals(
 		"The `String` class represents character strings.\n" +
-		" `code` text \n" +
+		"\n" +
+		" `code` text\n" +
+		"\n" +
 		" **bold** text\n" +
+		"\n" +
 		" **bold** text\n" +
+		"\n" +
 		" *italic* text\n" +
+		"\n" +
 		" *italic* text\n" +
+		"\n" +
 		" \\*asterisks\\*\n" +
+		"\n" +
 		" \\_underscores\\_\n" +
+		"\n" +
 		" \\[brackets\\]\n" +
+		"\n" +
 		" [Google Search](http://www.google.com \"with title\")\n" +
-		" [Bing Search](http://www.bing.com)\n" +
-		" Because String objects are immutable they can be shared. For example: \n" +
 		"\n" +
+		" [relative link](http://root.com/dir/file.html)\n" +
 		"\n" +
-		"    String str = \"abc\";\n" +
+		" Because String objects are immutable they can be shared. For example:\n" +
 		"\n" +
+		"`String str = \"abc\";`\n" +
 		"\n" +
-		" is equivalent to: \n" +
-		"\n" +
+		" is equivalent to:\n" +
 		"\n" +
 		"    char data[] = {'a', 'b', 'c'};\n" +
 		"    String str = new String(data);\n" +
+		"    if (foo){\n" +
+        "      System.out.println(\"bar\");\n" +
+        "    }\n" +
 		"\n" +
-		" \n" +
 		"ignore me", info.getDescription());
 		//@formatter:on
 	}

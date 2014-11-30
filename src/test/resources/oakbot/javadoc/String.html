@@ -171,7 +171,7 @@ The <code>String</code> class represents character strings.<br>
 _underscores_<br>
 [brackets]<br>
 <a href="http://www.google.com" title="with title">Google Search</a><br>
-<a href="http://www.bing.com">Bing Search</a><br>
+<a href="../dir/file.html">relative link</a><br>
 
 Because String objects are immutable they can be shared. For example:
 <blockquote><pre>
@@ -179,11 +179,14 @@ Because String objects are immutable they can be shared. For example:
 </pre></blockquote><p>
 is equivalent to:
 <blockquote><pre>
-    char data[] = {'a', 'b', 'c'};
-    String str = new String(data);
+  char data[] = {'a', 'b', 'c'};
+  String str = new String(data);
+  if (foo){
+    System.out.println("bar");
+  }
 </pre></blockquote>
 <p>
-<a href="../../java/lang/Character.html" title="class in java.lang">ignore me</a>
+<span>ignore me</span>
 </div>
 <dl>
 <dt><span class="simpleTagLabel">Since:</span></dt>

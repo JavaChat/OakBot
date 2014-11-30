@@ -1,6 +1,11 @@
 package oakbot.javadoc;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
+
+import oakbot.util.ChatBuilder;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -8,30 +13,20 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.select.NodeVisitor;
 
 /**
- * Iterates through the description section of a class's Javadoc HTML page,
+ * Iterates through the class description section of a Javadoc HTML page,
  * converting the description to SO Chat markdown.
  * @author Michael Angstadt
  */
 public class DescriptionNodeVisitor implements NodeVisitor {
-	private final StringBuilder sb = new StringBuilder();
+	private final ChatBuilder cb = new ChatBuilder();
 	private final Pattern escapeRegex = Pattern.compile("[*_\\[\\]]");
 	private boolean inPre = false;
 	private String prevText;
 	private String linkUrl, linkTitle, linkText;
+	private final StringBuilder preSb = new StringBuilder();
 
 	@Override
 	public void head(Node node, int depth) {
-		//for (int i = 0; i < depth; i++) {
-		//	System.out.print(' ');
-		//}
-		//System.out.println("head " + node.nodeName());
-		//if (node instanceof TextNode) {
-		//	for (int i = 0; i < depth; i++) {
-		//		System.out.print(' ');
-		//	}
-		//	System.out.println(((TextNode) node).text());
-		//}
-
 		switch (node.nodeName()) {
 		case "a":
 			Element element = (Element) node;
@@ -43,33 +38,36 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			break;
 		case "code":
 		case "tt":
-			sb.append("`");
+			cb.code();
 			break;
 		case "i":
 		case "em":
-			sb.append("*");
+			cb.italic();
 			break;
 		case "b":
 		case "strong":
-			sb.append("**");
+			cb.bold();
 			break;
 		case "br":
 		case "p":
-			sb.append("\n");
+			cb.nl();
+			if (!inPre) {
+				cb.nl();
+			}
 			break;
 		case "pre":
 			inPre = true;
-			sb.append("\n");
+			cb.nl();
 			break;
 		case "#text":
 			TextNode text = (TextNode) node;
-			String content;
 			if (inPre) {
-				content = text.getWholeText();
-			} else {
-				content = text.text();
-				content = escapeRegex.matcher(content).replaceAll("\\\\$0"); //escape special chars
+				preSb.append(text.getWholeText());
+				break;
 			}
+
+			String content = text.text();
+			content = escapeRegex.matcher(content).replaceAll("\\\\$0"); //escape special chars
 
 			//in the jsoup javadocs, it's reading some text nodes twice for some reason
 			//so, ignore the duplicate text nodes
@@ -82,7 +80,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			if (inLink()) {
 				linkText = content;
 			} else {
-				sb.append(content);
+				cb.append(content);
 			}
 
 			break;
@@ -91,42 +89,78 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 
 	@Override
 	public void tail(Node node, int depth) {
-		//for (int i = 0; i < depth; i++) {
-		//	System.out.print(' ');
-		//}
-		//System.out.println("tail " + node.nodeName());
-
 		switch (node.nodeName()) {
 		case "a":
 			if (inLink()) {
-				sb.append("[").append(linkText).append("](").append(linkUrl);
-				if (!linkTitle.isEmpty()) {
-					sb.append(" \"").append(linkTitle).append("\"");
-				}
-				sb.append(")");
-
+				cb.link(linkText, linkUrl, linkTitle);
 				linkUrl = linkText = linkTitle = null;
 			}
 			break;
 		case "code":
 		case "tt":
-			sb.append("`");
+			cb.code();
 			break;
 		case "i":
 		case "em":
-			sb.append("*");
+			cb.italic();
 			break;
 		case "b":
 		case "strong":
-			sb.append("**");
+			cb.bold();
 			break;
 		case "p":
-			sb.append("\n");
+			cb.nl();
 			break;
 		case "pre":
 			inPre = false;
-			sb.append("\n");
+			handlePreText();
+			cb.nl();
+			preSb.setLength(0);
 			break;
+		}
+	}
+
+	private void handlePreText() {
+		String text = preSb.toString().trim();
+		String lines[] = text.split("\r\n|\n|\r");
+		if (lines.length == 1) {
+			cb.code(lines[0]).nl();
+			return;
+		}
+
+		List<Integer> spaceCounts = new ArrayList<>(lines.length - 1);
+		int minSpaces = Integer.MAX_VALUE;
+		for (int i = 1; i < lines.length; i++) {
+			String line = lines[i];
+
+			//count the number of spaces/tabs at the beginning of the line
+			int spaces = 0;
+			for (int j = 0; j < line.length(); j++) {
+				char c = line.charAt(j);
+				if (c != ' ' && c != '\t') {
+					break;
+				}
+				spaces++;
+			}
+
+			if (spaces < minSpaces) {
+				minSpaces = spaces;
+			}
+
+			spaceCounts.add(spaces);
+			lines[i] = line.trim();
+		}
+
+		cb.fixed().append(lines[0]).nl(); //handle the first line differently because its prepended spaces where trimmed
+		Iterator<Integer> it = spaceCounts.iterator();
+		for (int i = 1; i < lines.length; i++) {
+			String line = lines[i];
+			cb.fixed();
+			int indent = it.next() - minSpaces;
+			for (int j = 0; j < indent; j++) {
+				cb.append(' ');
+			}
+			cb.append(line).nl();
 		}
 	}
 
@@ -135,10 +169,15 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 	}
 
 	/**
-	 * Gets the {@link StringBuilder} used to hold the description.
-	 * @return the string builder
+	 * Gets the description that was parsed.
+	 * @return the description
 	 */
-	public StringBuilder getStringBuilder() {
-		return sb;
+	public String getDescription() {
+		//@formatter:off
+		return cb.toString()
+		.trim()
+		.replaceAll("[ \\t]+\\n", "\n") //remove whitespace that's at the end of a line
+		.replaceAll("\\n{3,}", "\n\n"); //there should never be a run of more than 2 newlines
+		//@formatter:on
 	}
 }
