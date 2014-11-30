@@ -50,7 +50,10 @@ public class JavadocLibrary {
 			if (in == null) {
 				return null;
 			}
-			document = Jsoup.parse(in, "UTF-8", parser.getBaseUrl());
+			int pos = className.lastIndexOf('.');
+			String path = className.substring(0, pos+1).replace('.', '/');
+			String baseUrl = parser.getBaseUrl() + path;
+			document = Jsoup.parse(in, "UTF-8", baseUrl);
 		}
 		return parser.parseClassPage(document, className);
 	}
