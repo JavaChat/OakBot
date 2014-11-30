@@ -20,10 +20,13 @@ import org.jsoup.select.NodeVisitor;
 public class DescriptionNodeVisitor implements NodeVisitor {
 	private final ChatBuilder cb = new ChatBuilder();
 	private final Pattern escapeRegex = Pattern.compile("[*_\\[\\]]");
-	private boolean inPre = false;
 	private String prevText;
-	private String linkUrl, linkTitle, linkText;
+
+	private boolean inPre = false;
 	private final StringBuilder preSb = new StringBuilder();
+
+	private String linkUrl, linkTitle, linkText;
+	private boolean linkTextCode;
 
 	@Override
 	public void head(Node node, int depth) {
@@ -38,7 +41,11 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			break;
 		case "code":
 		case "tt":
-			cb.code();
+			if (inLink()) {
+				linkTextCode = true;
+			} else {
+				cb.code();
+			}
 			break;
 		case "i":
 		case "em":
@@ -92,13 +99,24 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 		switch (node.nodeName()) {
 		case "a":
 			if (inLink()) {
-				cb.link(linkText, linkUrl, linkTitle);
+				//"code" formatting has to be last
+				ChatBuilder cb2 = new ChatBuilder();
+				if (linkTextCode) {
+					cb2.code(linkText);
+				} else {
+					cb2.append(linkText);
+				}
+				cb.link(cb2.toString(), linkUrl, linkTitle);
+
 				linkUrl = linkText = linkTitle = null;
+				linkTextCode = false;
 			}
 			break;
 		case "code":
 		case "tt":
-			cb.code();
+			if (!inLink()) {
+				cb.code();
+			}
 			break;
 		case "i":
 		case "em":
