@@ -194,6 +194,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 		//@formatter:off
 		return cb.toString()
 		.trim()
+		.replaceAll((char)160 + "", " ") //jsoup converts "&nbsp;" to a character that doesn't display right on SO Chat
 		.replaceAll("[ \\t]+\\n", "\n") //remove whitespace that's at the end of a line
 		.replaceAll("\\n{3,}", "\n\n"); //there should never be a run of more than 2 newlines
 		//@formatter:on

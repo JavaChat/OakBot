@@ -126,8 +126,6 @@ public class Java8PageParserTest {
 
 		assertEquals(Arrays.asList("public", "class"), info.getModifiers());
 		assertTrue(info.isDeprecated());
-		System.out.println((int)info.getDescription().charAt(12));
-		System.out.println((int)info.getDescription().charAt(13));
-		assertNotNull(info.getDescription());
+		assertEquals("Deprecated.  This class does not properly convert characters into bytes. As of JDK 1.1, the preferred way to create a stream from a string is via the `StringReader` class.", info.getDescription());
 	}
 }
