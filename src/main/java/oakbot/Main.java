@@ -23,6 +23,7 @@ import oakbot.bot.HelpCommand;
 import oakbot.bot.ShutdownCommand;
 import oakbot.javadoc.Java8PageParser;
 import oakbot.javadoc.JavadocCommand;
+import oakbot.javadoc.JsoupPageParser;
 import oakbot.javadoc.PageLoader;
 import oakbot.javadoc.PageParser;
 import oakbot.javadoc.ZipPageLoader;
@@ -73,6 +74,8 @@ public class Main {
 		//TODO lib command (displays descriptions of libraries, or you can search for libraries that do certain things)
 		//TODO javadocs: class hierarchy
 		//TODO javadocs: method docs
+		//TODO detect edited commands--and the chat bot should edit *its* reply in response
+		//TODO http command
 		//@formatter:off
 		Bot bot = new Bot.Builder(props.getLoginEmail(), props.getLoginPassword())
 		.commands(commands.toArray(new Command[0]))
@@ -125,6 +128,13 @@ public class Main {
 				PageParser parser = new Java8PageParser();
 				javadocCommand.addLibrary(loader, parser);
 			}
+		}
+
+		Path jsoup = dir.resolve("jsoup-1.8.1.jar");
+		if (Files.exists(jsoup)) {
+			PageLoader loader = new ZipPageLoader(jsoup);
+			PageParser parser = new JsoupPageParser();
+			javadocCommand.addLibrary(loader, parser);
 		}
 
 		return javadocCommand;
