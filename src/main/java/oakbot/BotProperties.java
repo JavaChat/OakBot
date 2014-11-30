@@ -11,7 +11,7 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
-	private final String loginEmail, password, trigger;
+	private final String loginEmail, password, botname, trigger;
 	private final List<Integer> rooms, admins;
 	private final int heartbeat;
 
@@ -23,6 +23,7 @@ public class BotProperties extends PropertiesWrapper {
 
 		loginEmail = get("login.email");
 		password = get("login.password");
+		botname = get("botname");
 		trigger = get("trigger", "=");
 		rooms = getIntList("rooms", Arrays.asList(1)); //default to "Sandbox"
 		admins = getIntList("admins");
@@ -43,6 +44,14 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public String getLoginPassword() {
 		return password;
+	}
+
+	/**
+	 * Gets the bot's name.
+	 * @return the bot's name
+	 */
+	public String getBotname() {
+		return botname;
 	}
 
 	/**

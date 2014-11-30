@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SOChat;
+import oakbot.util.ChatBuilder;
 
 /**
  * A Stackoverflow chat bot.
@@ -24,7 +25,7 @@ import oakbot.chat.SOChat;
 public class Bot {
 	private static final Logger logger = Logger.getLogger(Bot.class.getName());
 
-	private final String email, password, trigger;
+	private final String email, password, name, trigger;
 	private final SOChat chat;
 	private final int heartbeat;
 	private final List<Integer> rooms, admins;
@@ -35,6 +36,7 @@ public class Bot {
 		chat = new SOChat();
 		email = builder.email;
 		password = builder.password;
+		name = builder.name;
 		trigger = builder.trigger;
 		heartbeat = builder.heartbeat;
 		rooms = builder.rooms;
@@ -81,11 +83,33 @@ public class Bot {
 					continue;
 				}
 
+				String mentionToLower, compressedMentionToLower;
+				mentionToLower = compressedMentionToLower = null;
+				if (name != null) {
+					mentionToLower = "@" + name.toLowerCase();
+					compressedMentionToLower = mentionToLower.replace(" ", "");
+				}
+
 				for (ChatMessage message : messages) {
 					String content = message.getContent();
 					if (content == null) {
 						//user deleted his/her message, ignore
 						continue;
+					}
+
+					if (name != null) {
+						String contentToLower = content.toLowerCase();
+						if (contentToLower.startsWith(mentionToLower) || contentToLower.startsWith(compressedMentionToLower)) {
+							ChatBuilder cb = new ChatBuilder();
+							cb.reply(message).append("Type ").code(trigger + "help").append(" to see all my commands.");
+							String reply = cb.toString();
+
+							try {
+								chat.postMessage(room, reply);
+							} catch (IOException e) {
+								logger.log(Level.SEVERE, "Problem sending chat message.", e);
+							}
+						}
 					}
 
 					Matcher matcher = contentRegex.matcher(content);
@@ -199,7 +223,7 @@ public class Bot {
 	 * @author Michael Angstadt
 	 */
 	public static class Builder {
-		private String email, password, trigger = "=";
+		private String email, password, name, trigger = "=";
 		private int heartbeat = 3000;
 		private List<Integer> rooms = new ArrayList<>();
 		private List<Integer> admins = new ArrayList<>();
@@ -208,6 +232,11 @@ public class Bot {
 		public Builder(String email, String password) {
 			this.email = email;
 			this.password = password;
+		}
+
+		public Builder name(String name) {
+			this.name = (name == null || name.isEmpty()) ? null : name;
+			return this;
 		}
 
 		public Builder trigger(String trigger) {

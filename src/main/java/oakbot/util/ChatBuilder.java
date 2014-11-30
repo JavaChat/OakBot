@@ -1,5 +1,7 @@
 package oakbot.util;
 
+import oakbot.chat.ChatMessage;
+
 /**
  * Helper class for building chat messages with SO Chat markdown.
  * @author Michael Angstadt
@@ -87,6 +89,15 @@ public class ChatBuilder {
 	 */
 	public ChatBuilder nl() {
 		return append('\n');
+	}
+
+	/**
+	 * Appends the "reply to message" syntax.
+	 * @param message the message to reply to
+	 * @return this
+	 */
+	public ChatBuilder reply(ChatMessage message) {
+		return append(':').append(message.getMessageId() + "").append(' ');
 	}
 
 	/**

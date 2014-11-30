@@ -68,7 +68,6 @@ public class Main {
 
 		//TODO add max message size limit
 		//TODO re-download fkeys after 1 hour of inactivity
-		//TODO if someone mentions the bot, give a message like "type =help to see my commands"
 		//TODO google command
 		//TODO wiki command
 		//TODO lib command (displays descriptions of libraries, or you can search for libraries that do certain things)
@@ -79,6 +78,7 @@ public class Main {
 		.commands(commands.toArray(new Command[0]))
 		.heartbeat(props.getHeartbeat())
 		.admins(props.getAdmins().toArray(new Integer[0]))
+		.name(props.getBotname())
 		.trigger(props.getTrigger())
 		.rooms(props.getRooms().toArray(new Integer[0]))
 		.build();
