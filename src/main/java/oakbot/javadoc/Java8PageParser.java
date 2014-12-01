@@ -2,7 +2,9 @@ package oakbot.javadoc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,6 +15,8 @@ import org.jsoup.nodes.TextNode;
  * @author Michael Angstadt
  */
 public class Java8PageParser implements PageParser {
+	private static final Logger logger = Logger.getLogger(Java8PageParser.class.getName());
+
 	@Override
 	public List<String> parseClassNames(Document document) {
 		List<String> classNames = new ArrayList<>();
@@ -32,13 +36,7 @@ public class Java8PageParser implements PageParser {
 
 	@Override
 	public ClassInfo parseClassPage(Document document, String className) {
-		String description;
-		{
-			Element descriptionElement = document.select(".block").first();
-			DescriptionNodeVisitor visitor = new DescriptionNodeVisitor();
-			descriptionElement.traverse(visitor);
-			description = visitor.getDescription();
-		}
+		String description = parseDescription(document);
 
 		String url = getBaseUrl() + "?" + className.replace('.', '/') + ".html";
 
@@ -71,7 +69,87 @@ public class Java8PageParser implements PageParser {
 			}
 		}
 
-		return new ClassInfo(className, description, url, modifiers, deprecated);
+		List<MethodInfo> methods = parseConstructors(document);
+
+		return new ClassInfo(className, description, url, modifiers, methods, deprecated);
+	}
+
+	private String parseDescription(Document document) {
+		Element descriptionElement = document.select(".block").first();
+		DescriptionNodeVisitor visitor = new DescriptionNodeVisitor();
+		descriptionElement.traverse(visitor);
+		return visitor.getDescription();
+	}
+
+	private List<MethodInfo> parseConstructors(Document document) {
+		Element container = document.select("a[name=\"constructor.detail\"]").first();
+		if (container == null) {
+			return Collections.emptyList();
+		}
+
+		container = container.parent();
+
+		List<MethodInfo> constructors = new ArrayList<>();
+		for (Element element : container.select("ul li")) {
+			Element preElement = element.select("pre").first();
+
+			//@formatter:off
+			String signature = preElement.text()
+			.replace((char) 160, ' ') //remove "&nbsp;" characters
+			.replaceAll("\\s{2,}", " ") //remove duplicate whitespace chars
+			.trim(); //trim
+			//@formatter:on
+
+			boolean deprecated = signature.contains("@Deprecated");
+			signature = signature.replace("@Deprecated", "").trim();
+			logger.fine(signature);
+
+			int startParen = signature.indexOf('(');
+			int endParen = signature.lastIndexOf(')');
+
+			List<String> modifiers;
+			String name;
+			{
+				List<String> split = Arrays.asList(signature.substring(0, startParen).split("\\s+"));
+				modifiers = split.subList(0, split.size() - 1);
+				name = split.get(split.size() - 1);
+			}
+
+			List<MethodParameter> parameters;
+			{
+				String split[] = signature.substring(startParen + 1, endParen).replaceAll("<.*?>", "").split("[,\\s]+");
+				if (split.length == 1) {
+					parameters = Collections.emptyList();
+				} else {
+					parameters = new ArrayList<>(split.length / 2);
+					for (int i = 0; i < split.length; i += 2) {
+						String type = split[i];
+						String variableName = split[i + 1];
+						parameters.add(new MethodParameter(type, variableName));
+					}
+				}
+			}
+
+			String signatureString = name + signature.substring(startParen, endParen + 1);
+
+			String description;
+			{
+				StringBuilder sb = new StringBuilder();
+				for (Element div : element.select("div.block")) {
+					DescriptionNodeVisitor visitor = new DescriptionNodeVisitor();
+					div.traverse(visitor);
+					if (sb.length() > 0) {
+						sb.append("\n\n");
+					}
+					sb.append(visitor.getDescription());
+				}
+				description = sb.toString();
+			}
+
+			constructors.add(new MethodInfo(name, modifiers, parameters, description, signatureString, deprecated));
+		}
+
+		return constructors;
 	}
 
 	@Override

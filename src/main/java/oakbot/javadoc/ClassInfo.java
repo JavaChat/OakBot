@@ -11,13 +11,15 @@ public class ClassInfo {
 	private final String description;
 	private final String url;
 	private final List<String> modifiers;
+	private final List<MethodInfo> methods;
 	private final boolean deprecated;
 
-	public ClassInfo(String fullName, String description, String url, List<String> modifiers, boolean deprecated) {
+	public ClassInfo(String fullName, String description, String url, List<String> modifiers, List<MethodInfo> methods, boolean deprecated) {
 		this.fullName = fullName;
 		this.description = description;
 		this.url = url;
 		this.modifiers = modifiers;
+		this.methods = methods;
 		this.deprecated = deprecated;
 	}
 
@@ -59,5 +61,13 @@ public class ClassInfo {
 	 */
 	public boolean isDeprecated() {
 		return deprecated;
+	}
+
+	/**
+	 * Gets the class's methods.
+	 * @return the methods
+	 */
+	public List<MethodInfo> getMethods() {
+		return methods;
 	}
 }

@@ -2,6 +2,7 @@ package oakbot.javadoc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.jsoup.nodes.Document;
@@ -50,7 +51,7 @@ public class JsoupPageParser implements PageParser {
 			modifiers = modifiers.subList(0, pos);
 		}
 
-		return new ClassInfo(className, description, url, modifiers, false);
+		return new ClassInfo(className, description, url, modifiers, Collections.emptyList(), false);
 	}
 
 	@Override
