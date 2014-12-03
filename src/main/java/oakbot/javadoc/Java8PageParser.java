@@ -70,6 +70,7 @@ public class Java8PageParser implements PageParser {
 		}
 
 		List<MethodInfo> methods = parseConstructors(document);
+		methods.addAll(parseMethods(document));
 
 		return new ClassInfo(className, description, url, modifiers, methods, deprecated);
 	}
@@ -90,7 +91,7 @@ public class Java8PageParser implements PageParser {
 		container = container.parent();
 
 		List<MethodInfo> constructors = new ArrayList<>();
-		for (Element element : container.select("ul li")) {
+		for (Element element : container.select("ul.blockList li.blockList")) {
 			Element preElement = element.select("pre").first();
 
 			//@formatter:off
@@ -150,6 +151,86 @@ public class Java8PageParser implements PageParser {
 		}
 
 		return constructors;
+	}
+
+	private List<MethodInfo> parseMethods(Document document) {
+		Element container = document.select("a[name=\"method.detail\"]").first();
+		if (container == null) {
+			return Collections.emptyList();
+		}
+
+		container = container.parent();
+
+		List<MethodInfo> methods = new ArrayList<>();
+		for (Element element : container.select("ul.blockList li.blockList")) {
+			Element preElement = element.select("pre").first();
+			if (preElement == null) {
+				continue;
+			}
+
+			String signature = cleanText(preElement.text());
+
+			boolean deprecated = signature.contains("@Deprecated");
+			signature = signature.replace("@Deprecated", "").trim();
+			logger.fine(signature);
+
+			int startParen = signature.indexOf('(');
+			int endParen = signature.lastIndexOf(')');
+
+			List<String> modifiers;
+			String returnType;
+			String name;
+			{
+				List<String> split = Arrays.asList(signature.substring(0, startParen).split("\\s+"));
+				modifiers = split.subList(0, split.size() - 2);
+				returnType = split.get(split.size() - 2);
+				name = split.get(split.size() - 1);
+			}
+
+			List<MethodParameter> parameters;
+			{
+				String split[] = signature.substring(startParen + 1, endParen).replaceAll("<.*?>", "").split("[,\\s]+");
+				if (split.length == 1) {
+					parameters = Collections.emptyList();
+				} else {
+					parameters = new ArrayList<>(split.length / 2);
+					for (int i = 0; i < split.length; i += 2) {
+						String type = split[i];
+						String variableName = split[i + 1];
+						parameters.add(new MethodParameter(type, variableName));
+					}
+				}
+			}
+
+			String signatureString = returnType + " " + name + signature.substring(startParen, endParen + 1);
+
+			String description;
+			{
+				StringBuilder sb = new StringBuilder();
+				for (Element div : element.select("div.block")) {
+					DescriptionNodeVisitor visitor = new DescriptionNodeVisitor();
+					div.traverse(visitor);
+					if (sb.length() > 0) {
+						sb.append("\n\n");
+					}
+					sb.append(visitor.getDescription());
+				}
+				description = sb.toString();
+			}
+
+			methods.add(new MethodInfo(name, modifiers, parameters, description, signatureString, deprecated));
+		}
+
+		return methods;
+	}
+
+	private String cleanText(String text) {
+		//@formatter:off
+		return text
+		.replace((char) 160, ' ') //remove "&nbsp;" characters
+		.replaceAll("\\s{2,}", " ") //remove duplicate whitespace chars
+		.trim(); //trim
+		//@formatter:on
 	}
 
 	@Override

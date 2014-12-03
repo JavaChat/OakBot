@@ -43,17 +43,21 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 		case "tt":
 			if (inLink()) {
 				linkTextCode = true;
-			} else {
+			} else if (!inPre) {
 				cb.code();
 			}
 			break;
 		case "i":
 		case "em":
-			cb.italic();
+			if (!inPre) {
+				cb.italic();
+			}
 			break;
 		case "b":
 		case "strong":
-			cb.bold();
+			if (!inPre) {
+				cb.bold();
+			}
 			break;
 		case "br":
 		case "p":
@@ -64,7 +68,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			break;
 		case "pre":
 			inPre = true;
-			cb.nl();
+			cb.nl().nl();
 			break;
 		case "#text":
 			TextNode text = (TextNode) node;
@@ -114,17 +118,21 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			break;
 		case "code":
 		case "tt":
-			if (!inLink()) {
+			if (!inLink() && !inPre) {
 				cb.code();
 			}
 			break;
 		case "i":
 		case "em":
-			cb.italic();
+			if (!inPre) {
+				cb.italic();
+			}
 			break;
 		case "b":
 		case "strong":
-			cb.bold();
+			if (!inPre) {
+				cb.bold();
+			}
 			break;
 		case "p":
 			cb.nl();

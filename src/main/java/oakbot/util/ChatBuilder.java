@@ -7,7 +7,22 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class ChatBuilder {
-	private final StringBuilder sb = new StringBuilder();
+	private final StringBuilder sb;
+
+	/**
+	 * Creates a new chat builder.
+	 */
+	public ChatBuilder() {
+		sb = new StringBuilder();
+	}
+
+	/**
+	 * Creates a new chat builder.
+	 * @param text the string to populate it with
+	 */
+	public ChatBuilder(String text) {
+		sb = new StringBuilder(text);
+	}
 
 	/**
 	 * Appends the character sequence for "fixed font".
@@ -143,6 +158,16 @@ public class ChatBuilder {
 	 */
 	public ChatBuilder append(String text) {
 		sb.append(text);
+		return this;
+	}
+
+	/**
+	 * Appends the contents of another {@link ChatBuilder}.
+	 * @param text the chat builder to append
+	 * @return this
+	 */
+	public ChatBuilder append(ChatBuilder cb) {
+		sb.append(cb);
 		return this;
 	}
 

@@ -1,9 +1,8 @@
 package oakbot.javadoc;
 
-import static oakbot.util.ChatUtils.reply;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -19,7 +18,6 @@ import oakbot.util.ChatBuilder;
  */
 public class JavadocCommand implements Command {
 	private final JavadocDao dao = new JavadocDao();
-	private final Pattern regex = Pattern.compile("(.*?)#(.*?)(\\((.*?)\\)|$)");
 
 	public void addLibrary(PageLoader loader, PageParser parser) throws IOException {
 		dao.addJavadocApi(loader, parser);
@@ -42,70 +40,34 @@ public class JavadocCommand implements Command {
 
 	@Override
 	public String onMessage(ChatMessage message, boolean isAdmin) {
-		String split[] = message.getContent().split("\\s+");
+		//parse the command
+		CommandTextParser commandText = new CommandTextParser(message.getContent());
 
-		String className = split[0].replaceAll("\\s", "");
-		String methodName;
-		List<String> methodParams;
-		Matcher m = regex.matcher(className);
-		if (m.find()) {
-			className = m.group(1);
-			methodName = m.group(2);
-
-			String params = m.group(4);
-			if (params == null || params.isEmpty()) {
-				methodParams = Collections.emptyList();
-			} else {
-				String paramSplit[] = params.split(",");
-				methodParams = new ArrayList<>(paramSplit.length);
-				for (String param : paramSplit) {
-					methodParams.add(param.toLowerCase());
-				}
-			}
-		} else {
-			methodName = null;
-			methodParams = Collections.emptyList();
-		}
-
-		int paragraph;
-		if (split.length == 1) {
-			paragraph = 1;
-		} else {
-			try {
-				paragraph = Integer.parseInt(split[1]);
-				if (paragraph < 1) {
-					paragraph = 1;
-				}
-			} catch (NumberFormatException e) {
-				paragraph = 1;
-			}
-		}
-
-		String response;
+		ChatBuilder response;
 		try {
-			response = generateResponse(className, methodName, methodParams, paragraph);
+			response = generateResponse(commandText.getClassName(), commandText.getMethodName(), commandText.getParameters(), commandText.getParagraph());
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		}
 
-		return reply(message, response);
+		return new ChatBuilder().reply(message).append(response).toString();
 	}
 
-	private String generateResponse(String className, String methodName, List<String> methodParams, int paragraph) throws IOException {
+	private ChatBuilder generateResponse(String className, String methodName, List<String> methodParams, int paragraph) throws IOException {
 		ClassInfo info;
 		try {
 			info = dao.getClassInfo(className);
 		} catch (MultipleClassesFoundException e) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("Which one do you mean?");
+			ChatBuilder cb = new ChatBuilder();
+			cb.append("Which one do you mean?");
 			for (String name : e.getClasses()) {
-				sb.append("\n* ").append(name);
+				cb.nl().append("* ").append(name);
 			}
-			return sb.toString();
+			return cb;
 		}
 
 		if (info == null) {
-			return "Sorry, I never heard of that class. :(";
+			return new ChatBuilder("Sorry, I never heard of that class. :(");
 		}
 
 		ChatBuilder cb = new ChatBuilder();
@@ -147,6 +109,7 @@ public class JavadocCommand implements Command {
 				if (url == null) {
 					cb.bold().code(fullName).bold();
 				} else {
+					//TODO link directly to the method, not just the class
 					cb.link(new ChatBuilder().bold().code(fullName).bold().toString(), url, "View the Javadocs");
 				}
 				if (deprecated) cb.strike();
@@ -161,10 +124,12 @@ public class JavadocCommand implements Command {
 		} else {
 			//find the method the user typed in
 			MethodInfo methodInfo = null;
+			List<MethodInfo> matchingNames = new ArrayList<>();
 			for (MethodInfo method : info.getMethods()) {
 				if (!method.getName().equalsIgnoreCase(methodName)) {
 					continue;
 				}
+				matchingNames.add(method);
 
 				if (methodParams.size() != method.getParameters().size()) {
 					continue;
@@ -186,7 +151,25 @@ public class JavadocCommand implements Command {
 			}
 
 			if (methodInfo == null) {
-				return "That method doesn't exist.";
+				if (matchingNames.isEmpty()) {
+					return cb.append("That method doesn't exist.");
+				}
+
+				cb.append("Which one do you mean?");
+				for (MethodInfo matchingName : matchingNames) {
+					cb.nl().append("* #").append(matchingName.getName()).append('(');
+					boolean first = true;
+					for (MethodParameter param : matchingName.getParameters()) {
+						if (first) {
+							first = false;
+						} else {
+							cb.append(", ");
+						}
+						cb.append(param.getType());
+					}
+					cb.append(')');
+				}
+				return cb;
 			}
 
 			if (paragraph == 1) {
@@ -217,6 +200,71 @@ public class JavadocCommand implements Command {
 			cb.append(paragraphText);
 		}
 
-		return cb.toString();
+		return cb;
+	}
+
+	static class CommandTextParser {
+		private final static Pattern messageRegex = Pattern.compile("(.*?)(\\((.*?)\\))?(#(.*?)(\\((.*?)\\))?)?(\\s+(.*?))?$");
+
+		private final String className, methodName;
+		private final List<String> parameters;
+		private final int paragraph;
+
+		public CommandTextParser(String message) {
+			Matcher m = messageRegex.matcher(message);
+			m.find();
+
+			className = m.group(1);
+
+			if (m.group(2) != null) { //e.g. java.lang.string(string, string)
+				int dot = className.lastIndexOf('.');
+				String simpleName = (dot < 0) ? className : className.substring(dot + 1);
+				methodName = simpleName;
+			} else {
+				methodName = m.group(5); //e.g. java.lang.string#indexOf(int)
+			}
+
+			String parametersStr = m.group(4); //e.g. java.lang.string(string, string)
+			if (parametersStr == null || parametersStr.startsWith("#")) {
+				parametersStr = m.group(7); //e.g. java.lang.string#string(string, string)
+				if (parametersStr != null && parametersStr.isEmpty()) {
+					parametersStr = null;
+				}
+				if (parametersStr == null) {
+					parametersStr = m.group(3);
+					if (parametersStr != null && parametersStr.isEmpty()) {
+						parametersStr = null;
+					}
+				}
+			}
+			parameters = (parametersStr == null) ? Collections.emptyList() : Arrays.asList(parametersStr.split("\\s*,\\s*"));
+
+			int paragraph;
+			try {
+				paragraph = Integer.parseInt(m.group(9));
+				if (paragraph < 1) {
+					paragraph = 1;
+				}
+			} catch (NumberFormatException e) {
+				paragraph = 1;
+			}
+			this.paragraph = paragraph;
+		}
+
+		public String getClassName() {
+			return className;
+		}
+
+		public String getMethodName() {
+			return methodName;
+		}
+
+		public List<String> getParameters() {
+			return parameters;
+		}
+
+		public int getParagraph() {
+			return paragraph;
+		}
 	}
 }
