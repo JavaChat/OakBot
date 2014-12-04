@@ -155,21 +155,25 @@ public class JavadocCommand implements Command {
 					return cb.append("That method doesn't exist.");
 				}
 
-				cb.append("Which one do you mean?");
-				for (MethodInfo matchingName : matchingNames) {
-					cb.nl().append("* #").append(matchingName.getName()).append('(');
-					boolean first = true;
-					for (MethodParameter param : matchingName.getParameters()) {
-						if (first) {
-							first = false;
-						} else {
-							cb.append(", ");
+				if (matchingNames.size() > 1) {
+					cb.append("Which one do you mean?");
+					for (MethodInfo matchingName : matchingNames) {
+						cb.nl().append("* #").append(matchingName.getName()).append('(');
+						boolean first = true;
+						for (MethodParameter param : matchingName.getParameters()) {
+							if (first) {
+								first = false;
+							} else {
+								cb.append(", ");
+							}
+							cb.append(param.getType());
 						}
-						cb.append(param.getType());
+						cb.append(')');
 					}
-					cb.append(')');
+					return cb;
 				}
-				return cb;
+
+				methodInfo = matchingNames.get(0);
 			}
 
 			if (paragraph == 1) {
