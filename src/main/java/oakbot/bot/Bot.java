@@ -1,11 +1,8 @@
 package oakbot.bot;
 
-import static oakbot.util.ChatUtils.reply;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,8 +11,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
-import oakbot.chat.SOChat;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -26,14 +23,14 @@ public class Bot {
 	private static final Logger logger = Logger.getLogger(Bot.class.getName());
 
 	private final String email, password, name, trigger;
-	private final SOChat chat;
+	private final ChatConnection connection;
 	private final int heartbeat;
 	private final List<Integer> rooms, admins;
 	private final List<Command> commands;
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
 
 	private Bot(Builder builder) {
-		chat = new SOChat();
+		connection = builder.connection;
 		email = builder.email;
 		password = builder.password;
 		name = builder.name;
@@ -50,22 +47,11 @@ public class Bot {
 	 */
 	public void connect() throws IOException {
 		//login
-		chat.login(email, password);
+		connection.login(email, password);
 
-		//get the IDs of the latest messages
+		//post a message to each room
 		for (Integer room : rooms) {
-			List<ChatMessage> messages = chat.getMessages(room, 1);
-
-			long prevId;
-			if (messages.isEmpty()) {
-				prevId = 0;
-			} else {
-				ChatMessage last = messages.get(messages.size() - 1);
-				prevId = last.getMessageId();
-			}
-			prevMessageIds.put(room, prevId);
-
-			chat.postMessage(room, "OakBot Online.");
+			connection.sendMessage(room, "OakBot Online.");
 		}
 
 		//listen for and reply to messages
@@ -77,7 +63,7 @@ public class Bot {
 				logger.fine("Pinging room " + room);
 
 				//get new messages since last ping
-				List<ChatMessage> messages = getNewMessages(room);
+				List<ChatMessage> messages = connection.getNewMessages(room);
 				logger.fine(messages.size() + " new messages found.");
 				if (messages.isEmpty()) {
 					continue;
@@ -97,15 +83,16 @@ public class Bot {
 						continue;
 					}
 
+					//if someone sent a mention to the bot, give them a generic reply
 					if (name != null) {
 						String contentToLower = content.toLowerCase();
-						if (contentToLower.startsWith(mentionToLower) || contentToLower.startsWith(compressedMentionToLower)) {
+						if (contentToLower.contains(mentionToLower) || contentToLower.contains(compressedMentionToLower)) {
 							ChatBuilder cb = new ChatBuilder();
 							cb.reply(message).append("Type ").code(trigger + "help").append(" to see all my commands.");
 							String reply = cb.toString();
 
 							try {
-								chat.postMessage(room, reply);
+								connection.sendMessage(room, reply);
 							} catch (IOException e) {
 								logger.log(Level.SEVERE, "Problem sending chat message.", e);
 							}
@@ -139,12 +126,12 @@ public class Bot {
 					}
 
 					if (replies.isEmpty()) {
-						replies.add(reply(message, "I don't know that command. o_O"));
+						replies.add(new ChatBuilder().reply(message).append("I don't know that command. o_O").toString());
 					}
 
 					try {
 						for (String reply : replies) {
-							chat.postMessage(room, reply);
+							connection.sendMessage(room, reply);
 						}
 					} catch (IOException e) {
 						logger.log(Level.SEVERE, "Problem sending chat message.", e);
@@ -165,31 +152,6 @@ public class Bot {
 				}
 			}
 		}
-	}
-
-	private List<ChatMessage> getNewMessages(int room) throws IOException {
-		long prevMessageId = prevMessageIds.get(room);
-
-		//keep retrieving more and more messages until we got all of the ones that came in since we last pinged
-		List<ChatMessage> messages;
-		for (int count = 5; true; count += 5) {
-			messages = chat.getMessages(room, count);
-			if (messages.isEmpty() || messages.get(0).getMessageId() <= prevMessageId) {
-				break;
-			}
-		}
-
-		//only return the new messages
-		int pos = -1;
-		for (int i = 0; i < messages.size(); i++) {
-			ChatMessage message = messages.get(i);
-			if (message.getMessageId() > prevMessageId) {
-				pos = i;
-				break;
-			}
-		}
-
-		return (pos < 0) ? Collections.emptyList() : messages.subList(pos, messages.size());
 	}
 
 	/**
@@ -214,7 +176,7 @@ public class Bot {
 	 */
 	private void broadcast(String message) throws IOException {
 		for (Integer room : rooms) {
-			chat.postMessage(room, message);
+			connection.sendMessage(room, message);
 		}
 	}
 
@@ -223,6 +185,7 @@ public class Bot {
 	 * @author Michael Angstadt
 	 */
 	public static class Builder {
+		private ChatConnection connection;
 		private String email, password, name, trigger = "=";
 		private int heartbeat = 3000;
 		private List<Integer> rooms = new ArrayList<>();
@@ -232,6 +195,11 @@ public class Bot {
 		public Builder(String email, String password) {
 			this.email = email;
 			this.password = password;
+		}
+
+		public Builder connection(ChatConnection connection) {
+			this.connection = connection;
+			return this;
 		}
 
 		public Builder name(String name) {

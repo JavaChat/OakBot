@@ -21,12 +21,17 @@ import oakbot.bot.Bot;
 import oakbot.bot.Command;
 import oakbot.bot.HelpCommand;
 import oakbot.bot.ShutdownCommand;
+import oakbot.chat.ChatConnection;
+import oakbot.chat.StackoverflowChat;
 import oakbot.javadoc.Java8PageParser;
 import oakbot.javadoc.JavadocCommand;
 import oakbot.javadoc.JsoupPageParser;
 import oakbot.javadoc.PageLoader;
 import oakbot.javadoc.PageParser;
 import oakbot.javadoc.ZipPageLoader;
+import oakbot.util.ChatBuilder;
+
+import org.apache.http.impl.client.HttpClientBuilder;
 
 /**
  * @author Michael Angstadt
@@ -61,24 +66,17 @@ public class Main {
 		BotProperties props = loadProperties();
 
 		List<Command> commands = new ArrayList<>();
-		DateFormat builtFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm Z");
-		commands.add(new AboutCommand("**Oak Bot** v" + VERSION + " by `Michael` | [source code](" + URL + ") | Built: " + builtFormat.format(BUILT)));
+		commands.add(createAboutCommand());
 		commands.add(new HelpCommand(commands));
 		commands.add(createJavadocCommand());
 		commands.add(new ShutdownCommand());
 
-		//TODO add max message size limit
-		//TODO re-download fkeys after 1 hour of inactivity
-		//TODO google command
-		//TODO wiki command
-		//TODO lib command (displays descriptions of libraries, or you can search for libraries that do certain things)
-		//TODO javadocs: class hierarchy
-		//TODO javadocs: method docs
-		//TODO detect edited commands--and the chat bot should edit *its* reply in response
-		//TODO http command
+		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
+
 		//@formatter:off
 		Bot bot = new Bot.Builder(props.getLoginEmail(), props.getLoginPassword())
 		.commands(commands.toArray(new Command[0]))
+		.connection(connection)
 		.heartbeat(props.getHeartbeat())
 		.admins(props.getAdmins().toArray(new Integer[0]))
 		.name(props.getBotname())
@@ -110,6 +108,16 @@ public class Main {
 		return new BotProperties(properties);
 	}
 
+	private static Command createAboutCommand() {
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm Z");
+		ChatBuilder cb = new ChatBuilder();
+		cb.bold("OakBot").append(" v").append(VERSION).append(" by ").link("Michael", "http://stackoverflow.com/users/13379/michael").append(" | ");
+		cb.link("source code", URL).append(" | ");
+		cb.append("Built: ").append(df.format(BUILT));
+
+		return new AboutCommand(cb.toString());
+	}
+
 	private static Command createJavadocCommand() throws IOException {
 		JavadocCommand javadocCommand = new JavadocCommand();
 
@@ -138,10 +146,5 @@ public class Main {
 		}
 
 		return javadocCommand;
-	}
-
-	private static Command createHttpCommand() {
-		//TODO
-		return null;
 	}
 }

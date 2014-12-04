@@ -3,8 +3,10 @@ package oakbot.util;
 import oakbot.chat.ChatMessage;
 
 /**
- * Helper class for building chat messages with SO Chat markdown.
+ * Helper class for building chat messages that have SO Chat markdown.
  * @author Michael Angstadt
+ * @see <a href="http://chat.stackoverflow.com/faq#formatting">Formatting
+ * FAQ</a>
  */
 public class ChatBuilder {
 	private final StringBuilder sb;
@@ -22,6 +24,14 @@ public class ChatBuilder {
 	 */
 	public ChatBuilder(String text) {
 		sb = new StringBuilder(text);
+	}
+
+	/**
+	 * Gets the length of the chat message.
+	 * @return the length
+	 */
+	public int length() {
+		return sb.length();
 	}
 
 	/**
@@ -81,6 +91,16 @@ public class ChatBuilder {
 	 */
 	public ChatBuilder italic(String text) {
 		return italic().append(text).italic();
+	}
+
+	/**
+	 * Appends a clickable link.
+	 * @param display the display text
+	 * @param url the URL
+	 * @return this
+	 */
+	public ChatBuilder link(String display, String url) {
+		return link(display, url);
 	}
 
 	/**

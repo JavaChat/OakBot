@@ -1,16 +1,16 @@
 package oakbot.bot;
 
-import static oakbot.util.ChatUtils.reply;
-
 import java.util.List;
 import java.util.Map;
 
 import oakbot.chat.ChatMessage;
+import oakbot.util.ChatBuilder;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
 /**
+ * Displays help information on each chat command.
  * @author Michael Angstadt
  */
 public class HelpCommand implements Command {
@@ -39,23 +39,22 @@ public class HelpCommand implements Command {
 	public String onMessage(ChatMessage message, boolean isAdmin) {
 		String commandText = message.getContent();
 		if (commandText != null) {
-			StringBuilder sb = new StringBuilder();
+			ChatBuilder cb = new ChatBuilder();
+			cb.reply(message);
 			for (Command command : commands) {
 				if (!command.name().equals(commandText)) {
 					continue;
 				}
 
-				String text = "`" + command.name() + ":` " + command.helpText();
-				if (sb.length() == 0) {
-					sb.append(reply(message, text));
-				} else {
-					sb.append("\n\n").append(text);
+				if (cb.length() > 0) {
+					cb.nl().nl();
 				}
+				cb.code(command.name()).append(": ").append(command.helpText());
 			}
-			if (sb.length() == 0) {
-				return reply(message, "No command exists with that name.");
+			if (cb.length() == 0) {
+				cb.append("No command exists with that name.");
 			}
-			return sb.toString();
+			return cb.toString();
 		}
 
 		//TODO split help message up into multiple messages if necessary
@@ -75,19 +74,19 @@ public class HelpCommand implements Command {
 		}
 
 		//build message
-		StringBuilder sb = new StringBuilder();
-		sb.append("    OakBot Command List\n");
+		ChatBuilder cb = new ChatBuilder();
+		cb.fixed().append("OakBot Command List").nl();
 		for (Map.Entry<String, String> entry : lines.entries()) {
 			String name = entry.getKey();
 			String description = entry.getValue();
 
-			sb.append("    ").append(name);
+			cb.fixed().append(name);
 			for (int i = name.length(); i < longestName + 2; i++) {
-				sb.append(' ');
+				cb.append(' ');
 			}
-			sb.append(description).append("\n");
+			cb.append(description).nl();
 		}
 
-		return sb.toString();
+		return cb.toString();
 	}
 }

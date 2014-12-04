@@ -1,8 +1,12 @@
 package oakbot.bot;
 
-import static oakbot.util.ChatUtils.reply;
 import oakbot.chat.ChatMessage;
+import oakbot.util.ChatBuilder;
 
+/**
+ * Shuts down the bot.
+ * @author Michael Angstadt
+ */
 public class ShutdownCommand implements Command {
 
 	@Override
@@ -25,6 +29,6 @@ public class ShutdownCommand implements Command {
 		if (isAdmin) {
 			throw new ShutdownException("Shutting down.  See you later.");
 		}
-		return reply(message, "Only admins can shut me down.");
+		return new ChatBuilder().reply(message).append("Only admins can shut me down.").toString();
 	}
 }
