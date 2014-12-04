@@ -100,7 +100,7 @@ public class ChatBuilder {
 	 * @return this
 	 */
 	public ChatBuilder link(String display, String url) {
-		return link(display, url);
+		return link(display, url, null);
 	}
 
 	/**

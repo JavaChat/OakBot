@@ -193,7 +193,12 @@ public class StackoverflowChat implements ChatConnection {
 			}
 		}
 
-		return (pos < 0) ? Collections.emptyList() : messages.subList(pos, messages.size());
+		if (pos < 0) {
+			return Collections.emptyList();
+		}
+
+		prevMessageIds.put(room, messages.get(messages.size() - 1).getMessageId());
+		return messages.subList(pos, messages.size());
 	}
 
 	/**
