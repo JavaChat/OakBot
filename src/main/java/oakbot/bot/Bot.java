@@ -43,9 +43,10 @@ public class Bot {
 
 	/**
 	 * Starts the chat bot. This call is blocking.
+	 * @throws IllegalArgumentException if the login credentials are bad
 	 * @throws IOException if there's an I/O problem
 	 */
-	public void connect() throws IOException {
+	public void connect() throws IllegalArgumentException, IOException {
 		//login
 		connection.login(email, password);
 
@@ -233,6 +234,9 @@ public class Bot {
 		}
 
 		public Bot build() throws IOException {
+			if (connection == null) {
+				throw new IllegalArgumentException("No ChatConnection given.");
+			}
 			return new Bot(this);
 		}
 	}

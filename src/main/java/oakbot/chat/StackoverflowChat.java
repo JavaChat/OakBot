@@ -236,8 +236,6 @@ public class StackoverflowChat implements ChatConnection {
 	 * @return the parsed chat message
 	 */
 	private ChatMessage parseChatMessage(JsonNode element) {
-		//example object:
-		//{"event_type":1,"time_stamp":1417041460,"content":"test","user_id":13379,"user_name":"Michael","room_id":1,"message_id":20157245}
 		ChatMessage chatMessage = new ChatMessage();
 
 		JsonNode value = element.get("content");
