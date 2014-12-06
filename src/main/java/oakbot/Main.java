@@ -147,4 +147,8 @@ public class Main {
 
 		return javadocCommand;
 	}
+
+	private Main() {
+		//hide
+	}
 }
