@@ -69,7 +69,7 @@ public class Java8PageParser implements PageParser {
 			}
 		}
 
-		List<MethodInfo> methods = parseConstructors(document);
+		List<MethodInfo> methods = new ArrayList<>(parseConstructors(document));
 		methods.addAll(parseMethods(document));
 
 		return new ClassInfo(className, description, url, modifiers, methods, deprecated);
