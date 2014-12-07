@@ -3,6 +3,7 @@ package oakbot;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,7 +15,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import oakbot.bot.AboutCommand;
 import oakbot.bot.Bot;
@@ -33,10 +36,13 @@ import oakbot.util.ChatBuilder;
 
 import org.apache.http.impl.client.HttpClientBuilder;
 
+
 /**
  * @author Michael Angstadt
  */
 public class Main {
+	private static final Logger logger = Logger.getLogger(Main.class.getName());
+	
 	public static final String VERSION, URL;
 	public static final Date BUILT;
 	static {
@@ -97,6 +103,14 @@ public class Main {
 		try (InputStream in = Files.newInputStream(file)) {
 			LogManager.getLogManager().readConfiguration(in);
 		}
+		
+		//log uncaught exceptions
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread thread, final Throwable thrown) {
+				logger.log(Level.SEVERE, "An error occurred.", thrown);
+			}
+		});
 	}
 
 	private static BotProperties loadProperties() throws IOException {
