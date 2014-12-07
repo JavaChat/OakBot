@@ -22,7 +22,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 	private final Pattern escapeRegex = Pattern.compile("[*_\\[\\]]");
 	private String prevText;
 
-	private boolean inPre = false;
+	private boolean inPre = false, inCode = false;
 	private final StringBuilder preSb = new StringBuilder();
 
 	private String linkUrl, linkTitle, linkText;
@@ -44,6 +44,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			if (inLink()) {
 				linkTextCode = true;
 			} else if (!inPre) {
+				inCode = true;
 				cb.code();
 			}
 			break;
@@ -78,7 +79,9 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			}
 
 			String content = text.text();
-			content = escapeRegex.matcher(content).replaceAll("\\\\$0"); //escape special chars
+			if (!inCode) {
+				content = escapeRegex.matcher(content).replaceAll("\\\\$0"); //escape special chars
+			}
 
 			//in the jsoup javadocs, it's reading some text nodes twice for some reason
 			//so, ignore the duplicate text nodes
@@ -119,6 +122,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 		case "code":
 		case "tt":
 			if (!inLink() && !inPre) {
+				inCode = false;
 				cb.code();
 			}
 			break;

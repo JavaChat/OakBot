@@ -59,7 +59,9 @@ public class Java8PageParserTest {
 		"\n" +
 		" `code` text\n" +
 		"\n" +
-		" **bold** text\n" +
+		" `Don't escape[]`\n" +
+		"\n" +
+		"**bold** text\n" +
 		"\n" +
 		" **bold** text\n" +
 		"\n" +
