@@ -6,12 +6,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import oakbot.doclet.OakbotDoclet;
-
-import org.w3c.dom.Document;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -33,7 +32,13 @@ public class JavadocDao {
 	public void addApi(Path zipFile) throws IOException {
 		//add all the class names to the simple name index
 		LibraryZipFile zip = new LibraryZipFile(zipFile);
-		for (String fullName : zip.getClasses()) {
+		addApi(zip);
+	}
+
+	void addApi(LibraryZipFile zip) throws IOException {
+		Iterator<String> it = zip.getClasses();
+		while (it.hasNext()) {
+			String fullName = it.next();
 			int pos = fullName.lastIndexOf('.');
 			String simpleName = fullName.substring(pos + 1);
 
@@ -82,9 +87,8 @@ public class JavadocDao {
 
 		//parse the class info from the Javadocs
 		for (LibraryZipFile zip : files) {
-			Document document = zip.getClassXml(className);
-			if (document != null) {
-				info = new ClassInfoXmlParser(document, zip.getBaseUrl()).parse();
+			info = zip.getClassInfo(className);
+			if (info != null) {
 				cache.put(className, info);
 				return info;
 			}

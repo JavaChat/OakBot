@@ -1,8 +1,11 @@
 package oakbot.javadoc;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Holds the Javadoc info of a class.
@@ -13,7 +16,7 @@ public class ClassInfo {
 	private final String description, url;
 	private final List<String> modifiers;
 	private final List<ClassName> interfaces;
-	private final List<MethodInfo> methods;
+	private final Multimap<String, MethodInfo> methods;
 	private final boolean deprecated;
 
 	private ClassInfo(Builder builder) {
@@ -21,9 +24,9 @@ public class ClassInfo {
 		superClass = builder.superClass;
 		description = builder.description;
 		url = builder.url;
-		modifiers = Collections.unmodifiableList(builder.modifiers);
-		interfaces = Collections.unmodifiableList(builder.interfaces);
-		methods = Collections.unmodifiableList(builder.methods);
+		modifiers = builder.modifiers.build();
+		interfaces = builder.interfaces.build();
+		methods = builder.methods.build();
 		deprecated = builder.deprecated;
 	}
 
@@ -51,8 +54,12 @@ public class ClassInfo {
 		return interfaces;
 	}
 
-	public List<MethodInfo> getMethods() {
-		return methods;
+	public Collection<MethodInfo> getMethod(String name) {
+		return methods.get(name.toLowerCase());
+	}
+
+	public Collection<MethodInfo> getMethods() {
+		return methods.values();
 	}
 
 	public boolean isDeprecated() {
@@ -62,9 +69,9 @@ public class ClassInfo {
 	public static class Builder {
 		private ClassName name, superClass;
 		private String description, url;
-		private List<String> modifiers = new ArrayList<>();
-		private List<ClassName> interfaces = new ArrayList<>();
-		private List<MethodInfo> methods = new ArrayList<>();;
+		private ImmutableList.Builder<String> modifiers = ImmutableList.builder();
+		private ImmutableList.Builder<ClassName> interfaces = ImmutableList.builder();
+		private ImmutableMultimap.Builder<String, MethodInfo> methods = ImmutableMultimap.builder();
 		private boolean deprecated = false;
 
 		public Builder name(String full, String simple) {
@@ -88,27 +95,22 @@ public class ClassInfo {
 		}
 
 		public Builder modifiers(List<String> modifiers) {
-			this.modifiers = modifiers;
+			this.modifiers.addAll(modifiers);
 			return this;
 		}
-		
-		public Builder interface_(String interface_){
+
+		public Builder interface_(String interface_) {
 			interfaces.add(new ClassName(interface_));
 			return this;
 		}
 
 		public Builder interfaces(List<ClassName> interfaces) {
-			this.interfaces = interfaces;
-			return this;
-		}
-
-		public Builder methods(List<MethodInfo> methods) {
-			this.methods = methods;
+			this.interfaces.addAll(interfaces);
 			return this;
 		}
 
 		public Builder method(MethodInfo method) {
-			this.methods.add(method);
+			this.methods.put(method.getName().toLowerCase(), method);
 			return this;
 		}
 

@@ -45,9 +45,24 @@ import com.sun.javadoc.Type;
  * @author Michael Angstadt
  */
 public class OakbotDoclet {
-	private static final Path outputFile = Paths.get("java8-xml.zip");
+	/**
+	 * The name of the ZIP file to create.
+	 */
+	private static final Path outputFile = Paths.get("java8.zip");
+
+	/**
+	 * The name of the library.
+	 */
 	private static final String libraryName = "Java 8";
+
+	/**
+	 * The URL to the library's Javadocs.
+	 */
 	private static final String baseUrl = "https://docs.oracle.com/javase/8/docs/api/";
+
+	/**
+	 * Whether or not to pretty print the XML.
+	 */
 	private static final boolean indentXml = false;
 
 	/**

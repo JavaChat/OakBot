@@ -8,8 +8,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -73,29 +72,48 @@ public class LibraryZipFile {
 	 * @return the fully-qualified names of all the classes
 	 * @throws IOException if there's a problem reading the ZIP file
 	 */
-	public List<String> getClasses() throws IOException {
-		List<String> classes = new ArrayList<>();
-		try (FileSystem fs = FileSystems.newFileSystem(file, null)) {
-			try (DirectoryStream<Path> stream = Files.newDirectoryStream(fs.getPath("/"), new Filter<Path>() {
-				@Override
-				public boolean accept(Path entry) throws IOException {
-					String name = file.getFileName().toString();
-					if (!name.endsWith(extension)) {
-						return false;
-					}
-
-					return !name.equals(infoFileName);
+	public Iterator<String> getClasses() throws IOException {
+		final FileSystem fs = FileSystems.newFileSystem(file, null);
+		final DirectoryStream<Path> stream = Files.newDirectoryStream(fs.getPath("/"), new Filter<Path>() {
+			@Override
+			public boolean accept(Path entry) throws IOException {
+				String name = entry.getFileName().toString();
+				if (!name.endsWith(extension)) {
+					return false;
 				}
 
-			})) {
-				for (Path file : stream) {
-					String name = file.getFileName().toString();
-					String fullName = name.substring(0, name.length() - 4);
-					classes.add(fullName);
-				}
+				return !name.equals(infoFileName);
 			}
-		}
-		return classes;
+		});
+
+		final Iterator<Path> it = stream.iterator();
+		return new Iterator<String>() {
+			@Override
+			public boolean hasNext() {
+				boolean hasNext = it.hasNext();
+				if (!hasNext) {
+					try {
+						stream.close();
+					} catch (IOException e) {
+						//ignore
+					}
+					try {
+						fs.close();
+					} catch (IOException e) {
+						//ignore
+					}
+				}
+
+				return hasNext;
+			}
+
+			@Override
+			public String next() {
+				Path file = it.next();
+				String name = file.getFileName().toString();
+				return name.substring(0, name.length() - extension.length());
+			}
+		};
 	}
 
 	/**
@@ -105,18 +123,21 @@ public class LibraryZipFile {
 	 * @throws IOException if there was a problem reading from the ZIP file or
 	 * parsing the XML
 	 */
-	public Document getClassXml(String fullName) throws IOException {
+	public ClassInfo getClassInfo(String fullName) throws IOException {
 		try (FileSystem fs = FileSystems.newFileSystem(file, null)) {
 			Path path = fs.getPath(fullName + extension);
 			if (!Files.exists(path)) {
 				return null;
 			}
 
+			Document document;
 			try (InputStream in = Files.newInputStream(path)) {
-				return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
+				document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
 			} catch (SAXException | ParserConfigurationException e) {
 				throw new IOException(e);
 			}
+
+			return new ClassInfoXmlParser(document, baseUrl).parse();
 		}
 	}
 
@@ -135,5 +156,4 @@ public class LibraryZipFile {
 	public String getName() {
 		return name;
 	}
-
 }

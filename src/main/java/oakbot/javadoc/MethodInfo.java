@@ -1,8 +1,8 @@
 package oakbot.javadoc;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Contains information on a method.
@@ -19,8 +19,8 @@ public class MethodInfo {
 
 	private MethodInfo(Builder builder) {
 		name = builder.name;
-		modifiers = Collections.unmodifiableList(builder.modifiers);
-		parameters = Collections.unmodifiableList(builder.parameters);
+		modifiers = builder.modifiers.build();
+		parameters = builder.parameters.build();
 		description = builder.description;
 		url = builder.url;
 		returnValue = builder.returnValue;
@@ -85,8 +85,8 @@ public class MethodInfo {
 
 	public static class Builder {
 		private String name;
-		private List<String> modifiers = new ArrayList<>();
-		private List<ParameterInfo> parameters = new ArrayList<>();
+		private ImmutableList.Builder<String> modifiers = ImmutableList.builder();
+		private ImmutableList.Builder<ParameterInfo> parameters = ImmutableList.builder();
 		private String description;
 		private String url;
 		private ClassName returnValue;
@@ -98,7 +98,7 @@ public class MethodInfo {
 		}
 
 		public Builder modifiers(List<String> modifiers) {
-			this.modifiers = modifiers;
+			this.modifiers.addAll(modifiers);
 			return this;
 		}
 
@@ -130,6 +130,5 @@ public class MethodInfo {
 		public MethodInfo build() {
 			return new MethodInfo(this);
 		}
-
 	}
 }

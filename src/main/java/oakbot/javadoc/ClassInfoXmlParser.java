@@ -130,9 +130,9 @@ public class ClassInfoXmlParser {
 		}
 
 		//description
-		element = document.element("description", element);
-		if (element != null) {
-			builder.description(element.getTextContent());
+		Element descriptionElement = document.element("description", element);
+		if (descriptionElement != null) {
+			builder.description(descriptionElement.getTextContent());
 		}
 
 		//return value
