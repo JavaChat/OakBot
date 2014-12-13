@@ -8,7 +8,7 @@ import oakbot.chat.ChatMessage;
  * @see <a href="http://chat.stackoverflow.com/faq#formatting">Formatting
  * FAQ</a>
  */
-public class ChatBuilder {
+public class ChatBuilder implements CharSequence {
 	private final StringBuilder sb;
 
 	/**
@@ -24,14 +24,6 @@ public class ChatBuilder {
 	 */
 	public ChatBuilder(String text) {
 		sb = new StringBuilder(text);
-	}
-
-	/**
-	 * Gets the length of the chat message.
-	 * @return the length
-	 */
-	public int length() {
-		return sb.length();
 	}
 
 	/**
@@ -189,6 +181,21 @@ public class ChatBuilder {
 	public ChatBuilder append(ChatBuilder cb) {
 		sb.append(cb);
 		return this;
+	}
+
+	@Override
+	public int length() {
+		return sb.length();
+	}
+
+	@Override
+	public char charAt(int index) {
+		return sb.charAt(index);
+	}
+
+	@Override
+	public CharSequence subSequence(int start, int end) {
+		return sb.subSequence(start, end);
 	}
 
 	@Override
