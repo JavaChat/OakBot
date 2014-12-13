@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
+import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,23 +28,17 @@ import oakbot.bot.HelpCommand;
 import oakbot.bot.ShutdownCommand;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.StackoverflowChat;
-import oakbot.javadoc.Java8PageParser;
 import oakbot.javadoc.JavadocCommand;
-import oakbot.javadoc.JsoupPageParser;
-import oakbot.javadoc.PageLoader;
-import oakbot.javadoc.PageParser;
-import oakbot.javadoc.ZipPageLoader;
 import oakbot.util.ChatBuilder;
 
 import org.apache.http.impl.client.HttpClientBuilder;
-
 
 /**
  * @author Michael Angstadt
  */
 public class Main {
 	private static final Logger logger = Logger.getLogger(Main.class.getName());
-	
+
 	public static final String VERSION, URL;
 	public static final Date BUILT;
 	static {
@@ -103,7 +99,7 @@ public class Main {
 		try (InputStream in = Files.newInputStream(file)) {
 			LogManager.getLogManager().readConfiguration(in);
 		}
-		
+
 		//log uncaught exceptions
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			@Override
@@ -136,27 +132,15 @@ public class Main {
 		JavadocCommand javadocCommand = new JavadocCommand();
 
 		Path dir = Paths.get("javadocs");
-		Path java8Api = dir.resolve("java8.zip");
-		if (Files.exists(java8Api)) {
-			PageLoader loader = new ZipPageLoader(java8Api);
-			PageParser parser = new Java8PageParser();
-			javadocCommand.addLibrary(loader, parser);
-		} else {
-			//for testing purposes
-			//this ZIP only has the "java.lang.String" class
-			Path sample = dir.resolve("sample.zip");
-			if (Files.exists(sample)) {
-				PageLoader loader = new ZipPageLoader(sample);
-				PageParser parser = new Java8PageParser();
-				javadocCommand.addLibrary(loader, parser);
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, new Filter<Path>() {
+			@Override
+			public boolean accept(Path entry) throws IOException {
+				return entry.getFileName().toString().endsWith(".zip");
 			}
-		}
-
-		Path jsoup = dir.resolve("jsoup-1.8.1.jar");
-		if (Files.exists(jsoup)) {
-			PageLoader loader = new ZipPageLoader(jsoup);
-			PageParser parser = new JsoupPageParser();
-			javadocCommand.addLibrary(loader, parser);
+		})) {
+			for (Path path : stream) {
+				javadocCommand.addLibrary(path);
+			}
 		}
 
 		return javadocCommand;

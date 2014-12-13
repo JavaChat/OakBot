@@ -1,5 +1,6 @@
 package oakbot.doclet;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -32,16 +34,22 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.ConstructorDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
+import com.sun.javadoc.ProgramElementDoc;
 import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.Tag;
 import com.sun.javadoc.Type;
 
 /**
- * A custom Javadoc doclet that saves class information to XML files in a ZIP
- * file.
+ * A custom Javadoc doclet that saves class information to XML files inside of a
+ * ZIP file.
  * @author Michael Angstadt
  */
 public class OakbotDoclet {
+	private static final Path outputFile = Paths.get("java8-xml.zip");
+	private static final String libraryName = "Java 8";
+	private static final String baseUrl = "https://docs.oracle.com/javase/8/docs/api/";
+	private static final boolean indentXml = false;
+
 	/**
 	 * The entry point for the {@code javadoc} command.
 	 * @param rootDoc the root
@@ -51,15 +59,18 @@ public class OakbotDoclet {
 	public static boolean start(RootDoc rootDoc) throws Exception {
 		System.out.println("Building ZIP file...");
 
-		Path zip = Paths.get("java8.zip");
+		if (Files.exists(outputFile)) {
+			Files.delete(outputFile);
+		}
 
-		URI uri = URI.create("jar:file:" + zip.toAbsolutePath());
+		URI uri = URI.create("jar:file:" + outputFile.toAbsolutePath());
 		Map<String, String> env = new HashMap<>();
 		env.put("create", "true");
 		try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
+			writeInfoDocument(fs);
+
 			for (ClassDoc classDoc : rootDoc.classes()) {
 				Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-
 				document.appendChild(parseClass(classDoc, document));
 
 				Path path = fs.getPath(classDoc.qualifiedTypeName() + ".xml");
@@ -72,23 +83,53 @@ public class OakbotDoclet {
 		return true;
 	}
 
+	private static void writeInfoDocument(FileSystem fs) throws IOException, TransformerException, ParserConfigurationException {
+		//create the XML DOM
+		Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+		Element element = document.createElement("info");
+		element.setAttribute("name", libraryName);
+		element.setAttribute("baseUrl", baseUrl);
+		document.appendChild(element);
+
+		//write it to a file
+		Path info = fs.getPath("info.xml");
+		try (Writer writer = Files.newBufferedWriter(info)) {
+			writeDocument(document, writer);
+		}
+	}
+
 	private static Element parseClass(ClassDoc classDoc, Document document) {
 		Element element = document.createElement("class");
 
+		//full name
 		String fullName = classDoc.qualifiedTypeName();
 		element.setAttribute("fullName", fullName);
 
+		//simple name
 		String simpleName = classDoc.simpleTypeName();
 		element.setAttribute("simpleName", simpleName);
 
-		String modifiers = classDoc.modifiers();
-		element.setAttribute("modifiers", modifiers);
+		//modifiers
+		StringBuilder sb = new StringBuilder();
+		if (classDoc.isException()) {
+			sb.append("exception ");
+		} else if (classDoc.isEnum()) {
+			sb.append("enum ");
+		} else if (classDoc.isClass()) {
+			sb.append("class ");
+		}
+		//note: "interface" is already included in the modifiers for interfaces
+		//TODO how to determine if it's an annotation?
+		sb.append(classDoc.modifiers());
+		element.setAttribute("modifiers", sb.toString().trim());
 
+		//super class
 		ClassDoc superClass = classDoc.superclass();
 		if (superClass != null) {
 			element.setAttribute("extends", superClass.qualifiedTypeName());
 		}
 
+		//interfaces
 		List<String> implementsList = new ArrayList<>();
 		for (ClassDoc interfaceDoc : classDoc.interfaces()) {
 			implementsList.add(interfaceDoc.qualifiedTypeName());
@@ -97,24 +138,25 @@ public class OakbotDoclet {
 			element.setAttribute("implements", String.join(" ", implementsList));
 		}
 
-		for (AnnotationDesc annotation : classDoc.annotations()) {
-			if ("Deprecated".equals(annotation.annotationType().simpleTypeName())) {
-				element.setAttribute("deprecated", "true");
-				break;
-			}
+		//deprecated
+		if (isDeprecated(classDoc)) {
+			element.setAttribute("deprecated", "true");
 		}
 
+		//description
 		String description = toMarkdown(classDoc.inlineTags());
 		Element descriptionElement = document.createElement("description");
 		descriptionElement.setTextContent(description);
 		element.appendChild(descriptionElement);
 
+		//constructors
 		Element constructorsElement = document.createElement("constructors");
 		for (ConstructorDoc constructor : classDoc.constructors()) {
 			constructorsElement.appendChild(parseConstructor(constructor, document));
 		}
 		element.appendChild(constructorsElement);
 
+		//methods
 		Element methodsElement = document.createElement("methods");
 		for (MethodDoc method : classDoc.methods()) {
 			methodsElement.appendChild(parseMethod(method, document));
@@ -127,13 +169,12 @@ public class OakbotDoclet {
 	private static Element parseConstructor(ConstructorDoc constructor, Document document) {
 		Element element = document.createElement("constructor");
 
-		for (AnnotationDesc annotation : constructor.annotations()) {
-			if ("Deprecated".equals(annotation.annotationType().simpleTypeName())) {
-				element.setAttribute("deprecated", "true");
-				break;
-			}
+		//deprecated
+		if (isDeprecated(constructor)) {
+			element.setAttribute("deprecated", "true");
 		}
 
+		//thrown exceptions
 		List<String> exceptions = new ArrayList<>();
 		for (Type type : constructor.thrownExceptionTypes()) {
 			exceptions.add(type.qualifiedTypeName());
@@ -142,11 +183,13 @@ public class OakbotDoclet {
 			element.setAttribute("throws", String.join(" ", exceptions));
 		}
 
+		//description
 		String description = toMarkdown(constructor.inlineTags());
 		Element descriptionElement = document.createElement("description");
 		descriptionElement.setTextContent(description);
 		element.appendChild(descriptionElement);
 
+		//parameters
 		Element parametersElement = document.createElement("parameters");
 		for (Parameter parameter : constructor.parameters()) {
 			parametersElement.appendChild(parseParameter(parameter, document));
@@ -159,22 +202,24 @@ public class OakbotDoclet {
 	private static Element parseMethod(MethodDoc method, Document document) {
 		Element element = document.createElement("method");
 
+		//name
 		String name = method.name();
 		element.setAttribute("name", name);
 
+		//modifiers
 		String modifiers = method.modifiers();
 		element.setAttribute("modifiers", modifiers);
 
-		for (AnnotationDesc annotation : method.annotations()) {
-			if ("Deprecated".equals(annotation.annotationType().simpleTypeName())) {
-				element.setAttribute("deprecated", "true");
-				break;
-			}
+		//deprecated
+		if (isDeprecated(method)) {
+			element.setAttribute("deprecated", "true");
 		}
 
+		//return value
 		String returns = method.returnType().qualifiedTypeName();
 		element.setAttribute("returns", returns);
 
+		//thrown exceptions
 		List<String> exceptions = new ArrayList<>();
 		for (Type type : method.thrownExceptionTypes()) {
 			exceptions.add(type.qualifiedTypeName());
@@ -183,6 +228,7 @@ public class OakbotDoclet {
 			element.setAttribute("throws", String.join(" ", exceptions));
 		}
 
+		//description
 		String description;
 		MethodDoc overriddenMethod = findOverriddenMethod(method);
 		if (overriddenMethod != null) {
@@ -201,11 +247,11 @@ public class OakbotDoclet {
 		} else {
 			description = toMarkdown(method.inlineTags());
 		}
-
 		Element descriptionElement = document.createElement("description");
 		descriptionElement.setTextContent(description);
 		element.appendChild(descriptionElement);
 
+		//parameters
 		Element parametersElement = document.createElement("parameters");
 		for (Parameter parameter : method.parameters()) {
 			parametersElement.appendChild(parseParameter(parameter, document));
@@ -215,10 +261,31 @@ public class OakbotDoclet {
 		return element;
 	}
 
+	private static Element parseParameter(Parameter parameter, Document document) {
+		Element element = document.createElement("parameter");
+
+		String name = parameter.name();
+		element.setAttribute("name", name);
+
+		String type = parameter.type().qualifiedTypeName();
+		element.setAttribute("type", type + parameter.type().dimension());
+
+		return element;
+	}
+
+	private static boolean isDeprecated(ProgramElementDoc element) {
+		for (AnnotationDesc annotation : element.annotations()) {
+			if ("Deprecated".equals(annotation.annotationType().simpleTypeName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private static MethodDoc findOverriddenMethod(MethodDoc method) {
-		MethodDoc m = method.overriddenMethod();
-		if (m != null) {
-			return m;
+		MethodDoc overriddenMethod = method.overriddenMethod();
+		if (overriddenMethod != null) {
+			return overriddenMethod;
 		}
 
 		Parameter[] methodParams = method.parameters();
@@ -251,18 +318,6 @@ public class OakbotDoclet {
 		return null;
 	}
 
-	private static Element parseParameter(Parameter parameter, Document document) {
-		Element element = document.createElement("parameter");
-
-		String name = parameter.name();
-		element.setAttribute("name", name);
-
-		String type = parameter.type().qualifiedTypeName();
-		element.setAttribute("type", type + parameter.type().dimension());
-
-		return element;
-	}
-
 	private static String toMarkdown(Tag inlineTags[]) {
 		StringBuilder sb = new StringBuilder();
 		for (Tag tag : inlineTags) {
@@ -286,8 +341,10 @@ public class OakbotDoclet {
 
 	private static void writeDocument(Node node, Writer writer) throws TransformerException {
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+		if (indentXml) {
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+		}
 
 		DOMSource source = new DOMSource(node);
 		StreamResult result = new StreamResult(writer);

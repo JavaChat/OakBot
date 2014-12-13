@@ -1,6 +1,7 @@
 package oakbot.javadoc;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,8 +20,8 @@ import oakbot.util.ChatBuilder;
 public class JavadocCommand implements Command {
 	private final JavadocDao dao = new JavadocDao();
 
-	public void addLibrary(PageLoader loader, PageParser parser) throws IOException {
-		dao.addJavadocApi(loader, parser);
+	public void addLibrary(Path zipFile) throws IOException {
+		dao.addApi(zipFile);
 	}
 
 	@Override
@@ -84,6 +85,7 @@ public class JavadocCommand implements Command {
 					case "class":
 					case "enum":
 					case "interface":
+					case "exception":
 						italic = false;
 						break;
 					case "@interface":
@@ -104,7 +106,7 @@ public class JavadocCommand implements Command {
 				}
 
 				if (deprecated) cb.strike();
-				String fullName = info.getFullName();
+				String fullName = info.getName().getFull();
 				String url = info.getUrl();
 				if (url == null) {
 					cb.bold().code(fullName).bold();
@@ -123,7 +125,7 @@ public class JavadocCommand implements Command {
 			cb.append(paragraphText);
 		} else {
 			//find the method the user typed in
-			MethodInfo methodInfo = null;
+			MethodInfo matchingMethod = null;
 			List<MethodInfo> matchingNames = new ArrayList<>();
 			for (MethodInfo method : info.getMethods()) {
 				if (!method.getName().equalsIgnoreCase(methodName)) {
@@ -138,19 +140,19 @@ public class JavadocCommand implements Command {
 				boolean match = true;
 				for (int i = 0; i < methodParams.size(); i++) {
 					String param1 = methodParams.get(i);
-					String param2 = method.getParameters().get(i).getType();
+					String param2 = method.getParameters().get(i).getType().getSimple();
 					if (!param1.equalsIgnoreCase(param2)) {
 						match = false;
 						break;
 					}
 				}
 				if (match) {
-					methodInfo = method;
+					matchingMethod = method;
 					break;
 				}
 			}
 
-			if (methodInfo == null) {
+			if (matchingMethod == null) {
 				if (matchingNames.isEmpty()) {
 					return cb.append("That method doesn't exist.");
 				}
@@ -160,25 +162,25 @@ public class JavadocCommand implements Command {
 					for (MethodInfo matchingName : matchingNames) {
 						cb.nl().append("* #").append(matchingName.getName()).append('(');
 						boolean first = true;
-						for (MethodParameter param : matchingName.getParameters()) {
+						for (ParameterInfo param : matchingName.getParameters()) {
 							if (first) {
 								first = false;
 							} else {
 								cb.append(", ");
 							}
-							cb.append(param.getType());
+							cb.append(param.getType().getSimple());
 						}
 						cb.append(')');
 					}
 					return cb;
 				}
 
-				methodInfo = matchingNames.get(0);
+				matchingMethod = matchingNames.get(0);
 			}
 
 			if (paragraph == 1) {
-				boolean deprecated = methodInfo.isDeprecated();
-				for (String modifier : methodInfo.getModifiers()) {
+				boolean deprecated = matchingMethod.isDeprecated();
+				for (String modifier : matchingMethod.getModifiers()) {
 					if (deprecated) cb.strike();
 					cb.tag(modifier);
 					if (deprecated) cb.strike();
@@ -186,7 +188,7 @@ public class JavadocCommand implements Command {
 				}
 
 				if (deprecated) cb.strike();
-				String signature = methodInfo.getSignatureString();
+				String signature = matchingMethod.getSignatureString();
 				String url = info.getUrl();
 				if (url == null) {
 					cb.bold().code(signature).bold();
@@ -198,7 +200,7 @@ public class JavadocCommand implements Command {
 			}
 
 			//get the method description
-			String description = methodInfo.getDescription();
+			String description = matchingMethod.getDescription();
 			String split[] = description.split("\n\n");
 			String paragraphText = (paragraph <= split.length) ? split[paragraph - 1] : split[split.length - 1];
 			cb.append(paragraphText);
