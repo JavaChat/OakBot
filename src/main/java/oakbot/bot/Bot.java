@@ -108,7 +108,7 @@ public class Bot {
 
 					logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
 
-					List<String> replies = new ArrayList<>();
+					List<ChatResponse> replies = new ArrayList<>();
 					String commandName = matcher.group(1);
 					String text = matcher.group(3);
 					boolean isAdmin = admins.contains(message.getUserId());
@@ -116,7 +116,7 @@ public class Bot {
 
 					try {
 						for (Command command : getCommands(commandName)) {
-							String reply = command.onMessage(message, isAdmin);
+							ChatResponse reply = command.onMessage(message, isAdmin);
 							if (reply != null) {
 								replies.add(reply);
 							}
@@ -127,12 +127,12 @@ public class Bot {
 					}
 
 					if (replies.isEmpty()) {
-						replies.add(new ChatBuilder().reply(message).append("I don't know that command. o_O").toString());
+						replies.add(new ChatResponse(new ChatBuilder().reply(message).append("I don't know that command. o_O").toString()));
 					}
 
 					try {
-						for (String reply : replies) {
-							connection.sendMessage(room, reply);
+						for (ChatResponse reply : replies) {
+							connection.sendMessage(room, reply.getMessage(), reply.getSplitStrategy());
 						}
 					} catch (IOException e) {
 						logger.log(Level.SEVERE, "Problem sending chat message.", e);

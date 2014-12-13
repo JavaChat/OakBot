@@ -33,5 +33,5 @@ public interface Command {
 	 * @param isAdmin true if the message sender is an admin, false if not
 	 * @return the response
 	 */
-	String onMessage(ChatMessage message, boolean isAdmin);
+	ChatResponse onMessage(ChatMessage message, boolean isAdmin);
 }

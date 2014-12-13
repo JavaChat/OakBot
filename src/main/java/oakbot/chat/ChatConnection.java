@@ -18,12 +18,23 @@ public interface ChatConnection {
 	void login(String email, String password) throws IllegalArgumentException, IOException;
 
 	/**
-	 * Posts a message to a chat room.
+	 * Posts a message to a chat room. If the message exceeds the max message
+	 * size, it will be truncated.
 	 * @param room the ID of the chat room
 	 * @param message the message to post
 	 * @throws IOException if there's a problem posting the message
 	 */
 	void sendMessage(int room, String message) throws IOException;
+
+	/**
+	 * Posts a message to a chat room.
+	 * @param room the ID of the chat room
+	 * @param message the message to post
+	 * @param splitStragey defines how the message should be split up if the
+	 * chat connect has a max message size
+	 * @throws IOException if there's a problem posting the message
+	 */
+	void sendMessage(int room, String message, SplitStrategy splitStragey) throws IOException;
 
 	/**
 	 * Gets the most recent messages from a chat room.

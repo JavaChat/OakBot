@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import oakbot.bot.ChatResponse;
 import oakbot.bot.Command;
 import oakbot.chat.ChatMessage;
+import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -40,7 +42,7 @@ public class JavadocCommand implements Command {
 	}
 
 	@Override
-	public String onMessage(ChatMessage message, boolean isAdmin) {
+	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
 		//parse the command
 		CommandTextParser commandText = new CommandTextParser(message.getContent());
 
@@ -51,7 +53,8 @@ public class JavadocCommand implements Command {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		}
 
-		return new ChatBuilder().reply(message).append(response).toString();
+		String reply = new ChatBuilder().reply(message).append(response).toString();
+		return new ChatResponse(reply, SplitStrategy.WORD);
 	}
 
 	private ChatBuilder generateResponse(String className, String methodName, List<String> methodParams, int paragraph) throws IOException {

@@ -35,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class StackoverflowChat implements ChatConnection {
 	private static final Logger logger = Logger.getLogger(StackoverflowChat.class.getName());
-	private static final int MAX_MESSAGE_LENGTH = 497;
+	private static final int MAX_MESSAGE_LENGTH = 500;
 
 	private final HttpClient client;
 	private final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
@@ -73,25 +73,18 @@ public class StackoverflowChat implements ChatConnection {
 			throw new IllegalArgumentException("Bad login");
 		}
 	}
-
+	
 	@Override
 	public void sendMessage(int room, String message) throws IOException {
-		List<String> posts = new ArrayList<>();
-		while (message.length() > MAX_MESSAGE_LENGTH) {
-			int pos = message.lastIndexOf(' ', MAX_MESSAGE_LENGTH);
-			if (pos < 0) {
-				posts.add(message.substring(0, MAX_MESSAGE_LENGTH) + "...");
-				message = message.substring(MAX_MESSAGE_LENGTH);
-			} else {
-				posts.add(message.substring(0, pos) + "...");
-				message = message.substring(pos + 1);
-			}
-		}
-		posts.add(message);
+		sendMessage(room, message, SplitStrategy.NONE);
+	}
 
+	@Override
+	public void sendMessage(int room, String message, SplitStrategy splitStrategy) throws IOException {
 		String fkey = getFKey(room);
-
 		String url = "https://chat.stackoverflow.com/chats/" + room + "/messages/new";
+		List<String> posts = splitStrategy.split(message, MAX_MESSAGE_LENGTH);
+
 		Iterator<String> it = posts.iterator();
 		while (it.hasNext()) {
 			String post = it.next();

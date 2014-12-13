@@ -28,7 +28,7 @@ public class AboutCommand implements Command {
 	}
 
 	@Override
-	public String onMessage(ChatMessage message, boolean isAdmin) {
-		return text;
+	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
+		return new ChatResponse(text);
 	}
 }

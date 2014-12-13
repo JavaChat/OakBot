@@ -25,10 +25,11 @@ public class ShutdownCommand implements Command {
 	}
 
 	@Override
-	public String onMessage(ChatMessage message, boolean isAdmin) {
+	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
 		if (isAdmin) {
 			throw new ShutdownException("Shutting down.  See you later.");
 		}
-		return new ChatBuilder().reply(message).append("Only admins can shut me down.").toString();
+		String reply = new ChatBuilder().reply(message).append("Only admins can shut me down.").toString();
+		return new ChatResponse(reply);
 	}
 }

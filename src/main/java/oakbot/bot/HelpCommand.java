@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import oakbot.chat.ChatMessage;
+import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
 import com.google.common.collect.Multimap;
@@ -36,7 +37,7 @@ public class HelpCommand implements Command {
 	}
 
 	@Override
-	public String onMessage(ChatMessage message, boolean isAdmin) {
+	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
 		String commandText = message.getContent();
 		if (commandText != null) {
 			ChatBuilder cb = new ChatBuilder();
@@ -54,7 +55,7 @@ public class HelpCommand implements Command {
 			if (cb.length() == 0) {
 				cb.append("No command exists with that name.");
 			}
-			return cb.toString();
+			return new ChatResponse(cb.toString(), SplitStrategy.WORD);
 		}
 
 		//TODO split help message up into multiple messages if necessary
@@ -87,6 +88,6 @@ public class HelpCommand implements Command {
 			cb.append(description).nl();
 		}
 
-		return cb.toString();
+		return new ChatResponse(cb.toString(), SplitStrategy.NEWLINE);
 	}
 }
