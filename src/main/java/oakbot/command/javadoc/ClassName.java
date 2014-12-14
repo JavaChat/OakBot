@@ -1,4 +1,4 @@
-package oakbot.javadoc;
+package oakbot.command.javadoc;
 
 /**
  * Represents the name of a class.

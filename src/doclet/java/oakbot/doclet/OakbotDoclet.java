@@ -22,7 +22,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import oakbot.javadoc.DescriptionNodeVisitor;
+import oakbot.command.javadoc.DescriptionNodeVisitor;
 
 import org.jsoup.Jsoup;
 import org.w3c.dom.Document;
@@ -119,6 +119,8 @@ public class OakbotDoclet {
 		//full name
 		String fullName = classDoc.qualifiedTypeName();
 		element.setAttribute("fullName", fullName);
+		
+		System.out.println("Parsing " + fullName);
 
 		//simple name
 		String simpleName = classDoc.simpleTypeName();

@@ -1,5 +1,6 @@
-package oakbot.bot;
+package oakbot.command;
 
+import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 
 /**

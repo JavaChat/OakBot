@@ -21,14 +21,14 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import oakbot.bot.AboutCommand;
 import oakbot.bot.Bot;
-import oakbot.bot.Command;
-import oakbot.bot.HelpCommand;
-import oakbot.bot.ShutdownCommand;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.StackoverflowChat;
-import oakbot.javadoc.JavadocCommand;
+import oakbot.command.AboutCommand;
+import oakbot.command.Command;
+import oakbot.command.HelpCommand;
+import oakbot.command.ShutdownCommand;
+import oakbot.command.javadoc.JavadocCommand;
 import oakbot.util.ChatBuilder;
 
 import org.apache.http.impl.client.HttpClientBuilder;

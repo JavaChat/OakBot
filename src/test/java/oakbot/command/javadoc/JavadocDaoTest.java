@@ -1,4 +1,4 @@
-package oakbot.javadoc;
+package oakbot.command.javadoc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -13,6 +13,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import oakbot.command.javadoc.ClassInfo;
+import oakbot.command.javadoc.JavadocDao;
+import oakbot.command.javadoc.LibraryZipFile;
+import oakbot.command.javadoc.MultipleClassesFoundException;
 
 import org.junit.Test;
 

@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
+import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
 
 /**

@@ -1,11 +1,11 @@
-package oakbot.javadoc;
+package oakbot.command.javadoc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
 
-import oakbot.javadoc.JavadocCommand.CommandTextParser;
+import oakbot.command.javadoc.JavadocCommand.CommandTextParser;
 
 import org.junit.Test;
 

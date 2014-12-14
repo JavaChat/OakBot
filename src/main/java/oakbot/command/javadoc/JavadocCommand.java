@@ -1,4 +1,4 @@
-package oakbot.javadoc;
+package oakbot.command.javadoc;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -10,9 +10,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import oakbot.bot.ChatResponse;
-import oakbot.bot.Command;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
+import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
 
 /**

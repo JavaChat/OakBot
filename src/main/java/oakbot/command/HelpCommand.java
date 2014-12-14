@@ -1,8 +1,9 @@
-package oakbot.bot;
+package oakbot.command;
 
 import java.util.List;
 import java.util.Map;
 
+import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;

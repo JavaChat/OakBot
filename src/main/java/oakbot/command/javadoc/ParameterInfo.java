@@ -1,4 +1,4 @@
-package oakbot.javadoc;
+package oakbot.command.javadoc;
 
 /**
  * Contains information on a method parameter.

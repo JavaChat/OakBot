@@ -1,5 +1,7 @@
 package oakbot.bot;
 
+import oakbot.command.Command;
+
 /**
  * Thrown from a {@link Command} to tell the bot to shut itself down.
  * @author Michael Angstadt
