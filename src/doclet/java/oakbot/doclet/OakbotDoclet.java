@@ -48,7 +48,7 @@ public class OakbotDoclet {
 	/**
 	 * The name of the ZIP file to create.
 	 */
-	private static final Path outputFile = Paths.get("java8.zip");
+	private static final Path outputFile = Paths.get("javadocs/java8.zip");
 
 	/**
 	 * The name of the library.
@@ -339,8 +339,13 @@ public class OakbotDoclet {
 			String text = tag.text();
 			switch (tag.name()) {
 			case "@code":
-			case "@link":
 				sb.append("<code>").append(text).append("</code>");
+				break;
+			case "@link":
+			case "@linkplain":
+				//TODO format as a <a> link
+				String split[] = text.split("\\s+", 2);
+				sb.append(split[split.length - 1]);
 				break;
 			default:
 				sb.append(text);
