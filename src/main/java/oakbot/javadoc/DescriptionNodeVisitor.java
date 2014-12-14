@@ -71,6 +71,14 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			inPre = true;
 			cb.nl().nl();
 			break;
+		case "h1":
+		case "h2":
+		case "h3":
+		case "h4":
+		case "h5":
+		case "h6":
+			cb.nl().nl().bold();
+			break;
 		case "#text":
 			TextNode text = (TextNode) node;
 			if (inPre) {
@@ -146,6 +154,14 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			handlePreText();
 			cb.nl();
 			preSb.setLength(0);
+			break;
+		case "h1":
+		case "h2":
+		case "h3":
+		case "h4":
+		case "h5":
+		case "h6":
+			cb.append(": ").bold();
 			break;
 		}
 	}
