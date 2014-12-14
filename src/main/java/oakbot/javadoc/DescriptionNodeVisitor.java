@@ -19,7 +19,7 @@ import org.jsoup.select.NodeVisitor;
  */
 public class DescriptionNodeVisitor implements NodeVisitor {
 	private final ChatBuilder cb = new ChatBuilder();
-	private final Pattern escapeRegex = Pattern.compile("[*_\\[\\]]");
+	private final Pattern escapeRegex = Pattern.compile("[*_\\[\\]`]");
 	private String prevText;
 
 	private boolean inPre = false, inCode = false;
