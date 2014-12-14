@@ -168,18 +168,8 @@ public class ChatBuilder implements CharSequence {
 	 * @param text the string to append
 	 * @return this
 	 */
-	public ChatBuilder append(String text) {
+	public ChatBuilder append(CharSequence text) {
 		sb.append(text);
-		return this;
-	}
-
-	/**
-	 * Appends the contents of another {@link ChatBuilder}.
-	 * @param text the chat builder to append
-	 * @return this
-	 */
-	public ChatBuilder append(ChatBuilder cb) {
-		sb.append(cb);
 		return this;
 	}
 
