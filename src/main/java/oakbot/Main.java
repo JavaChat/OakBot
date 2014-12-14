@@ -28,6 +28,7 @@ import oakbot.command.AboutCommand;
 import oakbot.command.Command;
 import oakbot.command.HelpCommand;
 import oakbot.command.ShutdownCommand;
+import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
 import oakbot.util.ChatBuilder;
 
@@ -71,6 +72,7 @@ public class Main {
 		commands.add(createAboutCommand());
 		commands.add(new HelpCommand(commands));
 		commands.add(createJavadocCommand());
+		commands.add(new HttpCommand());
 		commands.add(new ShutdownCommand());
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
