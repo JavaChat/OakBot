@@ -34,8 +34,8 @@ public class SplitStrategyTest {
 		List<String> actual = SplitStrategy.WORD.split("Java is a general-purpose computer programming language that is concurrent, class-based, object-oriented, and specifically designed to have as few implementation dependencies as possible.", 100);
 		//@formatter:off
 		List<String> expected = Arrays.asList(
-			"Java is a general-purpose computer programming language that is concurrent, class-based,...",
-			"object-oriented, and specifically designed to have as few implementation dependencies as...",
+			"Java is a general-purpose computer programming language that is concurrent, class-based, ...",
+			"object-oriented, and specifically designed to have as few implementation dependencies as ...",
 			"possible."
 		);
 		//@formatter:on
@@ -44,13 +44,12 @@ public class SplitStrategyTest {
 
 	@Test
 	public void word_markdown() {
-		//TODO a bolded phrase is cut in half, so the markdown doesn't work
 		List<String> actual = SplitStrategy.WORD.split("Java is a general-purpose computer programming language that is concurrent, class-based, object-oriented, and specifically designed to have **as few implementation dependencies as possible**.", 100);
 		//@formatter:off
 		List<String> expected = Arrays.asList(
-			"Java is a general-purpose computer programming language that is concurrent, class-based,...",
-			"object-oriented, and specifically designed to have **as few implementation dependencies as...",
-			"possible**."
+			"Java is a general-purpose computer programming language that is concurrent, class-based, ...",
+			"object-oriented, and specifically designed to have ...",
+			"**as few implementation dependencies as possible**."
 		);
 		//@formatter:on
 		assertEquals(expected, actual);
