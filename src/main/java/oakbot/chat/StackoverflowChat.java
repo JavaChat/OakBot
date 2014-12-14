@@ -32,6 +32,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * A connection to Stackoverflow chat.
  * @author Michael Angstadt
  * @see <a href="http://chat.stackoverflow.com">chat.stackoverflow.com</a>
+ * @see <a
+ * href="https://github.com/Zirak/SO-ChatBot/blob/master/source/adapter.js">Good
+ * explanation of how SO Chat works</a>
  */
 public class StackoverflowChat implements ChatConnection {
 	private static final Logger logger = Logger.getLogger(StackoverflowChat.class.getName());
@@ -73,7 +76,7 @@ public class StackoverflowChat implements ChatConnection {
 			throw new IllegalArgumentException("Bad login");
 		}
 	}
-	
+
 	@Override
 	public void sendMessage(int room, String message) throws IOException {
 		sendMessage(room, message, SplitStrategy.NONE);
