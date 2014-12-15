@@ -100,14 +100,16 @@ public class HttpCommand implements Command {
 		}
 
 		String description = element.getTextContent().trim();
-		String paragraphText = getParagraph(description, paragraph);
+		String paragraphs[] = description.split("\n\n");
+		if (paragraph > paragraphs.length){
+			paragraph = paragraphs.length;
+		}
+		String paragraphText = paragraphs[paragraph - 1];
 		cb.append(paragraphText);
+		if (paragraphs.length > 1) {
+			cb.append(" (").append(paragraph + "").append("/").append(paragraphs.length + "").append(")");
+		}
 
 		return new ChatResponse(cb.toString(), SplitStrategy.WORD);
-	}
-
-	private static String getParagraph(String text, int num) {
-		String split[] = text.split("\n\n");
-		return (num <= split.length) ? split[num - 1] : split[split.length - 1];
 	}
 }

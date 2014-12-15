@@ -4,9 +4,7 @@ This class of status code indicates a provisional response, consisting only of t
 
 A client MUST be prepared to accept one or more 1xx status responses prior to a regular response, even if the client does not expect a 100 (Continue) status message. Unexpected 1xx status responses MAY be ignored by a user agent.
 
-Proxies MUST forward 1xx responses, unless the connection between the proxy and its client has been closed, or unless the proxy itself requested the generation of the 1xx response. (For example, if a
-
-proxy adds a "Expect: 100-continue" field when it forwards a request, then it need not forward the corresponding 100 (Continue) response(s).)
+Proxies MUST forward 1xx responses, unless the connection between the proxy and its client has been closed, or unless the proxy itself requested the generation of the 1xx response. (For example, if a proxy adds a "Expect: 100-continue" field when it forwards a request, then it need not forward the corresponding 100 (Continue) response(s).)
 	</statusCode>
 
 	<statusCode code="100" name="Continue" section="10.1.1">
@@ -14,13 +12,11 @@ This class of status code indicates a provisional response, consisting only of t
 
 A client MUST be prepared to accept one or more 1xx status responses prior to a regular response, even if the client does not expect a 100 (Continue) status message. Unexpected 1xx status responses MAY be ignored by a user agent.
 
-Proxies MUST forward 1xx responses, unless the connection between the proxy and its client has been closed, or unless the proxy itself requested the generation of the 1xx response. (For example, if a
-
-proxy adds a "Expect: 100-continue" field when it forwards a request, then it need not forward the corresponding 100 (Continue) response(s).)
+Proxies MUST forward 1xx responses, unless the connection between the proxy and its client has been closed, or unless the proxy itself requested the generation of the 1xx response. (For example, if a proxy adds a "Expect: 100-continue" field when it forwards a request, then it need not forward the corresponding 100 (Continue) response(s).)
 	</statusCode>
 
 	<statusCode code="101" name="Switching Protocols" section="10.1.2">
-The server understands and is willing to comply with the client's request, via the Upgrade message header field (section 14.42), for a change in the application protocol being used on this connection. The server will switch protocols to those defined by the response's Upgrade header field immediately after the empty line which terminates the 101 response.
+The server understands and is willing to comply with the client's request, via the Upgrade message header field ([section 14.42](http://tools.ietf.org/html/rfc2616#section-14.42)), for a change in the application protocol being used on this connection. The server will switch protocols to those defined by the response's Upgrade header field immediately after the empty line which terminates the 101 response.
 
 The protocol SHOULD be switched only when it is advantageous to do so. For example, switching to a newer version of HTTP is advantageous over older versions, and switching to a real-time, synchronous protocol might be advantageous when delivering resources that use such features.
 	</statusCode>
@@ -32,19 +28,16 @@ This class of status code indicates that the client's request was successfully r
 	<statusCode code="200" name="OK" section="10.2.1">
 The request has succeeded. The information returned with the response is dependent on the method used in the request, for example:
 
-GET an entity corresponding to the requested resource is sent in the response;
-
-HEAD the entity-header fields corresponding to the requested resource are sent in the response without any message-body;
-
-POST an entity describing or containing the result of the action;
-
-TRACE an entity containing the request message as received by the end server.
+- GET an entity corresponding to the requested resource is sent in the response;
+- HEAD the entity-header fields corresponding to the requested resource are sent in the response without any message-body;
+- POST an entity describing or containing the result of the action;
+- TRACE an entity containing the request message as received by the end server.
 	</statusCode>
 
 	<statusCode code="201" name="Created" section="10.2.2">
 The request has been fulfilled and resulted in a new resource being created. The newly created resource can be referenced by the URI(s) returned in the entity of the response, with the most specific URI for the resource given by a Location header field. The response SHOULD include an entity containing a list of resource characteristics and location(s) from which the user or user agent can choose the one most appropriate. The entity format is specified by the media type given in the Content-Type header field. The origin server MUST create the resource before returning the 201 status code. If the action cannot be carried out immediately, the server SHOULD respond with 202 (Accepted) response instead.
 
-A 201 response MAY contain an ETag response header field indicating the current value of the entity tag for the requested variant just created, see section 14.19.
+A 201 response MAY contain an ETag response header field indicating the current value of the entity tag for the requested variant just created, see [section 14.19](http://tools.ietf.org/html/rfc2616#section-14.19).
 	</statusCode>
 
 	<statusCode code="202" name="Accepted" section="10.2.3">
@@ -74,20 +67,12 @@ The server has fulfilled the partial GET request for the resource. The request M
 
 The response MUST include the following header fields:
 
-    - Either a Content-Range header field (section 14.16) indicating
-      the range included with this response, or a multipart/byteranges
-      Content-Type including Content-Range fields for each part. If a
-      Content-Length header field is present in the response, its
-      value MUST match the actual number of OCTETs transmitted in the
-      message-body.
-    - Date
-    - ETag and/or Content-Location, if the header would have been sent
-      in a 200 response to the same request
-    - Expires, Cache-Control, and/or Vary, if the field-value might
-      differ from that sent in any previous response for the same
-      variant
+- Either a Content-Range header field ([section 14.16](http://tools.ietf.org/html/rfc2616#section-14.16)) indicating the range included with this response, or a multipart/byteranges Content-Type including Content-Range fields for each part. If a Content-Length header field is present in the response, its  value MUST match the actual number of OCTETs transmitted in the message-body.
+- Date
+- ETag and/or Content-Location, if the header would have been sent in a 200 response to the same request
+- Expires, Cache-Control, and/or Vary, if the field-value might differ from that sent in any previous response for the same variant
 
-If the 206 response is the result of an If-Range request that used a strong cache validator (see section 13.3.3), the response SHOULD NOT include other entity-headers. If the response is the result of an If-Range request that used a weak validator, the response MUST NOT include other entity-headers; this prevents inconsistencies between cached entity-bodies and updated headers. Otherwise, the response MUST include all of the entity-headers that would have been returned with a 200 (OK) response to the same request.
+If the 206 response is the result of an If-Range request that used a strong cache validator (see [section 13.3.3](http://tools.ietf.org/html/rfc2616#section-13.3.3)), the response SHOULD NOT include other entity-headers. If the response is the result of an If-Range request that used a weak validator, the response MUST NOT include other entity-headers; this prevents inconsistencies between cached entity-bodies and updated headers. Otherwise, the response MUST include all of the entity-headers that would have been returned with a 200 (OK) response to the same request.
 
 A cache MUST NOT combine a 206 response with other previously cached content if the ETag or Last-Modified headers do not match exactly, see 13.5.4.
 
@@ -97,11 +82,11 @@ A cache that does not support the Range and Content-Range headers MUST NOT cache
 	<statusCode code="3xx" name="Redirection" section="10.3">
 This class of status code indicates that further action needs to be taken by the user agent in order to fulfill the request. The action required MAY be carried out by the user agent without interaction with the user if and only if the method used in the second request is GET or HEAD. A client SHOULD detect infinite redirection loops, since such loops generate network traffic for each redirection.
 
-Note: previous versions of this specification recommended a maximum of five redirections. Content developers should be aware that there might be clients that implement such a fixed limitation.
+Note: Previous versions of this specification recommended a maximum of five redirections. Content developers should be aware that there might be clients that implement such a fixed limitation.
   </statusCode>
 
 	<statusCode code="300" name="Multiple Choices" section="10.3.1">
-The requested resource corresponds to any one of a set of representations, each with its own specific location, and agent- driven negotiation information (section 12) is being provided so that the user (or user agent) can select a preferred representation and redirect its request to that location.
+The requested resource corresponds to any one of a set of representations, each with its own specific location, and agent-driven negotiation information ([section 12](http://tools.ietf.org/html/rfc2616#section-12)) is being provided so that the user (or user agent) can select a preferred representation and redirect its request to that location.
 
 Unless it was a HEAD request, the response SHOULD include an entity containing a list of resource characteristics and location(s) from which the user or user agent can choose the one most appropriate. The entity format is specified by the media type given in the Content- Type header field. Depending upon the format and the capabilities of
 
@@ -127,7 +112,7 @@ The temporary URI SHOULD be given by the Location field in the response. Unless 
 
 If the 302 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
 
-Note: RFC 1945 and RFC 2068 specify that the client is not allowed to change the method on the redirected request.  However, most existing user agent implementations treat 302 as if it were a 303 response, performing a GET on the Location field-value regardless of the original request method. The status codes 303 and 307 have been added for servers that wish to make unambiguously clear which kind of reaction is expected of the client.
+Note: [RFC 1945](https://tools.ietf.org/html/rfc1945) and [RFC 2068](https://tools.ietf.org/html/rfc2068) specify that the client is not allowed to change the method on the redirected request.  However, most existing user agent implementations treat 302 as if it were a 303 response, performing a GET on the Location field-value regardless of the original request method. The status codes 303 and 307 have been added for servers that wish to make unambiguously clear which kind of reaction is expected of the client.
 	</statusCode>
 
 	<statusCode code="303" name="See Other" section="10.3.4">
@@ -143,14 +128,11 @@ If the client has performed a conditional GET request and access is allowed, but
 
 The response MUST include the following header fields:
 
-    - Date, unless its omission is required by section 14.18.1.  If a clockless origin server obeys these rules, and proxies and clients add their own Date to any response received without one (as already specified by [RFC 2068], section 14.19), caches will operate correctly.
-    - ETag and/or Content-Location, if the header would have been sent
-      in a 200 response to the same request
-    - Expires, Cache-Control, and/or Vary, if the field-value might
-      differ from that sent in any previous response for the same
-      variant
+- Date, unless its omission is required by [section 14.18.1](http://tools.ietf.org/html/rfc2616#section-14.18.1).  If a clockless origin server obeys these rules, and proxies and clients add their own Date to any response received without one (as already specified by [RFC 2068, section 14.19](https://tools.ietf.org/html/rfc2068#section-14.19)), caches will operate correctly.
+- ETag and/or Content-Location, if the header would have been sent in a 200 response to the same request
+- Expires, Cache-Control, and/or Vary, if the field-value might differ from that sent in any previous response for the same variant
 
-If the conditional GET used a strong cache validator (see section 13.3.3), the response SHOULD NOT include other entity-headers. Otherwise (i.e., the conditional GET used a weak validator), the response MUST NOT include other entity-headers; this prevents inconsistencies between cached entity-bodies and updated headers.
+If the conditional GET used a strong cache validator (see [section 13.3.3](http://tools.ietf.org/html/rfc2616#section-13.3.3)), the response SHOULD NOT include other entity-headers. Otherwise (i.e., the conditional GET used a weak validator), the response MUST NOT include other entity-headers; this prevents inconsistencies between cached entity-bodies and updated headers.
 
 If a 304 response indicates an entity not currently cached, then the cache MUST disregard the response and repeat the request without the conditional.
 
@@ -160,10 +142,10 @@ If a cache uses a received 304 response to update a cache entry, the cache MUST 
 	<statusCode code="305" name="Use Proxy" section="10.3.6">
 The requested resource MUST be accessed through the proxy given by the Location field. The Location field gives the URI of the proxy. The recipient is expected to repeat this single request via the proxy. 305 responses MUST only be generated by origin servers.
 
-Note: RFC 2068 was not clear that 305 was intended to redirect a single request, and to be generated by origin servers only.  Not observing these limitations has significant security consequences.
+Note: [RFC 2068](https://tools.ietf.org/html/rfc2068) was not clear that 305 was intended to redirect a single request, and to be generated by origin servers only.  Not observing these limitations has significant security consequences.
 	</statusCode>
 
-	<statusCode code="306" name="(Unused)" section="10.3.7">
+	<statusCode code="306" name="Unused" section="10.3.7">
 The 306 status code was used in a previous version of the specification, is no longer used, and the code is reserved.
 	</statusCode>
 
@@ -186,7 +168,7 @@ The request could not be understood by the server due to malformed syntax. The c
 	</statusCode>
 
 	<statusCode code="401" name="Unauthorized" section="10.4.2">
-The request requires user authentication. The response MUST include a WWW-Authenticate header field (section 14.47) containing a challenge applicable to the requested resource. The client MAY repeat the request with a suitable Authorization header field (section 14.8). If the request already included Authorization credentials, then the 401 response indicates that authorization has been refused for those credentials. If the 401 response contains the same challenge as the prior response, and the user agent has already attempted authentication at least once, then the user SHOULD be presented the entity that was given in the response, since that entity might include relevant diagnostic information. HTTP access authentication is explained in "HTTP Authentication: Basic and Digest Access Authentication" [43].
+The request requires user authentication. The response MUST include a WWW-Authenticate header field (section 14.47) containing a challenge applicable to the requested resource. The client MAY repeat the request with a suitable Authorization header field (section 14.8). If the request already included Authorization credentials, then the 401 response indicates that authorization has been refused for those credentials. If the 401 response contains the same challenge as the prior response, and the user agent has already attempted authentication at least once, then the user SHOULD be presented the entity that was given in the response, since that entity might include relevant diagnostic information. HTTP access authentication is explained in [HTTP Authentication: Basic and Digest Access Authentication](http://tools.ietf.org/html/rfc2617).
 	</statusCode>
 
 	<statusCode code="402" name="Payment Required" section="10.4.3">
@@ -214,7 +196,7 @@ Note: HTTP/1.1 servers are allowed to return responses which are not acceptable 
 	</statusCode>
 
 	<statusCode code="407" name="Proxy Authentication Required" section="10.4.8">
-This code is similar to 401 (Unauthorized), but indicates that the client must first authenticate itself with the proxy. The proxy MUST return a Proxy-Authenticate header field (section 14.33) containing a challenge applicable to the proxy for the requested resource. The client MAY repeat the request with a suitable Proxy-Authorization header field (section 14.34). HTTP access authentication is explained in "HTTP Authentication: Basic and Digest Access Authentication" [43].
+This code is similar to 401 (Unauthorized), but indicates that the client must first authenticate itself with the proxy. The proxy MUST return a Proxy-Authenticate header field (section 14.33) containing a challenge applicable to the proxy for the requested resource. The client MAY repeat the request with a suitable Proxy-Authorization header field ([section 14.34](http://tools.ietf.org/html/rfc2616#section-14.34)). HTTP access authentication is explained in [HTTP Authentication: Basic and Digest Access Authentication](http://tools.ietf.org/html/rfc2617).
 	</statusCode>
 
 	<statusCode code="408" name="Request Timeout" section="10.4.9">
@@ -246,7 +228,7 @@ The precondition given in one or more of the request-header fields evaluated to 
 	<statusCode code="413" name="Request Entity Too Large" section="10.4.14">
 The server is refusing to process a request because the request entity is larger than the server is willing or able to process. The server MAY close the connection to prevent the client from continuing the request.
 
-If the condition is temporary, the server SHOULD include a Retry- After header field to indicate that it is temporary and after what time the client MAY try again.
+If the condition is temporary, the server SHOULD include a Retry-After header field to indicate that it is temporary and after what time the client MAY try again.
 	</statusCode>
 
 	<statusCode code="414" name="Request-URI Too Long" section="10.4.15">
@@ -258,13 +240,13 @@ The server is refusing to service the request because the entity of the request 
 	</statusCode>
 
 	<statusCode code="416" name="Requested Range Not Satisfiable" section="10.4.17">
-A server SHOULD return a response with this status code if a request included a Range request-header field (section 14.35), and none of the range-specifier values in this field overlap the current extent of the selected resource, and the request did not include an If-Range request-header field. (For byte-ranges, this means that the first- byte-pos of all of the byte-range-spec values were greater than the current length of the selected resource.)
+A server SHOULD return a response with this status code if a request included a Range request-header field ([section 14.35](http://tools.ietf.org/html/rfc2616#section-14.35)), and none of the range-specifier values in this field overlap the current extent of the selected resource, and the request did not include an If-Range request-header field. (For byte-ranges, this means that the first- byte-pos of all of the byte-range-spec values were greater than the current length of the selected resource.)
 
 When this status code is returned for a byte-range request, the response SHOULD include a Content-Range entity-header field specifying the current length of the selected resource (see section 14.16). This response MUST NOT use the multipart/byteranges content-type.
 	</statusCode>
 
 	<statusCode code="417" name="Expectation Failed" section="10.4.18">
-The expectation given in an Expect request-header field (see section 14.20) could not be met by this server, or, if the server is a proxy, the server has unambiguous evidence that the request could not be met by the next-hop server.
+The expectation given in an Expect request-header field (see [section 14.20](http://tools.ietf.org/html/rfc2616#section-14.20)) could not be met by this server, or, if the server is a proxy, the server has unambiguous evidence that the request could not be met by the next-hop server.
 	</statusCode>
 
 	<statusCode code="5xx" name="Server Error" section="10.5">
@@ -292,10 +274,10 @@ Note: The existence of the 503 status code does not imply that a server must use
 	<statusCode code="504" name="Gateway Timeout" section="10.5.5">
 The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server specified by the URI (e.g. HTTP, FTP, LDAP) or some other auxiliary server (e.g. DNS) it needed to access in attempting to complete the request.
 
-Note: Note to implementors: some deployed proxies are known to return 400 or 500 when DNS lookups time out.
+Note to implementors: Some deployed proxies are known to return 400 or 500 when DNS lookups time out.
 	</statusCode>
 
 	<statusCode code="505" name="HTTP Version Not Supported" section="10.5.6">
-The server does not support, or refuses to support, the HTTP protocol version that was used in the request message. The server is indicating that it is unable or unwilling to complete the request using the same major version as the client, as described in section 3.1, other than with this error message. The response SHOULD contain an entity describing why that version is not supported and what other protocols are supported by that server.
+The server does not support, or refuses to support, the HTTP protocol version that was used in the request message. The server is indicating that it is unable or unwilling to complete the request using the same major version as the client, as described in [section 3.1](http://tools.ietf.org/html/rfc2616#section-3.1), other than with this error message. The response SHOULD contain an entity describing why that version is not supported and what other protocols are supported by that server.
 	</statusCode>
 </statusCodes>
