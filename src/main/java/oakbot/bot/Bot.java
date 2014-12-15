@@ -112,6 +112,9 @@ public class Bot {
 					List<ChatResponse> replies = new ArrayList<>();
 					String commandName = matcher.group(1);
 					String text = matcher.group(3);
+					if (text == null) {
+						text = "";
+					}
 					boolean isAdmin = admins.contains(message.getUserId());
 					message.setContent(text);
 
