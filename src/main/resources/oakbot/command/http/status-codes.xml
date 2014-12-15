@@ -63,11 +63,13 @@ The server has fulfilled the request and the user agent SHOULD reset the documen
 	</statusCode>
 
 	<statusCode code="206" name="Partial Content" section="10.2.7">
-The server has fulfilled the partial GET request for the resource. The request MUST have included a Range header field (section 14.35) indicating the desired range, and MAY have included an If-Range header field (section 14.27) to make the request conditional.
+The server has fulfilled the partial GET request for the resource. The request MUST have included a Range header field (section 14.35) indicating the desired range, and MAY have included an If-Range header field ([section 14.27](http://tools.ietf.org/html/rfc2616#section-14.27)) to make the request conditional.
 
 The response MUST include the following header fields:
 
-- Either a Content-Range header field ([section 14.16](http://tools.ietf.org/html/rfc2616#section-14.16)) indicating the range included with this response, or a multipart/byteranges Content-Type including Content-Range fields for each part. If a Content-Length header field is present in the response, its  value MUST match the actual number of OCTETs transmitted in the message-body.
+- Either a Content-Range header field ([section 14.16](http://tools.ietf.org/html/rfc2616#section-14.16)) indicating the range included with this response, or a multipart/byteranges Content-Type including Content
+
+-Range fields for each part. If a Content-Length header field is present in the response, its  value MUST match the actual number of OCTETs transmitted in the message-body.
 - Date
 - ETag and/or Content-Location, if the header would have been sent in a 200 response to the same request
 - Expires, Cache-Control, and/or Vary, if the field-value might differ from that sent in any previous response for the same variant
@@ -129,6 +131,7 @@ If the client has performed a conditional GET request and access is allowed, but
 The response MUST include the following header fields:
 
 - Date, unless its omission is required by [section 14.18.1](http://tools.ietf.org/html/rfc2616#section-14.18.1).  If a clockless origin server obeys these rules, and proxies and clients add their own Date to any response received without one (as already specified by [RFC 2068, section 14.19](https://tools.ietf.org/html/rfc2068#section-14.19)), caches will operate correctly.
+
 - ETag and/or Content-Location, if the header would have been sent in a 200 response to the same request
 - Expires, Cache-Control, and/or Vary, if the field-value might differ from that sent in any previous response for the same variant
 
@@ -168,7 +171,7 @@ The request could not be understood by the server due to malformed syntax. The c
 	</statusCode>
 
 	<statusCode code="401" name="Unauthorized" section="10.4.2">
-The request requires user authentication. The response MUST include a WWW-Authenticate header field (section 14.47) containing a challenge applicable to the requested resource. The client MAY repeat the request with a suitable Authorization header field (section 14.8). If the request already included Authorization credentials, then the 401 response indicates that authorization has been refused for those credentials. If the 401 response contains the same challenge as the prior response, and the user agent has already attempted authentication at least once, then the user SHOULD be presented the entity that was given in the response, since that entity might include relevant diagnostic information. HTTP access authentication is explained in [HTTP Authentication: Basic and Digest Access Authentication](http://tools.ietf.org/html/rfc2617).
+The request requires user authentication. The response MUST include a WWW-Authenticate header field ([section 14.47](http://tools.ietf.org/html/rfc2616#section-14.47)) containing a challenge applicable to the requested resource. The client MAY repeat the request with a suitable Authorization header field ([section 14.8](http://tools.ietf.org/html/rfc2616#section-14.8)). If the request already included Authorization credentials, then the 401 response indicates that authorization has been refused for those credentials. If the 401 response contains the same challenge as the prior response, and the user agent has already attempted authentication at least once, then the user SHOULD be presented the entity that was given in the response, since that entity might include relevant diagnostic information. HTTP access authentication is explained in [HTTP Authentication: Basic and Digest Access Authentication](http://tools.ietf.org/html/rfc2617).
 	</statusCode>
 
 	<statusCode code="402" name="Payment Required" section="10.4.3">
@@ -196,7 +199,7 @@ Note: HTTP/1.1 servers are allowed to return responses which are not acceptable 
 	</statusCode>
 
 	<statusCode code="407" name="Proxy Authentication Required" section="10.4.8">
-This code is similar to 401 (Unauthorized), but indicates that the client must first authenticate itself with the proxy. The proxy MUST return a Proxy-Authenticate header field (section 14.33) containing a challenge applicable to the proxy for the requested resource. The client MAY repeat the request with a suitable Proxy-Authorization header field ([section 14.34](http://tools.ietf.org/html/rfc2616#section-14.34)). HTTP access authentication is explained in [HTTP Authentication: Basic and Digest Access Authentication](http://tools.ietf.org/html/rfc2617).
+This code is similar to 401 (Unauthorized), but indicates that the client must first authenticate itself with the proxy. The proxy MUST return a Proxy-Authenticate header field ([section 14.33](http://tools.ietf.org/html/rfc2616#section-14.33)) containing a challenge applicable to the proxy for the requested resource. The client MAY repeat the request with a suitable Proxy-Authorization header field ([section 14.34](http://tools.ietf.org/html/rfc2616#section-14.34)). HTTP access authentication is explained in [HTTP Authentication: Basic and Digest Access Authentication](http://tools.ietf.org/html/rfc2617).
 	</statusCode>
 
 	<statusCode code="408" name="Request Timeout" section="10.4.9">
@@ -242,7 +245,7 @@ The server is refusing to service the request because the entity of the request 
 	<statusCode code="416" name="Requested Range Not Satisfiable" section="10.4.17">
 A server SHOULD return a response with this status code if a request included a Range request-header field ([section 14.35](http://tools.ietf.org/html/rfc2616#section-14.35)), and none of the range-specifier values in this field overlap the current extent of the selected resource, and the request did not include an If-Range request-header field. (For byte-ranges, this means that the first- byte-pos of all of the byte-range-spec values were greater than the current length of the selected resource.)
 
-When this status code is returned for a byte-range request, the response SHOULD include a Content-Range entity-header field specifying the current length of the selected resource (see section 14.16). This response MUST NOT use the multipart/byteranges content-type.
+When this status code is returned for a byte-range request, the response SHOULD include a Content-Range entity-header field specifying the current length of the selected resource (see [section 14.16]((http://tools.ietf.org/html/rfc2616#section-14.16))). This response MUST NOT use the multipart/byteranges content-type.
 	</statusCode>
 
 	<statusCode code="417" name="Expectation Failed" section="10.4.18">
