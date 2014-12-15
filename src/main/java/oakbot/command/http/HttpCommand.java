@@ -26,7 +26,7 @@ public class HttpCommand implements Command {
 	private final String url;
 
 	public HttpCommand() {
-		try (InputStream in = getClass().getResourceAsStream("status-codes.xml")) {
+		try (InputStream in = getClass().getResourceAsStream("http.xml")) {
 			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
 			statusCodes = new DocumentWrapper(document);
 		} catch (IOException | SAXException | ParserConfigurationException e) {
@@ -34,7 +34,7 @@ public class HttpCommand implements Command {
 			throw new RuntimeException(e);
 		}
 
-		Element element = statusCodes.element("/statusCodes");
+		Element element = statusCodes.element("/http");
 		if (element == null) {
 			url = null;
 		} else {
@@ -64,12 +64,20 @@ public class HttpCommand implements Command {
 		cb.reply(message);
 
 		String split[] = message.getContent().split("\\s+");
-		String code = split[0];
-
-		Element element = statusCodes.element("/statusCodes/statusCode[@code='" + code + "']");
-		if (element == null) {
-			cb.append("Status code not recognized.");
+		String code = split[0].toUpperCase();
+		if (code.isEmpty()) {
+			cb.append("I need to know what status code (e.g. 200) or method (e.g. GET) you want to know about.");
 			return new ChatResponse(cb.toString());
+		}
+
+		Element element = statusCodes.element("/http/statusCode[@code='" + code + "']");
+		if (element == null) {
+			element = statusCodes.element("/http/method[@name='" + code + "']");
+			if (element == null) {
+				String reply = code.matches("[0-9]+") ? "Status code not recognized." : "Method not recognized.";
+				cb.append(reply);
+				return new ChatResponse(cb.toString());
+			}
 		}
 
 		int paragraph = 1;
@@ -87,21 +95,21 @@ public class HttpCommand implements Command {
 		if (paragraph == 1) {
 			String name = element.getAttribute("name");
 			ChatBuilder cb2 = new ChatBuilder();
-			cb2.bold("HTTP " + code + " (" + name + ")");
-			String linkText = cb2.toString();
+			String linkText = "HTTP " + (element.getTagName().equals("statusCode") ? code + " (" + name + ")" : name);
+			cb2.bold(linkText);
 			if (url == null) {
-				cb.append(linkText);
+				cb.append(cb2.toString());
 			} else {
 				String section = element.getAttribute("section");
 				String url = this.url + (section.isEmpty() ? "" : "#section-" + section);
-				cb.link(linkText, url);
+				cb.link(cb2.toString(), url);
 			}
 			cb.append(": ");
 		}
 
 		String description = element.getTextContent().trim();
 		String paragraphs[] = description.split("\n\n");
-		if (paragraph > paragraphs.length){
+		if (paragraph > paragraphs.length) {
 			paragraph = paragraphs.length;
 		}
 		String paragraphText = paragraphs[paragraph - 1];
