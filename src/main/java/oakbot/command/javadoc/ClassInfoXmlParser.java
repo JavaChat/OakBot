@@ -80,7 +80,7 @@ public class ClassInfoXmlParser {
 		}
 
 		//URL
-		String url = baseUrl + "?" + fullName.replace('.', '/') + ".html";
+		String url = baseUrl + "index.html?" + fullName.replace('.', '/') + ".html";
 		builder.url(url);
 
 		return builder.build();
