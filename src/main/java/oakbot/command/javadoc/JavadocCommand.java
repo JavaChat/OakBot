@@ -123,9 +123,15 @@ public class JavadocCommand implements Command {
 
 			//get the class description
 			String description = info.getDescription();
-			String split[] = description.split("\n\n");
-			String paragraphText = (paragraph <= split.length) ? split[paragraph - 1] : split[split.length - 1];
+			String paragraphs[] = description.split("\n\n");
+			if (paragraph > paragraphs.length) {
+				paragraph = paragraphs.length;
+			}
+			String paragraphText = paragraphs[paragraph - 1];
 			cb.append(paragraphText);
+			if (paragraphs.length > 1) {
+				cb.append(" (").append(paragraph + "").append("/").append(paragraphs.length + "").append(")");
+			}
 		} else {
 			//find the method the user typed in
 			MethodInfo matchingMethod = null;
@@ -204,9 +210,15 @@ public class JavadocCommand implements Command {
 
 			//get the method description
 			String description = matchingMethod.getDescription();
-			String split[] = description.split("\n\n");
-			String paragraphText = (paragraph <= split.length) ? split[paragraph - 1] : split[split.length - 1];
+			String paragraphs[] = description.split("\n\n");
+			if (paragraph > paragraphs.length) {
+				paragraph = paragraphs.length;
+			}
+			String paragraphText = paragraphs[paragraph - 1];
 			cb.append(paragraphText);
+			if (paragraphs.length > 1) {
+				cb.append(" (").append(paragraph + "").append("/").append(paragraphs.length + "").append(")");
+			}
 		}
 
 		return cb;
