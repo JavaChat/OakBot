@@ -32,7 +32,7 @@ public class BotTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void builder() throws Exception {
-		new Bot.Builder("user", "pass").build();
+		new Bot.Builder().build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -40,7 +40,7 @@ public class BotTest {
 		ChatConnection connection = mock(ChatConnection.class);
 		doThrow(new IllegalArgumentException()).when(connection).login("user", "pass");
 
-		Bot bot = new Bot.Builder("user", "pass").connection(connection).build();
+		Bot bot = new Bot.Builder().login("user", "pass").connection(connection).build();
 		bot.connect();
 	}
 
@@ -80,7 +80,7 @@ public class BotTest {
 			}
 		});
 
-		Bot bot = new Bot.Builder("user", "pass").connection(connection).rooms(1).heartbeat(100).build();
+		Bot bot = new Bot.Builder().connection(connection).rooms(1).heartbeat(100).build();
 		bot.connect(); //TODO this call is blocking...how to test?
 	}
 

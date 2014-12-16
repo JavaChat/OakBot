@@ -3,6 +3,7 @@ package oakbot.bot;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,10 @@ import java.util.regex.Pattern;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
+import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * A Stackoverflow chat bot.
@@ -28,6 +32,7 @@ public class Bot {
 	private final int heartbeat;
 	private final List<Integer> rooms, admins;
 	private final List<Command> commands;
+	private final List<Listener> listeners;
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
 
 	private Bot(Builder builder) {
@@ -39,7 +44,8 @@ public class Bot {
 		heartbeat = builder.heartbeat;
 		rooms = builder.rooms;
 		admins = builder.admins;
-		commands = builder.commands;
+		commands = builder.commands.build();
+		listeners = builder.listeners.build();
 	}
 
 	/**
@@ -57,7 +63,7 @@ public class Bot {
 		}
 
 		//listen for and reply to messages
-		Pattern contentRegex = Pattern.compile("^" + Pattern.quote(trigger) + "\\s*(.*?)(\\s+(.*)|$)");
+		Pattern commandRegex = Pattern.compile("^" + Pattern.quote(trigger) + "\\s*(.*?)(\\s+(.*)|$)");
 		while (true) {
 			long start = System.currentTimeMillis();
 
@@ -65,73 +71,69 @@ public class Bot {
 				logger.fine("Pinging room " + room);
 
 				//get new messages since last ping
-				List<ChatMessage> messages = connection.getNewMessages(room);
-				logger.fine(messages.size() + " new messages found.");
-				if (messages.isEmpty()) {
+				List<ChatMessage> newMessages = connection.getNewMessages(room);
+				logger.fine(newMessages.size() + " new messages found.");
+				if (newMessages.isEmpty()) {
+					//no new messages
 					continue;
 				}
 
-				String mentionToLower, compressedMentionToLower;
-				mentionToLower = compressedMentionToLower = null;
-				if (name != null) {
-					mentionToLower = "@" + name.toLowerCase();
-					compressedMentionToLower = mentionToLower.replace(" ", "");
-				}
-
-				for (ChatMessage message : messages) {
+				for (ChatMessage message : newMessages) {
 					String content = message.getContent();
 					if (content == null) {
 						//user deleted his/her message, ignore
 						continue;
 					}
 
-					//if someone sent a mention to the bot, give them a generic reply
-					if (name != null) {
-						String contentToLower = content.toLowerCase();
-						if (contentToLower.contains(mentionToLower) || contentToLower.contains(compressedMentionToLower)) {
-							ChatBuilder cb = new ChatBuilder();
-							cb.reply(message).append("Type ").code(trigger + "help").append(" to see all my commands.");
-							String reply = cb.toString();
-
-							try {
-								connection.sendMessage(room, reply);
-							} catch (IOException e) {
-								logger.log(Level.SEVERE, "Problem sending chat message.", e);
-							}
-						}
-					}
-
-					Matcher matcher = contentRegex.matcher(content);
-					if (!matcher.find()) {
-						//not a bot command, ignore
-						continue;
-					}
-
-					logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
-
 					List<ChatResponse> replies = new ArrayList<>();
-					String commandName = matcher.group(1);
-					String text = matcher.group(3);
-					if (text == null) {
-						text = "";
-					}
 					boolean isAdmin = admins.contains(message.getUserId());
-					message.setContent(text);
 
-					try {
-						for (Command command : getCommands(commandName)) {
-							ChatResponse reply = command.onMessage(message, isAdmin);
-							if (reply != null) {
-								replies.add(reply);
+					//handle listeners
+					for (Listener listener : listeners) {
+						ChatResponse reply;
+						try {
+							reply = listener.onMessage(message, isAdmin);
+						} catch (ShutdownException e) {
+							broadcast("Shutting down.  See you later.");
+							return;
+						}
+
+						if (reply != null) {
+							logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+							replies.add(reply);
+						}
+					}
+
+					//handle commands
+					Matcher matcher = commandRegex.matcher(content);
+					if (matcher.find()) {
+						logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+
+						String commandName = matcher.group(1);
+						String text = matcher.group(3);
+						if (text == null) {
+							text = "";
+						}
+						message.setContent(text);
+
+						List<Command> commands = getCommands(commandName);
+						if (commands.isEmpty()) {
+							replies.add(new ChatResponse(new ChatBuilder().reply(message).append("I don't know that command. o_O").toString()));
+						} else {
+							for (Command command : commands) {
+								ChatResponse reply;
+								try {
+									reply = command.onMessage(message, isAdmin);
+								} catch (ShutdownException e) {
+									broadcast("Shutting down.  See you later.");
+									return;
+								}
+
+								if (reply != null) {
+									replies.add(reply);
+								}
 							}
 						}
-					} catch (ShutdownException e) {
-						broadcast("Shutting down.  See you later.");
-						return;
-					}
-
-					if (replies.isEmpty()) {
-						replies.add(new ChatResponse(new ChatBuilder().reply(message).append("I don't know that command. o_O").toString()));
 					}
 
 					try {
@@ -143,7 +145,7 @@ public class Bot {
 					}
 				}
 
-				ChatMessage latestMessage = messages.get(messages.size() - 1);
+				ChatMessage latestMessage = newMessages.get(newMessages.size() - 1);
 				prevMessageIds.put(room, latestMessage.getMessageId());
 			}
 
@@ -195,11 +197,13 @@ public class Bot {
 		private int heartbeat = 3000;
 		private List<Integer> rooms = new ArrayList<>();
 		private List<Integer> admins = new ArrayList<>();
-		private List<Command> commands = new ArrayList<>();
+		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
+		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
 
-		public Builder(String email, String password) {
+		public Builder login(String email, String password) {
 			this.email = email;
 			this.password = password;
+			return this;
 		}
 
 		public Builder connection(ChatConnection connection) {
@@ -223,17 +227,38 @@ public class Bot {
 		}
 
 		public Builder rooms(Integer... rooms) {
-			this.rooms = Arrays.asList(rooms);
+			return rooms(Arrays.asList(rooms));
+		}
+
+		public Builder rooms(Collection<Integer> rooms) {
+			this.rooms.addAll(rooms);
 			return this;
 		}
 
 		public Builder admins(Integer... admins) {
-			this.admins = Arrays.asList(admins);
+			return admins(Arrays.asList(admins));
+		}
+
+		public Builder admins(Collection<Integer> admins) {
+			this.admins.addAll(admins);
 			return this;
 		}
 
 		public Builder commands(Command... commands) {
-			this.commands = Arrays.asList(commands);
+			return commands(Arrays.asList(commands));
+		}
+
+		public Builder commands(Collection<Command> commands) {
+			this.commands.addAll(commands);
+			return this;
+		}
+
+		public Builder listeners(Listener... listeners) {
+			return listeners(Arrays.asList(listeners));
+		}
+
+		public Builder listeners(Collection<Listener> listeners) {
+			this.listeners.addAll(listeners);
 			return this;
 		}
 

@@ -6,6 +6,7 @@ import java.util.Map;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
+import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
 
 import com.google.common.collect.Multimap;
@@ -17,9 +18,13 @@ import com.google.common.collect.TreeMultimap;
  */
 public class HelpCommand implements Command {
 	private final List<Command> commands;
+	private final List<Listener> listeners;
+	private final String trigger;
 
-	public HelpCommand(List<Command> commands) {
+	public HelpCommand(List<Command> commands, List<Listener> listeners, String trigger) {
 		this.commands = commands;
+		this.listeners = listeners;
+		this.trigger = trigger;
 	}
 
 	@Override
@@ -40,7 +45,7 @@ public class HelpCommand implements Command {
 	@Override
 	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
 		String commandText = message.getContent();
-		if (commandText != null) {
+		if (!commandText.isEmpty()) {
 			ChatBuilder cb = new ChatBuilder();
 			cb.reply(message);
 			for (Command command : commands) {
@@ -59,16 +64,19 @@ public class HelpCommand implements Command {
 			return new ChatResponse(cb.toString(), SplitStrategy.WORD);
 		}
 
-		//TODO split help message up into multiple messages if necessary
 		//build each line of the reply and keep them sorted alphabetically
-		Multimap<String, String> lines = TreeMultimap.create();
+		Multimap<String, String> commandLines = TreeMultimap.create();
 		for (Command command : commands) {
-			lines.put(command.name(), command.description());
+			commandLines.put(command.name(), command.description());
+		}
+		Multimap<String, String> listenerLines = TreeMultimap.create();
+		for (Listener listener : listeners) {
+			listenerLines.put(listener.name(), listener.description());
 		}
 
 		//get the length of the longest command name
 		int longestName = 0;
-		for (String key : lines.keySet()) {
+		for (String key : commandLines.keySet()) {
 			int length = key.length();
 			if (length > longestName) {
 				longestName = length;
@@ -77,8 +85,21 @@ public class HelpCommand implements Command {
 
 		//build message
 		ChatBuilder cb = new ChatBuilder();
-		cb.fixed().append("OakBot Command List").nl();
-		for (Map.Entry<String, String> entry : lines.entries()) {
+		cb.fixed().append("Commands=====================").nl();
+		for (Map.Entry<String, String> entry : commandLines.entries()) {
+			String name = entry.getKey();
+			String description = entry.getValue();
+
+			cb.fixed().append(trigger).append(name);
+			for (int i = name.length(); i < longestName + 2; i++) {
+				cb.append(' ');
+			}
+			cb.append(description).nl();
+		}
+
+		cb.fixed().nl();
+		cb.fixed().append("Listeners====================").nl();
+		for (Map.Entry<String, String> entry : listenerLines.entries()) {
 			String name = entry.getKey();
 			String description = entry.getValue();
 

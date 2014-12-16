@@ -14,6 +14,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -30,6 +31,8 @@ import oakbot.command.HelpCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
+import oakbot.listener.Listener;
+import oakbot.listener.MentionListener;
 import oakbot.util.ChatBuilder;
 
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -68,9 +71,15 @@ public class Main {
 		setupLogging();
 		BotProperties props = loadProperties();
 
+		//@formatter:off
+		List<Listener> listeners = Arrays.asList(
+			new MentionListener(props.getBotname(), props.getTrigger())
+		);
+		//@formatter:on
+
 		List<Command> commands = new ArrayList<>();
 		commands.add(createAboutCommand());
-		commands.add(new HelpCommand(commands));
+		commands.add(new HelpCommand(commands, listeners, props.getTrigger()));
 		commands.add(createJavadocCommand());
 		commands.add(new HttpCommand());
 		commands.add(new ShutdownCommand());
@@ -78,14 +87,16 @@ public class Main {
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
 
 		//@formatter:off
-		Bot bot = new Bot.Builder(props.getLoginEmail(), props.getLoginPassword())
-		.commands(commands.toArray(new Command[0]))
+		Bot bot = new Bot.Builder()
+		.login(props.getLoginEmail(), props.getLoginPassword())
+		.commands(commands)
+		.listeners(listeners)
 		.connection(connection)
 		.heartbeat(props.getHeartbeat())
-		.admins(props.getAdmins().toArray(new Integer[0]))
+		.admins(props.getAdmins())
 		.name(props.getBotname())
 		.trigger(props.getTrigger())
-		.rooms(props.getRooms().toArray(new Integer[0]))
+		.rooms(props.getRooms())
 		.build();
 		//@formatter:on
 
