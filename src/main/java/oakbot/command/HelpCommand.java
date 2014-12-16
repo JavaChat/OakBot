@@ -1,5 +1,6 @@
 package oakbot.command;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -48,19 +49,35 @@ public class HelpCommand implements Command {
 		if (!commandText.isEmpty()) {
 			ChatBuilder cb = new ChatBuilder();
 			cb.reply(message);
-			for (Command command : commands) {
-				if (!command.name().equals(commandText)) {
-					continue;
-				}
 
-				if (cb.length() > 0) {
-					cb.nl().nl();
+			List<String> names = new ArrayList<>(), helpTexts = new ArrayList<>();
+			for (Command command : commands) {
+				if (command.name().equalsIgnoreCase(commandText)) {
+					names.add(command.name());
+					helpTexts.add(command.helpText());
 				}
-				cb.code(command.name()).append(": ").append(command.helpText());
 			}
-			if (cb.length() == 0) {
-				cb.append("No command exists with that name.");
+			for (Listener listener : listeners) {
+				if (listener.name().equalsIgnoreCase(commandText)) {
+					names.add(listener.name());
+					helpTexts.add(listener.helpText());
+				}
 			}
+
+			if (names.isEmpty()) {
+				cb.append("No command or listener exists with that name.");
+			} else {
+				boolean first = true;
+				for (int i = 0; i < names.size(); i++) {
+					if (first) {
+						first = false;
+					} else {
+						cb.nl();
+					}
+					cb.code(names.get(i)).append(": ").append(helpTexts.get(i));
+				}
+			}
+
 			return new ChatResponse(cb.toString(), SplitStrategy.WORD);
 		}
 
