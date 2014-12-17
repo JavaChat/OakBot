@@ -1,4 +1,4 @@
-package oakbot.command.javadoc;
+package oakbot.doclet;
 
 import java.util.ArrayList;
 import java.util.Iterator;
