@@ -48,22 +48,39 @@ public class OakbotDoclet {
 	/**
 	 * The name of the ZIP file to create.
 	 */
-	private static final Path outputFile = Paths.get("javadocs/java8.zip");
+	private static final Path outputPath;
 
 	/**
 	 * The name of the library.
 	 */
-	private static final String libraryName = "Java 8";
+	private static final String libraryName;
 
 	/**
 	 * The URL to the library's Javadocs.
 	 */
-	private static final String baseUrl = "https://docs.oracle.com/javase/8/docs/api/";
+	private static final String baseUrl;
 
 	/**
 	 * Whether or not to pretty print the XML.
 	 */
-	private static final boolean indentXml = false;
+	private static final boolean prettyPrint;
+
+	static {
+		ConfigProperties properties = new ConfigProperties(System.getProperties());
+
+		Path path = properties.getOutputPath();
+		outputPath = (path == null) ? Paths.get("javadocs.zip") : path;
+
+		prettyPrint = properties.isPrettyPrint();
+
+		libraryName = properties.getLibraryName();
+
+		String url = properties.getLibraryBaseUrl();
+		if (url != null && !url.endsWith("/")) {
+			url += "/";
+		}
+		baseUrl = url;
+	}
 
 	/**
 	 * The entry point for the {@code javadoc} command.
@@ -72,19 +89,22 @@ public class OakbotDoclet {
 	 * @throws Exception if an error occurred during the parsing
 	 */
 	public static boolean start(RootDoc rootDoc) throws Exception {
-		System.out.println("Building ZIP file...");
-
-		if (Files.exists(outputFile)) {
-			Files.delete(outputFile);
+		if (Files.exists(outputPath)) {
+			Files.delete(outputPath);
 		}
 
-		URI uri = URI.create("jar:file:" + outputFile.toAbsolutePath());
+		URI uri = URI.create("jar:file:" + outputPath.toAbsolutePath());
 		Map<String, String> env = new HashMap<>();
 		env.put("create", "true");
 		try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
 			writeInfoDocument(fs);
 
-			for (ClassDoc classDoc : rootDoc.classes()) {
+			ClassDoc classDocs[] = rootDoc.classes();
+			StatusPrinter printer = new StatusPrinter(classDocs.length);
+			for (ClassDoc classDoc : classDocs) {
+				//output status to console
+				printer.print(classDoc);
+
 				Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 				document.appendChild(parseClass(classDoc, document));
 
@@ -119,8 +139,6 @@ public class OakbotDoclet {
 		//full name
 		String fullName = classDoc.qualifiedTypeName();
 		element.setAttribute("fullName", fullName);
-		
-		System.out.println("Parsing " + fullName);
 
 		//simple name
 		String simpleName = classDoc.simpleTypeName();
@@ -136,7 +154,7 @@ public class OakbotDoclet {
 			sb.append("class ");
 		}
 		//note: "interface" is already included in the modifiers for interfaces
-		//TODO how to determine if it's an annotation?
+		//TODO how to determine if it's an annotation? look at the class it extends?
 		sb.append(classDoc.modifiers());
 		element.setAttribute("modifiers", sb.toString().trim());
 
@@ -363,7 +381,7 @@ public class OakbotDoclet {
 
 	private static void writeDocument(Node node, Writer writer) throws TransformerException {
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		if (indentXml) {
+		if (prettyPrint) {
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 		}
@@ -371,5 +389,31 @@ public class OakbotDoclet {
 		DOMSource source = new DOMSource(node);
 		StreamResult result = new StreamResult(writer);
 		transformer.transform(source, result);
+	}
+
+	private static class StatusPrinter {
+		private final int numClasses;
+		private int curClass = 1;
+		private int prevMessageLength = 0;
+
+		public StatusPrinter(int numClasses) {
+			this.numClasses = numClasses;
+		}
+
+		public void print(ClassDoc classDoc) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Parsing ").append(curClass++).append("/").append(numClasses);
+			sb.append(" (").append(classDoc.simpleTypeName()).append(")");
+
+			int curMessageLength = sb.length();
+			int spaces = prevMessageLength - curMessageLength;
+			for (int i = 0; i < spaces; i++) {
+				sb.append(' ');
+			}
+
+			System.out.print("\r" + sb.toString());
+
+			prevMessageLength = curMessageLength;
+		}
 	}
 }
