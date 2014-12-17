@@ -33,7 +33,6 @@ import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
-import oakbot.util.ChatBuilder;
 
 import org.apache.http.impl.client.HttpClientBuilder;
 
@@ -78,7 +77,7 @@ public class Main {
 		//@formatter:on
 
 		List<Command> commands = new ArrayList<>();
-		commands.add(createAboutCommand());
+		commands.add(new AboutCommand());
 		commands.add(new HelpCommand(commands, listeners, props.getTrigger()));
 		commands.add(createJavadocCommand());
 		commands.add(new HttpCommand());
@@ -116,7 +115,7 @@ public class Main {
 		//log uncaught exceptions
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			@Override
-			public void uncaughtException(Thread thread, final Throwable thrown) {
+			public void uncaughtException(Thread thread, Throwable thrown) {
 				logger.log(Level.SEVERE, "An error occurred.", thrown);
 			}
 		});
@@ -129,16 +128,6 @@ public class Main {
 			properties.load(reader);
 		}
 		return new BotProperties(properties);
-	}
-
-	private static Command createAboutCommand() {
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm Z");
-		ChatBuilder cb = new ChatBuilder();
-		cb.bold("OakBot").append(" v").append(VERSION).append(" by ").link("Michael", "http://stackoverflow.com/users/13379/michael").append(" | ");
-		cb.link("source code", URL).append(" | ");
-		cb.append("Built: ").append(df.format(BUILT));
-
-		return new AboutCommand(cb.toString());
 	}
 
 	private static Command createJavadocCommand() throws IOException {
