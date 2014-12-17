@@ -115,7 +115,7 @@ public class JavadocCommand implements Command {
 					cb.bold().code(fullName).bold();
 				} else {
 					//TODO link directly to the method, not just the class
-					cb.link(new ChatBuilder().bold().code(fullName).bold().toString(), url, "View the Javadocs");
+					cb.link(new ChatBuilder().bold().code(fullName).bold().toString(), url);
 				}
 				if (deprecated) cb.strike();
 				cb.append(": ");
@@ -202,7 +202,7 @@ public class JavadocCommand implements Command {
 				if (url == null) {
 					cb.bold().code(signature).bold();
 				} else {
-					cb.link(new ChatBuilder().bold().code(signature).bold().toString(), url, "View the Javadocs");
+					cb.link(new ChatBuilder().bold().code(signature).bold().toString(), url);
 				}
 				if (deprecated) cb.strike();
 				cb.append(": ");
