@@ -21,7 +21,7 @@ public class ClassInfoXmlParser {
 	 */
 	public ClassInfoXmlParser(Document document, String baseUrl) {
 		this.document = new DocumentWrapper(document);
-		this.baseUrl = baseUrl;
+		this.baseUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/"); //make sure the URL ends with a "/"
 	}
 
 	/**
