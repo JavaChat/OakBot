@@ -52,13 +52,15 @@ public class HelpCommand implements Command {
 
 			List<String> names = new ArrayList<>(), helpTexts = new ArrayList<>();
 			for (Command command : commands) {
-				if (command.name().equalsIgnoreCase(commandText)) {
+				String name = command.name();
+				if (name != null && name.equalsIgnoreCase(commandText)) {
 					names.add(command.name());
 					helpTexts.add(command.helpText());
 				}
 			}
 			for (Listener listener : listeners) {
-				if (listener.name().equalsIgnoreCase(commandText)) {
+				String name = listener.name();
+				if (name != null && name.equalsIgnoreCase(commandText)) {
 					names.add(listener.name());
 					helpTexts.add(listener.helpText());
 				}
@@ -84,11 +86,17 @@ public class HelpCommand implements Command {
 		//build each line of the reply and keep them sorted alphabetically
 		Multimap<String, String> commandLines = TreeMultimap.create();
 		for (Command command : commands) {
-			commandLines.put(command.name(), command.description());
+			String name = command.name();
+			if (name != null) {
+				commandLines.put(name, command.description());
+			}
 		}
 		Multimap<String, String> listenerLines = TreeMultimap.create();
 		for (Listener listener : listeners) {
-			listenerLines.put(listener.name(), listener.description());
+			String name = listener.name();
+			if (name != null) {
+				listenerLines.put(name, listener.description());
+			}
 		}
 
 		//get the length of the longest command name

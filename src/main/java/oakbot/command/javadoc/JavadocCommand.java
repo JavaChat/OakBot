@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,9 +23,9 @@ import oakbot.util.ChatBuilder;
 public class JavadocCommand implements Command {
 	private final JavadocDao dao = new JavadocDao();
 
-	public void addLibrary(Path zipFile) throws IOException {
-		dao.addApi(zipFile);
-	}
+	private List<String> prevChoices = new ArrayList<>();
+	private Date prevChoicesDate;
+	private final long choiceTimeout = 1000 * 30;
 
 	@Override
 	public String name() {
@@ -41,10 +42,19 @@ public class JavadocCommand implements Command {
 		return description(); //TODO finish
 	}
 
+	public void addLibrary(Path zipFile) throws IOException {
+		dao.addApi(zipFile);
+	}
+
 	@Override
 	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
+		String content = message.getContent();
+		if (content.isEmpty()) {
+			return new ChatResponse(new ChatBuilder().reply(message).append("Type the name of a Java class.").toString());
+		}
+
 		//parse the command
-		CommandTextParser commandText = new CommandTextParser(message.getContent());
+		CommandTextParser commandText = new CommandTextParser(content);
 
 		ChatBuilder response;
 		try {
@@ -57,15 +67,38 @@ public class JavadocCommand implements Command {
 		return new ChatResponse(reply, SplitStrategy.WORD);
 	}
 
+	public ChatResponse showChoice(ChatMessage message, int num) {
+		if (prevChoicesDate == null || System.currentTimeMillis() - prevChoicesDate.getTime() > choiceTimeout) {
+			return null;
+		}
+
+		prevChoicesDate = new Date();
+
+		int index = num - 1;
+		if (index < 0 || index >= prevChoices.size()) {
+			return new ChatResponse(new ChatBuilder().reply(message).append("That's not a valid choice.").toString());
+		}
+
+		message.setContent(prevChoices.get(index));
+		return onMessage(message, false);
+	}
+
 	private ChatBuilder generateResponse(String className, String methodName, List<String> methodParams, int paragraph) throws IOException {
 		ClassInfo info;
 		try {
 			info = dao.getClassInfo(className);
 		} catch (MultipleClassesFoundException e) {
+			List<String> choices = new ArrayList<>(e.getClasses());
+			Collections.sort(choices);
+			prevChoices = choices;
+			prevChoicesDate = new Date();
+
 			ChatBuilder cb = new ChatBuilder();
-			cb.append("Which one do you mean?");
-			for (String name : e.getClasses()) {
-				cb.nl().append("* ").append(name);
+			cb.append("Which one do you mean? (type the number)");
+
+			int count = 1;
+			for (String name : choices) {
+				cb.nl().append((count++) + "").append(". ").append(name);
 			}
 			return cb;
 		}
@@ -167,19 +200,30 @@ public class JavadocCommand implements Command {
 				}
 
 				if (matchingNames.size() > 1) {
-					cb.append("Which one do you mean?");
+					prevChoices = new ArrayList<>();
+					prevChoicesDate = new Date();
+
+					cb.append("Which one do you mean? (type the number)");
+					int count = 1;
 					for (MethodInfo matchingName : matchingNames) {
-						cb.nl().append("* #").append(matchingName.getName()).append('(');
+						StringBuilder choicesSb = new StringBuilder();
+						choicesSb.append(info.getName().getFull()).append("#").append(matchingName.getName()).append("(");
+
+						cb.nl().append((count++) + "").append(". #").append(matchingName.getName()).append('(');
 						boolean first = true;
 						for (ParameterInfo param : matchingName.getParameters()) {
 							if (first) {
 								first = false;
 							} else {
+								choicesSb.append(", ");
 								cb.append(", ");
 							}
+							choicesSb.append(param.getType().getSimple());
 							cb.append(param.getType().getSimple());
 						}
+						choicesSb.append(')');
 						cb.append(')');
+						prevChoices.add(choicesSb.toString());
 					}
 					return cb;
 				}

@@ -31,6 +31,7 @@ import oakbot.command.HelpCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
+import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
 
@@ -70,16 +71,19 @@ public class Main {
 		setupLogging();
 		BotProperties props = loadProperties();
 
+		JavadocCommand javadocCommand = createJavadocCommand();
+		
 		//@formatter:off
 		List<Listener> listeners = Arrays.asList(
-			new MentionListener(props.getBotname(), props.getTrigger())
+			new MentionListener(props.getBotname(), props.getTrigger()),
+			new JavadocListener(javadocCommand)
 		);
 		//@formatter:on
 
 		List<Command> commands = new ArrayList<>();
 		commands.add(new AboutCommand());
 		commands.add(new HelpCommand(commands, listeners, props.getTrigger()));
-		commands.add(createJavadocCommand());
+		commands.add(javadocCommand);
 		commands.add(new HttpCommand());
 		commands.add(new ShutdownCommand());
 
@@ -130,7 +134,7 @@ public class Main {
 		return new BotProperties(properties);
 	}
 
-	private static Command createJavadocCommand() throws IOException {
+	private static JavadocCommand createJavadocCommand() throws IOException {
 		JavadocCommand javadocCommand = new JavadocCommand();
 
 		Path dir = Paths.get("javadocs");
