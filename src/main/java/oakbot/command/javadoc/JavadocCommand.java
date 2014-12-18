@@ -219,7 +219,11 @@ public class JavadocCommand implements Command {
 								cb.append(", ");
 							}
 							choicesSb.append(param.getType().getSimple());
+
 							cb.append(param.getType().getSimple());
+							if (param.isArray()) {
+								cb.append("[]");
+							}
 						}
 						choicesSb.append(')');
 						cb.append(')');
