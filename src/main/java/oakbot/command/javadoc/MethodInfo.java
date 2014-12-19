@@ -51,6 +51,34 @@ public class MethodInfo {
 		return deprecated;
 	}
 
+	/**
+	 * Gets a string that uniquely identifies the method signature, as the
+	 * compiler would.
+	 * @return the signature string
+	 */
+	public String getSignature() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(name);
+
+		sb.append('(');
+		boolean first = true;
+		for (ParameterInfo parameter : parameters) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append(", ");
+			}
+
+			sb.append(parameter.getType().getFull());
+			if (parameter.isArray()) {
+				sb.append("[]");
+			}
+		}
+		sb.append(')');
+
+		return sb.toString();
+	}
+
 	public String getSignatureString() {
 		StringBuilder sb = new StringBuilder();
 		if (returnValue != null) {

@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -169,27 +171,48 @@ public class JavadocCommand implements Command {
 			//find the method the user typed in
 			MethodInfo matchingMethod = null;
 			List<MethodInfo> matchingNames = new ArrayList<>();
-			for (MethodInfo method : info.getMethods()) {
-				if (!method.getName().equalsIgnoreCase(methodName)) {
-					continue;
-				}
-				matchingNames.add(method);
+			Set<String> matchingNameSignatures = new HashSet<>();
+			ClassInfo curInfo = info;
+			while (true) {
+				for (MethodInfo method : curInfo.getMethods()) {
+					if (!method.getName().equalsIgnoreCase(methodName)) {
+						continue;
+					}
 
-				if (methodParams.size() != method.getParameters().size()) {
-					continue;
-				}
+					String signature = method.getSignature();
+					if (matchingNameSignatures.contains(signature)) {
+						continue;
+					}
 
-				boolean match = true;
-				for (int i = 0; i < methodParams.size(); i++) {
-					String param1 = methodParams.get(i);
-					String param2 = method.getParameters().get(i).getType().getSimple();
-					if (!param1.equalsIgnoreCase(param2)) {
-						match = false;
+					matchingNameSignatures.add(signature);
+					matchingNames.add(method);
+
+					if (methodParams.size() != method.getParameters().size()) {
+						continue;
+					}
+
+					boolean match = true;
+					for (int i = 0; i < methodParams.size(); i++) {
+						String param1 = methodParams.get(i);
+						String param2 = method.getParameters().get(i).getType().getSimple();
+						if (!param1.equalsIgnoreCase(param2)) {
+							match = false;
+							break;
+						}
+					}
+					if (match) {
+						matchingMethod = method;
 						break;
 					}
 				}
-				if (match) {
-					matchingMethod = method;
+
+				ClassName superClass = curInfo.getSuperClass();
+				if (superClass == null) {
+					break;
+				}
+
+				curInfo = dao.getClassInfo(superClass.getFull());
+				if (curInfo == null) {
 					break;
 				}
 			}
