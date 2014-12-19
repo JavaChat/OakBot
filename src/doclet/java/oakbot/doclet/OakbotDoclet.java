@@ -10,8 +10,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -87,6 +89,9 @@ public class OakbotDoclet {
 	 * @throws Exception if an error occurred during the parsing
 	 */
 	public static boolean start(RootDoc rootDoc) throws Exception {
+		System.out.println("OakBot Doclet");
+		System.out.println("Saving to: " + outputPath);
+
 		if (Files.exists(outputPath)) {
 			Files.delete(outputPath);
 		}
@@ -104,7 +109,8 @@ public class OakbotDoclet {
 				printer.print(classDoc);
 
 				Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-				document.appendChild(parseClass(classDoc, document));
+				Element classElement = parseClass(classDoc, document);
+				document.appendChild(classElement);
 
 				Path path = fs.getPath(classDoc.qualifiedTypeName() + ".xml");
 				try (Writer writer = Files.newBufferedWriter(path)) {
@@ -143,18 +149,46 @@ public class OakbotDoclet {
 		element.setAttribute("simpleName", simpleName);
 
 		//modifiers
-		StringBuilder sb = new StringBuilder();
-		if (classDoc.isException()) {
-			sb.append("exception ");
-		} else if (classDoc.isEnum()) {
-			sb.append("enum ");
-		} else if (classDoc.isClass()) {
-			sb.append("class ");
+		List<String> modifiers = new ArrayList<>();
+		{
+			for (ClassDoc interfaceDoc : classDoc.interfaces()) {
+				ClassDoc superClass = interfaceDoc;
+				boolean isAnnotation = false;
+				do {
+					//the "isAnnotationType" and "isAnnotationTypeElement" methods don't work... o_O
+					String name = superClass.qualifiedTypeName();
+					if ("java.lang.annotation.Annotation".equals(name)) {
+						modifiers.add("annotation");
+						isAnnotation = true;
+						break;
+					}
+				} while ((superClass = superClass.superclass()) != null);
+
+				if (isAnnotation) {
+					break;
+				}
+			}
+
+			if (classDoc.isException()) {
+				modifiers.add("exception");
+			} else if (classDoc.isEnum()) {
+				modifiers.add("enum");
+			} else if (classDoc.isClass()) {
+				modifiers.add("class");
+			}
+			//note: "interface" is already included in the "modifiers()" method for interfaces
+
+			for (String modifier : classDoc.modifiers().split("\\s+")) {
+				modifiers.add(modifier);
+			}
+
+			if (modifiers.contains("annotation")) {
+				modifiers.remove("interface");
+			}
 		}
-		//note: "interface" is already included in the modifiers for interfaces
-		//TODO how to determine if it's an annotation? look at the class it extends?
-		sb.append(classDoc.modifiers());
-		element.setAttribute("modifiers", sb.toString().trim());
+		if (!modifiers.isEmpty()) {
+			element.setAttribute("modifiers", String.join(" ", modifiers));
+		}
 
 		//super class
 		ClassDoc superClass = classDoc.superclass();
@@ -190,13 +224,49 @@ public class OakbotDoclet {
 		element.appendChild(constructorsElement);
 
 		//methods
+		Set<String> addedMethods = new HashSet<>();
 		Element methodsElement = document.createElement("methods");
 		for (MethodDoc method : classDoc.methods()) {
+			String signature = getMethodSignature(method);
+			addedMethods.add(signature);
+
 			methodsElement.appendChild(parseMethod(method, document));
 		}
 		element.appendChild(methodsElement);
 
+		//inherited methods
+		//		superClass = classDoc;
+		//		while ((superClass = superClass.superclass()) != null) {
+		//			for (MethodDoc method : superClass.methods()) {
+		//				String signature = getMethodSignature(method);
+		//				if (addedMethods.contains(signature)) {
+		//					continue;
+		//				}
+		//				addedMethods.add(signature);
+		//
+		//				methodsElement.appendChild(parseMethod(method, document));
+		//			}
+		//		}
+
+		//TODO java.lang.Object methods
+
 		return element;
+	}
+
+	private static String getMethodSignature(MethodDoc method) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(method.name()).append('(');
+		boolean first = true;
+		for (Parameter parameter : method.parameters()) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append(", ");
+			}
+			sb.append(parameter.type().simpleTypeName()).append(parameter.type().dimension()).append(' ').append(parameter.name());
+		}
+		sb.append(')');
+		return sb.toString();
 	}
 
 	private static Element parseConstructor(ConstructorDoc constructor, Document document) {
