@@ -39,11 +39,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class StackoverflowChat implements ChatConnection {
 	private static final Logger logger = Logger.getLogger(StackoverflowChat.class.getName());
 	private static final int MAX_MESSAGE_LENGTH = 500;
+	private static final long PAUSE_BETWEEN_MESSAGES = 4000;
 
 	private final HttpClient client;
 	private final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
 	private final Map<Integer, String> fkeyCache = new HashMap<>();
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
+	private long prevMessageSent;
 
 	/**
 	 * Creates a new connection to Stackoverflow chat.
@@ -88,37 +90,41 @@ public class StackoverflowChat implements ChatConnection {
 		String url = "https://chat.stackoverflow.com/chats/" + room + "/messages/new";
 		List<String> posts = splitStrategy.split(message, MAX_MESSAGE_LENGTH);
 
-		Iterator<String> it = posts.iterator();
-		while (it.hasNext()) {
-			String post = it.next();
-			logger.info("Posting message to room " + room + ": " + post);
+		for (String post : posts) {
+			postMessage(room, url, fkey, post);
+		}
+	}
 
-			HttpPost request = new HttpPost(url);
-			//@formatter:off
-			List<NameValuePair> params = Arrays.asList(
-				new BasicNameValuePair("text", post),
-				new BasicNameValuePair("fkey", fkey)
-			);
-			//@formatter:on
-			request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
-
-			HttpResponse response = client.execute(request);
-			int statusCode = response.getStatusLine().getStatusCode();
-			EntityUtils.consumeQuietly(response.getEntity());
-			if (statusCode != 200) {
-				throw new IOException("Problem sending message: HTTP " + statusCode);
-			}
-			logger.info("Message received.");
-
-			//an HTTP 409 response is returned if messages are sent too quickly
-			if (it.hasNext()) {
-				try {
-					Thread.sleep(4000);
-				} catch (InterruptedException e) {
-					break;
-				}
+	private void postMessage(int room, String url, String fkey, String message) throws IOException {
+		long sleep = PAUSE_BETWEEN_MESSAGES - (System.currentTimeMillis() - prevMessageSent);
+		if (sleep > 0) {
+			try {
+				Thread.sleep(sleep);
+			} catch (InterruptedException e) {
+				return;
 			}
 		}
+
+		logger.info("Posting message to room " + room + ": " + message);
+
+		HttpPost request = new HttpPost(url);
+		//@formatter:off
+		List<NameValuePair> params = Arrays.asList(
+			new BasicNameValuePair("text", message),
+			new BasicNameValuePair("fkey", fkey)
+		);
+		//@formatter:on
+		request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+
+		HttpResponse response = client.execute(request);
+		int statusCode = response.getStatusLine().getStatusCode();
+		EntityUtils.consumeQuietly(response.getEntity());
+		if (statusCode != 200) {
+			throw new IOException("Problem sending message: HTTP " + statusCode);
+		}
+		logger.info("Message received.");
+
+		prevMessageSent = System.currentTimeMillis();
 	}
 
 	@Override
