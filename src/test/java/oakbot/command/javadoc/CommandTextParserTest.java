@@ -19,13 +19,19 @@ public class CommandTextParserTest {
 		assertEquals("java.lang.string", parser.getClassName());
 		assertNull(parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList(), parser.getParameters());
+		assertNull(parser.getParameters());
 
 		parser = new CommandTextParser("java.lang.string#indexOf");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList(), parser.getParameters());
+		assertNull(parser.getParameters());
+		
+		parser = new CommandTextParser("java.lang.string#indexOf(*)");
+		assertEquals("java.lang.string", parser.getClassName());
+		assertEquals("indexOf", parser.getMethodName());
+		assertEquals(1, parser.getParagraph());
+		assertNull(parser.getParameters());
 
 		parser = new CommandTextParser("java.lang.string#indexOf()");
 		assertEquals("java.lang.string", parser.getClassName());
@@ -38,6 +44,18 @@ public class CommandTextParserTest {
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList("int"), parser.getParameters());
+		
+		parser = new CommandTextParser("java.lang.string#indexOf(int[])");
+		assertEquals("java.lang.string", parser.getClassName());
+		assertEquals("indexOf", parser.getMethodName());
+		assertEquals(1, parser.getParagraph());
+		assertEquals(Arrays.asList("int[]"), parser.getParameters());
+		
+		parser = new CommandTextParser("java.lang.string#indexOf(int...)");
+		assertEquals("java.lang.string", parser.getClassName());
+		assertEquals("indexOf", parser.getMethodName());
+		assertEquals(1, parser.getParagraph());
+		assertEquals(Arrays.asList("int..."), parser.getParameters());
 
 		parser = new CommandTextParser("java.lang.string#indexOf(int, int)");
 		assertEquals("java.lang.string", parser.getClassName());
@@ -88,18 +106,18 @@ public class CommandTextParserTest {
 		assertEquals("java.lang.string", parser.getClassName());
 		assertNull(parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList(), parser.getParameters());
+		assertNull(parser.getParameters());
 
 		parser = new CommandTextParser("java.lang.string -1");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertNull(parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList(), parser.getParameters());
+		assertNull(parser.getParameters());
 		
 		parser = new CommandTextParser("java.lang.string 1.2");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertNull(parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList(), parser.getParameters());
+		assertNull(parser.getParameters());
 	}
 }
