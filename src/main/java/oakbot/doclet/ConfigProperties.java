@@ -38,4 +38,8 @@ public class ConfigProperties {
 	public String getLibraryBaseUrl() {
 		return properties.get("oakbot.doclet.library.baseUrl");
 	}
+	
+	public String getProjectUrl(){
+		return properties.get("oakbot.doclet.library.projectUrl");
+	}
 }

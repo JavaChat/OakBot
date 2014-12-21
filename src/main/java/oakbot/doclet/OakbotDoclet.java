@@ -64,6 +64,11 @@ public class OakbotDoclet {
 	 * The URL to the library's Javadocs.
 	 */
 	private static final String baseUrl;
+	
+	/**
+	 * The URL to the library's webpage.
+	 */
+	private static final String projectUrl;
 
 	/**
 	 * Whether or not to pretty print the XML.
@@ -81,6 +86,8 @@ public class OakbotDoclet {
 		libraryName = properties.getLibraryName();
 		
 		libraryVersion = properties.getLibraryVersion();
+		
+		projectUrl = properties.getProjectUrl();
 
 		String url = properties.getLibraryBaseUrl();
 		if (url != null && !url.endsWith("/")) {
@@ -136,6 +143,7 @@ public class OakbotDoclet {
 		element.setAttribute("name", libraryName);
 		element.setAttribute("version", libraryVersion);
 		element.setAttribute("baseUrl", baseUrl);
+		element.setAttribute("projectUrl", projectUrl);
 		document.appendChild(element);
 
 		//write it to a file
