@@ -29,9 +29,7 @@ public class LibraryZipFile {
 	private static final String infoFileName = "info" + extension;
 
 	private final Path file;
-	private final String baseUrl;
-	private final String name;
-	private final String version;
+	private final String baseUrl, name, version, projectUrl;
 
 	public LibraryZipFile(Path file) throws IOException {
 		this.file = file;
@@ -39,7 +37,7 @@ public class LibraryZipFile {
 		try (FileSystem fs = FileSystems.newFileSystem(file, null)) {
 			Path info = fs.getPath("/" + infoFileName);
 			if (!Files.exists(info)) {
-				baseUrl = name = version = null;
+				baseUrl = name = version = projectUrl = null;
 				return;
 			}
 
@@ -55,7 +53,7 @@ public class LibraryZipFile {
 			}
 
 			if (infoElement == null) {
-				baseUrl = name = version = null;
+				baseUrl = name = version = projectUrl = null;
 				return;
 			}
 
@@ -64,6 +62,9 @@ public class LibraryZipFile {
 
 			String baseUrl = infoElement.getAttribute("baseUrl");
 			this.baseUrl = baseUrl.isEmpty() ? null : baseUrl;
+
+			String projectUrl = infoElement.getAttribute("projectUrl");
+			this.projectUrl = projectUrl.isEmpty() ? null : projectUrl;
 
 			String version = infoElement.getAttribute("version");
 			this.version = baseUrl.isEmpty() ? null : version;
@@ -166,5 +167,13 @@ public class LibraryZipFile {
 	 */
 	public String getVersion() {
 		return version;
+	}
+
+	/**
+	 * Gets the URL to the library's webpage.
+	 * @return the URL or null if none was defined
+	 */
+	public String getProjectUrl() {
+		return projectUrl;
 	}
 }

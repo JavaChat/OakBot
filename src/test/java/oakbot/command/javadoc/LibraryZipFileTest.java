@@ -49,8 +49,10 @@ public class LibraryZipFileTest {
 
 	@Test
 	public void info() {
-		assertEquals("Java 8", zip.getName());
+		assertEquals("Java", zip.getName());
+		assertEquals("8", zip.getVersion());
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/", zip.getBaseUrl());
+		assertEquals("http://java.oracle.com", zip.getProjectUrl());
 	}
 
 	@Test
