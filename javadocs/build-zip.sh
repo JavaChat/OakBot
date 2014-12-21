@@ -8,5 +8,6 @@ javadoc \
 -quiet \
 -J-Doakbot.doclet.output.path=java8.zip \
 -J-Doakbot.doclet.output.prettyPrint=false \
--J-Doakbot.doclet.library.name="Java 8" \
+-J-Doakbot.doclet.library.name="Java" \
+-J-Doakbot.doclet.library.version=8 \
 -J-Doakbot.doclet.library.baseUrl=https://docs.oracle.com/javase/8/docs/api/ \

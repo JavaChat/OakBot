@@ -30,6 +30,10 @@ public class ConfigProperties {
 	public String getLibraryName() {
 		return properties.get("oakbot.doclet.library.name");
 	}
+	
+	public String getLibraryVersion() {
+		return properties.get("oakbot.doclet.library.version");
+	}
 
 	public String getLibraryBaseUrl() {
 		return properties.get("oakbot.doclet.library.baseUrl");

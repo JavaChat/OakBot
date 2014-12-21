@@ -112,6 +112,18 @@ public class JavadocCommand implements Command {
 		ChatBuilder cb = new ChatBuilder();
 		if (methodName == null) {
 			if (paragraph == 1) {
+				LibraryZipFile zipFile = info.getZipFile();
+				if (zipFile != null) {
+					String name = zipFile.getName();
+					if (name != null && !name.equalsIgnoreCase("Java")) {
+						name = name.replace(" ", "-");
+						cb.bold();
+						cb.tag(name);
+						cb.bold();
+						cb.append(' ');
+					}
+				}
+
 				boolean deprecated = info.isDeprecated();
 				for (String modifier : info.getModifiers()) {
 					boolean italic = false;
@@ -259,6 +271,18 @@ public class JavadocCommand implements Command {
 			}
 
 			if (paragraph == 1) {
+				LibraryZipFile zipFile = info.getZipFile();
+				if (zipFile != null) {
+					String name = zipFile.getName();
+					if (name != null && !name.equalsIgnoreCase("Java")) {
+						name = name.replace(" ", "-");
+						cb.bold();
+						cb.tag(name);
+						cb.bold();
+						cb.append(' ');
+					}
+				}
+
 				boolean deprecated = matchingMethod.isDeprecated();
 				for (String modifier : matchingMethod.getModifiers()) {
 					if (deprecated) cb.strike();

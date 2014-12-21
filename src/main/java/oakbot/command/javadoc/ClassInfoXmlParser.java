@@ -14,14 +14,17 @@ import org.w3c.dom.Element;
 public class ClassInfoXmlParser {
 	private final DocumentWrapper document;
 	private final String baseUrl;
+	private final LibraryZipFile zipFile;
 
 	/**
 	 * @param document the XML document to parse
 	 * @param baseUrl the library's base Javadoc URL
+	 * @param zipFile the ZIP file the class belongs to
 	 */
-	public ClassInfoXmlParser(Document document, String baseUrl) {
+	public ClassInfoXmlParser(Document document, String baseUrl, LibraryZipFile zipFile) {
 		this.document = new DocumentWrapper(document);
 		this.baseUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/"); //make sure the URL ends with a "/"
+		this.zipFile = zipFile;
 	}
 
 	/**
@@ -30,6 +33,7 @@ public class ClassInfoXmlParser {
 	 */
 	public ClassInfo parse() {
 		ClassInfo.Builder builder = new ClassInfo.Builder();
+		builder.zipFile(zipFile);
 
 		//class name
 		Element classElement = document.element("/class");

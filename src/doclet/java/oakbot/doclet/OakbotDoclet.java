@@ -54,6 +54,11 @@ public class OakbotDoclet {
 	 * The name of the library.
 	 */
 	private static final String libraryName;
+	
+	/**
+	 * The version of the library.
+	 */
+	private static final String libraryVersion;
 
 	/**
 	 * The URL to the library's Javadocs.
@@ -74,6 +79,8 @@ public class OakbotDoclet {
 		prettyPrint = properties.isPrettyPrint();
 
 		libraryName = properties.getLibraryName();
+		
+		libraryVersion = properties.getLibraryVersion();
 
 		String url = properties.getLibraryBaseUrl();
 		if (url != null && !url.endsWith("/")) {
@@ -84,7 +91,7 @@ public class OakbotDoclet {
 
 	/**
 	 * The entry point for the {@code javadoc} command.
-	 * @param rootDoc the root
+	 * @param rootDoc contains the parsed javadoc information
 	 * @return true if successful, false if not
 	 * @throws Exception if an error occurred during the parsing
 	 */
@@ -127,6 +134,7 @@ public class OakbotDoclet {
 		Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 		Element element = document.createElement("info");
 		element.setAttribute("name", libraryName);
+		element.setAttribute("version", libraryVersion);
 		element.setAttribute("baseUrl", baseUrl);
 		document.appendChild(element);
 

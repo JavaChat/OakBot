@@ -18,6 +18,7 @@ public class ClassInfo {
 	private final List<ClassName> interfaces;
 	private final Multimap<String, MethodInfo> methods;
 	private final boolean deprecated;
+	private final LibraryZipFile zipFile;
 
 	private ClassInfo(Builder builder) {
 		name = builder.name;
@@ -28,6 +29,7 @@ public class ClassInfo {
 		interfaces = builder.interfaces.build();
 		methods = builder.methods.build();
 		deprecated = builder.deprecated;
+		zipFile = builder.zipFile;
 	}
 
 	public ClassName getName() {
@@ -66,6 +68,10 @@ public class ClassInfo {
 		return deprecated;
 	}
 
+	public LibraryZipFile getZipFile() {
+		return zipFile;
+	}
+
 	public static class Builder {
 		private ClassName name, superClass;
 		private String description, url;
@@ -73,6 +79,7 @@ public class ClassInfo {
 		private ImmutableList.Builder<ClassName> interfaces = ImmutableList.builder();
 		private ImmutableMultimap.Builder<String, MethodInfo> methods = ImmutableMultimap.builder();
 		private boolean deprecated = false;
+		private LibraryZipFile zipFile;
 
 		public Builder name(String full, String simple) {
 			this.name = new ClassName(full, simple);
@@ -116,6 +123,11 @@ public class ClassInfo {
 
 		public Builder deprecated(boolean deprecated) {
 			this.deprecated = deprecated;
+			return this;
+		}
+
+		public Builder zipFile(LibraryZipFile zipFile) {
+			this.zipFile = zipFile;
 			return this;
 		}
 
