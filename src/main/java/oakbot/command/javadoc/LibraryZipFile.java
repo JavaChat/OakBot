@@ -141,7 +141,7 @@ public class LibraryZipFile {
 				throw new IOException(e);
 			}
 
-			return new ClassInfoXmlParser(document, baseUrl, this).parse();
+			return new ClassInfoXmlParser(document, this).parse();
 		}
 	}
 

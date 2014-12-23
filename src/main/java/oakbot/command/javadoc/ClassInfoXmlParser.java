@@ -18,12 +18,13 @@ public class ClassInfoXmlParser {
 
 	/**
 	 * @param document the XML document to parse
-	 * @param baseUrl the library's base Javadoc URL
 	 * @param zipFile the ZIP file the class belongs to
 	 */
-	public ClassInfoXmlParser(Document document, String baseUrl, LibraryZipFile zipFile) {
+	public ClassInfoXmlParser(Document document, LibraryZipFile zipFile) {
 		this.document = new DocumentWrapper(document);
-		this.baseUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/"); //make sure the URL ends with a "/"
+
+		String baseUrl = zipFile.getBaseUrl();
+		this.baseUrl = (baseUrl == null) ? null : baseUrl + (baseUrl.endsWith("/") ? "" : "/"); //make sure the URL ends with a "/"
 		this.zipFile = zipFile;
 	}
 
@@ -84,8 +85,10 @@ public class ClassInfoXmlParser {
 		}
 
 		//URL
-		String url = baseUrl + "index.html?" + fullName.replace('.', '/') + ".html";
-		builder.url(url);
+		if (baseUrl != null) {
+			String url = baseUrl + "index.html?" + fullName.replace('.', '/') + ".html";
+			builder.url(url);
+		}
 
 		return builder.build();
 	}
