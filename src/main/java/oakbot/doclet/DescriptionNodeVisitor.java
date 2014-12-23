@@ -13,8 +13,8 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.select.NodeVisitor;
 
 /**
- * Iterates through the class description section of a Javadoc HTML page,
- * converting the description to SO Chat markdown.
+ * Iterates through a class's or method's Javadoc description, converting the
+ * description to SO Chat markdown.
  * @author Michael Angstadt
  */
 public class DescriptionNodeVisitor implements NodeVisitor {
@@ -26,7 +26,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 	private final StringBuilder preSb = new StringBuilder();
 
 	private String linkUrl, linkTitle, linkText;
-	private boolean linkTextCode;
+	private boolean linkTextCode, linkTextBold, linkTextItalic, linkTextStrike;
 
 	@Override
 	public void head(Node node, int depth) {
@@ -50,14 +50,27 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			break;
 		case "i":
 		case "em":
-			if (!inPre) {
+			if (inLink()) {
+				linkTextItalic = true;
+			} else if (!inPre) {
 				cb.italic();
 			}
 			break;
 		case "b":
 		case "strong":
-			if (!inPre) {
+			if (inLink()) {
+				linkTextBold = true;
+			} else if (!inPre) {
 				cb.bold();
+			}
+			break;
+		case "strike":
+		case "s":
+		case "del":
+			if (inLink()) {
+				linkTextStrike = true;
+			} else if (!inPre) {
+				cb.strike();
 			}
 			break;
 		case "br":
@@ -114,17 +127,21 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 		switch (node.nodeName()) {
 		case "a":
 			if (inLink()) {
-				//"code" formatting has to be last
 				ChatBuilder cb2 = new ChatBuilder();
-				if (linkTextCode) {
-					cb2.code(linkText);
-				} else {
-					cb2.append(linkText);
-				}
+				if (linkTextBold) cb2.bold();
+				if (linkTextItalic) cb2.italic();
+				if (linkTextStrike) cb2.strike();
+				if (linkTextCode) cb2.code(); //"code" formatting has to be last
+				cb2.append(linkText);
+				if (linkTextCode) cb2.code();
+				if (linkTextStrike) cb2.strike();
+				if (linkTextItalic) cb2.italic();
+				if (linkTextBold) cb2.bold();
+
 				cb.link(cb2.toString(), linkUrl, linkTitle);
 
 				linkUrl = linkText = linkTitle = null;
-				linkTextCode = false;
+				linkTextBold = linkTextItalic = linkTextStrike = linkTextCode = false;
 			}
 			break;
 		case "code":
@@ -136,14 +153,21 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			break;
 		case "i":
 		case "em":
-			if (!inPre) {
+			if (!inLink() && !inPre) {
 				cb.italic();
 			}
 			break;
 		case "b":
 		case "strong":
-			if (!inPre) {
+			if (!inLink() && !inPre) {
 				cb.bold();
+			}
+			break;
+		case "strike":
+		case "s":
+		case "del":
+			if (!inLink() && !inPre) {
+				cb.strike();
 			}
 			break;
 		case "p":
@@ -161,7 +185,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 		case "h4":
 		case "h5":
 		case "h6":
-			cb.append(": ").bold();
+			cb.append(':').bold().append(' ');
 			break;
 		}
 	}
@@ -197,7 +221,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			lines[i] = line.trim();
 		}
 
-		cb.fixed().append(lines[0]).nl(); //handle the first line differently because its prepended spaces where trimmed
+		cb.fixed().append(lines[0]).nl(); //handle the first line differently because its prepended spaces were trimmed
 		Iterator<Integer> it = spaceCounts.iterator();
 		for (int i = 1; i < lines.length; i++) {
 			String line = lines[i];
@@ -221,10 +245,26 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 	public String getDescription() {
 		//@formatter:off
 		return cb.toString()
+		
 		.trim()
-		.replaceAll((char)160 + "", " ") //jsoup converts "&nbsp;" to a character that doesn't display right on SO Chat
-		.replaceAll("[ \\t]+\\n", "\n") //remove whitespace that's at the end of a line
-		.replaceAll("\\n{3,}", "\n\n"); //there should never be a run of more than 2 newlines
+		
+		//jsoup converts "&nbsp;" to a character that doesn't display right on SO Chat
+		.replace((char)160, ' ')
+		
+		//remove whitespace that's at the end of each line
+		.replaceAll("[ \\t]+\\n", "\n")
+		
+		//there should never be a run of more than consecutive 2 newlines
+		.replaceAll("\\n{3,}", "\n\n")
+		
+		//the code tag should be inner most formatting tag (e.g. "`**test**`" --> "**`test`**")
+		.replaceAll("`([\\*\\-]+)(.*?)([\\*\\-]+)`", "$1`$2`$3")
+		
+		//move the code tags surrounding links so that they are inside the brackets (e.g. "`[test](...)`" --> "[`test`](...)")
+		.replaceAll("`\\[(.*?)\\]\\((.*?)\\)`", "[`$1`]($2)")
+		
+		//run this regex again to fix certain edge cases with links (e.g. "`*[**test**](...)*`" --> "*`[**test**](...)`*" --> "*[**`test`**](...)*")
+		.replaceAll("`([\\*\\-]+)(.*?)([\\*\\-]+)`", "$1`$2`$3");
 		//@formatter:on
 	}
 }
