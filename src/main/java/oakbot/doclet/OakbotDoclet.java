@@ -131,6 +131,7 @@ public class OakbotDoclet {
 					writeDocument(document, writer);
 				}
 			}
+			System.out.println("\nFinishing...");
 		}
 
 		return true;
