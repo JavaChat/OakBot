@@ -1,32 +1,16 @@
 package oakbot.doclet;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.jsoup.Jsoup;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.ClassDoc;
@@ -38,52 +22,44 @@ import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.Tag;
 import com.sun.javadoc.Type;
 
-public class RootDocParser {
-	private final Path outputPath;
+/**
+ * Converts the Javadoc info in a {@link RootDoc} object to XML. Use the inner
+ * {@link Builder} class to construct a new instance.
+ * @author Michael Angstadt
+ */
+public class RootDocXmlProcessor {
 	private final String libraryName, libraryVersion, baseJavadocUrl, projectUrl;
-	private final boolean prettyPrint;
-	private final ParseStatusListener parseStatusListener;
+	private final Listener listener;
 
-	private RootDocParser(Builder builder) {
-		outputPath = builder.outputPath;
+	private RootDocXmlProcessor(Builder builder) {
 		libraryName = builder.libraryName;
 		libraryVersion = builder.libraryVersion;
 		baseJavadocUrl = builder.baseJavadocUrl;
 		projectUrl = builder.projectUrl;
-		prettyPrint = builder.prettyPrint;
-		parseStatusListener = builder.parseStatusListener;
+		listener = builder.listener;
 	}
 
-	public void parse(RootDoc rootDoc) throws Exception {
-		if (Files.exists(outputPath)) {
-			Files.delete(outputPath);
-		}
+	/**
+	 * Processes a {@link RootDoc} object.
+	 * @param rootDoc the object to process
+	 */
+	public void process(RootDoc rootDoc) {
+		Document info = createInfoDocument();
+		listener.infoCreated(info);
 
-		URI uri = URI.create("jar:file:" + outputPath.toAbsolutePath());
-		Map<String, String> env = new HashMap<>();
-		env.put("create", "true");
-		try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
-			writeInfoDocument(fs);
+		ClassDoc classDocs[] = rootDoc.classes();
+		for (ClassDoc classDoc : classDocs) {
+			listener.parsingClass(classDoc, classDocs.length);
 
-			ClassDoc classDocs[] = rootDoc.classes();
-			for (ClassDoc classDoc : classDocs) {
-				parseStatusListener.parsingClass(classDoc, classDocs.length);
-
-				Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-				Element classElement = parseClass(classDoc, document);
-				document.appendChild(classElement);
-
-				Path path = fs.getPath(classDoc.qualifiedTypeName() + ".xml");
-				try (Writer writer = Files.newBufferedWriter(path)) {
-					writeDocument(document, writer);
-				}
-			}
+			Document document = newDocument();
+			Element classElement = parseClass(classDoc, document);
+			document.appendChild(classElement);
+			listener.classParsed(classDoc, document);
 		}
 	}
 
-	private void writeInfoDocument(FileSystem fs) throws IOException, TransformerException, ParserConfigurationException {
-		//create the XML DOM
-		Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+	private Document createInfoDocument() {
+		Document document = newDocument();
 		Element element = document.createElement("info");
 		element.setAttribute("name", libraryName);
 		element.setAttribute("version", libraryVersion);
@@ -91,11 +67,7 @@ public class RootDocParser {
 		element.setAttribute("projectUrl", projectUrl);
 		document.appendChild(element);
 
-		//write it to a file
-		Path info = fs.getPath("info.xml");
-		try (Writer writer = Files.newBufferedWriter(info)) {
-			writeDocument(document, writer);
-		}
+		return document;
 	}
 
 	private static Element parseClass(ClassDoc classDoc, Document document) {
@@ -112,38 +84,22 @@ public class RootDocParser {
 		//modifiers
 		List<String> modifiers = new ArrayList<>();
 		{
-			for (ClassDoc interfaceDoc : classDoc.interfaces()) {
-				ClassDoc superClass = interfaceDoc;
-				boolean isAnnotation = false;
-				do {
-					//the "isAnnotationType" and "isAnnotationTypeElement" methods don't work... o_O
-					String name = superClass.qualifiedTypeName();
-					if ("java.lang.annotation.Annotation".equals(name)) {
-						modifiers.add("annotation");
-						isAnnotation = true;
-						break;
-					}
-				} while ((superClass = superClass.superclass()) != null);
-
-				if (isAnnotation) {
-					break;
-				}
-			}
-
-			if (classDoc.isException()) {
+			boolean isAnnotation = isAnnotation(classDoc);
+			if (isAnnotation) { //isAnnotationType() and isAnnotationTypeElement() don't work
+				modifiers.add("annotation");
+			} else if (classDoc.isException()) {
 				modifiers.add("exception");
 			} else if (classDoc.isEnum()) {
 				modifiers.add("enum");
 			} else if (classDoc.isClass()) {
 				modifiers.add("class");
 			}
-			//note: "interface" is already included in the "modifiers()" method for interfaces
+			//note: no need to call isInterface()--"interface" is already included in the "modifiers()" method for interfaces
 
 			for (String modifier : classDoc.modifiers().split("\\s+")) {
 				modifiers.add(modifier);
 			}
-
-			if (modifiers.contains("annotation")) {
+			if (isAnnotation) {
 				modifiers.remove("interface");
 			}
 		}
@@ -195,23 +151,27 @@ public class RootDocParser {
 		}
 		element.appendChild(methodsElement);
 
-		//inherited methods
-		//		superClass = classDoc;
-		//		while ((superClass = superClass.superclass()) != null) {
-		//			for (MethodDoc method : superClass.methods()) {
-		//				String signature = getMethodSignature(method);
-		//				if (addedMethods.contains(signature)) {
-		//					continue;
-		//				}
-		//				addedMethods.add(signature);
-		//
-		//				methodsElement.appendChild(parseMethod(method, document));
-		//			}
-		//		}
-
 		//TODO java.lang.Object methods
 
 		return element;
+	}
+
+	/**
+	 * Determines if a class is an annotation.
+	 * @param classDoc the class
+	 * @return true if it's an annotation, false if not
+	 */
+	private static boolean isAnnotation(ClassDoc classDoc) {
+		for (ClassDoc interfaceDoc : classDoc.interfaces()) {
+			ClassDoc superClass = interfaceDoc;
+			do {
+				String superClassName = superClass.qualifiedTypeName();
+				if ("java.lang.annotation.Annotation".equals(superClassName)) {
+					return true;
+				}
+			} while ((superClass = superClass.superclass()) != null);
+		}
+		return false;
 	}
 
 	private static String getMethodSignature(MethodDoc method) {
@@ -408,42 +368,34 @@ public class RootDocParser {
 		return visitor.getDescription();
 	}
 
+	/**
+	 * Escapes a string for safe inclusion in HTML.
+	 * @param text the text to escape
+	 * @return the escaped text
+	 */
 	private static String escapeHtml(String text) {
 		return text.replace("<", "&lt;").replace(">", "&gt;");
 	}
 
-	private void writeDocument(Node node, Writer writer) throws TransformerException {
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		if (prettyPrint) {
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+	private static Document newDocument() {
+		try {
+			return DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+		} catch (ParserConfigurationException e) {
+			throw new RuntimeException(e);
 		}
-
-		DOMSource source = new DOMSource(node);
-		StreamResult result = new StreamResult(writer);
-		transformer.transform(source, result);
 	}
 
-	public static interface ParseStatusListener {
+	public static interface Listener {
 		public void parsingClass(ClassDoc classDoc, int numClasses);
+
+		public void infoCreated(Document info);
+
+		public void classParsed(ClassDoc classDoc, Document document);
 	}
 
 	public static class Builder {
-		private Path outputPath;
 		private String libraryName, libraryVersion, baseJavadocUrl, projectUrl;
-		private boolean prettyPrint = false;
-		private ParseStatusListener parseStatusListener = (classDoc, numClasses) -> {
-			//do nothing by default
-		};
-
-		/**
-		 * @param outputPath the name of the ZIP file to create.
-		 * @return this
-		 */
-		public Builder outputPath(Path outputPath) {
-			this.outputPath = outputPath;
-			return this;
-		}
+		private Listener listener;
 
 		/**
 		 * @param libraryName the name of the library (e.g. "guava")
@@ -484,25 +436,16 @@ public class RootDocParser {
 			return this;
 		}
 
-		/**
-		 * @param prettyPrint whether or not to pretty print the XML
-		 * @return this
-		 */
-		public Builder prettyPrint(boolean prettyPrint) {
-			this.prettyPrint = prettyPrint;
-			return this;
-		}
-
-		public Builder parseStatusListener(ParseStatusListener parseStatusListener) {
-			this.parseStatusListener = parseStatusListener;
+		public Builder listener(Listener listener) {
+			this.listener = listener;
 			return this;
 		}
 
 		/**
-		 * @return the built {@link RootDocParser} object
+		 * @return the built {@link RootDocXmlProcessor} object
 		 */
-		public RootDocParser build() {
-			return new RootDocParser(this);
+		public RootDocXmlProcessor build() {
+			return new RootDocXmlProcessor(this);
 		}
 	}
 }
