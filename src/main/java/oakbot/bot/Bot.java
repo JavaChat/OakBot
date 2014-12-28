@@ -59,6 +59,7 @@ public class Bot {
 
 		//post a message to each room
 		for (Integer room : rooms) {
+			connection.getNewMessages(room); //prime the latest message timestamp
 			connection.sendMessage(room, "OakBot Online.");
 		}
 
