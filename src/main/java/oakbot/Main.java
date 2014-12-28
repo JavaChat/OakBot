@@ -6,7 +6,6 @@ import java.io.Reader;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
-import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -71,8 +70,8 @@ public class Main {
 		setupLogging();
 		BotProperties props = loadProperties();
 
-		JavadocCommand javadocCommand = createJavadocCommand();
-		
+		JavadocCommand javadocCommand = createJavadocCommand(props.getJavadocPath());
+
 		//@formatter:off
 		List<Listener> listeners = Arrays.asList(
 			new MentionListener(props.getBotname(), props.getTrigger()),
@@ -120,7 +119,7 @@ public class Main {
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread thread, Throwable thrown) {
-				logger.log(Level.SEVERE, "An error occurred.", thrown);
+				logger.log(Level.SEVERE, "Uncaught exception thrown.", thrown);
 			}
 		});
 	}
@@ -134,16 +133,10 @@ public class Main {
 		return new BotProperties(properties);
 	}
 
-	private static JavadocCommand createJavadocCommand() throws IOException {
+	private static JavadocCommand createJavadocCommand(Path dir) throws IOException {
 		JavadocCommand javadocCommand = new JavadocCommand();
 
-		Path dir = Paths.get("javadocs");
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, new Filter<Path>() {
-			@Override
-			public boolean accept(Path entry) throws IOException {
-				return entry.getFileName().toString().endsWith(".zip");
-			}
-		})) {
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, entry -> entry.getFileName().toString().endsWith(".zip"))) {
 			for (Path path : stream) {
 				javadocCommand.addLibrary(path);
 			}

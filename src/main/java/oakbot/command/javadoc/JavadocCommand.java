@@ -45,6 +45,11 @@ public class JavadocCommand implements Command {
 		return description(); //TODO finish
 	}
 
+	/**
+	 * Adds a library's Javadocs.
+	 * @param zipFile the library's Javadoc ZIP file
+	 * @throws IOException if there's a problem loading the ZIP file
+	 */
 	public void addLibrary(Path zipFile) throws IOException {
 		dao.addApi(zipFile);
 	}
