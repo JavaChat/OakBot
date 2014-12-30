@@ -3,6 +3,7 @@ package oakbot.chat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -134,6 +135,8 @@ public class StackoverflowChatTest {
 	@Test
 	public void sendMessage() throws Exception {
 		HttpClient client = mockClient(new AnswerImpl() {
+			private long firstRequestSent;
+
 			@Override
 			public HttpResponse answer(String method, String uri, String body) throws IOException {
 				switch (count) {
@@ -142,6 +145,7 @@ public class StackoverflowChatTest {
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
 					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
 				case 2:
+					firstRequestSent = System.currentTimeMillis();
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/messages/new", uri);
 					//@formatter:off
@@ -155,6 +159,8 @@ public class StackoverflowChatTest {
 
 					return response(200, "{}");
 				case 3:
+					long diff = System.currentTimeMillis() - firstRequestSent;
+					assertTrue(diff >= 300);
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/messages/new", uri);
 					//@formatter:off
@@ -173,9 +179,10 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		StackoverflowChat chat = new StackoverflowChat(client);
+		StackoverflowChat chat = new StackoverflowChat(client, 300);
 		chat.sendMessage(1, "Test1");
 		chat.sendMessage(1, "Test2");
+		Thread.sleep(1000); //wait for the queue to consume all the messages
 		verify(client, times(3)).execute(any(HttpUriRequest.class));
 	}
 

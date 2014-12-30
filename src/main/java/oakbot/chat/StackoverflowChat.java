@@ -44,25 +44,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class StackoverflowChat implements ChatConnection {
 	private static final Logger logger = Logger.getLogger(StackoverflowChat.class.getName());
-	private static final int MAX_MESSAGE_LENGTH = 500;
-	private static final long PAUSE_BETWEEN_MESSAGES = TimeUnit.SECONDS.toMillis(4);
 
 	private final HttpClient client;
 	private final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
 	private final Map<Integer, String> fkeyCache = new HashMap<>();
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
 
-	private final BlockingQueue<ChatPost> messageQueue = new LinkedBlockingQueue<>();
-	private final MessageSenderThread messageSenderThread = new MessageSenderThread();
+	private final MessageSenderThread sender;
 
 	/**
 	 * Creates a new connection to Stackoverflow chat.
 	 * @param client the HTTP client
 	 */
 	public StackoverflowChat(HttpClient client) {
+		this(client, TimeUnit.SECONDS.toMillis(4));
+	}
+
+	/**
+	 * Creates a new connection to Stackoverflow chat.
+	 * @param client the HTTP client
+	 * @param the amount of time to pause between message sends (in
+	 * milliseconds)
+	 */
+	public StackoverflowChat(HttpClient client, long pauseBetweenMessages) {
+		MessageSenderThread sender = new MessageSenderThread(pauseBetweenMessages);
+		sender.start();
+
 		this.client = client;
-		messageSenderThread.setDaemon(true);
-		messageSenderThread.start();
+		this.sender = sender;
 	}
 
 	@Override
@@ -96,11 +105,7 @@ public class StackoverflowChat implements ChatConnection {
 
 	@Override
 	public void sendMessage(int room, String message, SplitStrategy splitStrategy) throws IOException {
-		if (!messageSenderThread.isAlive()) {
-			throw messageSenderThread.thrown;
-		}
-
-		messageQueue.add(new ChatPost(room, message, splitStrategy));
+		sender.send(room, message, splitStrategy);
 	}
 
 	@Override
@@ -310,11 +315,25 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	private class MessageSenderThread extends Thread {
-		private IOException thrown;
-		private long prevMessageSent;
+		private final int MAX_MESSAGE_LENGTH = 500;
+		private final long pauseBetweenMessages;
 
-		public MessageSenderThread() {
+		private volatile IOException thrown;
+		private long prevMessageSent;
+		private final BlockingQueue<ChatPost> messageQueue = new LinkedBlockingQueue<>();
+
+		public MessageSenderThread(long pauseBetweenMessages) {
+			this.pauseBetweenMessages = pauseBetweenMessages;
 			setName(getClass().getSimpleName());
+			setDaemon(true);
+		}
+
+		public void send(int room, String message, SplitStrategy splitStrategy) throws IOException {
+			if (!isAlive()) {
+				throw thrown;
+			}
+
+			messageQueue.add(new ChatPost(room, message, splitStrategy));
 		}
 
 		@Override
@@ -338,7 +357,7 @@ public class StackoverflowChat implements ChatConnection {
 					List<String> posts = splitStrategy.split(message, MAX_MESSAGE_LENGTH);
 
 					for (String post : posts) {
-						sendMessage(room, url, fkey, post);
+						send(room, url, fkey, post);
 					}
 				} catch (IOException e) {
 					thrown = e;
@@ -347,8 +366,8 @@ public class StackoverflowChat implements ChatConnection {
 			}
 		}
 
-		private void sendMessage(int room, String url, String fkey, String message) throws IOException {
-			long sleep = PAUSE_BETWEEN_MESSAGES - (System.currentTimeMillis() - prevMessageSent);
+		private void send(int room, String url, String fkey, String message) throws IOException {
+			long sleep = pauseBetweenMessages - (System.currentTimeMillis() - prevMessageSent);
 			if (sleep > 0) {
 				try {
 					TimeUnit.MILLISECONDS.sleep(sleep);
