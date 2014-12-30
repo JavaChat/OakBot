@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.Charset;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,6 +29,7 @@ import oakbot.command.HelpCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
+import oakbot.command.javadoc.JavadocDao;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
@@ -134,15 +134,8 @@ public class Main {
 	}
 
 	private static JavadocCommand createJavadocCommand(Path dir) throws IOException {
-		JavadocCommand javadocCommand = new JavadocCommand();
-
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, entry -> entry.getFileName().toString().endsWith(".zip"))) {
-			for (Path path : stream) {
-				javadocCommand.addLibrary(path);
-			}
-		}
-
-		return javadocCommand;
+		JavadocDao dao = new JavadocDao(dir);
+		return new JavadocCommand(dao);
 	}
 
 	private Main() {

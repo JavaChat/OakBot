@@ -20,7 +20,7 @@ import org.junit.Test;
  * @author Michael Angstadt
  */
 public class LibraryZipFileTest {
-	private final Path root = Paths.get("src", "test", "resources", "oakbot", "javadoc");
+	private final Path root = Paths.get("src", "test", "resources", "oakbot", "command", "javadoc");
 	private final LibraryZipFile zip;
 	{
 		Path file = root.resolve(getClass().getSimpleName() + ".zip");
@@ -57,10 +57,10 @@ public class LibraryZipFileTest {
 
 	@Test
 	public void getClasses() throws Exception {
-		Iterator<String> it = zip.getClasses();
+		Iterator<ClassName> it = zip.getClasses();
 		Set<String> actual = new HashSet<>();
 		while (it.hasNext()) {
-			actual.add(it.next());
+			actual.add(it.next().getFull());
 		}
 
 		//@formatter:off

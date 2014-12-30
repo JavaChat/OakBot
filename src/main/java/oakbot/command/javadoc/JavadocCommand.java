@@ -1,7 +1,6 @@
 package oakbot.command.javadoc;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,11 +23,15 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class JavadocCommand implements Command {
-	private final JavadocDao dao = new JavadocDao();
+	private final JavadocDao dao;
 
 	private List<String> prevChoices = new ArrayList<>();
 	private Date prevChoicesDate;
 	private final long choiceTimeout = 1000 * 30;
+
+	public JavadocCommand(JavadocDao dao) {
+		this.dao = dao;
+	}
 
 	@Override
 	public String name() {
@@ -43,15 +46,6 @@ public class JavadocCommand implements Command {
 	@Override
 	public String helpText() {
 		return description(); //TODO finish
-	}
-
-	/**
-	 * Adds a library's Javadocs.
-	 * @param zipFile the library's Javadoc ZIP file
-	 * @throws IOException if there's a problem loading the ZIP file
-	 */
-	public void addLibrary(Path zipFile) throws IOException {
-		dao.addApi(zipFile);
 	}
 
 	@Override

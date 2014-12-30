@@ -1,35 +1,36 @@
 package oakbot.command.javadoc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import oakbot.command.javadoc.ClassInfo;
-import oakbot.command.javadoc.JavadocDao;
-import oakbot.command.javadoc.LibraryZipFile;
-import oakbot.command.javadoc.MultipleClassesFoundException;
-
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * @author Michael Angstadt
  */
 public class JavadocDaoTest {
-	private final Path root = Paths.get("src", "test", "resources", "oakbot", "javadoc");
-	private final JavadocDao dao = new JavadocDao();
+	@Rule
+	public final TemporaryFolder temp = new TemporaryFolder();
+
+	private final Path root = Paths.get("src", "test", "resources", "oakbot", "command", "javadoc");
+	private final JavadocDao dao;
 	{
 		try {
-			dao.addApi(root.resolve(LibraryZipFileTest.class.getSimpleName() + ".zip"));
+			dao = new JavadocDao(root);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -78,15 +79,66 @@ public class JavadocDaoTest {
 	}
 
 	@Test
-	public void cache() throws Exception {
-		Path zipFile = root.resolve(LibraryZipFileTest.class.getSimpleName() + ".zip");
-		LibraryZipFile spy = spy(new LibraryZipFile(zipFile));
+	public void directory_watcher_ignore_non_zip_files() throws Exception {
+		Path dir = temp.getRoot().toPath();
+		JavadocDao dao = new JavadocDao(dir);
 
-		JavadocDao dao = new JavadocDao();
-		dao.addApi(spy);
+		assertNull(dao.getClassInfo("java.util.List"));
 
-		dao.getClassInfo("Collection");
-		dao.getClassInfo("collection");
-		verify(spy, times(1)).getClassInfo("java.util.Collection");
+		Path source = root.resolve("LibraryZipFileTest.zip");
+		Path dest = dir.resolve("LibraryZipFileTest.txt");
+		Files.copy(source, dest);
+		Thread.sleep(1000);
+		assertNull(dao.getClassInfo("java.util.List"));
+	}
+
+	@Test
+	public void directory_watcher_add() throws Exception {
+		Path dir = temp.getRoot().toPath();
+		JavadocDao dao = new JavadocDao(dir);
+
+		assertNull(dao.getClassInfo("java.util.List"));
+
+		Path source = root.resolve("LibraryZipFileTest.zip");
+		Path dest = dir.resolve("LibraryZipFileTest.zip");
+		Files.copy(source, dest);
+		Thread.sleep(1000);
+		assertNotNull(dao.getClassInfo("java.util.List"));
+	}
+
+	@Test
+	public void directory_watcher_remove() throws Exception {
+		Path dir = temp.getRoot().toPath();
+		Path source = root.resolve("LibraryZipFileTest.zip");
+		Path dest = dir.resolve("LibraryZipFileTest.zip");
+		Files.copy(source, dest);
+
+		JavadocDao dao = new JavadocDao(dir);
+
+		assertNotNull(dao.getClassInfo("java.util.List"));
+
+		source = dir.resolve("LibraryZipFileTest.zip");
+		Files.delete(source);
+		Thread.sleep(1000);
+		assertNull(dao.getClassInfo("java.util.List"));
+	}
+
+	@Test
+	public void directory_watcher_modified() throws Exception {
+		Path dir = temp.getRoot().toPath();
+		Path source = root.resolve("LibraryZipFileTest.zip");
+		Path dest = dir.resolve("LibraryZipFileTest.zip");
+		Files.copy(source, dest);
+
+		JavadocDao dao = new JavadocDao(dir);
+
+		assertNotNull(dao.getClassInfo("java.util.List"));
+
+		try (FileSystem fs = FileSystems.newFileSystem(dest, null)) {
+			Path path = fs.getPath("java.util.List.xml");
+			Files.delete(path);
+		}
+		Thread.sleep(1000);
+		assertNull(dao.getClassInfo("java.util.List"));
 	}
 }
