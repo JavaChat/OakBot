@@ -122,7 +122,7 @@ public class StackoverflowChat implements ChatConnection {
 		//@formatter:on
 		request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
 
-		HttpResponse response = executeWithRetries(request);
+		HttpResponse response = executeWithRetries(request, null);
 		ObjectMapper mapper = new ObjectMapper();
 		String json = EntityUtils.toString(response.getEntity());
 		logger.finest(json);
@@ -192,7 +192,7 @@ public class StackoverflowChat implements ChatConnection {
 	 */
 	private String parseFkey(String url) throws IOException {
 		HttpGet request = new HttpGet(url);
-		HttpResponse response = executeWithRetries(request);
+		HttpResponse response = executeWithRetries(request, null);
 		String html = EntityUtils.toString(response.getEntity());
 		Matcher m = fkeyRegex.matcher(html);
 		return m.find() ? m.group(1) : null;
@@ -217,25 +217,29 @@ public class StackoverflowChat implements ChatConnection {
 	 * Executes an HTTP request, retrying after a short pause if the request
 	 * fails.
 	 * @param request the request to send
+	 * @param numRetries the number of times to retry the request if it fails,
+	 * or null to retry forever
 	 * @return the HTTP response
 	 * @throws IOException if there was an I/O error
 	 */
-	private HttpResponse executeWithRetries(HttpUriRequest request) throws IOException {
-		return executeWithRetries(request, null);
+	private HttpResponse executeWithRetries(HttpUriRequest request, Integer numRetries) throws IOException {
+		return executeWithRetries(request, numRetries, null);
 	}
 
 	/**
 	 * Executes an HTTP request, retrying after a short pause if the request
 	 * fails.
 	 * @param request the request to send
+	 * @param numRetries the number of times to retry the request if it fails,
+	 * or null to retry forever
 	 * @param expectedStatusCode the expected HTTP response status code. If the
 	 * response does not have this status code, the request will be retried
 	 * @return the HTTP response
 	 * @throws IOException if there was an I/O error
 	 */
-	private HttpResponse executeWithRetries(HttpUriRequest request, Integer expectedStatusCode) throws IOException {
+	private HttpResponse executeWithRetries(HttpUriRequest request, Integer numRetries, Integer expectedStatusCode) throws IOException {
 		int retries = 0;
-		while (true) {
+		while (numRetries == null || retries <= numRetries) {
 			int sleep = (retries + 1) * 5;
 			if (sleep > 60) {
 				sleep = 60;
@@ -265,6 +269,12 @@ public class StackoverflowChat implements ChatConnection {
 
 			retries++;
 		}
+		return null;
+	}
+
+	@Override
+	public void flush() {
+		sender.finish();
 	}
 
 	/**
@@ -319,6 +329,7 @@ public class StackoverflowChat implements ChatConnection {
 		private final long pauseBetweenMessages;
 
 		private volatile IOException thrown;
+		private volatile boolean finish = false;
 		private long prevMessageSent;
 		private final BlockingQueue<ChatPost> messageQueue = new LinkedBlockingQueue<>();
 
@@ -336,13 +347,31 @@ public class StackoverflowChat implements ChatConnection {
 			messageQueue.add(new ChatPost(room, message, splitStrategy));
 		}
 
+		public void finish() {
+			finish = true;
+			interrupt();
+
+			try {
+				join();
+			} catch (InterruptedException e) {
+				//do nothing
+			}
+		}
+
 		@Override
 		public void run() {
 			while (true) {
+				if (finish && messageQueue.isEmpty()) {
+					return;
+				}
+
 				ChatPost chatPost;
 				try {
 					chatPost = messageQueue.take();
 				} catch (InterruptedException e) {
+					if (finish && !messageQueue.isEmpty()) {
+						continue;
+					}
 					return;
 				}
 
@@ -367,12 +396,21 @@ public class StackoverflowChat implements ChatConnection {
 		}
 
 		private void send(int room, String url, String fkey, String message) throws IOException {
-			long sleep = pauseBetweenMessages - (System.currentTimeMillis() - prevMessageSent);
+			long now = System.currentTimeMillis();
+			long sleep = pauseBetweenMessages - (now - prevMessageSent);
 			if (sleep > 0) {
 				try {
 					TimeUnit.MILLISECONDS.sleep(sleep);
 				} catch (InterruptedException e) {
-					return;
+					//sleep for the remaining time
+					sleep -= System.currentTimeMillis() - now;
+					if (sleep > 0) {
+						try {
+							TimeUnit.MILLISECONDS.sleep(sleep);
+						} catch (InterruptedException e1) {
+							//ignore
+						}
+					}
 				}
 			}
 
