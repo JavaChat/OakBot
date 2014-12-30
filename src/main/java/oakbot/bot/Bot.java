@@ -128,6 +128,7 @@ public class Bot {
 									reply = command.onMessage(message, isAdmin);
 								} catch (ShutdownException e) {
 									broadcast("Shutting down.  See you later.");
+									connection.flush();
 									return;
 								}
 
