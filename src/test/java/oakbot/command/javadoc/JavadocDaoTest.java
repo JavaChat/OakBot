@@ -14,7 +14,10 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.LogManager;
 
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -24,7 +27,7 @@ import org.junit.rules.TemporaryFolder;
  */
 public class JavadocDaoTest {
 	@Rule
-	public final TemporaryFolder temp = new TemporaryFolder();
+	public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 	private final Path root = Paths.get("src", "test", "resources", "oakbot", "command", "javadoc");
 	private final JavadocDao dao;
@@ -34,6 +37,12 @@ public class JavadocDaoTest {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@BeforeClass
+	public static void beforeClass() {
+		//turn off logging
+		LogManager.getLogManager().reset();
 	}
 
 	@Test
@@ -80,7 +89,7 @@ public class JavadocDaoTest {
 
 	@Test
 	public void directory_watcher_ignore_non_zip_files() throws Exception {
-		Path dir = temp.getRoot().toPath();
+		Path dir = temporaryFolder.getRoot().toPath();
 		JavadocDao dao = new JavadocDao(dir);
 
 		assertNull(dao.getClassInfo("java.util.List"));
@@ -94,7 +103,7 @@ public class JavadocDaoTest {
 
 	@Test
 	public void directory_watcher_add() throws Exception {
-		Path dir = temp.getRoot().toPath();
+		Path dir = temporaryFolder.getRoot().toPath();
 		JavadocDao dao = new JavadocDao(dir);
 
 		assertNull(dao.getClassInfo("java.util.List"));
@@ -102,43 +111,69 @@ public class JavadocDaoTest {
 		Path source = root.resolve("LibraryZipFileTest.zip");
 		Path dest = dir.resolve("LibraryZipFileTest.zip");
 		Files.copy(source, dest);
-		Thread.sleep(1000);
-		assertNotNull(dao.getClassInfo("java.util.List"));
+
+		//wait for the WatchService to pick up the file
+		//this is really slow on Macs, see: http://stackoverflow.com/questions/9588737/is-java-7-watchservice-slow-for-anyone-else
+		long start = System.currentTimeMillis();
+		ClassInfo info = null;
+		while (info == null && (System.currentTimeMillis() - start) < TimeUnit.SECONDS.toMillis(5)) {
+			Thread.sleep(200);
+			info = dao.getClassInfo("java.util.List");
+		}
+		assertNotNull(info);
 	}
 
 	@Test
 	public void directory_watcher_remove() throws Exception {
-		Path dir = temp.getRoot().toPath();
+		Path dir = temporaryFolder.getRoot().toPath();
 		Path source = root.resolve("LibraryZipFileTest.zip");
 		Path dest = dir.resolve("LibraryZipFileTest.zip");
 		Files.copy(source, dest);
 
 		JavadocDao dao = new JavadocDao(dir);
 
-		assertNotNull(dao.getClassInfo("java.util.List"));
+		ClassInfo info = dao.getClassInfo("java.util.List");
+		assertNotNull(info);
 
 		source = dir.resolve("LibraryZipFileTest.zip");
 		Files.delete(source);
-		Thread.sleep(1000);
-		assertNull(dao.getClassInfo("java.util.List"));
+
+		//wait for the WatchService to pick up the deleted file
+		//this is really slow on Macs, see: http://stackoverflow.com/questions/9588737/is-java-7-watchservice-slow-for-anyone-else
+		long start = System.currentTimeMillis();
+		while (info != null && (System.currentTimeMillis() - start) < TimeUnit.SECONDS.toMillis(5)) {
+			Thread.sleep(200);
+			info = dao.getClassInfo("java.util.List");
+		}
+		assertNull(info);
 	}
 
 	@Test
 	public void directory_watcher_modified() throws Exception {
-		Path dir = temp.getRoot().toPath();
+		Path dir = temporaryFolder.getRoot().toPath();
 		Path source = root.resolve("LibraryZipFileTest.zip");
 		Path dest = dir.resolve("LibraryZipFileTest.zip");
 		Files.copy(source, dest);
+		
+		Thread.sleep(1500); //wait a bit before modifying the file so the timestamp is significantly different (for Macs)
 
 		JavadocDao dao = new JavadocDao(dir);
 
-		assertNotNull(dao.getClassInfo("java.util.List"));
+		ClassInfo info = dao.getClassInfo("java.util.List");
+		assertNotNull(info);
 
 		try (FileSystem fs = FileSystems.newFileSystem(dest, null)) {
 			Path path = fs.getPath("java.util.List.xml");
 			Files.delete(path);
 		}
-		Thread.sleep(1000);
-		assertNull(dao.getClassInfo("java.util.List"));
+
+		//wait for the WatchService to pick up the change
+		//this is really slow on Macs, see: http://stackoverflow.com/questions/9588737/is-java-7-watchservice-slow-for-anyone-else
+		long start = System.currentTimeMillis();
+		while (info != null && (System.currentTimeMillis() - start) < TimeUnit.SECONDS.toMillis(5)) {
+			Thread.sleep(200);
+			info = dao.getClassInfo("java.util.List");
+		}
+		assertNull(info);
 	}
 }
