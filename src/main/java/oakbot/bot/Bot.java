@@ -59,6 +59,7 @@ public class Bot {
 
 		//post a message to each room
 		for (Integer room : rooms) {
+			connection.getNewMessages(room); //prime the latest message timestamp
 			connection.sendMessage(room, "OakBot Online.");
 		}
 
@@ -95,6 +96,7 @@ public class Bot {
 							reply = listener.onMessage(message, isAdmin);
 						} catch (ShutdownException e) {
 							broadcast("Shutting down.  See you later.");
+							connection.flush();
 							return;
 						}
 
@@ -126,6 +128,7 @@ public class Bot {
 									reply = command.onMessage(message, isAdmin);
 								} catch (ShutdownException e) {
 									broadcast("Shutting down.  See you later.");
+									connection.flush();
 									return;
 								}
 

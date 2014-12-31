@@ -3,7 +3,6 @@ package oakbot.command.javadoc;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
-import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -32,7 +31,7 @@ public class LibraryZipFile {
 	private final String baseUrl, name, version, projectUrl;
 
 	public LibraryZipFile(Path file) throws IOException {
-		this.file = file;
+		this.file = file.toRealPath();
 
 		try (FileSystem fs = FileSystems.newFileSystem(file, null)) {
 			Path info = fs.getPath("/" + infoFileName);
@@ -49,6 +48,7 @@ public class LibraryZipFile {
 				//should never be thrown
 				throw new RuntimeException(e);
 			} catch (SAXException e) {
+				//XML parse error
 				throw new IOException(e);
 			}
 
@@ -76,22 +76,19 @@ public class LibraryZipFile {
 	 * @return the fully-qualified names of all the classes
 	 * @throws IOException if there's a problem reading the ZIP file
 	 */
-	public Iterator<String> getClasses() throws IOException {
+	public Iterator<ClassName> getClasses() throws IOException {
 		final FileSystem fs = FileSystems.newFileSystem(file, null);
-		final DirectoryStream<Path> stream = Files.newDirectoryStream(fs.getPath("/"), new Filter<Path>() {
-			@Override
-			public boolean accept(Path entry) throws IOException {
-				String name = entry.getFileName().toString();
-				if (!name.endsWith(extension)) {
-					return false;
-				}
-
-				return !name.equals(infoFileName);
+		final DirectoryStream<Path> stream = Files.newDirectoryStream(fs.getPath("/"), entry -> {
+			String name = entry.getFileName().toString();
+			if (!name.endsWith(extension)) {
+				return false;
 			}
+
+			return !name.equals(infoFileName);
 		});
 
 		final Iterator<Path> it = stream.iterator();
-		return new Iterator<String>() {
+		return new Iterator<ClassName>() {
 			@Override
 			public boolean hasNext() {
 				boolean hasNext = it.hasNext();
@@ -112,10 +109,11 @@ public class LibraryZipFile {
 			}
 
 			@Override
-			public String next() {
+			public ClassName next() {
 				Path file = it.next();
-				String name = file.getFileName().toString();
-				return name.substring(0, name.length() - extension.length());
+				String fileName = file.getFileName().toString();
+				String fullName = fileName.substring(0, fileName.length() - extension.length());
+				return new ClassName(fullName);
 			}
 		};
 	}
@@ -175,5 +173,29 @@ public class LibraryZipFile {
 	 */
 	public String getProjectUrl() {
 		return projectUrl;
+	}
+
+	public Path getPath() {
+		return file;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((file == null) ? 0 : file.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		LibraryZipFile other = (LibraryZipFile) obj;
+		if (file == null) {
+			if (other.file != null) return false;
+		} else if (!file.equals(other.file)) return false;
+		return true;
 	}
 }

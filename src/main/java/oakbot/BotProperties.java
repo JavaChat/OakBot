@@ -1,5 +1,7 @@
 package oakbot;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -14,6 +16,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final String loginEmail, password, botname, trigger;
 	private final List<Integer> rooms, admins;
 	private final int heartbeat;
+	private final Path javadocPath;
 
 	/**
 	 * @param properties the properties file to pull the settings from
@@ -28,10 +31,11 @@ public class BotProperties extends PropertiesWrapper {
 		rooms = getIntList("rooms", Arrays.asList(1)); //default to "Sandbox"
 		admins = getIntList("admins");
 		heartbeat = getInt("heartbeat", 3000);
+		javadocPath = Paths.get(get("javadoc.folder", "javadocs"));
 	}
 
 	/**
-	 * Gets the login email address.
+	 * Gets the SO login email address.
 	 * @return the login email address or null if not set
 	 */
 	public String getLoginEmail() {
@@ -39,7 +43,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the login password
+	 * Gets the SO login password.
 	 * @return the login password or null if not set
 	 */
 	public String getLoginPassword() {
@@ -47,7 +51,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the bot's name.
+	 * Gets the user name associated with the bot's SO account.
 	 * @return the bot's name
 	 */
 	public String getBotname() {
@@ -79,10 +83,19 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the amount of time to wait between pings.
-	 * @return the ping time in milliseconds
+	 * Gets the amount of time to wait in between checks for new messages.
+	 * @return the pause time in milliseconds
 	 */
 	public int getHeartbeat() {
 		return heartbeat;
+	}
+
+	/**
+	 * Gets the path to the folder where the javadoc ZIP files are held.
+	 * @return the path to the javadoc folder (defaults to "javadocs" if not
+	 * specified)
+	 */
+	public Path getJavadocPath() {
+		return javadocPath;
 	}
 }

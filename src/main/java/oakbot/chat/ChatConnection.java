@@ -1,5 +1,6 @@
 package oakbot.chat;
 
+import java.io.Flushable;
 import java.io.IOException;
 import java.util.List;
 
@@ -7,7 +8,7 @@ import java.util.List;
  * Represents a connection to a chat room.
  * @author Michael Angstadt
  */
-public interface ChatConnection {
+public interface ChatConnection extends Flushable{
 	/**
 	 * Logs into the chat room. This should be called before any other method.
 	 * @param email the login email
