@@ -5,7 +5,7 @@ import oakbot.chat.ChatMessage;
 import oakbot.command.javadoc.JavadocCommand;
 
 /**
- * Listens for numbers for {@link JavabotCommand} when it returns multiple
+ * Listens for numbers for {@link JavadocCommand} when it returns multiple
  * classes/methods.
  * @author Michael Angstadt
  */
