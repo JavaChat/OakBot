@@ -425,7 +425,7 @@ public class StackoverflowChat implements ChatConnection {
 			//@formatter:on
 			request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
 
-			HttpResponse response = executeWithRetries(request, 200);
+			HttpResponse response = executeWithRetries(request, null, 200);
 			EntityUtils.consumeQuietly(response.getEntity());
 			logger.info("Message received.");
 
