@@ -19,7 +19,7 @@ public class HttpCommandTest {
 		msg.setContent("");
 		ChatResponse response = command.onMessage(msg, false);
 
-		assertEquals(":1 I need to know what status code (e.g. 200) or method (e.g. GET) you want to know about.", response.getMessage());
+		assertEquals(":1 Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.", response.getMessage());
 	}
 
 	@Test
