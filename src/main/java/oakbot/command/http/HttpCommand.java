@@ -66,7 +66,7 @@ public class HttpCommand implements Command {
 		String split[] = message.getContent().split("\\s+");
 		String code = split[0].toUpperCase();
 		if (code.isEmpty()) {
-			cb.append("I need to know what status code (e.g. 200) or method (e.g. GET) you want to know about.");
+			cb.append("Tell me the status code (e.g. 200) or method (e.g. GET) that you want to know about.");
 			return new ChatResponse(cb.toString());
 		}
 
@@ -94,14 +94,17 @@ public class HttpCommand implements Command {
 
 		if (paragraph == 1) {
 			String name = element.getAttribute("name");
+			String rfc = element.getAttribute("rfc");
+			String baseUrl = rfc.isEmpty() ? url : "http://tools.ietf.org/html/rfc" + rfc;
+			
 			ChatBuilder cb2 = new ChatBuilder();
 			String linkText = "HTTP " + (element.getTagName().equals("statusCode") ? code + " (" + name + ")" : name);
 			cb2.bold(linkText);
-			if (url == null) {
+			if (baseUrl == null) {
 				cb.append(cb2.toString());
 			} else {
 				String section = element.getAttribute("section");
-				String url = this.url + (section.isEmpty() ? "" : "#section-" + section);
+				String url = baseUrl + (section.isEmpty() ? "" : "#section-" + section);
 				cb.link(cb2.toString(), url);
 			}
 			cb.append(": ");

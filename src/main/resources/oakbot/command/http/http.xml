@@ -249,6 +249,10 @@ When this status code is returned for a byte-range request, the response SHOULD 
 	<statusCode code="417" name="Expectation Failed" section="10.4.18">
 The expectation given in an Expect request-header field (see [section 14.20](http://tools.ietf.org/html/rfc2616#section-14.20)) could not be met by this server, or, if the server is a proxy, the server has unambiguous evidence that the request could not be met by the next-hop server.
 	</statusCode>
+	
+	<statusCode code="418" name="I'm a teapot" section="2.3.2" rfc="2324">
+Any attempt to brew coffee with a teapot should result in the error code "418 I'm a teapot". The resulting entity body MAY be short and stout.
+	</statusCode>
 
 	<statusCode code="5XX" name="Server Error" section="10.5">
 Response status codes beginning with the digit "5" indicate cases in which the server is aware that it has erred or is incapable of performing the request. Except when responding to a HEAD request, the server SHOULD include an entity containing an explanation of the error situation, and whether it is a temporary or permanent condition. User agents SHOULD display any included entity to the user. These response codes are applicable to any request method.
