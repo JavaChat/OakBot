@@ -1,5 +1,6 @@
 package oakbot.command.javadoc;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
@@ -9,11 +10,9 @@ import com.google.common.collect.ImmutableList;
  * @author Michael Angstadt
  */
 public class MethodInfo {
-	private final String name;
+	private final String name, description, urlAnchor;
 	private final List<String> modifiers;
 	private final List<ParameterInfo> parameters;
-	private final String description;
-	private final String url;
 	private final ClassName returnValue;
 	private final boolean deprecated;
 
@@ -22,9 +21,25 @@ public class MethodInfo {
 		modifiers = builder.modifiers.build();
 		parameters = builder.parameters.build();
 		description = builder.description;
-		url = builder.url;
 		returnValue = builder.returnValue;
 		deprecated = builder.deprecated;
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(name).append("-");
+		List<String> fullNames = new ArrayList<>();
+		for (ParameterInfo parameter : parameters) {
+			String fullName = parameter.getType().getFull();
+			if (parameter.isArray()) {
+				fullName += "A:";
+			}
+			if (parameter.isVarargs()){
+				fullName += "...";
+			}
+			sb.append(fullName);
+		}
+		sb.append(String.join("-", fullNames));
+		sb.append("-");
+		urlAnchor = sb.toString();
 	}
 
 	public String getName() {
@@ -43,8 +58,8 @@ public class MethodInfo {
 		return modifiers;
 	}
 
-	public String getUrl() {
-		return url;
+	public String getUrlAnchor() {
+		return urlAnchor;
 	}
 
 	public boolean isDeprecated() {
@@ -116,7 +131,6 @@ public class MethodInfo {
 		private ImmutableList.Builder<String> modifiers = ImmutableList.builder();
 		private ImmutableList.Builder<ParameterInfo> parameters = ImmutableList.builder();
 		private String description;
-		private String url;
 		private ClassName returnValue;
 		private boolean deprecated;
 
@@ -137,11 +151,6 @@ public class MethodInfo {
 
 		public Builder description(String description) {
 			this.description = description;
-			return this;
-		}
-
-		public Builder url(String url) {
-			this.url = url;
 			return this;
 		}
 

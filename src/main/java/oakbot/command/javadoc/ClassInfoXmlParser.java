@@ -169,6 +169,10 @@ public class ClassInfoXmlParser {
 		if (array) {
 			type = type.substring(0, type.length() - 2);
 		}
+		boolean varargs = type.endsWith("...");
+		if (varargs) {
+			type = type.substring(0, type.length() - 3);
+		}
 
 		//is a generic type? (like List<String>)
 		int pos = type.indexOf('<');
@@ -180,6 +184,6 @@ public class ClassInfoXmlParser {
 		//name
 		String name = element.getAttribute("name");
 
-		return new ParameterInfo(new ClassName(type), name, array, generic);
+		return new ParameterInfo(new ClassName(type), name, array, varargs, generic);
 	}
 }

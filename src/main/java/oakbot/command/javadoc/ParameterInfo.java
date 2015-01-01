@@ -6,14 +6,14 @@ package oakbot.command.javadoc;
  */
 public class ParameterInfo {
 	private final ClassName type;
-	private final String name;
-	private final boolean array;
-	private final String generic;
+	private final String name, generic;
+	private final boolean array, varargs;
 
-	public ParameterInfo(ClassName type, String name, boolean array, String generic) {
+	public ParameterInfo(ClassName type, String name, boolean array, boolean varargs, String generic) {
 		this.type = type;
 		this.name = name;
 		this.array = array;
+		this.varargs = varargs;
 		this.generic = generic;
 	}
 
@@ -27,6 +27,10 @@ public class ParameterInfo {
 
 	public boolean isArray() {
 		return array;
+	}
+
+	public boolean isVarargs() {
+		return varargs;
 	}
 
 	public String getGeneric() {

@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableSet;
+
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
@@ -28,6 +30,34 @@ public class JavadocCommand implements Command {
 	private List<String> prevChoices = new ArrayList<>();
 	private Date prevChoicesDate;
 	private final long choiceTimeout = 1000 * 30;
+
+	private final Set<String> classModifiersItalic;
+	{
+		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
+		b.add("abstract");
+		b.add("final");
+		classModifiersItalic = b.build();
+	}
+
+	private final Set<String> classModifiers;
+	{
+		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
+		b.add("annotation");
+		b.add("class");
+		b.add("enum");
+		b.add("exception");
+		b.add("interface");
+		classModifiers = b.build();
+	}
+
+	private final Set<String> methodModifiersToIgnore;
+	{
+		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
+		b.add("private");
+		b.add("protected");
+		b.add("public");
+		methodModifiersToIgnore = b.build();
+	}
 
 	public JavadocCommand(JavadocDao dao) {
 		this.dao = dao;
@@ -132,21 +162,8 @@ public class JavadocCommand implements Command {
 			//print modifiers
 			boolean deprecated = info.isDeprecated();
 			for (String modifier : info.getModifiers()) {
-				boolean italic = false;
-				switch (modifier) {
-				case "abstract":
-				case "final":
-					italic = true;
-					break;
-				case "annotation":
-				case "class":
-				case "enum":
-				case "exception":
-				case "interface":
-					italic = false;
-					break;
-				default:
-					//ignore all the rest
+				boolean italic = classModifiersItalic.contains(modifier);
+				if (!italic && !classModifiers.contains(modifier)) {
 					continue;
 				}
 
@@ -319,9 +336,13 @@ public class JavadocCommand implements Command {
 				}
 			}
 
-			//print modifieres
+			//print modifiers
 			boolean deprecated = matchingMethod.isDeprecated();
 			for (String modifier : matchingMethod.getModifiers()) {
+				if (methodModifiersToIgnore.contains(modifier)) {
+					continue;
+				}
+
 				if (deprecated) cb.strike();
 				cb.tag(modifier);
 				if (deprecated) cb.strike();
@@ -335,6 +356,7 @@ public class JavadocCommand implements Command {
 			if (url == null) {
 				cb.bold().code(signature).bold();
 			} else {
+				url += "#" + matchingMethod.getUrlAnchor();
 				cb.link(new ChatBuilder().bold().code(signature).bold().toString(), url);
 			}
 			if (deprecated) cb.strike();
