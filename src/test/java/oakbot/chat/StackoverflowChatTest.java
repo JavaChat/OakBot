@@ -145,7 +145,6 @@ public class StackoverflowChatTest {
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
 					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
 				case 2:
-					prevRequestSent = System.currentTimeMillis();
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/messages/new", uri);
 					//@formatter:off
@@ -159,9 +158,6 @@ public class StackoverflowChatTest {
 
 					return response(200, "{}");
 				case 3:
-					long diff = System.currentTimeMillis() - prevRequestSent;
-					prevRequestSent = System.currentTimeMillis();
-					assertTrue(diff >= 300);
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/messages/new", uri);
 					//@formatter:off
@@ -179,9 +175,22 @@ public class StackoverflowChatTest {
 					assertEquals("https://chat.stackoverflow.com/rooms/2", uri);
 					return response(200, "value=\"abcdef0123456789abcdef0123456789\"");
 				case 5:
-					diff = System.currentTimeMillis() - prevRequestSent;
-					assertTrue(diff >= 300);
-					assertEquals("POST", method);
+					prevRequestSent = System.currentTimeMillis();
+					assertEquals("https://chat.stackoverflow.com/chats/2/messages/new", uri);
+					//@formatter:off
+					expected = new HashSet<>(Arrays.asList(
+						new BasicNameValuePair("fkey", "abcdef0123456789abcdef0123456789"),
+						new BasicNameValuePair("text", "Test3")
+					));
+					//@formatter:on
+					actual = params(body);
+					assertEquals(expected, actual);
+
+					return response(409, "You can perform this action again in 2 seconds");
+				case 6:
+					long diff = System.currentTimeMillis() - prevRequestSent;
+					assertTrue(diff >= 2000);
+
 					assertEquals("https://chat.stackoverflow.com/chats/2/messages/new", uri);
 					//@formatter:off
 					expected = new HashSet<>(Arrays.asList(
@@ -199,12 +208,12 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		StackoverflowChat chat = new StackoverflowChat(client, 300);
+		StackoverflowChat chat = new StackoverflowChat(client);
 		chat.sendMessage(1, "Test1");
 		chat.sendMessage(1, "Test2");
 		chat.sendMessage(2, "Test3");
-		chat.flush(); //should wait for the message queue to empty
-		verify(client, times(5)).execute(any(HttpUriRequest.class));
+		chat.flush(); //should block until the message queue is empty
+		verify(client, times(6)).execute(any(HttpUriRequest.class));
 	}
 
 	@Test

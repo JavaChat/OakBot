@@ -57,17 +57,7 @@ public class StackoverflowChat implements ChatConnection {
 	 * @param client the HTTP client
 	 */
 	public StackoverflowChat(HttpClient client) {
-		this(client, TimeUnit.SECONDS.toMillis(4));
-	}
-
-	/**
-	 * Creates a new connection to Stackoverflow chat.
-	 * @param client the HTTP client
-	 * @param the amount of time to pause between message sends (in
-	 * milliseconds)
-	 */
-	public StackoverflowChat(HttpClient client, long pauseBetweenMessages) {
-		MessageSenderThread sender = new MessageSenderThread(pauseBetweenMessages);
+		MessageSenderThread sender = new MessageSenderThread();
 		sender.start();
 
 		this.client = client;
@@ -238,39 +228,54 @@ public class StackoverflowChat implements ChatConnection {
 	 * @throws IOException if there was an I/O error
 	 */
 	private HttpResponse executeWithRetries(HttpUriRequest request, Integer numRetries, Integer expectedStatusCode) throws IOException {
-		int retries = 0;
-		while (numRetries == null || retries <= numRetries) {
-			int sleep = (retries + 1) * 5;
+		int attempts = 0;
+		int sleep = 0;
+		while (numRetries == null || attempts <= numRetries) {
+			attempts++;
+			if (sleep > 0) {
+				try {
+					logger.info("Sleeping for " + sleep + " seconds before resending the request...");
+					TimeUnit.SECONDS.sleep(sleep);
+				} catch (InterruptedException e) {
+					logger.log(Level.INFO, "Sleep interrupted.", e);
+					throw new IOException("Sleep interrupted.", e);
+				}
+			}
+
+			sleep = (attempts + 1) * 5;
 			if (sleep > 60) {
 				sleep = 60;
 			}
 
+			HttpResponse response;
 			try {
-				HttpResponse response = client.execute(request);
-				if (expectedStatusCode == null) {
-					return response;
-				}
-
-				int actualStatusCode = response.getStatusLine().getStatusCode();
-				if (expectedStatusCode == actualStatusCode) {
-					return response;
-				}
-
-				logger.severe("Expected status code " + expectedStatusCode + ", but was " + actualStatusCode + ".  Trying again in " + sleep + " seconds.");
+				logger.info("Sending request...");
+				response = client.execute(request);
 			} catch (NoHttpResponseException e) {
-				logger.log(Level.SEVERE, "Could not send HTTP " + request.getMethod() + " request to " + request.getURI() + ".  Trying again in " + sleep + " seconds.", e);
+				logger.log(Level.SEVERE, "No HTTP response received from request " + request.getURI() + ".", e);
+				continue;
 			}
 
-			try {
-				TimeUnit.SECONDS.sleep(sleep);
-			} catch (InterruptedException e) {
-				logger.log(Level.INFO, "Sleep interrupted.", e);
-				throw new IOException("Sleep interrupted.", e);
+			int actualStatusCode = response.getStatusLine().getStatusCode();
+			if (actualStatusCode == 409) {
+				//"You can perform this action again in 2 seconds"
+				String body = EntityUtils.toString(response.getEntity());
+				logger.info("409 response received: " + body);
+				Pattern p = Pattern.compile("\\d+");
+				Matcher m = p.matcher(body);
+				if (m.find()) {
+					sleep = Integer.parseInt(m.group(0));
+				}
+				continue;
 			}
 
-			retries++;
+			if (expectedStatusCode != null && expectedStatusCode != actualStatusCode) {
+				logger.severe("Expected status code " + expectedStatusCode + ", but was " + actualStatusCode + ".");
+				continue;
+			}
+
+			return response;
 		}
-		logger.info("Returning null.");
 		return null;
 	}
 
@@ -328,24 +333,15 @@ public class StackoverflowChat implements ChatConnection {
 
 	private class MessageSenderThread extends Thread {
 		private final int MAX_MESSAGE_LENGTH = 500;
-		private final long pauseBetweenMessages;
-
-		private volatile IOException thrown;
 		private volatile boolean finish = false;
-		private long prevMessageSent;
 		private final BlockingQueue<ChatPost> messageQueue = new LinkedBlockingQueue<>();
 
-		public MessageSenderThread(long pauseBetweenMessages) {
-			this.pauseBetweenMessages = pauseBetweenMessages;
+		public MessageSenderThread() {
 			setName(getClass().getSimpleName());
 			setDaemon(true);
 		}
 
 		public void send(int room, String message, SplitStrategy splitStrategy) throws IOException {
-			if (!isAlive()) {
-				throw thrown;
-			}
-
 			messageQueue.add(new ChatPost(room, message, splitStrategy));
 		}
 
@@ -391,31 +387,12 @@ public class StackoverflowChat implements ChatConnection {
 						send(room, url, fkey, post);
 					}
 				} catch (IOException e) {
-					thrown = e;
-					break;
+					logger.log(Level.SEVERE, "Problem sending message.  Skipping to next message in queue.", e);
 				}
 			}
 		}
 
 		private void send(int room, String url, String fkey, String message) throws IOException {
-			long now = System.currentTimeMillis();
-			long sleep = pauseBetweenMessages - (now - prevMessageSent);
-			if (sleep > 0) {
-				try {
-					TimeUnit.MILLISECONDS.sleep(sleep);
-				} catch (InterruptedException e) {
-					//sleep for the remaining time
-					sleep -= System.currentTimeMillis() - now;
-					if (sleep > 0) {
-						try {
-							TimeUnit.MILLISECONDS.sleep(sleep);
-						} catch (InterruptedException e1) {
-							//ignore
-						}
-					}
-				}
-			}
-
 			logger.info("Posting message to room " + room + ": " + message);
 
 			HttpPost request = new HttpPost(url);
@@ -430,8 +407,6 @@ public class StackoverflowChat implements ChatConnection {
 			HttpResponse response = executeWithRetries(request, null, 200);
 			EntityUtils.consumeQuietly(response.getEntity());
 			logger.info("Message received.");
-
-			prevMessageSent = System.currentTimeMillis();
 		}
 	}
 
