@@ -103,6 +103,8 @@ public class Main {
 		//@formatter:on
 
 		bot.connect();
+
+		logger.info("Terminating.");
 	}
 
 	private static void setupLogging() throws IOException {

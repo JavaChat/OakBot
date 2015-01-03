@@ -264,11 +264,13 @@ public class StackoverflowChat implements ChatConnection {
 			try {
 				TimeUnit.SECONDS.sleep(sleep);
 			} catch (InterruptedException e) {
-				throw new IOException("Sleep interrupted D:<", e);
+				logger.log(Level.INFO, "Sleep interrupted.", e);
+				throw new IOException("Sleep interrupted.", e);
 			}
 
 			retries++;
 		}
+		logger.info("Returning null.");
 		return null;
 	}
 
