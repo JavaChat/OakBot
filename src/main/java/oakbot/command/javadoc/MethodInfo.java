@@ -25,43 +25,67 @@ public class MethodInfo {
 		deprecated = builder.deprecated;
 
 		StringBuilder sb = new StringBuilder();
-		sb.append(name).append("-");
+		sb.append(name).append('-');
 		List<String> fullNames = new ArrayList<>();
 		for (ParameterInfo parameter : parameters) {
 			String fullName = parameter.getType().getFull();
 			if (parameter.isArray()) {
-				fullName += "A:";
+				fullName += ":A";
 			}
-			if (parameter.isVarargs()){
+			if (parameter.isVarargs()) {
 				fullName += "...";
 			}
-			sb.append(fullName);
+			fullNames.add(fullName);
 		}
 		sb.append(String.join("-", fullNames));
-		sb.append("-");
+		sb.append('-');
 		urlAnchor = sb.toString();
 	}
 
+	/**
+	 * Gets the method name
+	 * @return the method name
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Gets the method's parameters
+	 * @return the method's parameters
+	 */
 	public List<ParameterInfo> getParameters() {
 		return parameters;
 	}
 
+	/**
+	 * Gets the method's Javadoc description.
+	 * @return the description in SO-Chat Markdown syntax
+	 */
 	public String getDescription() {
 		return description;
 	}
 
+	/**
+	 * Gets the method modifiers.
+	 * @return the method modifiers (e.g. "public", "static")
+	 */
 	public List<String> getModifiers() {
 		return modifiers;
 	}
 
+	/**
+	 * Gets this method's Javadoc URL anchor.
+	 * @return the URL anchor (e.g. "substring-int-int-")
+	 */
 	public String getUrlAnchor() {
 		return urlAnchor;
 	}
 
+	/**
+	 * Gets whether this method is deprecated or not.
+	 * @return true if it's deprecated, false if not
+	 */
 	public boolean isDeprecated() {
 		return deprecated;
 	}
@@ -69,59 +93,45 @@ public class MethodInfo {
 	/**
 	 * Gets a string that uniquely identifies the method signature, as the
 	 * compiler would.
-	 * @return the signature string
+	 * @return the signature string (only includes the method name and the
+	 * fully-qualified names of the parameters, e.g. "substring(int, int)")
 	 */
 	public String getSignature() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(name);
-
-		sb.append('(');
-		boolean first = true;
+		List<String> params = new ArrayList<>();
 		for (ParameterInfo parameter : parameters) {
-			if (first) {
-				first = false;
-			} else {
-				sb.append(", ");
-			}
-
-			sb.append(parameter.getType().getFull());
-			if (parameter.isArray()) {
-				sb.append("[]");
-			}
+			params.add(parameter.getType().getFull() + (parameter.isArray() ? "[]" : ""));
 		}
-		sb.append(')');
-
-		return sb.toString();
+		return name + "(" + String.join(", ", params) + ")";
 	}
 
+	/**
+	 * Gets the signature string to display in the chat.
+	 * @return the signature string for the chat
+	 */
 	public String getSignatureString() {
 		StringBuilder sb = new StringBuilder();
+
 		if (returnValue != null) {
 			sb.append(returnValue.getSimple()).append(' ');
 		}
 		sb.append(name);
 
-		sb.append('(');
-		boolean first = true;
+		List<String> params = new ArrayList<>();
 		for (ParameterInfo parameter : parameters) {
-			if (first) {
-				first = false;
-			} else {
-				sb.append(", ");
-			}
-
-			sb.append(parameter.getType().getSimple());
+			String type = parameter.getType().getSimple();
 			String generic = parameter.getGeneric();
 			if (generic != null) {
-				sb.append(generic);
+				type += generic;
 			}
 			if (parameter.isArray()) {
-				sb.append("[]");
+				type += "[]";
 			}
-
-			sb.append(' ').append(parameter.getName());
+			if (parameter.isVarargs()) {
+				type += "...";
+			}
+			params.add(type + " " + parameter.getName());
 		}
-		sb.append(')');
+		sb.append('(').append(String.join(", ", params)).append(')');
 
 		return sb.toString();
 	}
