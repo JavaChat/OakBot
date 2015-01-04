@@ -380,7 +380,7 @@ public class JavadocCommand implements Command {
 			//print class name
 			if (deprecated) cb.strike();
 			String fullName = info.getName().getFull();
-			String url = info.getUrl();
+			String url = info.getFrameUrl();
 			if (url == null) {
 				cb.bold().code(fullName).bold();
 			} else {

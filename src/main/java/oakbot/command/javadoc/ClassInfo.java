@@ -13,7 +13,7 @@ import com.google.common.collect.Multimap;
  */
 public class ClassInfo {
 	private final ClassName name, superClass;
-	private final String description, url;
+	private final String description;
 	private final List<String> modifiers;
 	private final List<ClassName> interfaces;
 	private final Multimap<String, MethodInfo> methods;
@@ -24,7 +24,6 @@ public class ClassInfo {
 		name = builder.name;
 		superClass = builder.superClass;
 		description = builder.description;
-		url = builder.url;
 		modifiers = builder.modifiers.build();
 		interfaces = builder.interfaces.build();
 		methods = builder.methods.build();
@@ -44,8 +43,20 @@ public class ClassInfo {
 		return description;
 	}
 
+	/**
+	 * Gets the URL to this class's Javadoc page (with frames).
+	 * @return the URL or null if no base URL was given
+	 */
+	public String getFrameUrl() {
+		return zipFile.getFrameUrl(this);
+	}
+
+	/**
+	 * Gets the URL to this class's Javadoc page (without frames).
+	 * @return the URL or null if no base URL was given
+	 */
 	public String getUrl() {
-		return url;
+		return zipFile.getUrl(this);
 	}
 
 	public List<String> getModifiers() {
@@ -74,7 +85,7 @@ public class ClassInfo {
 
 	public static class Builder {
 		private ClassName name, superClass;
-		private String description, url;
+		private String description;
 		private ImmutableList.Builder<String> modifiers = ImmutableList.builder();
 		private ImmutableList.Builder<ClassName> interfaces = ImmutableList.builder();
 		private ImmutableMultimap.Builder<String, MethodInfo> methods = ImmutableMultimap.builder();
@@ -88,11 +99,6 @@ public class ClassInfo {
 
 		public Builder description(String description) {
 			this.description = description;
-			return this;
-		}
-
-		public Builder url(String url) {
-			this.url = url;
 			return this;
 		}
 

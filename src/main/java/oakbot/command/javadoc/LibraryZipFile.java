@@ -61,14 +61,42 @@ public class LibraryZipFile {
 			this.name = name.isEmpty() ? null : name;
 
 			String baseUrl = infoElement.getAttribute("baseUrl");
-			this.baseUrl = baseUrl.isEmpty() ? null : baseUrl;
+			if (baseUrl.isEmpty()) {
+				this.baseUrl = null;
+			} else {
+				this.baseUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/");
+			}
 
 			String projectUrl = infoElement.getAttribute("projectUrl");
 			this.projectUrl = projectUrl.isEmpty() ? null : projectUrl;
 
 			String version = infoElement.getAttribute("version");
-			this.version = baseUrl.isEmpty() ? null : version;
+			this.version = version.isEmpty() ? null : version;
 		}
+	}
+
+	/**
+	 * Gets the URL to a class's Javadoc page (with frames).
+	 * @param info the class
+	 * @return the URL or null if no base URL was given
+	 */
+	public String getFrameUrl(ClassInfo info) {
+		if (baseUrl == null) {
+			return null;
+		}
+		return baseUrl + "index.html?" + info.getName().getFull().replace('.', '/') + ".html";
+	}
+
+	/**
+	 * Gets the URL to a class's Javadoc page (without frames).
+	 * @param info the class
+	 * @return the URL or null if no base URL was given
+	 */
+	public String getUrl(ClassInfo info) {
+		if (baseUrl == null) {
+			return null;
+		}
+		return baseUrl + info.getName().getFull().replace('.', '/') + ".html";
 	}
 
 	/**

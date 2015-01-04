@@ -13,7 +13,6 @@ import org.w3c.dom.Element;
  */
 public class ClassInfoXmlParser {
 	private final DocumentWrapper document;
-	private final String baseUrl;
 	private final LibraryZipFile zipFile;
 
 	/**
@@ -22,9 +21,6 @@ public class ClassInfoXmlParser {
 	 */
 	public ClassInfoXmlParser(Document document, LibraryZipFile zipFile) {
 		this.document = new DocumentWrapper(document);
-
-		String baseUrl = zipFile.getBaseUrl();
-		this.baseUrl = (baseUrl == null) ? null : baseUrl + (baseUrl.endsWith("/") ? "" : "/"); //make sure the URL ends with a "/"
 		this.zipFile = zipFile;
 	}
 
@@ -82,12 +78,6 @@ public class ClassInfoXmlParser {
 		for (Element methodElement : document.elements("/class/methods/method")) {
 			MethodInfo method = parseMethod(methodElement);
 			builder.method(method);
-		}
-
-		//URL
-		if (baseUrl != null) {
-			String url = baseUrl + "index.html?" + fullName.replace('.', '/') + ".html";
-			builder.url(url);
 		}
 
 		return builder.build();
