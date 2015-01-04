@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -119,32 +120,45 @@ public class JavadocCommand implements Command {
 			}
 
 			//search each class for a method that matches the given signature
-			Multimap<ClassInfo, MethodInfo> matchingMethods = ArrayListMultimap.create();
+			Map<ClassInfo, MethodInfo> exactMatches = new HashMap<>();
+			Multimap<ClassInfo, MethodInfo> matchingNames = ArrayListMultimap.create();
 			for (String className : e.getClasses()) {
 				try {
 					ClassInfo classInfo = dao.getClassInfo(className);
-					List<MethodInfo> methods = getMatchingMethods(classInfo, commandText.methodName, commandText.parameters);
-					matchingMethods.putAll(classInfo, methods);
+					MatchingMethods methods = getMatchingMethods(classInfo, commandText.methodName, commandText.parameters);
+					if (methods.exactSignature != null) {
+						exactMatches.put(classInfo, methods.exactSignature);
+					}
+					matchingNames.putAll(classInfo, methods.matchingName);
 				} catch (IOException e2) {
 					throw new RuntimeException("Problem getting Javadoc info.", e2);
 				}
 			}
 
-			if (matchingMethods.isEmpty()) {
+			if (exactMatches.isEmpty() && matchingNames.isEmpty()) {
 				//no matches found
 				cb.append("Sorry, I can't find that method. :(");
 				return new ChatResponse(cb.toString());
 			}
 
-			if (matchingMethods.size() == 1) {
-				//a single match was found!
-				MethodInfo method = matchingMethods.values().iterator().next();
-				ClassInfo classInfo = matchingMethods.keySet().iterator().next();
+			if (exactMatches.size() == 1) {
+				//a single, exact match was found!
+				MethodInfo method = exactMatches.values().iterator().next();
+				ClassInfo classInfo = exactMatches.keySet().iterator().next();
 				return printMethod(method, classInfo, commandText.paragraph, cb);
 			}
 
 			//multiple matches were found
-			return printMethodChoices(matchingMethods, commandText.parameters, cb);
+			Multimap<ClassInfo, MethodInfo> map;
+			if (exactMatches.size() > 1) {
+				map = ArrayListMultimap.create();
+				for (Map.Entry<ClassInfo, MethodInfo> entry : exactMatches.entrySet()) {
+					map.put(entry.getKey(), entry.getValue());
+				}
+			} else {
+				map = matchingNames;
+			}
+			return printMethodChoices(map, commandText.parameters, cb);
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		}
@@ -161,7 +175,7 @@ public class JavadocCommand implements Command {
 		}
 
 		//print the method docs
-		List<MethodInfo> matchingMethods;
+		MatchingMethods matchingMethods;
 		try {
 			matchingMethods = getMatchingMethods(info, commandText.methodName, commandText.parameters);
 		} catch (IOException e) {
@@ -174,16 +188,19 @@ public class JavadocCommand implements Command {
 			return new ChatResponse(cb.toString());
 		}
 
-		if (matchingMethods.size() == 1) {
-			//a single match was found!
-			MethodInfo method = matchingMethods.get(0);
-			return printMethod(method, info, commandText.paragraph, cb);
+		if (matchingMethods.exactSignature != null) {
+			//an exact match was found!
+			return printMethod(matchingMethods.exactSignature, info, commandText.paragraph, cb);
 		}
 
-		//multiple matches were found
-		Multimap<ClassInfo, MethodInfo> methods = ArrayListMultimap.create();
-		methods.putAll(info, matchingMethods);
-		return printMethodChoices(methods, commandText.parameters, cb);
+		if (matchingMethods.matchingName.size() == 1 && commandText.parameters == null) {
+			return printMethod(matchingMethods.matchingName.get(0), info, commandText.paragraph, cb);
+		}
+
+		//print the methods with the same name
+		Multimap<ClassInfo, MethodInfo> map = ArrayListMultimap.create();
+		map.putAll(info, matchingMethods.matchingName);
+		return printMethodChoices(map, commandText.parameters, cb);
 	}
 
 	/**
@@ -285,16 +302,30 @@ public class JavadocCommand implements Command {
 		prevChoices = new ArrayList<>();
 		prevChoicesPinged = System.currentTimeMillis();
 
-		if (methodParams == null) {
-			cb.append("Which one do you mean? (type the number)");
-		} else {
-			if (methodParams.isEmpty()) {
-				cb.append("I couldn't find a zero-arg signature for that method.");
+		if (matchingMethods.size() == 1) {
+			if (methodParams == null) {
+				cb.append("Did you mean this one? (type the number)");
 			} else {
-				cb.append("I couldn't find a signature with ");
-				cb.append((methodParams.size() == 1) ? "that parameter." : "those parameters.");
+				if (methodParams.isEmpty()) {
+					cb.append("I couldn't find a zero-arg signature for that method.");
+				} else {
+					cb.append("I couldn't find a signature with ");
+					cb.append((methodParams.size() == 1) ? "that parameter." : "those parameters.");
+				}
+				cb.append(" Did you mean this one? (type the number)");
 			}
-			cb.append(" Did you mean one of these? (type the number)");
+		} else {
+			if (methodParams == null) {
+				cb.append("Which one do you mean? (type the number)");
+			} else {
+				if (methodParams.isEmpty()) {
+					cb.append("I couldn't find a zero-arg signature for that method.");
+				} else {
+					cb.append("I couldn't find a signature with ");
+					cb.append((methodParams.size() == 1) ? "that parameter." : "those parameters.");
+				}
+				cb.append(" Did you mean one of these? (type the number)");
+			}
 		}
 
 		int count = 1;
@@ -409,8 +440,8 @@ public class JavadocCommand implements Command {
 	 * @throws IOException if there's a problem loading Javadoc info from the
 	 * DAO
 	 */
-	private List<MethodInfo> getMatchingMethods(ClassInfo info, String methodName, List<String> methodParameters) throws IOException {
-		List<MethodInfo> matchingMethods = new ArrayList<>();
+	private MatchingMethods getMatchingMethods(ClassInfo info, String methodName, List<String> methodParameters) throws IOException {
+		MatchingMethods matchingMethods = new MatchingMethods();
 		Set<String> matchingNameSignatures = new HashSet<>();
 
 		//search the class, all its parent classes, and all its interfaces and the interfaces of its super classes
@@ -419,19 +450,49 @@ public class JavadocCommand implements Command {
 
 		while (!stack.isEmpty()) {
 			ClassInfo curInfo = stack.removeLast();
-			for (MethodInfo method : curInfo.getMethods()) {
-				if (!methodMatches(method, methodName, methodParameters)) {
+			for (MethodInfo curMethod : curInfo.getMethods()) {
+				if (!curMethod.getName().equalsIgnoreCase(methodName)) {
+					//name doesn't match
 					continue;
 				}
 
-				String signature = method.getSignature();
+				String signature = curMethod.getSignature();
 				if (matchingNameSignatures.contains(signature)) {
-					//this method is already in the match list
+					//this method is already in the matching name list
 					continue;
 				}
 
 				matchingNameSignatures.add(signature);
-				matchingMethods.add(method);
+				matchingMethods.matchingName.add(curMethod);
+
+				if (methodParameters == null) {
+					//user is not searching based on parameters
+					continue;
+				}
+
+				List<ParameterInfo> curParameters = curMethod.getParameters();
+				if (curParameters.size() != methodParameters.size()) {
+					//parameter size doesn't match
+					continue;
+				}
+
+				//check the parameters
+				boolean exactMatch = true;
+				for (int i = 0; i < curParameters.size(); i++) {
+					ParameterInfo curParameter = curParameters.get(i);
+					String curParameterName = curParameter.getType().getSimple() + (curParameter.isArray() ? "[]" : "");
+
+					String methodParameter = methodParameters.get(i);
+
+					if (!curParameterName.equalsIgnoreCase(methodParameter)) {
+						//parameter types don't match
+						exactMatch = false;
+						break;
+					}
+				}
+				if (exactMatch) {
+					matchingMethods.exactSignature = curMethod;
+				}
 			}
 
 			//add parent class to the stack
@@ -455,47 +516,16 @@ public class JavadocCommand implements Command {
 		return matchingMethods;
 	}
 
-	/**
-	 * Determines if a given method matches a given signature.
-	 * @param method1 the method
-	 * @param method2Name the name that the method should have
-	 * @param method2Parameters the parameters that the method should have or
-	 * null not to look at the parameters
-	 * @return true if the method matches, false if not
-	 */
-	private static boolean methodMatches(MethodInfo method1, String method2Name, List<String> method2Parameters) {
-		if (!method1.getName().equalsIgnoreCase(method2Name)) {
-			//name doesn't match
-			return false;
+	private static class MatchingMethods {
+		private MethodInfo exactSignature;
+		private final List<MethodInfo> matchingName = new ArrayList<>();
+
+		public boolean isEmpty() {
+			return exactSignature == null && matchingName.isEmpty();
 		}
-
-		if (method2Parameters == null) {
-			//user is not searching based on parameters
-			return true;
-		}
-
-		List<ParameterInfo> method1Parameters = method1.getParameters();
-		if (method1Parameters.size() != method2Parameters.size()) {
-			//parameter size doesn't match
-			return false;
-		}
-
-		for (int i = 0; i < method1Parameters.size(); i++) {
-			ParameterInfo method1Parameter = method1Parameters.get(i);
-			String method1ParameterName = method1Parameter.getType().getSimple() + (method1Parameter.isArray() ? "[]" : "");
-
-			String method2ParameterName = method2Parameters.get(i);
-
-			if (!method1ParameterName.equalsIgnoreCase(method2ParameterName)) {
-				//parameter types don't match
-				return false;
-			}
-		}
-
-		return true;
 	}
 
-	private class Paragraphs {
+	private static class Paragraphs {
 		private final String paragraphs[];
 
 		public Paragraphs(String text) {
