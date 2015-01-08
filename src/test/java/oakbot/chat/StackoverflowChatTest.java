@@ -217,6 +217,55 @@ public class StackoverflowChatTest {
 	}
 
 	@Test
+	public void getMessages_non_JSON_response() throws Exception {
+		HttpClient client = mockClient(new AnswerImpl() {
+			private long prevRequestSent;
+
+			@Override
+			public HttpResponse answer(String method, String uri, String body) throws IOException {
+				switch (count) {
+				case 1:
+					assertEquals("GET", method);
+					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
+					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
+				case 2:
+					prevRequestSent = System.currentTimeMillis();
+					return response(200, "<html>error!</html>");
+				case 3:
+					long diff = System.currentTimeMillis() - prevRequestSent;
+					prevRequestSent = System.currentTimeMillis();
+					assertTrue(diff >= 500); //should sleep before retrying
+
+					//@formatter:off
+			return response(200,
+			"{\"events\":[" +
+				"{\"event_type\":1,\"time_stamp\":1417041460,\"content\":\"message 1\",\"user_id\":50,\"user_name\":\"User1\",\"room_id\":1,\"message_id\":20157245}" +
+			"]}");
+			//@formatter:on
+				}
+
+				return super.answer(method, uri, body);
+			}
+		});
+
+		StackoverflowChat chat = new StackoverflowChat(client, 500);
+		Iterator<ChatMessage> messages = chat.getMessages(1, 1).iterator();
+
+		ChatMessage message = messages.next();
+		assertEquals("message 1", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(20157245L, message.getMessageId());
+		assertEquals(1, message.getRoomId());
+		assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417041460000L), ZoneId.systemDefault()), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User1", message.getUsername());
+
+		assertFalse(messages.hasNext());
+
+		verify(client, times(3)).execute(any(HttpUriRequest.class));
+	}
+
+	@Test
 	public void getMessages() throws Exception {
 		HttpClient client = mockClient(new AnswerImpl() {
 			@Override

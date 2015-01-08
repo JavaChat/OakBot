@@ -31,6 +31,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -51,17 +52,30 @@ public class StackoverflowChat implements ChatConnection {
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
 
 	private final MessageSenderThread sender;
+	private final long retryPause;
 
 	/**
 	 * Creates a new connection to Stackoverflow chat.
 	 * @param client the HTTP client
 	 */
 	public StackoverflowChat(HttpClient client) {
+		this(client, TimeUnit.SECONDS.toMillis(5));
+	}
+
+	/**
+	 * Creates a new connection to Stackoverflow chat.
+	 * @param client the HTTP client
+	 * @param retryPause the base amount of time to wait in between request
+	 * retries (in milliseconds)
+	 */
+	public StackoverflowChat(HttpClient client, long retryPause) {
+		this.client = client;
+		this.retryPause = retryPause;
+
 		MessageSenderThread sender = new MessageSenderThread();
 		sender.start();
-
-		this.client = client;
 		this.sender = sender;
+
 	}
 
 	@Override
@@ -112,13 +126,12 @@ public class StackoverflowChat implements ChatConnection {
 		//@formatter:on
 		request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
 
-		HttpResponse response = executeWithRetries(request, null);
-		ObjectMapper mapper = new ObjectMapper();
-		String json = EntityUtils.toString(response.getEntity());
-		logger.finest(json);
-
-		JsonNode node = mapper.readTree(json);
+		JsonNode node = executeWithRetriesJson(request);
 		JsonNode events = node.get("events");
+		if (events == null) {
+			return Collections.emptyList();
+		}
+
 		Iterator<JsonNode> it = events.elements();
 		List<ChatMessage> messages = new ArrayList<>();
 		while (it.hasNext()) {
@@ -203,6 +216,25 @@ public class StackoverflowChat implements ChatConnection {
 		return fkey;
 	}
 
+	private JsonNode executeWithRetriesJson(HttpUriRequest request) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+
+		while (true) {
+			HttpResponse response = executeWithRetries(request, null);
+			try {
+				return mapper.readTree(response.getEntity().getContent());
+			} catch (JsonParseException e) {
+				//make the request again if a non-JSON response is returned
+				logger.log(Level.SEVERE, "Could not parse JSON response.  Retrying the request in 5 seconds.", e);
+				try {
+					Thread.sleep(retryPause);
+				} catch (InterruptedException e2) {
+					throw new IOException(e2);
+				}
+			}
+		}
+	}
+
 	/**
 	 * Executes an HTTP request, retrying after a short pause if the request
 	 * fails.
@@ -229,22 +261,23 @@ public class StackoverflowChat implements ChatConnection {
 	 */
 	private HttpResponse executeWithRetries(HttpUriRequest request, Integer numRetries, Integer expectedStatusCode) throws IOException {
 		int attempts = 0;
-		int sleep = 0;
+		long sleep = 0;
+		final long maxSleep = TimeUnit.SECONDS.toMillis(60);
 		while (numRetries == null || attempts <= numRetries) {
 			attempts++;
 			if (sleep > 0) {
 				try {
-					logger.info("Sleeping for " + sleep + " seconds before resending the request...");
-					TimeUnit.SECONDS.sleep(sleep);
+					logger.info("Sleeping for " + sleep + " ms before resending the request...");
+					Thread.sleep(sleep);
 				} catch (InterruptedException e) {
 					logger.log(Level.INFO, "Sleep interrupted.", e);
 					throw new IOException("Sleep interrupted.", e);
 				}
 			}
 
-			sleep = (attempts + 1) * 5;
-			if (sleep > 60) {
-				sleep = 60;
+			sleep = (attempts + 1) * retryPause;
+			if (sleep > maxSleep) {
+				sleep = maxSleep;
 			}
 
 			HttpResponse response;
@@ -264,7 +297,8 @@ public class StackoverflowChat implements ChatConnection {
 				Pattern p = Pattern.compile("\\d+");
 				Matcher m = p.matcher(body);
 				if (m.find()) {
-					sleep = Integer.parseInt(m.group(0));
+					int seconds = Integer.parseInt(m.group(0));
+					sleep = TimeUnit.SECONDS.toMillis(seconds);
 				}
 				continue;
 			}
