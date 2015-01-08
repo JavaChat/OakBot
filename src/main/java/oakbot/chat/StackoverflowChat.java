@@ -225,7 +225,7 @@ public class StackoverflowChat implements ChatConnection {
 				return mapper.readTree(response.getEntity().getContent());
 			} catch (JsonParseException e) {
 				//make the request again if a non-JSON response is returned
-				logger.log(Level.SEVERE, "Could not parse JSON response.  Retrying the request in 5 seconds.", e);
+				logger.log(Level.SEVERE, "Could not parse JSON response.  Retrying the request in " + retryPause + "ms.", e);
 				try {
 					Thread.sleep(retryPause);
 				} catch (InterruptedException e2) {
@@ -282,7 +282,6 @@ public class StackoverflowChat implements ChatConnection {
 
 			HttpResponse response;
 			try {
-				logger.info("Sending request...");
 				response = client.execute(request);
 			} catch (NoHttpResponseException e) {
 				logger.log(Level.SEVERE, "No HTTP response received from request " + request.getURI() + ".", e);
@@ -293,7 +292,7 @@ public class StackoverflowChat implements ChatConnection {
 			if (actualStatusCode == 409) {
 				//"You can perform this action again in 2 seconds"
 				String body = EntityUtils.toString(response.getEntity());
-				logger.info("409 response received: " + body);
+				logger.fine("409 response received: " + body);
 				Pattern p = Pattern.compile("\\d+");
 				Matcher m = p.matcher(body);
 				if (m.find()) {
