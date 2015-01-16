@@ -1,6 +1,7 @@
 package oakbot.chat;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -285,6 +286,9 @@ public class StackoverflowChat implements ChatConnection {
 				response = client.execute(request);
 			} catch (NoHttpResponseException e) {
 				logger.log(Level.SEVERE, "No HTTP response received from request " + request.getURI() + ".", e);
+				continue;
+			} catch (SocketException e){
+				logger.log(Level.SEVERE, "SocketException thrown from request " + request.getURI() + ".", e);
 				continue;
 			}
 
