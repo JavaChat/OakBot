@@ -2,6 +2,8 @@ package oakbot.command.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,24 +24,15 @@ import org.xml.sax.SAXException;
  * @author Michael Angstadt
  */
 public class HttpCommand implements Command {
-	private final DocumentWrapper statusCodes;
-	private final String url;
+	private final DocumentWrapper document;
 
 	public HttpCommand() {
 		try (InputStream in = getClass().getResourceAsStream("http.xml")) {
 			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
-			statusCodes = new DocumentWrapper(document);
+			this.document = new DocumentWrapper(document);
 		} catch (IOException | SAXException | ParserConfigurationException e) {
 			//these should never be thrown because the XML is on the classpath
 			throw new RuntimeException(e);
-		}
-
-		Element element = statusCodes.element("/http");
-		if (element == null) {
-			url = null;
-		} else {
-			String url = element.getAttribute("url");
-			this.url = url.isEmpty() ? null : url;
 		}
 	}
 
@@ -55,7 +48,14 @@ public class HttpCommand implements Command {
 
 	@Override
 	public String helpText() {
-		return description();
+		//@formatter:off
+		return new ChatBuilder()
+		.fixed().append("Displays information about HTTP status codes and methods.  Descriptions come from the official RFC specifications.  Examples:").nl()
+		.fixed().append("=http 200     Displays information on HTTP 200.").nl()
+		.fixed().append("=http GET     Displays information on HTTP GET.").nl()
+		.fixed().append("=http 200 2   Displays the second paragraph of the HTTP 200 description.")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override
@@ -70,9 +70,11 @@ public class HttpCommand implements Command {
 			return new ChatResponse(cb.toString());
 		}
 
-		Element element = statusCodes.element("/http/statusCode[@code='" + code + "']");
+		boolean isStatusCode = true;
+		Element element = document.element("/http/statusCode[@code='" + code + "']");
 		if (element == null) {
-			element = statusCodes.element("/http/method[@name='" + code + "']");
+			isStatusCode = false;
+			element = document.element("/http/method[@name='" + code + "']");
 			if (element == null) {
 				String reply = code.matches("[0-9]+") ? "Status code not recognized." : "Method not recognized.";
 				cb.append(reply);
@@ -92,25 +94,29 @@ public class HttpCommand implements Command {
 			}
 		}
 
+		String defaultRfc = getDefaultRfc(element);
+
 		if (paragraph == 1) {
 			String name = element.getAttribute("name");
-			String rfc = element.getAttribute("rfc");
-			String baseUrl = rfc.isEmpty() ? url : "http://tools.ietf.org/html/rfc" + rfc;
+			String section = element.getAttribute("section");
+			String url = rfcUrl(defaultRfc, section);
 
-			ChatBuilder cb2 = new ChatBuilder();
-			String linkText = "HTTP " + (element.getTagName().equals("statusCode") ? code + " (" + name + ")" : name);
-			cb2.bold(linkText);
-			if (baseUrl == null) {
-				cb.append(cb2.toString());
+			ChatBuilder linkText = new ChatBuilder();
+			linkText.bold().append("HTTP ");
+			if (isStatusCode) {
+				linkText.append(code).append(" (").append(name).append(')');
 			} else {
-				String section = element.getAttribute("section");
-				String url = baseUrl + (section.isEmpty() ? "" : "#section-" + section);
-				cb.link(cb2.toString(), url);
+				linkText.append(name);
 			}
+			linkText.bold();
+
+			cb.link(linkText.toString(), url);
 			cb.append(": ");
 		}
 
 		String description = element.getTextContent().trim();
+		description = processSectionAnnotations(description, defaultRfc);
+
 		String paragraphs[] = description.split("\n\n");
 		if (paragraph > paragraphs.length) {
 			paragraph = paragraphs.length;
@@ -122,5 +128,57 @@ public class HttpCommand implements Command {
 		}
 
 		return new ChatResponse(cb.toString(), SplitStrategy.WORD);
+	}
+
+	private static String processSectionAnnotations(String description, String defaultRfc) {
+		Pattern p = Pattern.compile("#([\\d\\.]+)( (\\d+))?#");
+		Matcher m = p.matcher(description);
+		StringBuffer sb = new StringBuffer();
+		while (m.find()) {
+			String section = m.group(1);
+			String rfc = m.group(3);
+
+			String linkDisplay;
+			if ("0".equals(section)) {
+				linkDisplay = "RFC" + rfc;
+				section = null;
+			} else {
+				StringBuilder display = new StringBuilder();
+				display.append("Section " + section);
+				if (rfc != null) {
+					display.append(" of RFC").append(rfc);
+				}
+				linkDisplay = display.toString();
+			}
+
+			String linkRfc = (rfc == null) ? defaultRfc : rfc;
+
+			ChatBuilder cb = new ChatBuilder();
+			cb.link(linkDisplay, rfcUrl(linkRfc, section));
+			m.appendReplacement(sb, cb.toString());
+		}
+		m.appendTail(sb);
+		return sb.toString();
+	}
+
+	private static String rfcUrl(String rfc, String section) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("http://tools.ietf.org/html/rfc").append(rfc);
+		if (section != null && !section.isEmpty()) {
+			sb.append("#section-").append(section);
+		}
+		return sb.toString();
+	}
+
+	private static String getDefaultRfc(Element element) {
+		while (true) {
+			String rfc = element.getAttribute("rfc");
+			if (!rfc.isEmpty()) {
+				return rfc;
+			}
+
+			element = (Element) element.getParentNode();
+			//"element" should never become null because the root <http> element has a "rfc" attribute
+		}
 	}
 }

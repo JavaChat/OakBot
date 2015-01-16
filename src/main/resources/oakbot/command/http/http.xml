@@ -1,381 +1,500 @@
-<http url="http://tools.ietf.org/html/rfc2616">
-	<statusCode code="1XX" name="Informational" section="10.1">
-This class of status code indicates a provisional response, consisting only of the Status-Line and optional headers, and is terminated by an empty line. There are no required headers for this class of status code. Since HTTP/1.0 did not define any 1xx status codes, servers MUST NOT send a 1xx response to an HTTP/1.0 client except under experimental conditions.
+<http rfc="7231">
+	<statusCode code="1XX" name="Informational" section="6.2">
+The 1xx (Informational) class of status code indicates an interim response for communicating connection status or request progress prior to completing the requested action and sending a final response. 1xx responses are terminated by the first empty line after the status-line (the empty line signaling the end of the header section).  Since HTTP/1.0 did not define any 1xx status codes, a server MUST NOT send a 1xx response to an HTTP/1.0 client.
 
-A client MUST be prepared to accept one or more 1xx status responses prior to a regular response, even if the client does not expect a 100 (Continue) status message. Unexpected 1xx status responses MAY be ignored by a user agent.
+A client MUST be able to parse one or more 1xx responses received prior to a final response, even if the client does not expect one.  A user agent MAY ignore unexpected 1xx responses.
 
-Proxies MUST forward 1xx responses, unless the connection between the proxy and its client has been closed, or unless the proxy itself requested the generation of the 1xx response. (For example, if a proxy adds a "Expect: 100-continue" field when it forwards a request, then it need not forward the corresponding 100 (Continue) response(s).)
+A proxy MUST forward 1xx responses unless the proxy itself requested the generation of the 1xx response For example, if a proxy adds an "Expect: 100-continue" field when it forwards a request, then it need not forward the corresponding 100 (Continue) response(s).
 	</statusCode>
 
-	<statusCode code="100" name="Continue" section="10.1.1">
-This class of status code indicates a provisional response, consisting only of the Status-Line and optional headers, and is terminated by an empty line. There are no required headers for this class of status code. Since HTTP/1.0 did not define any 1xx status codes, servers MUST NOT send a 1xx response to an HTTP/1.0 client except under experimental conditions.
+	<statusCode code="100" name="Continue" section="6.2.1">
+The 100 (Continue) status code indicates that the initial part of a request has been received and has not yet been rejected by the server.  The server intends to send a final response after the request has been fully received and acted upon.
 
-A client MUST be prepared to accept one or more 1xx status responses prior to a regular response, even if the client does not expect a 100 (Continue) status message. Unexpected 1xx status responses MAY be ignored by a user agent.
+When the request contains an Expect header field that includes a 100-continue expectation, the 100 response indicates that the server wishes to receive the request payload body, as described in #5.1.1#.  The client ought to continue sending the request and discard the 100 response.
 
-Proxies MUST forward 1xx responses, unless the connection between the proxy and its client has been closed, or unless the proxy itself requested the generation of the 1xx response. (For example, if a proxy adds a "Expect: 100-continue" field when it forwards a request, then it need not forward the corresponding 100 (Continue) response(s).)
+If the request did not contain an Expect header field containing the 100-continue expectation, the client can simply discard this interim response.
 	</statusCode>
 
-	<statusCode code="101" name="Switching Protocols" section="10.1.2">
-The server understands and is willing to comply with the client's request, via the Upgrade message header field ([section 14.42](http://tools.ietf.org/html/rfc2616#section-14.42)), for a change in the application protocol being used on this connection. The server will switch protocols to those defined by the response's Upgrade header field immediately after the empty line which terminates the 101 response.
+	<statusCode code="101" name="Switching Protocols" section="6.2.2">
+The 101 (Switching Protocols) status code indicates that the server understands and is willing to comply with the client's request, via the Upgrade header field (#6.7 7230#), for a change in the application protocol being used on this connection.  The server MUST generate an Upgrade header field in the response that indicates which protocol(s) will be switched to immediately after the empty line that terminates the 101 response.
 
-The protocol SHOULD be switched only when it is advantageous to do so. For example, switching to a newer version of HTTP is advantageous over older versions, and switching to a real-time, synchronous protocol might be advantageous when delivering resources that use such features.
+It is assumed that the server will only agree to switch protocols when it is advantageous to do so.  For example, switching to a newer version of HTTP might be advantageous over older versions, and switching to a real-time, synchronous protocol might be advantageous when delivering resources that use such features.
 	</statusCode>
 
-	<statusCode code="2XX" name="Successful" section="10.2">
-This class of status code indicates that the client's request was successfully received, understood, and accepted.
+	<statusCode code="2XX" name="Successful" section="6.3">
+The 2xx (Successful) class of status code indicates that the client's request was successfully received, understood, and accepted.
 	</statusCode>
 
-	<statusCode code="200" name="OK" section="10.2.1">
-The request has succeeded. The information returned with the response is dependent on the method used in the request, for example:
+	<statusCode code="200" name="OK" section="6.3.1">
+The 200 (OK) status code indicates that the request has succeeded. The payload sent in a 200 response depends on the request method. For the methods defined by this specification, the intended meaning of the payload can be summarized as:
 
-- GET an entity corresponding to the requested resource is sent in the response;
-- HEAD the entity-header fields corresponding to the requested resource are sent in the response without any message-body;
-- POST an entity describing or containing the result of the action;
-- TRACE an entity containing the request message as received by the end server.
+- GET: a representation of the target resource;
+- HEAD: the same representation as GET, but without the representation data;
+- POST: a representation of the status of, or results obtained from, the action;
+- PUT, DELETE: a representation of the status of the action;
+- OPTIONS: a representation of the communications options;
+- TRACE: a representation of the request message as received by the end server.
+
+Aside from responses to CONNECT, a 200 response always has a payload, though an origin server MAY generate a payload body of zero length. If no payload is desired, an origin server ought to send 204 (No Content) instead.  For CONNECT, no payload is allowed because the successful result is a tunnel, which begins immediately after the 200 response header section.
+
+A 200 response is cacheable by default; i.e., unless otherwise indicated by the method definition or explicit cache controls (see #4.2.2 7234#)).
 	</statusCode>
 
-	<statusCode code="201" name="Created" section="10.2.2">
-The request has been fulfilled and resulted in a new resource being created. The newly created resource can be referenced by the URI(s) returned in the entity of the response, with the most specific URI for the resource given by a Location header field. The response SHOULD include an entity containing a list of resource characteristics and location(s) from which the user or user agent can choose the one most appropriate. The entity format is specified by the media type given in the Content-Type header field. The origin server MUST create the resource before returning the 201 status code. If the action cannot be carried out immediately, the server SHOULD respond with 202 (Accepted) response instead.
+	<statusCode code="201" name="Created" section="6.3.2">
+The 201 (Created) status code indicates that the request has been fulfilled and has resulted in one or more new resources being created.  The primary resource created by the request is identified by either a Location header field in the response or, if no Location field is received, by the effective request URI.
 
-A 201 response MAY contain an ETag response header field indicating the current value of the entity tag for the requested variant just created, see [section 14.19](http://tools.ietf.org/html/rfc2616#section-14.19).
+The 201 response payload typically describes and links to the resource(s) created.  See #7.2# for a discussion of the meaning and purpose of validator header fields, such as ETag and Last-Modified, in a 201 response.
 	</statusCode>
 
-	<statusCode code="202" name="Accepted" section="10.2.3">
-The request has been accepted for processing, but the processing has not been completed. The request might or might not eventually be acted upon, as it might be disallowed when processing actually takes place. There is no facility for re-sending a status code from an asynchronous operation such as this.
+	<statusCode code="202" name="Accepted" section="6.3.3">
+The 202 (Accepted) status code indicates that the request has been accepted for processing, but the processing has not been completed. The request might or might not eventually be acted upon, as it might be disallowed when processing actually takes place.  There is no facility in HTTP for re-sending a status code from an asynchronous operation.
 
-The 202 response is intentionally non-committal. Its purpose is to allow a server to accept a request for some other process (perhaps a batch-oriented process that is only run once per day) without requiring that the user agent's connection to the server persist until the process is completed. The entity returned with this response SHOULD include an indication of the request's current status and either a pointer to a status monitor or some estimate of when the user can expect the request to be fulfilled.
+The 202 response is intentionally noncommittal.  Its purpose is to allow a server to accept a request for some other process (perhaps a batch-oriented process that is only run once per day) without requiring that the user agent's connection to the server persist until the process is completed.  The representation sent with this response ought to describe the request's current status and point to (or embed) a status monitor that can provide the user with an estimate of when the request will be fulfilled.
 	</statusCode>
 
-	<statusCode code="203" name="Non-Authoritative Information" section="10.2.4">
-The returned metainformation in the entity-header is not the definitive set as available from the origin server, but is gathered from a local or a third-party copy. The set presented MAY be a subset or superset of the original version. For example, including local annotation information about the resource might result in a superset of the metainformation known by the origin server. Use of this response code is not required and is only appropriate when the response would otherwise be 200 (OK).
+	<statusCode code="203" name="Non-Authoritative Information" section="6.3.4">
+The 203 (Non-Authoritative Information) status code indicates that the request was successful but the enclosed payload has been modified from that of the origin server's 200 (OK) response by a transforming proxy (#5.7.2 7230#).  This status code allows the proxy to notify recipients when a transformation has been applied, since that knowledge might impact later decisions regarding the content.  For example, future cache validation requests for the content might only be applicable along the same request path (through the same proxies).
+
+The 203 response is similar to the Warning code of 214 Transformation Applied (#5.5 7234#), which has the advantage of being applicable to responses with any status code.
+
+A 203 response is cacheable by default; i.e., unless otherwisE indicated by the method definition or explicit cache controls (see #4.2.2 7234#).
 	</statusCode>
 
-	<statusCode code="204" name="No Content" section="10.2.5">
-The server has fulfilled the request but does not need to return an entity-body, and might want to return updated metainformation. The response MAY include new or updated metainformation in the form of entity-headers, which if present SHOULD be associated with the requested variant.
+	<statusCode code="204" name="No Content" section="6.3.5">
+The 204 (No Content) status code indicates that the server has successfully fulfilled the request and that there is no additional content to send in the response payload body.  Metadata in the response header fields refer to the target resource and its selected representation after the requested action was applied.
 
-If the client is a user agent, it SHOULD NOT change its document view from that which caused the request to be sent. This response is primarily intended to allow input for actions to take place without causing a change to the user agent's active document view, although any new or updated metainformation SHOULD be applied to the document currently in the user agent's active view.
+For example, if a 204 status code is received in response to a PUT request and the response contains an ETag header field, then the PUT was successful and the ETag field-value contains the entity-tag for the new representation of that target resource.
 
-The 204 response MUST NOT include a message-body, and thus is always terminated by the first empty line after the header fields.
+The 204 response allows a server to indicate that the action has been successfully applied to the target resource, while implying that the user agent does not need to traverse away from its current "document view" (if any).  The server assumes that the user agent will provide some indication of the success to its user, in accord with its own interface, and apply any new or updated metadata in the response to its active representation.
+
+For example, a 204 status code is commonly used with document editing interfaces corresponding to a "save" action, such that the document being saved remains available to the user for editing.  It is also frequently used with interfaces that expect automated data transfers to be prevalent, such as within distributed version control systems.
+
+A 204 response is terminated by the first empty line after the header fields because it cannot contain a message body.
+
+A 204 response is cacheable by default; i.e., unless otherwise indicated by the method definition or explicit cache controls (see #4.2.2 7234#).
 	</statusCode>
 
-	<statusCode code="205" name="Reset Content" section="10.2.6">
-The server has fulfilled the request and the user agent SHOULD reset the document view which caused the request to be sent. This response is primarily intended to allow input for actions to take place via user input, followed by a clearing of the form in which the input is given so that the user can easily initiate another input action. The response MUST NOT include an entity.
+	<statusCode code="205" name="Reset Content" section="6.3.6">
+The 205 (Reset Content) status code indicates that the server has fulfilled the request and desires that the user agent reset the "document view", which caused the request to be sent, to its original state as received from the origin server.
+
+This response is intended to support a common data entry use case where the user receives content that supports data entry (a form, notepad, canvas, etc.), enters or manipulates data in that space, causes the entered data to be submitted in a request, and then the data entry mechanism is reset for the next entry so that the user can easily initiate another input action.
+
+Since the 205 status code implies that no additional content will be provided, a server MUST NOT generate a payload in a 205 response.  In other words, a server MUST do one of the following for a 205 response: a) indicate a zero-length body for the response by including a Content-Length header field with a value of 0; b) indicate a zero-length payload for the response by including a Transfer-Encoding header field with a value of chunked and a message body consisting of a single chunk of zero-length; or, c) close the connection immediately after sending the blank line terminating the header section.
 	</statusCode>
 
-	<statusCode code="206" name="Partial Content" section="10.2.7">
-The server has fulfilled the partial GET request for the resource. The request MUST have included a Range header field (section 14.35) indicating the desired range, and MAY have included an If-Range header field ([section 14.27](http://tools.ietf.org/html/rfc2616#section-14.27)) to make the request conditional.
+	<statusCode code="206" name="Partial Content" section="4.1" rfc="7233">
+The 206 (Partial Content) status code indicates that the server is successfully fulfilling a range request for the target resource by transferring one or more parts of the selected representation that correspond to the satisfiable ranges found in the request's Range header field (#3.1#).
 
-The response MUST include the following header fields:
+If a single part is being transferred, the server generating the 206 response MUST generate a Content-Range header field, describing what range of the selected representation is enclosed, and a payload consisting of the range.  For example:
 
-- Either a Content-Range header field ([section 14.16](http://tools.ietf.org/html/rfc2616#section-14.16)) indicating the range included with this response, or a multipart/byteranges Content-Type including Content
+    HTTP/1.1 206 Partial Content
+    Date: Wed, 15 Nov 1995 06:25:24 GMT
+    Last-Modified: Wed, 15 Nov 1995 04:58:08 GMT
+    Content-Range: bytes 21010-47021/47022
+    Content-Length: 26012
+    Content-Type: image/gif
+    
+    ... 26012 bytes of partial image data ...
 
--Range fields for each part. If a Content-Length header field is present in the response, its  value MUST match the actual number of OCTETs transmitted in the message-body.
-- Date
-- ETag and/or Content-Location, if the header would have been sent in a 200 response to the same request
-- Expires, Cache-Control, and/or Vary, if the field-value might differ from that sent in any previous response for the same variant
+If multiple parts are being transferred, the server generating the 206 response MUST generate a "multipart/byteranges" payload, as defined in Appendix A, and a Content-Type header field containing the multipart/byteranges media type and its required boundary parameter. To avoid confusion with single-part responses, a server MUST NOT generate a Content-Range header field in the HTTP header section of a multiple part response (this field will be sent in each part instead).
 
-If the 206 response is the result of an If-Range request that used a strong cache validator (see [section 13.3.3](http://tools.ietf.org/html/rfc2616#section-13.3.3)), the response SHOULD NOT include other entity-headers. If the response is the result of an If-Range request that used a weak validator, the response MUST NOT include other entity-headers; this prevents inconsistencies between cached entity-bodies and updated headers. Otherwise, the response MUST include all of the entity-headers that would have been returned with a 200 (OK) response to the same request.
+Within the header area of each body part in the multipart payload, the server MUST generate a Content-Range header field corresponding to the range being enclosed in that body part.  If the selected representation would have had a Content-Type header field in a 200 (OK) response, the server SHOULD generate that same Content-Type field in the header area of each body part.  For example:
 
-A cache MUST NOT combine a 206 response with other previously cached content if the ETag or Last-Modified headers do not match exactly, see 13.5.4.
+    HTTP/1.1 206 Partial Content
+    Date: Wed, 15 Nov 1995 06:25:24 GMT
+    Last-Modified: Wed, 15 Nov 1995 04:58:08 GMT
+    Content-Length: 1741
+    Content-Type: multipart/byteranges; boundary=THIS_STRING_SEPARATES
+    
+    --THIS_STRING_SEPARATES
+    Content-Type: application/pdf
+    Content-Range: bytes 500-999/8000
+    
+    ...the first range...
+    --THIS_STRING_SEPARATES
+    Content-Type: application/pdf
+    Content-Range: bytes 7000-7999/8000
+    
+    ...the second range
+    --THIS_STRING_SEPARATES--
 
-A cache that does not support the Range and Content-Range headers MUST NOT cache 206 (Partial) responses.
+When multiple ranges are requested, a server MAY coalesce any of the ranges that overlap, or that are separated by a gap that is smaller than the overhead of sending multiple parts, regardless of the order in which the corresponding byte-range-spec appeared in the received Range header field.  Since the typical overhead between parts of a multipart/byteranges payload is around 80 bytes, depending on the selected representation's media type and the chosen boundary parameter length, it can be less efficient to transfer many small disjoint parts than it is to transfer the entire selected representation.
+
+A server MUST NOT generate a multipart response to a request for a single range, since a client that does not request multiple parts might not support multipart responses.  However, a server MAY generate a multipart/byteranges payload with only a single body part if multiple ranges were requested and only one range was found to be satisfiable or only one range remained after coalescing.  A client that cannot process a multipart/byteranges response MUST NOT generate a request that asks for multiple ranges.
+
+When a multipart response payload is generated, the server SHOULD send the parts in the same order that the corresponding byte-range-spec appeared in the received Range header field, excluding those ranges that were deemed unsatisfiable or that were response MUST inspect the Content-Range header field present in each body part in order to determine which range is contained in that body part; a client cannot rely on receiving the same ranges that it requested, nor the same order that it requested.
+
+When a 206 response is generated, the server MUST generate the following header fields, in addition to those required above, if the field would have been sent in a 200 (OK) response to the same request: Date, Cache-Control, ETag, Expires, Content-Location, and Vary.
+
+If a 206 is generated in response to a request with an If-Range header field, the sender SHOULD NOT generate other representation header fields beyond those required above, because the client is understood to already have a prior response containing those header fields.  Otherwise, the sender MUST generate all of the representation header fields that would have been sent in a 200 (OK) response to the same request.
+
+A 206 response is cacheable by default; i.e., unless otherwise indicated by explicit cache controls (see #4.2.2 7234#).
 	</statusCode>
 
-	<statusCode code="3XX" name="Redirection" section="10.3">
-This class of status code indicates that further action needs to be taken by the user agent in order to fulfill the request. The action required MAY be carried out by the user agent without interaction with the user if and only if the method used in the second request is GET or HEAD. A client SHOULD detect infinite redirection loops, since such loops generate network traffic for each redirection.
+	<statusCode code="3XX" name="Redirection" section="6.4">
+The 3xx (Redirection) class of status code indicates that further action needs to be taken by the user agent in order to fulfill the request.  If a Location header field (#7.1.2#) is provided, the user agent MAY automatically redirect its request to the URI referenced by the Location field value, even if the specific status code is not understood.  Automatic redirection needs to done with care for methods not known to be safe, as defined in #4.2.1#, since the user might not wish to redirect an unsafe request.
 
-Note: Previous versions of this specification recommended a maximum of five redirections. Content developers should be aware that there might be clients that implement such a fixed limitation.
-  </statusCode>
+There are several types of redirects:
+1. Redirects that indicate the resource might be available at a different URI, as provided by the Location field, as in the status codes 301 (Moved Permanently), 302 (Found), and 307 (Temporary Redirect).
+2. Redirection that offers a choice of matching resources, each capable of representing the original request target, as in the 300 (Multiple Choices) status code.
+3. Redirection to a different resource, identified by the Location field, that can represent an indirect response to the request, as in the 303 (See Other) status code.
+4. Redirection to a previously cached result, as in the 304 (Not Modified) status code.
 
-	<statusCode code="300" name="Multiple Choices" section="10.3.1">
-The requested resource corresponds to any one of a set of representations, each with its own specific location, and agent-driven negotiation information ([section 12](http://tools.ietf.org/html/rfc2616#section-12)) is being provided so that the user (or user agent) can select a preferred representation and redirect its request to that location.
+Note: In HTTP/1.0, the status codes 301 (Moved Permanently) and 302 (Found) were defined for the first type of redirect (#9.3 1945#).  Early user agents split on whether the method applied to the redirect target would be the same as the original request or would be rewritten as GET.  Although HTTP originally defined the former semantics for 301 and 302 (to match its original implementation at CERN), and defined 303 (See Other) to match the latter semantics, prevailing practice gradually converged on the latter semantics for 301 and 302 as well.  The first revision of HTTP/1.1 added 307 (Temporary Redirect) to indicate the former semantics without being impacted by divergent practice.  Over 10 years later, most user agents still do method rewriting for 301 and 302; therefore, this specification makes that behavior conformant when the original request is POST.
 
-Unless it was a HEAD request, the response SHOULD include an entity containing a list of resource characteristics and location(s) from which the user or user agent can choose the one most appropriate. The entity format is specified by the media type given in the Content- Type header field. Depending upon the format and the capabilities of the user agent, selection of the most appropriate choice MAY be performed automatically. However, this specification does not define any standard for such automatic selection.
+A client SHOULD detect and intervene in cyclical redirections (i.e., "infinite" redirection loops).
 
-If the server has a preferred choice of representation, it SHOULD include the specific URI for that representation in the Location field; user agents MAY use the Location field value for automatic redirection. This response is cacheable unless indicated otherwise.
+Note: An earlier version of this specification recommended a maximum of five redirections (#10.3 2068#).  Content developers need to be aware that some clients might implement such a fixed limitation. </statusCode>
+
+	<statusCode code="300" name="Multiple Choices" section="6.4.1">
+The 300 (Multiple Choices) status code indicates that the target resource has more than one representation, each with its own more specific identifier, and information about the alternatives is being provided so that the user (or user agent) can select a preferred representation by redirecting its request to one or more of those identifiers.  In other words, the server desires that the user agent engage in reactive negotiation to select the most appropriate representation(s) for its needs (#3.4#).
+
+If the server has a preferred choice, the server SHOULD generate a Location header field containing a preferred choice's URI reference. The user agent MAY use the Location field value for automatic redirection.
+
+For request methods other than HEAD, the server SHOULD generate a payload in the 300 response containing a list of representation metadata and URI reference(s) from which the user or user agent can choose the one most preferred.  The user agent MAY make a selection from that list automatically if it understands the provided media type.  A specific format for automatic selection is not defined by this specification because HTTP tries to remain orthogonal to the definition of its payloads.  In practice, the representation is provided in some easily parsed format believed to be acceptable to the user agent, as determined by shared design or content negotiation, or in some commonly accepted hypertext format.
+
+A 300 response is cacheable by default; i.e., unless otherwise indicated by the method definition or explicit cache controls (see #4.2.2 7234#).
+
+Note: The original proposal for the 300 status code defined the URI header field as providing a list of alternative representations, such that it would be usable for 200, 300, and 406 responses and be transferred in responses to the HEAD method. However, lack of deployment and disagreement over syntax led to both URI and Alternates (a subsequent proposal) being dropped from this specification.  It is possible to communicate the list using a set of Link header fields (#0 5988#), each with a relationship of "alternate", though deployment is a chicken-and-egg problem.
 	</statusCode>
 
-	<statusCode code="301" name="Moved Permanently" section="10.3.2">
-The requested resource has been assigned a new permanent URI and any future references to this resource SHOULD use one of the returned URIs. Clients with link editing capabilities ought to automatically re-link references to the Request-URI to one or more of the new references returned by the server, where possible. This response is cacheable unless indicated otherwise.
+	<statusCode code="301" name="Moved Permanently" section="6.4.2">
+The 301 (Moved Permanently) status code indicates that the target resource has been assigned a new permanent URI and any future references to this resource ought to use one of the enclosed URIs. Clients with link-editing capabilities ought to automatically re-link references to the effective request URI to one or more of the new references sent by the server, where possible.
 
-The new permanent URI SHOULD be given by the Location field in the response. Unless the request method was HEAD, the entity of the response SHOULD contain a short hypertext note with a hyperlink to the new URI(s).
+The server SHOULD generate a Location header field in the response containing a preferred URI reference for the new permanent URI.  The user agent MAY use the Location field value for automatic redirection.  The server's response payload usually contains a short hypertext note with a hyperlink to the new URI(s).
 
-If the 301 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
+Note: For historical reasons, a user agent MAY change the request method from POST to GET for the subsequent request.  If this behavior is undesired, the 307 (Temporary Redirect) status code can be used instead.
 
-Note: When automatically redirecting a POST request after receiving a 301 status code, some existing HTTP/1.0 user agents will erroneously change it into a GET request.
+A 301 response is cacheable by default; i.e., unless otherwise indicated by the method definition or explicit cache controls (see #4.2.2 7234#).
 	</statusCode>
 
-	<statusCode code="302" name="Found" section="10.3.3">
-The requested resource resides temporarily under a different URI. Since the redirection might be altered on occasion, the client SHOULD continue to use the Request-URI for future requests. This response is only cacheable if indicated by a Cache-Control or Expires header field.
+	<statusCode code="302" name="Found" section="6.4.3">
+The 302 (Found) status code indicates that the target resource resides temporarily under a different URI.  Since the redirection might be altered on occasion, the client ought to continue to use the effective request URI for future requests.
 
-The temporary URI SHOULD be given by the Location field in the response. Unless the request method was HEAD, the entity of the response SHOULD contain a short hypertext note with a hyperlink to the new URI(s).
+The server SHOULD generate a Location header field in the response containing a URI reference for the different URI.  The user agent MAY use the Location field value for automatic redirection.  The server's response payload usually contains a short hypertext note with a hyperlink to the different URI(s).
 
-If the 302 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
-
-Note: [RFC 1945](https://tools.ietf.org/html/rfc1945) and [RFC 2068](https://tools.ietf.org/html/rfc2068) specify that the client is not allowed to change the method on the redirected request.  However, most existing user agent implementations treat 302 as if it were a 303 response, performing a GET on the Location field-value regardless of the original request method. The status codes 303 and 307 have been added for servers that wish to make unambiguously clear which kind of reaction is expected of the client.
+Note: For historical reasons, a user agent MAY change the request method from POST to GET for the subsequent request.  If this behavior is undesired, the 307 (Temporary Redirect) status code can be used instead.
 	</statusCode>
 
-	<statusCode code="303" name="See Other" section="10.3.4">
-The response to the request can be found under a different URI and SHOULD be retrieved using a GET method on that resource. This method exists primarily to allow the output of a POST-activated script to redirect the user agent to a selected resource. The new URI is not a substitute reference for the originally requested resource. The 303 response MUST NOT be cached, but the response to the second (redirected) request might be cacheable.
+	<statusCode code="303" name="See Other" section="6.4.4">
+The 303 (See Other) status code indicates that the server is redirecting the user agent to a different resource, as indicated by a URI in the Location header field, which is intended to provide an indirect response to the original request.  A user agent can perform a retrieval request targeting that URI (a GET or HEAD request if using HTTP), which might also be redirected, and present the eventual result as an answer to the original request.  Note that the new URI in the Location header field is not considered equivalent to the effective request URI.
 
-The different URI SHOULD be given by the Location field in the response. Unless the request method was HEAD, the entity of the response SHOULD contain a short hypertext note with a hyperlink to the new URI(s).
+This status code is applicable to any HTTP method.  It is primarily used to allow the output of a POST action to redirect the user agent to a selected resource, since doing so provides the information corresponding to the POST response in a form that can be separately identified, bookmarked, and cached, independent of the original request.
 
-Note: Many pre-HTTP/1.1 user agents do not understand the 303 status. When interoperability with such clients is a concern, the 302 status code may be used instead, since most user agents react to a 302 response as described here for 303.
+A 303 response to a GET request indicates that the origin server does not have a representation of the target resource that can be transferred by the server over HTTP.  However, the Location field value refers to a resource that is descriptive of the target resource, such that making a retrieval request on that other resource might result in a representation that is useful to recipients without implying that it represents the original target resource.  Note that answers to the questions of what can be represented, what representations are adequate, and what might be a useful description are outside the scope of HTTP.
+
+Except for responses to a HEAD request, the representation of a 303 response ought to contain a short hypertext note with a hyperlink to the same URI reference provided in the Location header field.	
 	</statusCode>
 
-	<statusCode code="304" name="Not Modified" section="10.3.5">
-If the client has performed a conditional GET request and access is allowed, but the document has not been modified, the server SHOULD respond with this status code. The 304 response MUST NOT contain a message-body, and thus is always terminated by the first empty line after the header fields.
+	<statusCode code="304" name="Not Modified" section="4.1" rfc="7232">
+The 304 (Not Modified) status code indicates that a conditional GET or HEAD request has been received and would have resulted in a 200 (OK) response if it were not for the fact that the condition evaluated to false.  In other words, there is no need for the server to transfer a representation of the target resource because the request indicates that the client, which made the request conditional, already has a valid representation; the server is therefore redirecting the client to make use of that stored representation as if it were the payload of a 200 (OK) response.
 
-The response MUST include the following header fields:
+The server generating a 304 response MUST generate any of the following header fields that would have been sent in a 200 (OK) response to the same request: Cache-Control, Content-Location, Date, ETag, Expires, and Vary.
 
-- Date, unless its omission is required by [section 14.18.1](http://tools.ietf.org/html/rfc2616#section-14.18.1).  If a clockless origin server obeys these rules, and proxies and clients add their own Date to any response received without one (as already specified by [RFC 2068, section 14.19](https://tools.ietf.org/html/rfc2068#section-14.19)), caches will operate correctly.
+Since the goal of a 304 response is to minimize information transfer when the recipient already has one or more cached representations, a sender SHOULD NOT generate representation metadata other than the above listed fields unless said metadata exists for the purpose of guiding cache updates (e.g., Last-Modified might be useful if the response does not have an ETag field).
 
-- ETag and/or Content-Location, if the header would have been sent in a 200 response to the same request
-- Expires, Cache-Control, and/or Vary, if the field-value might differ from that sent in any previous response for the same variant
+Requirements on a cache that receives a 304 response are defined in #4.3.4 7234#.  If the conditional request originated with an outbound client, such as a user agent with its own cache sending a conditional GET to a shared proxy, then the proxy SHOULD forward the 304 response to that client.
 
-If the conditional GET used a strong cache validator (see [section 13.3.3](http://tools.ietf.org/html/rfc2616#section-13.3.3)), the response SHOULD NOT include other entity-headers. Otherwise (i.e., the conditional GET used a weak validator), the response MUST NOT include other entity-headers; this prevents inconsistencies between cached entity-bodies and updated headers.
-
-If a 304 response indicates an entity not currently cached, then the cache MUST disregard the response and repeat the request without the conditional.
-
-If a cache uses a received 304 response to update a cache entry, the cache MUST update the entry to reflect any new field values given in the response.
+A 304 response cannot contain a message-body; it is always terminated by the first empty line after the header fields.
 	</statusCode>
 
-	<statusCode code="305" name="Use Proxy" section="10.3.6">
+	<statusCode code="305" name="Use Proxy" section="6.4.5">
+The 305 (Use Proxy) status code was defined in a previous version of this specification and is now deprecated (Appendix B).
+
 The requested resource MUST be accessed through the proxy given by the Location field. The Location field gives the URI of the proxy. The recipient is expected to repeat this single request via the proxy. 305 responses MUST only be generated by origin servers.
 
-Note: [RFC 2068](https://tools.ietf.org/html/rfc2068) was not clear that 305 was intended to redirect a single request, and to be generated by origin servers only.  Not observing these limitations has significant security consequences.
+Note: #0 2068# was not clear that 305 was intended to redirect a single request, and to be generated by origin servers only.  Not observing these limitations has significant security consequences.
 	</statusCode>
 
-	<statusCode code="306" name="Unused" section="10.3.7">
+	<statusCode code="306" name="Unused" section="6.4.6">
 The 306 status code was used in a previous version of the specification, is no longer used, and the code is reserved.
 	</statusCode>
 
-	<statusCode code="307" name="Temporary Redirect" section="10.3.8">
-The requested resource resides temporarily under a different URI. Since the redirection MAY be altered on occasion, the client SHOULD continue to use the Request-URI for future requests. This response is only cacheable if indicated by a Cache-Control or Expires header field.
+	<statusCode code="307" name="Temporary Redirect" section="6.4.7">
+The 307 (Temporary Redirect) status code indicates that the target resource resides temporarily under a different URI and the user agent MUST NOT change the request method if it performs an automatic redirection to that URI.  Since the redirection can change over time, the client ought to continue using the original effective request URI for future requests.
 
-The temporary URI SHOULD be given by the Location field in the response. Unless the request method was HEAD, the entity of the response SHOULD contain a short hypertext note with a hyperlink to the new URI(s) , since many pre-HTTP/1.1 user agents do not understand the 307 status. Therefore, the note SHOULD contain the information necessary for a user to repeat the original request on the new URI.
+The server SHOULD generate a Location header field in the response containing a URI reference for the different URI.  The user agent MAY use the Location field value for automatic redirection.  The server's response payload usually contains a short hypertext note with a hyperlink to the different URI(s).
 
-If the 307 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
+Note: This status code is similar to 302 (Found), except that it does not allow changing the request method from POST to GET.  This specification defines no equivalent counterpart for 301 (Moved Permanently)(#0 7238#, however, defines the status code 308 (Permanent Redirect) for this purpose).
 	</statusCode>
 
-	<statusCode code="4XX" name="Client Error" section="10.4">
-The 4xx class of status code is intended for cases in which the client seems to have erred. Except when responding to a HEAD request, the server SHOULD include an entity containing an explanation of the error situation, and whether it is a temporary or permanent condition. These status codes are applicable to any request method. User agents SHOULD display any included entity to the user.
-
-If the client is sending data, a server implementation using TCP SHOULD be careful to ensure that the client acknowledges receipt of the packet(s) containing the response, before the server closes the input connection. If the client continues sending data to the server after the close, the server's TCP stack will send a reset packet to the client, which may erase the client's unacknowledged input buffers before they can be read and interpreted by the HTTP application.
+	<statusCode code="4XX" name="Client Error" section="6.5">
+The 4xx (Client Error) class of status code indicates that the client seems to have erred.  Except when responding to a HEAD request, the server SHOULD send a representation containing an explanation of the error situation, and whether it is a temporary or permanent condition.  These status codes are applicable to any request method. User agents SHOULD display any included representation to the user.
 	</statusCode>
 
-	<statusCode code="400" name="Bad Request" section="10.4.1">
-The request could not be understood by the server due to malformed syntax. The client SHOULD NOT repeat the request without modifications.
+	<statusCode code="400" name="Bad Request" section="6.5.1">
+The 400 (Bad Request) status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).
 	</statusCode>
 
-	<statusCode code="401" name="Unauthorized" section="10.4.2">
-The request requires user authentication. The response MUST include a WWW-Authenticate header field ([section 14.47](http://tools.ietf.org/html/rfc2616#section-14.47)) containing a challenge applicable to the requested resource. The client MAY repeat the request with a suitable Authorization header field ([section 14.8](http://tools.ietf.org/html/rfc2616#section-14.8)). If the request already included Authorization credentials, then the 401 response indicates that authorization has been refused for those credentials. If the 401 response contains the same challenge as the prior response, and the user agent has already attempted authentication at least once, then the user SHOULD be presented the entity that was given in the response, since that entity might include relevant diagnostic information. HTTP access authentication is explained in [HTTP Authentication: Basic and Digest Access Authentication](http://tools.ietf.org/html/rfc2617).
+	<statusCode code="401" name="Unauthorized" section="3.1" rfc="7235">
+The 401 (Unauthorized) status code indicates that the request has not been applied because it lacks valid authentication credentials for the target resource.  The server generating a 401 response MUST send a WWW-Authenticate header field (#4.1#) containing at least one challenge applicable to the target resource.
+
+If the request included authentication credentials, then the 401 response indicates that authorization has been refused for those credentials.  The user agent MAY repeat the request with a new or replaced Authorization header field (#4.2#).  If the 401 response contains the same challenge as the prior response, and the user agent has already attempted authentication at least once, then the user agent SHOULD present the enclosed representation to the user, since it usually contains relevant diagnostic information.
 	</statusCode>
 
-	<statusCode code="402" name="Payment Required" section="10.4.3">
-This code is reserved for future use.
+	<statusCode code="402" name="Payment Required" section="6.5.2">
+The 402 (Payment Required) status code is reserved for future use.
 	</statusCode>
 
-	<statusCode code="403" name="Forbidden" section="10.4.4">
-The server understood the request, but is refusing to fulfill it. Authorization will not help and the request SHOULD NOT be repeated. If the request method was not HEAD and the server wishes to make public why the request has not been fulfilled, it SHOULD describe the reason for the refusal in the entity. If the server does not wish to make this information available to the client, the status code 404 (Not Found) can be used instead.
+	<statusCode code="403" name="Forbidden" section="6.5.3">
+The 403 (Forbidden) status code indicates that the server understood the request but refuses to authorize it.  A server that wishes to make public why the request has been forbidden can describe that reason in the response payload (if any).
+
+If authentication credentials were provided in the request, the server considers them insufficient to grant access.  The client SHOULD NOT automatically repeat the request with the same credentials.  The client MAY repeat the request with new or different credentials.  However, a request might be forbidden for reasons unrelated to the credentials.
+
+An origin server that wishes to "hide" the current existence of a forbidden target resource MAY instead respond with a status code of 404 (Not Found).
 	</statusCode>
 
-	<statusCode code="404" name="Not Found" section="10.4.5">
-The server has not found anything matching the Request-URI. No indication is given of whether the condition is temporary or permanent. The 410 (Gone) status code SHOULD be used if the server knows, through some internally configurable mechanism, that an old resource is permanently unavailable and has no forwarding address. This status code is commonly used when the server does not wish to reveal exactly why the request has been refused, or when no other response is applicable.
+	<statusCode code="404" name="Not Found" section="6.5.4">
+The 404 (Not Found) status code indicates that the origin server did not find a current representation for the target resource or is not willing to disclose that one exists.  A 404 status code does not indicate whether this lack of representation is temporary or permanent; the 410 (Gone) status code is preferred over 404 if the origin server knows, presumably through some configurable means, that the condition is likely to be permanent.
+
+A 404 response is cacheable by default; i.e., unless otherwise indicated by the method definition or explicit cache controls (see #4.2.2 7234#).
 	</statusCode>
 
-	<statusCode code="405" name="Method Not Allowed" section="10.4.6">
-The method specified in the Request-Line is not allowed for the resource identified by the Request-URI. The response MUST include an Allow header containing a list of valid methods for the requested resource.
+	<statusCode code="405" name="Method Not Allowed" section="6.5.5">
+The 405 (Method Not Allowed) status code indicates that the method received in the request-line is known by the origin server but not supported by the target resource.  The origin server MUST generate an Allow header field in a 405 response containing a list of the target resource's currently supported methods.
+
+A 405 response is cacheable by default; i.e., unless otherwise indicated by the method definition or explicit cache controls (see #4.2.2 7234#).
 	</statusCode>
 
-	<statusCode code="406" name="Not Acceptable" section="10.4.7">
-The resource identified by the request is only capable of generating response entities which have content characteristics not acceptable according to the accept headers sent in the request.
+	<statusCode code="406" name="Not Acceptable" section="6.5.6">
+The 406 (Not Acceptable) status code indicates that the target resource does not have a current representation that would be acceptable to the user agent, according to the proactive negotiation header fields received in the request (#5.3#), and the server is unwilling to supply a default representation.
 
-Unless it was a HEAD request, the response SHOULD include an entity containing a list of available entity characteristics and location(s) from which the user or user agent can choose the one most appropriate. The entity format is specified by the media type given in the Content-Type header field. Depending upon the format and the capabilities of the user agent, selection of the most appropriate choice MAY be performed automatically. However, this specification does not define any standard for such automatic selection.
-
-Note: HTTP/1.1 servers are allowed to return responses which are not acceptable according to the accept headers sent in the request. In some cases, this may even be preferable to sending a 406 response. User agents are encouraged to inspect the headers of an incoming response to determine if it is acceptable.the response could be unacceptable, a user agent SHOULD temporarily stop receipt of more data and query the user for a decision on further actions.
+The server SHOULD generate a payload containing a list of available representation characteristics and corresponding resource identifiers from which the user or user agent can choose the one most appropriate.  A user agent MAY automatically select the most appropriate choice from that list.  However, this specification does not define any standard for such automatic selection, as described in #6.4.1.#
 	</statusCode>
 
-	<statusCode code="407" name="Proxy Authentication Required" section="10.4.8">
-This code is similar to 401 (Unauthorized), but indicates that the client must first authenticate itself with the proxy. The proxy MUST return a Proxy-Authenticate header field ([section 14.33](http://tools.ietf.org/html/rfc2616#section-14.33)) containing a challenge applicable to the proxy for the requested resource. The client MAY repeat the request with a suitable Proxy-Authorization header field ([section 14.34](http://tools.ietf.org/html/rfc2616#section-14.34)). HTTP access authentication is explained in [HTTP Authentication: Basic and Digest Access Authentication](http://tools.ietf.org/html/rfc2617).
+	<statusCode code="407" name="Proxy Authentication Required" section="3.2" rfc="7235">
+The 407 (Proxy Authentication Required) status code is similar to 401 (Unauthorized), but it indicates that the client needs to authenticate itself in order to use a proxy.  The proxy MUST send a Proxy-Authenticate header field (#4.3#) containing a challenge applicable to that proxy for the target resource.  The client MAY repeat the request with a new or replaced Proxy-Authorization header field (#4.4#).
 	</statusCode>
 
-	<statusCode code="408" name="Request Timeout" section="10.4.9">
-The client did not produce a request within the time that the server was prepared to wait. The client MAY repeat the request without modifications at any later time.
+	<statusCode code="408" name="Request Timeout" section="6.5.7">
+The 408 (Request Timeout) status code indicates that the server did not receive a complete request message within the time that it was prepared to wait.  A server SHOULD send the "close" connection option (#6.1 7230#) in the response, since 408 implies that the server has decided to close the connection rather than continue waiting.  If the client has an outstanding request in transit, the client MAY repeat that request on a new connection.
 	</statusCode>
 
-	<statusCode code="409" name="Conflict" section="10.4.10">
-The request could not be completed due to a conflict with the current state of the resource. This code is only allowed in situations where it is expected that the user might be able to resolve the conflict and resubmit the request. The response body SHOULD include enough
+	<statusCode code="409" name="Conflict" section="6.5.8">
+The 409 (Conflict) status code indicates that the request could not be completed due to a conflict with the current state of the target resource.  This code is used in situations where the user might be able to resolve the conflict and resubmit the request.  The server SHOULD generate a payload that includes enough information for a user to recognize the source of the conflict.
 
-information for the user to recognize the source of the conflict. Ideally, the response entity would include enough information for the user or user agent to fix the problem; however, that might not be possible and is not required.
-
-Conflicts are most likely to occur in response to a PUT request. For example, if versioning were being used and the entity being PUT included changes to a resource which conflict with those made by an earlier (third-party) request, the server might use the 409 response to indicate that it can't complete the request. In this case, the response entity would likely contain a list of the differences between the two versions in a format defined by the response Content-Type.
+Conflicts are most likely to occur in response to a PUT request.  For example, if versioning were being used and the representation being PUT included changes to a resource that conflict with those made by an earlier (third-party) request, the origin server might use a 409 response to indicate that it can't complete the request.  In this case, the response representation would likely contain information useful for merging the differences based on the revision history.
 	</statusCode>
 
-	<statusCode code="410" name="Gone" section="10.4.11">
-The requested resource is no longer available at the server and no forwarding address is known. This condition is expected to be considered permanent. Clients with link editing capabilities SHOULD delete references to the Request-URI after user approval. If the server does not know, or has no facility to determine, whether or not the condition is permanent, the status code 404 (Not Found) SHOULD be used instead. This response is cacheable unless indicated otherwise.
+	<statusCode code="410" name="Gone" section="6.5.9">
+The 410 (Gone) status code indicates that access to the target resource is no longer available at the origin server and that this condition is likely to be permanent.  If the origin server does not know, or has no facility to determine, whether or not the condition is permanent, the status code 404 (Not Found) ought to be used instead.
 
-The 410 response is primarily intended to assist the task of web maintenance by notifying the recipient that the resource is intentionally unavailable and that the server owners desire that remote links to that resource be removed. Such an event is common for limited-time, promotional services and for resources belonging to individuals no longer working at the server's site. It is not necessary to mark all permanently unavailable resources as "gone" or to keep the mark for any length of time -- that is left to the discretion of the server owner.
+The 410 response is primarily intended to assist the task of web maintenance by notifying the recipient that the resource is intentionally unavailable and that the server owners desire that remote links to that resource be removed.  Such an event is common for limited-time, promotional services and for resources belonging to individuals no longer associated with the origin server's site.  It is not necessary to mark all permanently unavailable resources as "gone" or to keep the mark for any length of time -- that is left to the discretion of the server owner.
+
+A 410 response is cacheable by default; i.e., unless otherwise indicated by the method definition or explicit cache controls (see #4.2.2 7234#).
 	</statusCode>
 
-	<statusCode code="411" name="Length Required" section="10.4.12">
-The server refuses to accept the request without a defined Content- Length. The client MAY repeat the request if it adds a valid Content-Length header field containing the length of the message-body in the request message.
+	<statusCode code="411" name="Length Required" section="6.5.10">
+The 411 (Length Required) status code indicates that the server refuses to accept the request without a defined Content-Length (#3.3.2 7230#).  The client MAY repeat the request if it adds a valid Content-Length header field containing the length of the message body in the request message.
 	</statusCode>
 
-	<statusCode code="412" name="Precondition Failed" section="10.4.13">
-The precondition given in one or more of the request-header fields evaluated to false when it was tested on the server. This response code allows the client to place preconditions on the current resource metainformation (header field data) and thus prevent the requested method from being applied to a resource other than the one intended.
+	<statusCode code="412" name="Precondition Failed" section="4.2" rfc="7232">
+The 412 (Precondition Failed) status code indicates that one or more conditions given in the request header fields evaluated to false when tested on the server.  This response code allows the client to place preconditions on the current resource state (its current representations and metadata) and, thus, prevent the request method from being applied if the target resource is in an unexpected state.
 	</statusCode>
 
-	<statusCode code="413" name="Request Entity Too Large" section="10.4.14">
-The server is refusing to process a request because the request entity is larger than the server is willing or able to process. The server MAY close the connection to prevent the client from continuing the request.
-
-If the condition is temporary, the server SHOULD include a Retry-After header field to indicate that it is temporary and after what time the client MAY try again.
+	<statusCode code="413" name="Payload Too Large" section="6.5.11">
+The 412 (Precondition Failed) status code indicates that one or more conditions given in the request header fields evaluated to false when tested on the server.  This response code allows the client to place preconditions on the current resource state (its current representations and metadata) and, thus, prevent the request method from being applied if the target resource is in an unexpected state.
 	</statusCode>
 
-	<statusCode code="414" name="Request-URI Too Long" section="10.4.15">
-The server is refusing to service the request because the Request-URI is longer than the server is willing to interpret. This rare condition is only likely to occur when a client has improperly converted a POST request to a GET request with long query information, when the client has descended into a URI "black hole" of redirection (e.g., a redirected URI prefix that points to a suffix of itself), or when the server is under attack by a client attempting to exploit security holes present in some servers using fixed-length buffers for reading or manipulating the Request-URI.
+	<statusCode code="414" name="URI Too Long" section="6.5.12">
+The 414 (URI Too Long) status code indicates that the server is refusing to service the request because the request-target (#5.3 7230#) is longer than the server is willing to interpret. This rare condition is only likely to occur when a client has improperly converted a POST request to a GET request with long query information, when the client has descended into a "black hole" of redirection (e.g., a redirected URI prefix that points to a suffix of itself) or when the server is under attack by a client attempting to exploit potential security holes.
+
+A 414 response is cacheable by default; i.e., unless otherwise indicated by the method definition or explicit cache controls (see #4.2.2 7234#).
 	</statusCode>
 
-	<statusCode code="415" name="Unsupported Media Type" section="10.4.16">
-The server is refusing to service the request because the entity of the request is in a format not supported by the requested resource for the requested method.
+	<statusCode code="415" name="Unsupported Media Type" section="6.5.13">
+The 415 (Unsupported Media Type) status code indicates that the origin server is refusing to service the request because the payload is in a format not supported by this method on the target resource. The format problem might be due to the request's indicated Content-Type or Content-Encoding, or as a result of inspecting the data directly.
 	</statusCode>
 
-	<statusCode code="416" name="Requested Range Not Satisfiable" section="10.4.17">
-A server SHOULD return a response with this status code if a request included a Range request-header field ([section 14.35](http://tools.ietf.org/html/rfc2616#section-14.35)), and none of the range-specifier values in this field overlap the current extent of the selected resource, and the request did not include an If-Range request-header field. (For byte-ranges, this means that the first- byte-pos of all of the byte-range-spec values were greater than the current length of the selected resource.)
+	<statusCode code="416" name="Range Not Satisfiable" section="4.4" rfc="7233">
+The 416 (Range Not Satisfiable) status code indicates that none of the ranges in the request's Range header field (#3.1#) overlap the current extent of the selected resource or that the set of ranges requested has been rejected due to invalid ranges or an excessive request of small or overlapping ranges.
 
-When this status code is returned for a byte-range request, the response SHOULD include a Content-Range entity-header field specifying the current length of the selected resource (see [section 14.16]((http://tools.ietf.org/html/rfc2616#section-14.16))). This response MUST NOT use the multipart/byteranges content-type.
+For byte ranges, failing to overlap the current extent means that the first-byte-pos of all of the byte-range-spec values were greater than the current length of the selected representation.  When this status
+   code is generated in response to a byte-range request, the sender SHOULD generate a Content-Range header field specifying the current length of the selected representation (#4.2#). For example:
+
+    HTTP/1.1 416 Range Not Satisfiable
+    Date: Fri, 20 Jan 2012 15:41:54 GMT
+    Content-Range: bytes */47022
+
+Note: Because servers are free to ignore Range, many implementations will simply respond with the entire selected representation in a 200 (OK) response.  That is partly because most clients are prepared to receive a 200 (OK) to complete the task (albeit less efficiently) and partly because clients might not stop making an invalid partial request until they have received a complete representation.  Thus, clients cannot depend on receiving a 416 (Range Not Satisfiable) response even when it is most appropriate.
 	</statusCode>
 
-	<statusCode code="417" name="Expectation Failed" section="10.4.18">
-The expectation given in an Expect request-header field (see [section 14.20](http://tools.ietf.org/html/rfc2616#section-14.20)) could not be met by this server, or, if the server is a proxy, the server has unambiguous evidence that the request could not be met by the next-hop server.
+	<statusCode code="417" name="Expectation Failed" section="6.5.14">
+The 417 (Expectation Failed) status code indicates that the expectation given in the request's Expect header field (#5.1.1#) could not be met by at least one of the inbound servers.
 	</statusCode>
 	
 	<statusCode code="418" name="I'm a teapot" section="2.3.2" rfc="2324">
 Any attempt to brew coffee with a teapot should result in the error code "418 I'm a teapot". The resulting entity body MAY be short and stout.
 	</statusCode>
 
-	<statusCode code="5XX" name="Server Error" section="10.5">
-Response status codes beginning with the digit "5" indicate cases in which the server is aware that it has erred or is incapable of performing the request. Except when responding to a HEAD request, the server SHOULD include an entity containing an explanation of the error situation, and whether it is a temporary or permanent condition. User agents SHOULD display any included entity to the user. These response codes are applicable to any request method.
+	<statusCode code="426" name="Upgrade Required" section="6.5.15">
+The 426 (Upgrade Required) status code indicates that the server refuses to perform the request using the current protocol but might be willing to do so after the client upgrades to a different protocol.  The server MUST send an Upgrade header field in a 426 response to indicate the required protocol(s) (#6.7 7230#).  Example:
+
+    HTTP/1.1 426 Upgrade Required
+    Upgrade: HTTP/3.0
+    Connection: Upgrade
+    Content-Length: 53
+    Content-Type: text/plain
+
+This service requires use of the HTTP/3.0 protocol.
 	</statusCode>
 
-	<statusCode code="500" name="Internal Server Error" section="10.5.1">
-The server encountered an unexpected condition which prevented it from fulfilling the request.
+	<statusCode code="5XX" name="Server Error" section="6.6">
+The 5xx (Server Error) class of status code indicates that the server is aware that it has erred or is incapable of performing the requested method.  Except when responding to a HEAD request, the server SHOULD send a representation containing an explanation of the error situation, and whether it is a temporary or permanent condition.  A user agent SHOULD display any included representation to the user.  These response codes are applicable to any request method.
 	</statusCode>
 
-	<statusCode code="501" name="Not Implemented" section="10.5.2">
-The server does not support the functionality required to fulfill the request. This is the appropriate response when the server does not recognize the request method and is not capable of supporting it for any resource.
+	<statusCode code="500" name="Internal Server Error" section="6.6.1">
+The 500 (Internal Server Error) status code indicates that the server encountered an unexpected condition that prevented it from fulfilling the request.
 	</statusCode>
 
-	<statusCode code="502" name="Bad Gateway" section="10.5.3">
-The server, while acting as a gateway or proxy, received an invalid response from the upstream server it accessed in attempting to fulfill the request.
+	<statusCode code="501" name="Not Implemented" section="6.6.2">
+The 501 (Not Implemented) status code indicates that the server does not support the functionality required to fulfill the request.  This is the appropriate response when the server does not recognize the request method and is not capable of supporting it for any resource.
+
+A 501 response is cacheable by default; i.e., unless otherwise indicated by the method definition or explicit cache controls (see #4.2.2 7234#).
 	</statusCode>
 
-	<statusCode code="503" name="Service Unavailable" section="10.5.4">
-The server is currently unable to handle the request due to a temporary overloading or maintenance of the server. The implication is that this is a temporary condition which will be alleviated after some delay. If known, the length of the delay MAY be indicated in a Retry-After header. If no Retry-After is given, the client SHOULD handle the response as it would for a 500 response.
-
-Note: The existence of the 503 status code does not imply that a server must use it when becoming overloaded. Some servers may wish to simply refuse the connection.
+	<statusCode code="502" name="Bad Gateway" section="6.6.3">
+The 502 (Bad Gateway) status code indicates that the server, while acting as a gateway or proxy, received an invalid response from an inbound server it accessed while attempting to fulfill the request.
 	</statusCode>
 
-	<statusCode code="504" name="Gateway Timeout" section="10.5.5">
-The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server specified by the URI (e.g. HTTP, FTP, LDAP) or some other auxiliary server (e.g. DNS) it needed to access in attempting to complete the request.
+	<statusCode code="503" name="Service Unavailable" section="6.6.4">
+The 503 (Service Unavailable) status code indicates that the server is currently unable to handle the request due to a temporary overload or scheduled maintenance, which will likely be alleviated after some delay.  The server MAY send a Retry-After header field (#7.1.3#) to suggest an appropriate amount of time for the client to wait before retrying the request.
 
-Note to implementors: Some deployed proxies are known to return 400 or 500 when DNS lookups time out.
+Note: The existence of the 503 status code does not imply that a server has to use it when becoming overloaded.  Some servers might simply refuse the connection.
 	</statusCode>
 
-	<statusCode code="505" name="HTTP Version Not Supported" section="10.5.6">
-The server does not support, or refuses to support, the HTTP protocol version that was used in the request message. The server is indicating that it is unable or unwilling to complete the request using the same major version as the client, as described in [section 3.1](http://tools.ietf.org/html/rfc2616#section-3.1), other than with this error message. The response SHOULD contain an entity describing why that version is not supported and what other protocols are supported by that server.
+	<statusCode code="504" name="Gateway Timeout" section="6.6.5">
+The 504 (Gateway Timeout) status code indicates that the server, while acting as a gateway or proxy, did not receive a timely response from an upstream server it needed to access in order to complete the request.
 	</statusCode>
 
-	<method name="OPTIONS" section="9.2">
-The OPTIONS method represents a request for information about the communication options available on the request/response chain identified by the Request-URI. This method allows the client to determine the options and/or requirements associated with a resource, or the capabilities of a server, without implying a resource action or initiating a resource retrieval.
+	<statusCode code="505" name="HTTP Version Not Supported" section="6.6.6">
+The 505 (HTTP Version Not Supported) status code indicates that the server does not support, or refuses to support, the major version of HTTP that was used in the request message.  The server is indicating that it is unable or unwilling to complete the request using the same major version as the client, as described in #2.6 7230#, other than with this error message.  The server SHOULD generate a representation for the 505 response that describes why that version is not supported and what other protocols are supported by that server.
+	</statusCode>
 
-Responses to this method are not cacheable.
+	<method name="OPTIONS" section="4.3.7">
+The OPTIONS method requests information about the communication options available for the target resource, at either the origin server or an intervening intermediary.  This method allows a client to determine the options and/or requirements associated with a resource, or the capabilities of a server, without implying a resource action.
 
-If the OPTIONS request includes an entity-body (as indicated by the presence of Content-Length or Transfer-Encoding), then the media type MUST be indicated by a Content-Type field. Although this specification does not define any use for such a body, future extensions to HTTP might use the OPTIONS body to make more detailed queries on the server. A server that does not support such an extension MAY discard the request body.
+An OPTIONS request with an asterisk ("*") as the request-target (#5.3 7230#) applies to the server in general rather than to a specific resource.  Since a server's communication options typically depend on the resource, the "*" request is only useful as a "ping" or "no-op" type of method; it does nothing beyond allowing the client to test the capabilities of the server.  For example, this can be used to test a proxy for HTTP/1.1 conformance (or lack thereof).
 
-If the Request-URI is an asterisk ("*"), the OPTIONS request is intended to apply to the server in general rather than to a specific resource. Since a server's communication options typically depend on the resource, the "*" request is only useful as a "ping" or "no-op" type of method; it does nothing beyond allowing the client to test the capabilities of the server. For example, this can be used to test a proxy for HTTP/1.1 compliance (or lack thereof).
+If the request-target is not an asterisk, the OPTIONS request applies to the options that are available when communicating with the target resource.
 
-If the Request-URI is not an asterisk, the OPTIONS request applies only to the options that are available when communicating with that resource.
+A server generating a successful response to OPTIONS SHOULD send any header fields that might indicate optional features implemented by the server and applicable to the target resource (e.g., Allow), including potential extensions not defined by this specification. The response payload, if any, might also describe the communication options in a machine or human-readable representation.  A standard format for such a representation is not defined by this specification, but might be defined by future extensions to HTTP.  A server MUST generate a Content-Length field with a value of "0" if no payload body is to be sent in the response.
 
-A 200 response SHOULD include any header fields that indicate optional features implemented by the server and applicable to that resource (e.g., Allow), possibly including extensions not defined by this specification. The response body, if any, SHOULD also include information about the communication options. The format for such a
+A client MAY send a Max-Forwards header field in an OPTIONS request to target a specific recipient in the request chain (see #5.1.2#).  A proxy MUST NOT generate a Max-Forwards header field while forwarding a request unless that request was received with a Max-Forwards field.
 
-body is not defined by this specification, but might be defined by future extensions to HTTP. Content negotiation MAY be used to select the appropriate response format. If no response body is included, the response MUST include a Content-Length field with a field-value of "0".
+A client that generates an OPTIONS request containing a payload body MUST send a valid Content-Type header field describing the representation media type.  Although this specification does not define any use for such a payload, future extensions to HTTP might use the OPTIONS body to make more detailed queries about the target resource.
 
-The Max-Forwards request-header field MAY be used to target a specific proxy in the request chain. When a proxy receives an OPTIONS request on an absoluteURI for which request forwarding is permitted, the proxy MUST check for a Max-Forwards field. If the Max-Forwards field-value is zero ("0"), the proxy MUST NOT forward the message; instead, the proxy SHOULD respond with its own communication options. If the Max-Forwards field-value is an integer greater than zero, the proxy MUST decrement the field-value when it forwards the request. If no Max-Forwards field is present in the request, then the forwarded request MUST NOT include a Max-Forwards field.
+Responses to the OPTIONS method are not cacheable.
 	</method>
 
-	<method name="GET" section="9.3">
-The GET method means retrieve whatever information (in the form of an entity) is identified by the Request-URI. If the Request-URI refers to a data-producing process, it is the produced data which shall be returned as the entity in the response and not the source text of the process, unless that text happens to be the output of the process.
+	<method name="GET" section="4.3.1">
+The GET method requests transfer of a current selected representation for the target resource.  GET is the primary mechanism of information retrieval and the focus of almost all performance optimizations. Hence, when people speak of retrieving some identifiable information via HTTP, they are generally referring to making a GET request.
 
-The semantics of the GET method change to a "conditional GET" if the request message includes an If-Modified-Since, If-Unmodified-Since, If-Match, If-None-Match, or If-Range header field. A conditional GET method requests that the entity be transferred only under the circumstances described by the conditional header field(s). The conditional GET method is intended to reduce unnecessary network usage by allowing cached entities to be refreshed without requiring multiple requests or transferring data already held by the client.
+It is tempting to think of resource identifiers as remote file system pathnames and of representations as being a copy of the contents of such files.  In fact, that is how many resources are implemented (see #9.1# for related security considerations).  However, there are no such limitations in practice.  The HTTP interface for a resource is just as likely to be implemented as a tree of content objects, a programmatic view on various database records, or a gateway to other information systems.  Even when the URI mapping mechanism is tied to a file system, an origin server might be configured to execute the files with the request as input and send the output as the representation rather than transfer the files directly.  Regardless, only the origin server needs to know how each of its resource identifiers corresponds to an implementation and how each implementation manages to select and send a current representation of the target resource in a response to GET.
 
-The semantics of the GET method change to a "partial GET" if the request message includes a Range header field. A partial GET requests that only part of the entity be transferred, as described in [section 14.35]((http://tools.ietf.org/html/rfc2616#section-14.35)). The partial GET method is intended to reduce unnecessary network usage by allowing partially-retrieved entities to be completed without transferring data already held by the client.
+A client can alter the semantics of GET to be a "range request", requesting transfer of only some part(s) of the selected representation, by sending a Range header field in the request (#0 7233#).
 
-The response to a GET request is cacheable if and only if it meets the requirements for HTTP caching described in [section 13](http://tools.ietf.org/html/rfc2616#section-13).
+A payload within a GET request message has no defined semantics; sending a payload body on a GET request might cause some existing implementations to reject the request.
 
-See [section 15.1.3](http://tools.ietf.org/html/rfc2616#section-15.1.3) for security considerations when used for forms.
+The response to a GET request is cacheable; a cache MAY use it to satisfy subsequent GET and HEAD requests unless otherwise indicated by the Cache-Control header field (#5.2 7234#).
 	</method>
 
-	<method name="HEAD" section="9.4">
-The HEAD method is identical to GET except that the server MUST NOT return a message-body in the response. The metainformation contained in the HTTP headers in response to a HEAD request SHOULD be identical to the information sent in response to a GET request. This method can be used for obtaining metainformation about the entity implied by the request without transferring the entity-body itself. This method is often used for testing hypertext links for validity, accessibility, and recent modification.
+	<method name="HEAD" section="4.3.2">
+The HEAD method is identical to GET except that the server MUST NOT send a message body in the response (i.e., the response terminates at the end of the header section).  The server SHOULD send the same header fields in response to a HEAD request as it would have sent if the request had been a GET, except that the payload header fields (#3.3#) MAY be omitted.  This method can be used for obtaining metadata about the selected representation without transferring the representation data and is often used for testing hypertext links for validity, accessibility, and recent modification.
 
-The response to a HEAD request MAY be cacheable in the sense that the information contained in the response MAY be used to update a previously cached entity from that resource. If the new field values indicate that the cached entity differs from the current entity (as would be indicated by a change in Content-Length, Content-MD5, ETag or Last-Modified), then the cache MUST treat the cache entry as stale.
+A payload within a HEAD request message has no defined semantics; sending a payload body on a HEAD request might cause some existing implementations to reject the request.
+
+The response to a HEAD request is cacheable; a cache MAY use it to satisfy subsequent HEAD requests unless otherwise indicated by the Cache-Control header field (#5.2 7234#).  A HEAD response might also have an effect on previously cached responses to GET; see #4.3.5 7234#.
 	</method>
 
-	<method name="POST" section="9.5">
-The POST method is used to request that the origin server accept the entity enclosed in the request as a new subordinate of the resource identified by the Request-URI in the Request-Line. POST is designed to allow a uniform method to cover the following functions:
+	<method name="POST" section="4.3.3">
+The POST method requests that the target resource process the representation enclosed in the request according to the resource's own specific semantics.  For example, POST is used for the following functions (among others):
 
-- Annotation of existing resources;
-- Posting a message to a bulletin board, newsgroup, mailing list, or similar group of articles;
-- Providing a block of data, such as the result of submitting a form, to a data-handling process;
-- Extending a database through an append operation.
+- Providing a block of data, such as the fields entered into an HTML form, to a data-handling process;
+- Posting a message to a bulletin board, newsgroup, mailing list, blog, or similar group of articles;
+- Creating a new resource that has yet to be identified by the origin server; and
+- Appending data to a resource's existing representation(s).
 
-The actual function performed by the POST method is determined by the server and is usually dependent on the Request-URI. The posted entity is subordinate to that URI in the same way that a file is subordinate to a directory containing it, a news article is subordinate to a newsgroup to which it is posted, or a record is subordinate to a database.
+An origin server indicates response semantics by choosing an appropriate status code depending on the result of processing the POST request; almost all of the status codes defined by this specification might be received in a response to POST (the exceptions being 206 (Partial Content), 304 (Not Modified), and 416 (Range Not Satisfiable)).
 
-The action performed by the POST method might not result in a resource that can be identified by a URI. In this case, either 200 (OK) or 204 (No Content) is the appropriate response status, depending on whether or not the response includes an entity that describes the result.
+If one or more resources has been created on the origin server as a result of successfully processing a POST request, the origin server SHOULD send a 201 (Created) response containing a Location header field that provides an identifier for the primary resource created (#7.1.2#) and a representation that describes the status of the request while referring to the new resource(s).
 
-If a resource has been created on the origin server, the response SHOULD be 201 (Created) and contain an entity which describes the status of the request and refers to the new resource, and a Location header (see [section 14.30](http://tools.ietf.org/html/rfc2616#section-14.30)).
+Responses to POST requests are only cacheable when they include explicit freshness information (see #4.2.1 7234#). However, POST caching is not widely implemented.  For cases where an origin server wishes the client to be able to cache the result of a POST in a way that can be reused by a later GET, the origin server MAY send a 200 (OK) response containing the result and a Content-Location header field that has the same value as the POST's effective request URI (#3.1.4.2#).
 
-Responses to this method are not cacheable, unless the response includes appropriate Cache-Control or Expires header fields. However, the 303 (See Other) response can be used to direct the user agent to retrieve a cacheable resource.
-
-POST requests MUST obey the message transmission requirements set out in [section 8.2](http://tools.ietf.org/html/rfc2616#section-8.2).
-
-See [section 15.1.3](http://tools.ietf.org/html/rfc2616#section-15.1.3) for security considerations.
+If the result of processing a POST would be equivalent to a representation of an existing resource, an origin server MAY redirect the user agent to that resource by sending a 303 (See Other) response with the existing resource's identifier in the Location field.  This has the benefits of providing the user agent a resource identifier and transferring the representation via a method more amenable to shared caching, though at the cost of an extra request if the user agent does not already have the representation cached.
 	</method>
 
-	<method name="PUT" section="9.6">
-The PUT method requests that the enclosed entity be stored under the supplied Request-URI. If the Request-URI refers to an already existing resource, the enclosed entity SHOULD be considered as a modified version of the one residing on the origin server. If the Request-URI does not point to an existing resource, and that URI is capable of being defined as a new resource by the requesting user agent, the origin server can create the resource with that URI. If a new resource is created, the origin server MUST inform the user agent via the 201 (Created) response. If an existing resource is modified, either the 200 (OK) or 204 (No Content) response codes SHOULD be sent to indicate successful completion of the request. If the resource could not be created or modified with the Request-URI, an appropriate error response SHOULD be given that reflects the nature of the problem. The recipient of the entity MUST NOT ignore any Content-* (e.g. Content-Range) headers that it does not understand or implement and MUST return a 501 (Not Implemented) response in such cases.
+	<method name="PUT" section="4.3.4">
+The PUT method requests that the state of the target resource be created or replaced with the state defined by the representation enclosed in the request message payload.  A successful PUT of a given representation would suggest that a subsequent GET on that same target resource will result in an equivalent representation being sent in a 200 (OK) response.  However, there is no guarantee that such a state change will be observable, since the target resource might be acted upon by other user agents in parallel, or might be subject to dynamic processing by the origin server, before any subsequent GET is received.  A successful response only implies that the user agent's intent was achieved at the time of its processing by the origin server.
 
-If the request passes through a cache and the Request-URI identifies one or more currently cached entities, those entries SHOULD be treated as stale. Responses to this method are not cacheable.
+If the target resource does not have a current representation and the PUT successfully creates one, then the origin server MUST inform the user agent by sending a 201 (Created) response.  If the target resource does have a current representation and that representation is successfully modified in accordance with the state of the enclosed representation, then the origin server MUST send either a 200 (OK) or a 204 (No Content) response to indicate successful completion of the request.
 
-The fundamental difference between the POST and PUT requests is reflected in the different meaning of the Request-URI. The URI in a POST request identifies the resource that will handle the enclosed entity. That resource might be a data-accepting process, a gateway to some other protocol, or a separate entity that accepts annotations. In contrast, the URI in a PUT request identifies the entity enclosed with the request -- the user agent knows what URI is intended and the server MUST NOT attempt to apply the request to some other resource. If the server desires that the request be applied to a different URI, it MUST send a 301 (Moved Permanently) response; the user agent MAY then make its own decision regarding whether or not to redirect the request.
+An origin server SHOULD ignore unrecognized header fields received in a PUT request (i.e., do not save them as part of the resource state).
 
-A single resource MAY be identified by many different URIs. For example, an article might have a URI for identifying "the current version" which is separate from the URI identifying each particular version. In this case, a PUT request on a general URI might result in several other URIs being defined by the origin server.
+An origin server SHOULD verify that the PUT representation is consistent with any constraints the server has for the target resource that cannot or will not be changed by the PUT.  This is particularly important when the origin server uses internal configuration information related to the URI in order to set the values for representation metadata on GET responses.  When a PUT representation is inconsistent with the target resource, the origin server SHOULD either make them consistent, by transforming the representation or changing the resource configuration, or respond with an appropriate error message containing sufficient information to explain why the representation is unsuitable.  The 409 (Conflict) or 415 (Unsupported Media Type) status codes are suggested, with the latter being specific to constraints on Content-Type values.
 
-HTTP/1.1 does not define how a PUT method affects the state of an origin server.
+For example, if the target resource is configured to always have a Content-Type of "text/html" and the representation being PUT has a Content-Type of "image/jpeg", the origin server ought to do one of: a.  reconfigure the target resource to reflect the new media type; b.  transform the PUT representation to a format consistent with that of the resource before saving it as the new resource state; or, c.  reject the request with a 415 (Unsupported Media Type) response indicating that the target resource is limited to "text/html", perhaps including a link to a different resource that would be a suitable target for the new representation.
 
-PUT requests MUST obey the message transmission requirements set out in [section 8.2](http://tools.ietf.org/html/rfc2616#section-8.2).
+HTTP does not define exactly how a PUT method affects the state of an origin server beyond what can be expressed by the intent of the user agent request and the semantics of the origin server response.  It does not define what a resource might be, in any sense of that word, beyond the interface provided via HTTP.  It does not define how resource state is "stored", nor how such storage might change as a result of a change in resource state, nor how the origin server translates resource state into representations.  Generally speaking, all implementation details behind the resource interface are intentionally hidden by the server.
 
-Unless otherwise specified for a particular entity-header, the entity-headers in the PUT request SHOULD be applied to the resource created or modified by the PUT.
+An origin server MUST NOT send a validator header field (#7.2#), such as an ETag or Last-Modified field, in a successful response to PUT unless the request's representation data was saved without any transformation applied to the body (i.e., the resource's new representation data is identical to the representation data received in the PUT request) and the validator field value reflects the new representation.  This requirement allows a user agent to know when the representation body it has in memory remains current as a result of the PUT, thus not in need of being retrieved again from the origin server, and that the new validator(s) received in the response can be used for future conditional requests in order to prevent accidental overwrites (#5.2#).
+
+The fundamental difference between the POST and PUT methods is highlighted by the different intent for the enclosed representation. The target resource in a POST request is intended to handle the enclosed representation according to the resource's own semantics, whereas the enclosed representation in a PUT request is defined as replacing the state of the target resource.  Hence, the intent of PUT is idempotent and visible to intermediaries, even though the exact effect is only known by the origin server.
+
+Proper interpretation of a PUT request presumes that the user agent knows which target resource is desired.  A service that selects a proper URI on behalf of the client, after receiving a state-changing request, SHOULD be implemented using the POST method rather than PUT. If the origin server will not make the requested PUT state change to the target resource and instead wishes to have it applied to a different resource, such as when the resource has been moved to a different URI, then the origin server MUST send an appropriate 3xx (Redirection) response; the user agent MAY then make its own decision regarding whether or not to redirect the request.
+
+A PUT request applied to the target resource can have side effects on other resources.  For example, an article might have a URI for identifying "the current version" (a resource) that is separate from the URIs identifying each particular version (different resources that at one point shared the same state as the current version resource).  A successful PUT request on "the current version" URI might therefore create a new version resource in addition to changing the state of the target resource, and might also cause links to be added between the related resources.
+
+An origin server that allows PUT on a given target resource MUST send a 400 (Bad Request) response to a PUT request that contains a Content-Range header field (#4.2 7233#), since the payload is likely to be partial content that has been mistakenly PUT as a full representation.  Partial content updates are possible by targeting a separately identified resource with state that overlaps a portion of the larger resource, or by using a different method that has been specifically defined for partial updates (for example, the PATCH method defined in #0 5789#).
+
+Responses to the PUT method are not cacheable.  If a successful PUT request passes through a cache that has one or more stored responses for the effective request URI, those stored responses will be invalidated (see #4.4 7234#).
 	</method>
 
-	<method name="DELETE" section="9.7">
-The DELETE method requests that the origin server delete the resource identified by the Request-URI. This method MAY be overridden by human intervention (or other means) on the origin server. The client cannot be guaranteed that the operation has been carried out, even if the status code returned from the origin server indicates that the action has been completed successfully. However, the server SHOULD NOT indicate success unless, at the time the response is given, it intends to delete the resource or move it to an inaccessible location.
+	<method name="DELETE" section="4.3.5">
+The DELETE method requests that the origin server remove the association between the target resource and its current functionality.  In effect, this method is similar to the rm command in UNIX: it expresses a deletion operation on the URI mapping of the origin server rather than an expectation that the previously associated information be deleted.
 
-A successful response SHOULD be 200 (OK) if the response includes an entity describing the status, 202 (Accepted) if the action has not yet been enacted, or 204 (No Content) if the action has been enacted but the response does not include an entity.
+If the target resource has one or more current representations, they might or might not be destroyed by the origin server, and the associated storage might or might not be reclaimed, depending entirely on the nature of the resource and its implementation by the origin server (which are beyond the scope of this specification). Likewise, other implementation aspects of a resource might need to be deactivated or archived as a result of a DELETE, such as database or gateway connections.  In general, it is assumed that the origin server will only allow DELETE on resources for which it has a prescribed mechanism for accomplishing the deletion.
 
-If the request passes through a cache and the Request-URI identifies one or more currently cached entities, those entries SHOULD be treated as stale. Responses to this method are not cacheable.
+Relatively few resources allow the DELETE method -- its primary use is for remote authoring environments, where the user has some direction regarding its effect.  For example, a resource that was previously created using a PUT request, or identified via the Location header field after a 201 (Created) response to a POST request, might allow a corresponding DELETE request to undo those actions.  Similarly, custom user agent implementations that implement an authoring function, such as revision control clients using HTTP for remote operations, might use DELETE based on an assumption that the server's URI space has been crafted to correspond to a version repository.
+
+If a DELETE method is successfully applied, the origin server SHOULD send a 202 (Accepted) status code if the action will likely succeed but has not yet been enacted, a 204 (No Content) status code if the action has been enacted and no further information is to be supplied, or a 200 (OK) status code if the action has been enacted and the response message includes a representation describing the status.
+
+A payload within a DELETE request message has no defined semantics; sending a payload body on a DELETE request might cause some existing implementations to reject the request.
+
+Responses to the DELETE method are not cacheable.  If a DELETE request passes through a cache that has one or more stored responses for the effective request URI, those stored responses will be invalidated (see #4.4 7234#).
 	</method>
 
-	<method name="TRACE" section="9.8">
-The TRACE method is used to invoke a remote, application-layer loop- back of the request message. The final recipient of the request SHOULD reflect the message received back to the client as the entity-body of a 200 (OK) response. The final recipient is either the origin server or the first proxy or gateway to receive a Max-Forwards value of zero (0) in the request (see [section 14.31](http://tools.ietf.org/html/rfc2616#section-14.31)). A TRACE request MUST NOT include an entity.
+	<method name="TRACE" section="4.3.8">
+The TRACE method requests a remote, application-level loop-back of the request message.  The final recipient of the request SHOULD reflect the message received, excluding some fields described below, back to the client as the message body of a 200 (OK) response with a Content-Type of "message/http" (#8.3.1 7230#).  The final recipient is either the origin server or the first server to receive a Max-Forwards value of zero (0) in the request (#5.1.2#).
 
-TRACE allows the client to see what is being received at the other end of the request chain and use that data for testing or diagnostic information. The value of the Via header field ([section 14.45](http://tools.ietf.org/html/rfc2616#section-14.45)) is of particular interest, since it acts as a trace of the request chain. Use of the Max-Forwards header field allows the client to limit the length of the request chain, which is useful for testing a chain of proxies forwarding messages in an infinite loop.
+A client MUST NOT generate header fields in a TRACE request containing sensitive data that might be disclosed by the response. For example, it would be foolish for a user agent to send stored user credentials (#0 7235#) or cookies (#0 6265#) in a TRACE request.  The final recipient of the request SHOULD exclude any request header fields that are likely to contain sensitive data when that recipient generates the response body.
 
-If the request is valid, the response SHOULD contain the entire request message in the entity-body, with a Content-Type of "message/http". Responses to this method MUST NOT be cached.
+TRACE allows the client to see what is being received at the other end of the request chain and use that data for testing or diagnostic information.  The value of the Via header field (#5.7.1 7230#) is of particular interest, since it acts as a trace of the request chain.  Use of the Max-Forwards header field allows the client to limit the length of the request chain, which is useful for testing a chain of proxies forwarding messages in an infinite loop.
+
+A client MUST NOT send a message body in a TRACE request.  Responses to the TRACE method are not cacheable.
 	</method>
 
-	<method name="CONNECT" section="9.9">
-This specification reserves the method name CONNECT for use with a proxy that can dynamically switch to being a tunnel (e.g. SSL tunneling).
+	<method name="CONNECT" section="4.3.6">
+The CONNECT method requests that the recipient establish a tunnel to the destination origin server identified by the request-target and, if successful, thereafter restrict its behavior to blind forwarding of packets, in both directions, until the tunnel is closed.  Tunnels are commonly used to create an end-to-end virtual connection, through one or more proxies, which can then be secured using TLS (Transport Layer Security, #0 5246#).
+
+CONNECT is intended only for use in requests to a proxy.  An origin server that receives a CONNECT request for itself MAY respond with a 2xx (Successful) status code to indicate that a connection is established.  However, most origin servers do not implement CONNECT.
+
+A client sending a CONNECT request MUST send the authority form of request-target (#5.3 7230#); i.e., the request-target consists of only the host name and port number of the tunnel destination, separated by a colon.  For example,
+
+    CONNECT server.example.com:80 HTTP/1.1 Host: server.example.com:80
+
+The recipient proxy can establish a tunnel either by directly connecting to the request-target or, if configured to use another proxy, by forwarding the CONNECT request to the next inbound proxy. Any 2xx (Successful) response indicates that the sender (and all inbound proxies) will switch to tunnel mode immediately after the blank line that concludes the successful response's header section; data received after that blank line is from the server identified by the request-target.  Any response other than a successful response indicates that the tunnel has not yet been formed and that the connection remains governed by HTTP.
+
+A tunnel is closed when a tunnel intermediary detects that either side has closed its connection: the intermediary MUST attempt to send any outstanding data that came from the closed side to the other side, close both connections, and then discard any remaining data left undelivered.
+
+Proxy authentication might be used to establish the authority to create a tunnel.  For example,
+
+    CONNECT server.example.com:80 HTTP/1.1 Host: server.example.com:80 Proxy-Authorization: basic aGVsbG86d29ybGQ=
+ 
+There are significant risks in establishing a tunnel to arbitrary servers, particularly when the destination is a well-known or reserved TCP port that is not intended for Web traffic.  For example, a CONNECT to a request-target of "example.com:25" would suggest that the proxy connect to the reserved port for SMTP traffic; if allowed, that could trick the proxy into relaying spam email.  Proxies that support CONNECT SHOULD restrict its use to a limited set of known ports or a configurable whitelist of safe request targets.
+ 
+A server MUST NOT send any Transfer-Encoding or Content-Length header fields in a 2xx (Successful) response to CONNECT.  A client MUST ignore any Content-Length or Transfer-Encoding header fields received in a successful response to CONNECT.
+ 
+A payload within a CONNECT request message has no defined semantics; sending a payload body on a CONNECT request might cause some existing implementations to reject the request. Responses to the CONNECT method are not cacheable.
 	</method>
 </http>
