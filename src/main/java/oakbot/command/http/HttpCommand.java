@@ -139,9 +139,10 @@ public class HttpCommand implements Command {
 			String rfc = m.group(3);
 
 			String linkDisplay;
-			if ("0".equals(section)) {
-				linkDisplay = "RFC" + rfc;
+			if (section.matches("\\d{4}")) {
+				rfc = section;
 				section = null;
+				linkDisplay = "RFC" + rfc;
 			} else {
 				StringBuilder display = new StringBuilder();
 				display.append("Section " + section);
