@@ -28,7 +28,7 @@ public class MethodInfo {
 		sb.append(name).append('-');
 		List<String> fullNames = new ArrayList<>();
 		for (ParameterInfo parameter : parameters) {
-			String fullName = parameter.getType().getFull();
+			String fullName = parameter.getType().getFullyQualified();
 			if (parameter.isArray()) {
 				fullName += ":A";
 			}
@@ -99,7 +99,7 @@ public class MethodInfo {
 	public String getSignature() {
 		List<String> params = new ArrayList<>();
 		for (ParameterInfo parameter : parameters) {
-			params.add(parameter.getType().getFull() + (parameter.isArray() ? "[]" : ""));
+			params.add(parameter.getType().getFullyQualified() + (parameter.isArray() ? "[]" : ""));
 		}
 		return name + "(" + String.join(", ", params) + ")";
 	}

@@ -48,7 +48,7 @@ public class JavadocDaoTest {
 	@Test
 	public void simpleName_single_match() throws Exception {
 		ClassInfo info = dao.getClassInfo("Collection");
-		assertEquals("java.util.Collection", info.getName().getFull());
+		assertEquals("java.util.Collection", info.getName().getFullyQualified());
 	}
 
 	@Test
@@ -60,7 +60,7 @@ public class JavadocDaoTest {
 	@Test
 	public void simpleName_case_insensitive() throws Exception {
 		ClassInfo info = dao.getClassInfo("collection");
-		assertEquals("java.util.Collection", info.getName().getFull());
+		assertEquals("java.util.Collection", info.getName().getFullyQualified());
 	}
 
 	@Test
@@ -78,13 +78,13 @@ public class JavadocDaoTest {
 	@Test
 	public void fullName() throws Exception {
 		ClassInfo info = dao.getClassInfo("java.util.List");
-		assertEquals("java.util.List", info.getName().getFull());
+		assertEquals("java.util.List", info.getName().getFullyQualified());
 	}
 
 	@Test
 	public void fullName_case_insensitive() throws Exception {
 		ClassInfo info = dao.getClassInfo("java.util.list");
-		assertEquals("java.util.List", info.getName().getFull());
+		assertEquals("java.util.List", info.getName().getFullyQualified());
 	}
 
 	@Test

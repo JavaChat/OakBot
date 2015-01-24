@@ -5,24 +5,24 @@ package oakbot.command.javadoc;
  * @author Michael Angstadt
  */
 public class ClassName {
-	private final String full, simple;
+	private final String fullyQualified, simple;
 
 	/**
-	 * @param full the fully-qualified class name (e.g. "java.lang.String")
+	 * @param fullyQualified the fully-qualified class name (e.g. "java.lang.String")
 	 */
-	public ClassName(String full) {
-		this.full = full;
+	public ClassName(String fullyQualified) {
+		this.fullyQualified = fullyQualified;
 
-		int pos = full.lastIndexOf('.');
-		simple = (pos < 0) ? full : full.substring(pos + 1);
+		int pos = fullyQualified.lastIndexOf('.');
+		simple = (pos < 0) ? fullyQualified : fullyQualified.substring(pos + 1);
 	}
 
 	/**
-	 * @param full the fully-qualified class name (e.g. "java.lang.String")
+	 * @param fullyQualified the fully-qualified class name (e.g. "java.lang.String")
 	 * @param simple the simple class name (e.g. "String")
 	 */
-	public ClassName(String full, String simple) {
-		this.full = full;
+	public ClassName(String fullyQualified, String simple) {
+		this.fullyQualified = fullyQualified;
 		this.simple = simple;
 	}
 
@@ -30,8 +30,8 @@ public class ClassName {
 	 * Gets the fully-qualified class name
 	 * @return the fully-qualified class name (e.g. "java.lang.String")
 	 */
-	public String getFull() {
-		return full;
+	public String getFullyQualified() {
+		return fullyQualified;
 	}
 
 	/**
@@ -44,6 +44,6 @@ public class ClassName {
 
 	@Override
 	public String toString() {
-		return full;
+		return fullyQualified;
 	}
 }

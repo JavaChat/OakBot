@@ -84,7 +84,7 @@ public class LibraryZipFile {
 		if (baseUrl == null) {
 			return null;
 		}
-		return baseUrl + "index.html?" + info.getName().getFull().replace('.', '/') + ".html";
+		return baseUrl + "index.html?" + info.getName().getFullyQualified().replace('.', '/') + ".html";
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class LibraryZipFile {
 		if (baseUrl == null) {
 			return null;
 		}
-		return baseUrl + info.getName().getFull().replace('.', '/') + ".html";
+		return baseUrl + info.getName().getFullyQualified().replace('.', '/') + ".html";
 	}
 
 	/**

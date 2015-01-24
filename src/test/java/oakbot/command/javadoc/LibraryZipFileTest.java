@@ -60,7 +60,7 @@ public class LibraryZipFileTest {
 		Iterator<ClassName> it = zip.getClasses();
 		Set<String> actual = new HashSet<>();
 		while (it.hasNext()) {
-			actual.add(it.next().getFull());
+			actual.add(it.next().getFullyQualified());
 		}
 
 		//@formatter:off
@@ -84,7 +84,7 @@ public class LibraryZipFileTest {
 	@Test
 	public void getClassInfo() throws Exception {
 		ClassInfo info = zip.getClassInfo("java.lang.Object");
-		assertEquals("java.lang.Object", info.getName().getFull());
+		assertEquals("java.lang.Object", info.getName().getFullyQualified());
 		assertEquals("Object", info.getName().getSimple());
 	}
 }
