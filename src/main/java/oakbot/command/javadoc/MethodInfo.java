@@ -1,9 +1,12 @@
 package oakbot.command.javadoc;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Contains information on a method.
@@ -11,7 +14,7 @@ import com.google.common.collect.ImmutableList;
  */
 public class MethodInfo {
 	private final String name, description, urlAnchor;
-	private final List<String> modifiers;
+	private final Set<String> modifiers;
 	private final List<ParameterInfo> parameters;
 	private final ClassName returnValue;
 	private final boolean deprecated;
@@ -70,7 +73,7 @@ public class MethodInfo {
 	 * Gets the method modifiers.
 	 * @return the method modifiers (e.g. "public", "static")
 	 */
-	public List<String> getModifiers() {
+	public Set<String> getModifiers() {
 		return modifiers;
 	}
 
@@ -138,7 +141,7 @@ public class MethodInfo {
 
 	public static class Builder {
 		private String name;
-		private ImmutableList.Builder<String> modifiers = ImmutableList.builder();
+		private ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();
 		private ImmutableList.Builder<ParameterInfo> parameters = ImmutableList.builder();
 		private String description;
 		private ClassName returnValue;
@@ -149,7 +152,7 @@ public class MethodInfo {
 			return this;
 		}
 
-		public Builder modifiers(List<String> modifiers) {
+		public Builder modifiers(Collection<String> modifiers) {
 			this.modifiers.addAll(modifiers);
 			return this;
 		}

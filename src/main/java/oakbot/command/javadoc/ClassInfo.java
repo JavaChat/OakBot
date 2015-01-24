@@ -2,9 +2,10 @@ package oakbot.command.javadoc;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 /**
@@ -14,8 +15,8 @@ import com.google.common.collect.Multimap;
 public class ClassInfo {
 	private final ClassName name, superClass;
 	private final String description;
-	private final List<String> modifiers;
-	private final List<ClassName> interfaces;
+	private final Set<String> modifiers;
+	private final Set<ClassName> interfaces;
 	private final Multimap<String, MethodInfo> methods;
 	private final boolean deprecated;
 	private final LibraryZipFile zipFile;
@@ -31,14 +32,26 @@ public class ClassInfo {
 		zipFile = builder.zipFile;
 	}
 
+	/**
+	 * Gets the name of the class.
+	 * @return the class name
+	 */
 	public ClassName getName() {
 		return name;
 	}
 
+	/**
+	 * Gets the name of the class's parent class.
+	 * @return the parent class name or null if it doesn't have one
+	 */
 	public ClassName getSuperClass() {
 		return superClass;
 	}
 
+	/**
+	 * Gets the class description.
+	 * @return the class description (in SO-Chat markdown)
+	 */
 	public String getDescription() {
 		return description;
 	}
@@ -59,35 +72,64 @@ public class ClassInfo {
 		return zipFile.getUrl(this);
 	}
 
-	public List<String> getModifiers() {
+	/**
+	 * Gets the class modifiers.
+	 * @return the class modifiers (e.g. "public, final")
+	 */
+	public Set<String> getModifiers() {
 		return modifiers;
 	}
 
-	public List<ClassName> getInterfaces() {
+	/**
+	 * Gets the names of the interfaces that the class implements.
+	 * @return the class's interfaces
+	 */
+	public Set<ClassName> getInterfaces() {
 		return interfaces;
 	}
 
+	/**
+	 * Gets info on all of the methods that have the given name.
+	 * @param name the method name (case insensitive)
+	 * @return the methods
+	 */
 	public Collection<MethodInfo> getMethod(String name) {
 		return methods.get(name.toLowerCase());
 	}
 
+	/**
+	 * Gets the class's methods.
+	 * @return the class's methods
+	 */
 	public Collection<MethodInfo> getMethods() {
 		return methods.values();
 	}
 
+	/**
+	 * Determines whether the class is deprecated or not.
+	 * @return true if it's deprecated, false if not
+	 */
 	public boolean isDeprecated() {
 		return deprecated;
 	}
 
+	/**
+	 * Gets the ZIP file that the class's parsed Javadoc info is stored in.
+	 * @return the ZIP file
+	 */
 	public LibraryZipFile getZipFile() {
 		return zipFile;
 	}
 
+	/**
+	 * Builds new instances of {@link ClassInfo}.
+	 */
 	public static class Builder {
-		private ClassName name, superClass;
+		private ClassName name;
+		private ClassName superClass;
 		private String description;
-		private ImmutableList.Builder<String> modifiers = ImmutableList.builder();
-		private ImmutableList.Builder<ClassName> interfaces = ImmutableList.builder();
+		private ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();
+		private ImmutableSet.Builder<ClassName> interfaces = ImmutableSet.builder();
 		private ImmutableMultimap.Builder<String, MethodInfo> methods = ImmutableMultimap.builder();
 		private boolean deprecated = false;
 		private LibraryZipFile zipFile;

@@ -23,6 +23,7 @@ import oakbot.listener.JavadocListener;
 import oakbot.util.ChatBuilder;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
@@ -38,36 +39,34 @@ public class JavadocCommand implements Command {
 	private final long choiceTimeout = TimeUnit.SECONDS.toMillis(30);
 
 	/**
-	 * The class modifiers to print in italics when outputting a class to the
-	 * chat.
+	 * "Flags" that a class can have. They are defined in a List because, if a
+	 * class has multiple modifiers, I want them to be displayed in a consistent
+	 * order.
 	 */
-	private final Set<String> classModifiersItalic;
-	{
-		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
-		b.add("abstract");
-		b.add("final");
-		classModifiersItalic = b.build();
+	private static final List<String> classModifiers;
+	static {
+		ImmutableList.Builder<String> b = new ImmutableList.Builder<>();
+		b.add("abstract", "final");
+		classModifiers = b.build();
 	}
 
 	/**
-	 * The class modifiers to print when outputting a class to the chat.
+	 * The list of possible "class types". Each class *should* have exactly one
+	 * type, but there's no explicit check for this (things shouldn't break if a
+	 * class does not have exactly one).
 	 */
-	private final Set<String> classModifiers;
-	{
+	private static final Set<String> classTypes;
+	static {
 		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
-		b.add("annotation");
-		b.add("class");
-		b.add("enum");
-		b.add("exception");
-		b.add("interface");
-		classModifiers = b.build();
+		b.add("annotation", "class", "enum", "exception", "interface");
+		classTypes = b.build();
 	}
 
 	/**
 	 * The method modifiers to ignore when outputting a method to the chat.
 	 */
-	private final Set<String> methodModifiersToIgnore;
-	{
+	private static final Set<String> methodModifiersToIgnore;
+	static {
 		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
 		b.add("private");
 		b.add("protected");
@@ -257,11 +256,9 @@ public class JavadocCommand implements Command {
 
 			//print modifiers
 			boolean deprecated = methodInfo.isDeprecated();
-			for (String modifier : methodInfo.getModifiers()) {
-				if (methodModifiersToIgnore.contains(modifier)) {
-					continue;
-				}
-
+			Collection<String> modifiersToPrint = new ArrayList<String>(methodInfo.getModifiers());
+			modifiersToPrint.removeAll(methodModifiersToIgnore);
+			for (String modifier : modifiersToPrint) {
 				if (deprecated) cb.strike();
 				cb.tag(modifier);
 				if (deprecated) cb.strike();
@@ -394,17 +391,27 @@ public class JavadocCommand implements Command {
 
 			//print modifiers
 			boolean deprecated = info.isDeprecated();
-			for (String modifier : info.getModifiers()) {
-				boolean italic = classModifiersItalic.contains(modifier);
-				if (!italic && !classModifiers.contains(modifier)) {
-					continue;
-				}
+			Collection<String> infoModifiers = info.getModifiers();
+			List<String> modifiersToPrint = new ArrayList<>(classModifiers);
+			modifiersToPrint.retainAll(infoModifiers);
 
-				if (italic) cb.italic();
+			//add class modifiers
+			for (String classModifier : modifiersToPrint) {
+				cb.italic();
+				if (deprecated) cb.strike();
+				cb.tag(classModifier);
+				if (deprecated) cb.strike();
+				cb.italic();
+				cb.append(' ');
+			}
+
+			Collection<String> classType = new HashSet<>(classTypes);
+			classType.retainAll(infoModifiers);
+			//there should be only one remaining element in the collection, but use a foreach loop just incase
+			for (String modifier : classType) {
 				if (deprecated) cb.strike();
 				cb.tag(modifier);
 				if (deprecated) cb.strike();
-				if (italic) cb.italic();
 				cb.append(' ');
 			}
 
@@ -425,7 +432,6 @@ public class JavadocCommand implements Command {
 		String description = info.getDescription();
 		Paragraphs paragraphs = new Paragraphs(description);
 		paragraphs.append(paragraph, cb);
-
 		return new ChatResponse(cb.toString(), SplitStrategy.WORD);
 	}
 
