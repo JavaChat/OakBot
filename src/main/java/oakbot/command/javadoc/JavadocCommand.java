@@ -68,9 +68,7 @@ public class JavadocCommand implements Command {
 	private static final Set<String> methodModifiersToIgnore;
 	static {
 		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
-		b.add("private");
-		b.add("protected");
-		b.add("public");
+		b.add("private", "protected", "public");
 		methodModifiersToIgnore = b.build();
 	}
 
@@ -113,17 +111,23 @@ public class JavadocCommand implements Command {
 		ClassInfo info;
 		try {
 			info = dao.getClassInfo(commandText.className);
+		} catch (IOException e) {
+			throw new RuntimeException("Problem getting Javadoc info.", e);
 		} catch (MultipleClassesFoundException e) {
+			Collection<String> foundClasses = e.getClasses();
 			if (commandText.methodName == null) {
-				return printClassChoices(e.getClasses(), cb);
+				//user is just querying for a class, so print the class choices
+				return printClassChoices(foundClasses, cb);
 			}
+			
+			//user is querying for a method
 
 			//search each class for a method that matches the given signature
 			Map<ClassInfo, MethodInfo> exactMatches = new HashMap<>();
 			Multimap<ClassInfo, MethodInfo> matchingNames = ArrayListMultimap.create();
-			for (String className : e.getClasses()) {
+			for (String foundClassName : foundClasses) {
 				try {
-					ClassInfo classInfo = dao.getClassInfo(className);
+					ClassInfo classInfo = dao.getClassInfo(foundClassName);
 					MatchingMethods methods = getMatchingMethods(classInfo, commandText.methodName, commandText.parameters);
 					if (methods.exactSignature != null) {
 						exactMatches.put(classInfo, methods.exactSignature);
@@ -148,18 +152,16 @@ public class JavadocCommand implements Command {
 			}
 
 			//multiple matches were found
-			Multimap<ClassInfo, MethodInfo> map;
+			Multimap<ClassInfo, MethodInfo> methodsToPrint;
 			if (exactMatches.size() > 1) {
-				map = ArrayListMultimap.create();
+				methodsToPrint = ArrayListMultimap.create();
 				for (Map.Entry<ClassInfo, MethodInfo> entry : exactMatches.entrySet()) {
-					map.put(entry.getKey(), entry.getValue());
+					methodsToPrint.put(entry.getKey(), entry.getValue());
 				}
 			} else {
-				map = matchingNames;
+				methodsToPrint = matchingNames;
 			}
-			return printMethodChoices(map, commandText.parameters, cb);
-		} catch (IOException e) {
-			throw new RuntimeException("Problem getting Javadoc info.", e);
+			return printMethodChoices(methodsToPrint, commandText.parameters, cb);
 		}
 
 		if (info == null) {
@@ -211,11 +213,13 @@ public class JavadocCommand implements Command {
 	 */
 	public ChatResponse showChoice(ChatMessage message, int num) {
 		if (prevChoicesPinged == 0) {
+			//no choices were ever printed to the chat, so ignore
 			return null;
 		}
 
 		boolean timedOut = System.currentTimeMillis() - prevChoicesPinged > choiceTimeout;
 		if (timedOut) {
+			//it's been a while since the choices were printed to the chat, so ignore
 			return null;
 		}
 
@@ -224,9 +228,12 @@ public class JavadocCommand implements Command {
 
 		int index = num - 1;
 		if (index < 0 || index >= prevChoices.size()) {
-			return new ChatResponse(new ChatBuilder().reply(message).append("That's not a valid choice.").toString());
+			//check to make sure the number corresponds to a choice
+			ChatBuilder cb = new ChatBuilder().reply(message).append("That's not a valid choice.");
+			return new ChatResponse(cb.toString());
 		}
 
+		//valid choice entered, print the info
 		message.setContent(prevChoices.get(index));
 		return onMessage(message, false);
 	}
