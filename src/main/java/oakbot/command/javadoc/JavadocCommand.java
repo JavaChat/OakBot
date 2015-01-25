@@ -32,11 +32,27 @@ import com.google.common.collect.Multimap;
  * @author Michael Angstadt
  */
 public class JavadocCommand implements Command {
+	/**
+	 * Used for accessing the Javadoc information.
+	 */
 	private final JavadocDao dao;
 
+	/**
+	 * The most recent list of suggestions that were sent to the chat.
+	 */
 	private List<String> prevChoices = new ArrayList<>();
+
+	/**
+	 * The last time the list of previous choices were accessed in some way
+	 * (timestamp).
+	 */
 	private long prevChoicesPinged = 0;
-	private final long choiceTimeout = TimeUnit.SECONDS.toMillis(30);
+
+	/**
+	 * Stop responding to numeric choices the user enters after this amount of
+	 * time.
+	 */
+	private static final long choiceTimeout = TimeUnit.SECONDS.toMillis(30);
 
 	/**
 	 * "Flags" that a class can have. They are defined in a List because, if a
@@ -114,54 +130,7 @@ public class JavadocCommand implements Command {
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		} catch (MultipleClassesFoundException e) {
-			Collection<String> foundClasses = e.getClasses();
-			if (commandText.methodName == null) {
-				//user is just querying for a class, so print the class choices
-				return printClassChoices(foundClasses, cb);
-			}
-			
-			//user is querying for a method
-
-			//search each class for a method that matches the given signature
-			Map<ClassInfo, MethodInfo> exactMatches = new HashMap<>();
-			Multimap<ClassInfo, MethodInfo> matchingNames = ArrayListMultimap.create();
-			for (String foundClassName : foundClasses) {
-				try {
-					ClassInfo classInfo = dao.getClassInfo(foundClassName);
-					MatchingMethods methods = getMatchingMethods(classInfo, commandText.methodName, commandText.parameters);
-					if (methods.exactSignature != null) {
-						exactMatches.put(classInfo, methods.exactSignature);
-					}
-					matchingNames.putAll(classInfo, methods.matchingName);
-				} catch (IOException e2) {
-					throw new RuntimeException("Problem getting Javadoc info.", e2);
-				}
-			}
-
-			if (exactMatches.isEmpty() && matchingNames.isEmpty()) {
-				//no matches found
-				cb.append("Sorry, I can't find that method. :(");
-				return new ChatResponse(cb.toString());
-			}
-
-			if (exactMatches.size() == 1) {
-				//a single, exact match was found!
-				MethodInfo method = exactMatches.values().iterator().next();
-				ClassInfo classInfo = exactMatches.keySet().iterator().next();
-				return printMethod(method, classInfo, commandText.paragraph, cb);
-			}
-
-			//multiple matches were found
-			Multimap<ClassInfo, MethodInfo> methodsToPrint;
-			if (exactMatches.size() > 1) {
-				methodsToPrint = ArrayListMultimap.create();
-				for (Map.Entry<ClassInfo, MethodInfo> entry : exactMatches.entrySet()) {
-					methodsToPrint.put(entry.getKey(), entry.getValue());
-				}
-			} else {
-				methodsToPrint = matchingNames;
-			}
-			return printMethodChoices(methodsToPrint, commandText.parameters, cb);
+			return handleMultipleMatches(commandText, e.getClasses(), cb);
 		}
 
 		if (info == null) {
@@ -169,7 +138,11 @@ public class JavadocCommand implements Command {
 			cb.append("Sorry, I never heard of that class. :(");
 			return new ChatResponse(cb.toString());
 		}
-
+		
+		return handleSingleMatch(commandText, info, cb);
+	}
+	
+	private ChatResponse handleSingleMatch(CommandTextParser commandText, ClassInfo info, ChatBuilder cb){
 		if (commandText.methodName == null) {
 			//method name not specified, so print the class docs
 			return printClass(info, commandText.paragraph, cb);
@@ -202,6 +175,56 @@ public class JavadocCommand implements Command {
 		Multimap<ClassInfo, MethodInfo> map = ArrayListMultimap.create();
 		map.putAll(info, matchingMethods.matchingName);
 		return printMethodChoices(map, commandText.parameters, cb);
+	}
+	
+	private ChatResponse handleMultipleMatches(CommandTextParser commandText, Collection<String> matches, ChatBuilder cb){
+		if (commandText.methodName == null) {
+			//user is just querying for a class, so print the class choices
+			return printClassChoices(matches, cb);
+		}
+		
+		//user is querying for a method
+
+		//search each class for a method that matches the given signature
+		Map<ClassInfo, MethodInfo> exactMatches = new HashMap<>();
+		Multimap<ClassInfo, MethodInfo> matchingNames = ArrayListMultimap.create();
+		for (String className : matches) {
+			try {
+				ClassInfo classInfo = dao.getClassInfo(className);
+				MatchingMethods methods = getMatchingMethods(classInfo, commandText.methodName, commandText.parameters);
+				if (methods.exactSignature != null) {
+					exactMatches.put(classInfo, methods.exactSignature);
+				}
+				matchingNames.putAll(classInfo, methods.matchingName);
+			} catch (IOException e2) {
+				throw new RuntimeException("Problem getting Javadoc info.", e2);
+			}
+		}
+
+		if (exactMatches.isEmpty() && matchingNames.isEmpty()) {
+			//no matches found
+			cb.append("Sorry, I can't find that method. :(");
+			return new ChatResponse(cb.toString());
+		}
+
+		if (exactMatches.size() == 1) {
+			//a single, exact match was found!
+			MethodInfo method = exactMatches.values().iterator().next();
+			ClassInfo classInfo = exactMatches.keySet().iterator().next();
+			return printMethod(method, classInfo, commandText.paragraph, cb);
+		}
+
+		//multiple matches were found
+		Multimap<ClassInfo, MethodInfo> methodsToPrint;
+		if (exactMatches.size() > 1) {
+			methodsToPrint = ArrayListMultimap.create();
+			for (Map.Entry<ClassInfo, MethodInfo> entry : exactMatches.entrySet()) {
+				methodsToPrint.put(entry.getKey(), entry.getValue());
+			}
+		} else {
+			methodsToPrint = matchingNames;
+		}
+		return printMethodChoices(methodsToPrint, commandText.parameters, cb);
 	}
 
 	/**
