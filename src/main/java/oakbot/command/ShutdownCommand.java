@@ -31,7 +31,7 @@ public class ShutdownCommand implements Command {
 		if (isAdmin) {
 			throw new ShutdownException("Shutting down.  See you later.");
 		}
-		String reply = new ChatBuilder().reply(message).append("Only admins can shut me down.").toString();
+		ChatBuilder reply = new ChatBuilder().reply(message).append("Only admins can shut me down.");
 		return new ChatResponse(reply);
 	}
 }

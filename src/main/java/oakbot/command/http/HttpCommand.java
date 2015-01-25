@@ -67,7 +67,7 @@ public class HttpCommand implements Command {
 		String code = split[0].toUpperCase();
 		if (code.isEmpty()) {
 			cb.append("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.");
-			return new ChatResponse(cb.toString());
+			return new ChatResponse(cb);
 		}
 
 		boolean isStatusCode = true;
@@ -78,7 +78,7 @@ public class HttpCommand implements Command {
 			if (element == null) {
 				String reply = code.matches("[0-9]+") ? "Status code not recognized." : "Method not recognized.";
 				cb.append(reply);
-				return new ChatResponse(cb.toString());
+				return new ChatResponse(cb);
 			}
 		}
 

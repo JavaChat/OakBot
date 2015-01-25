@@ -39,6 +39,6 @@ public class AboutCommand implements Command {
 		cb.append("built: ").append(df.format(Main.BUILT)).append(" | ");
 		cb.append("started up: ").append(df.format(startedUp));
 
-		return new ChatResponse(cb.toString());
+		return new ChatResponse(cb);
 	}
 }

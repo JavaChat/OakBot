@@ -118,7 +118,7 @@ public class JavadocCommand implements Command {
 		String content = message.getContent();
 		if (content.isEmpty()) {
 			cb.append("Type the name of a Java class (e.g. \"java.lang.String\") or a method (e.g. \"Integer#parseInt\").");
-			return new ChatResponse(cb.toString());
+			return new ChatResponse(cb);
 		}
 
 		//parse the command
@@ -136,7 +136,7 @@ public class JavadocCommand implements Command {
 		if (info == null) {
 			//couldn't find the class
 			cb.append("Sorry, I never heard of that class. :(");
-			return new ChatResponse(cb.toString());
+			return new ChatResponse(cb);
 		}
 		
 		return handleSingleMatch(commandText, info, cb);
@@ -159,7 +159,7 @@ public class JavadocCommand implements Command {
 		if (matchingMethods.isEmpty()) {
 			//no matches found
 			cb.append("Sorry, I can't find that method. :(");
-			return new ChatResponse(cb.toString());
+			return new ChatResponse(cb);
 		}
 
 		if (matchingMethods.exactSignature != null) {
@@ -204,7 +204,7 @@ public class JavadocCommand implements Command {
 		if (exactMatches.isEmpty() && matchingNames.isEmpty()) {
 			//no matches found
 			cb.append("Sorry, I can't find that method. :(");
-			return new ChatResponse(cb.toString());
+			return new ChatResponse(cb);
 		}
 
 		if (exactMatches.size() == 1) {
@@ -253,7 +253,7 @@ public class JavadocCommand implements Command {
 		if (index < 0 || index >= prevChoices.size()) {
 			//check to make sure the number corresponds to a choice
 			ChatBuilder cb = new ChatBuilder().reply(message).append("That's not a valid choice.");
-			return new ChatResponse(cb.toString());
+			return new ChatResponse(cb);
 		}
 
 		//valid choice entered, print the info

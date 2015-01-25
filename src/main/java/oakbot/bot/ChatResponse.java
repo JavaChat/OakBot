@@ -10,12 +10,12 @@ public class ChatResponse {
 	private final String message;
 	private final SplitStrategy splitStrategy;
 
-	public ChatResponse(String message) {
+	public ChatResponse(CharSequence message) {
 		this(message, SplitStrategy.NONE);
 	}
 
-	public ChatResponse(String message, SplitStrategy splitStrategy) {
-		this.message = message;
+	public ChatResponse(CharSequence message, SplitStrategy splitStrategy) {
+		this.message = message.toString();
 		this.splitStrategy = splitStrategy;
 	}
 

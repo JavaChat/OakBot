@@ -42,7 +42,7 @@ public class MentionListener implements Listener {
 
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(message).append("Type ").code(trigger + "help").append(" to see all my commands.");
-		return new ChatResponse(cb.toString());
+		return new ChatResponse(cb);
 	}
 
 }
