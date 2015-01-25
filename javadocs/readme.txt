@@ -16,7 +16,7 @@ To generate a ZIP file:
 I don't want to commit the ZIP for the Java 8 API to version control, due to its large file size (~6MB), so I've committed a smaller, sample file instead.
 The sample ZIP file contains just a single class (java.lang.String).
 
-The ZIP file for Java 8 can be downloaded here:
-https://dl.dropboxusercontent.com/u/5187024/java8.zip
+ZIP files for various libraries (including the core Java 8 API) can be downloaded here:
+https://www.dropbox.com/sh/xkf7kua3hzd8xvo/AAC1sOkVTNUE2MKPAXTm28bna?dl=0
 
 -Michael
