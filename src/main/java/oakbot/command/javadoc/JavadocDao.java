@@ -122,7 +122,7 @@ public class JavadocDao {
 		}
 
 		//parse the class info from the Javadocs
-		for (LibraryZipFile zip : libraryClasses.keys()) {
+		for (LibraryZipFile zip : libraryClasses.keySet()) {
 			info = zip.getClassInfo(className);
 			if (info != null) {
 				cache.put(className, info);
