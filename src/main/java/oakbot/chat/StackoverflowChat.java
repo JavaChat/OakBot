@@ -29,6 +29,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
@@ -289,6 +290,9 @@ public class StackoverflowChat implements ChatConnection {
 				continue;
 			} catch (SocketException e){
 				logger.log(Level.SEVERE, "SocketException thrown from request " + request.getURI() + ".", e);
+				continue;
+			} catch (ConnectTimeoutException e){
+				logger.log(Level.SEVERE, "ConnectTimeoutException thrown from request " + request.getURI() + ".", e);
 				continue;
 			}
 
