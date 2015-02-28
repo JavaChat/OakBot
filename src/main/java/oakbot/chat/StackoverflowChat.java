@@ -288,10 +288,10 @@ public class StackoverflowChat implements ChatConnection {
 			} catch (NoHttpResponseException e) {
 				logger.log(Level.SEVERE, "No HTTP response received from request " + request.getURI() + ".", e);
 				continue;
-			} catch (SocketException e){
+			} catch (SocketException e) {
 				logger.log(Level.SEVERE, "SocketException thrown from request " + request.getURI() + ".", e);
 				continue;
-			} catch (ConnectTimeoutException e){
+			} catch (ConnectTimeoutException e) {
 				logger.log(Level.SEVERE, "ConnectTimeoutException thrown from request " + request.getURI() + ".", e);
 				continue;
 			}
@@ -308,6 +308,12 @@ public class StackoverflowChat implements ChatConnection {
 					sleep = TimeUnit.SECONDS.toMillis(seconds);
 				}
 				continue;
+			}
+
+			if (actualStatusCode == 404) {
+				//chat room does not exist or cannot be posted to
+				logger.severe("404 response received from request URI " + request.getURI() + ".");
+				return null;
 			}
 
 			if (expectedStatusCode != null && expectedStatusCode != actualStatusCode) {
@@ -446,6 +452,10 @@ public class StackoverflowChat implements ChatConnection {
 			request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
 
 			HttpResponse response = executeWithRetries(request, null, 200);
+			if (response == null) {
+				return;
+			}
+
 			EntityUtils.consumeQuietly(response.getEntity());
 			logger.info("Message received.");
 		}
