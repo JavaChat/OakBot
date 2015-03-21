@@ -120,7 +120,14 @@ public class Bot {
 
 						List<Command> commands = getCommands(commandName);
 						if (commands.isEmpty()) {
-							replies.add(new ChatResponse(new ChatBuilder().reply(message).append("I don't know that command. o_O")));
+							//@formatter:off
+							replies.add(new ChatResponse(new ChatBuilder()
+								.reply(message)
+								.append("I don't know that command. o_O  Type ")
+								.code(trigger + "help")
+								.append(" to see my commands.")
+							));
+							//@formatter:on
 						} else {
 							for (Command command : commands) {
 								ChatResponse reply;
