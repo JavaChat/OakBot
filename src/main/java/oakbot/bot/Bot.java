@@ -49,7 +49,7 @@ public class Bot {
 	}
 
 	/**
-	 * Starts the chat bot. This call is blocking.
+	 * Starts the chat bot. This method is blocking.
 	 * @throws IllegalArgumentException if the login credentials are bad
 	 * @throws IOException if there's an I/O problem
 	 */
@@ -59,7 +59,7 @@ public class Bot {
 
 		//post a message to each room
 		for (Integer room : rooms) {
-			connection.getNewMessages(room); //prime the latest message timestamp
+			connection.getNewMessages(room); //prime the "previous message ID" counter
 			connection.sendMessage(room, "OakBot Online.");
 		}
 
