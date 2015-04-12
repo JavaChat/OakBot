@@ -160,9 +160,13 @@ public class JavadocZipFromMaven {
 		}
 		process.waitFor();
 
+		Path dir = tempDir.resolve(Paths.get("target", "dependency"));
+		if (!Files.exists(dir)) {
+			return new ArrayList<>(0);
+		}
+
 		//build a list of all the JARs
 		List<Path> jars = new ArrayList<>();
-		Path dir = tempDir.resolve(Paths.get("target", "dependency"));
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, new Filter<Path>() {
 			@Override
 			public boolean accept(Path entry) throws IOException {
