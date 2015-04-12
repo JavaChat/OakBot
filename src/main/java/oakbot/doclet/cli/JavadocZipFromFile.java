@@ -1,4 +1,4 @@
-package oakbot.doclet;
+package oakbot.doclet.cli;
 
 import java.io.Console;
 import java.io.IOException;
@@ -22,7 +22,7 @@ import java.util.zip.ZipInputStream;
  * A command-line interface for using the OakBotDoclet.
  * @author Michael Angstadt
  */
-public class Main {
+public class JavadocZipFromFile {
 	private static final Console console = System.console();
 
 	public static void main(String args[]) throws Exception {
@@ -38,19 +38,17 @@ public class Main {
 		boolean prettyPrint = getPrettyPrint();
 
 		//confirm settings
-		{
-			console.printf("=============\n");
-			console.printf("Source JAR: " + sourceJar + "\n");
-			console.printf("Javadoc command: " + javadocExe + "\n");
-			console.printf("Library name: " + libraryName + "\n");
-			console.printf("Library version: " + libraryVersion + "\n");
-			console.printf("Library's base javadoc URL: " + libraryJavadocUrl + "\n");
-			console.printf("Library website: " + libraryWebsite + "\n");
-			console.printf("Pretty print XML: " + prettyPrint + "\n");
-			String answer = console.readLine("Proceed? [Y/n] ");
-			if (!answer.isEmpty() && !"y".equalsIgnoreCase(answer)) {
-				return;
-			}
+		console.printf("=============\n");
+		console.printf("Source JAR: " + sourceJar + "\n");
+		console.printf("Javadoc command: " + javadocExe + "\n");
+		console.printf("Library name: " + libraryName + "\n");
+		console.printf("Library version: " + libraryVersion + "\n");
+		console.printf("Library's base javadoc URL: " + libraryJavadocUrl + "\n");
+		console.printf("Library website: " + libraryWebsite + "\n");
+		console.printf("Pretty print XML: " + prettyPrint + "\n");
+		String answer = console.readLine("Proceed? [Y/n] ");
+		if (!answer.isEmpty() && !"y".equalsIgnoreCase(answer)) {
+			return;
 		}
 
 		console.printf("Extracting files from source JAR...");
