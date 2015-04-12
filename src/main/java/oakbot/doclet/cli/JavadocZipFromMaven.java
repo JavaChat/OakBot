@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -359,7 +360,7 @@ public class JavadocZipFromMaven {
 				}
 
 				//copy the file
-				Files.copy(zin, destFile);
+				Files.copy(zin, destFile, StandardCopyOption.REPLACE_EXISTING);
 			}
 		}
 	}

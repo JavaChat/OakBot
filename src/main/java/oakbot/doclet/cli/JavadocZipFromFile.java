@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -183,6 +184,12 @@ public class JavadocZipFromFile {
 		return "y".equalsIgnoreCase(answer);
 	}
 
+	/**
+	 * Extracts all the files in a ZIP file.
+	 * @param destinationDir the destination directory.
+	 * @param zipFile the ZIP file
+	 * @throws IOException
+	 */
 	private static void unzip(Path destinationDir, Path zipFile) throws IOException {
 		try (ZipInputStream zin = new ZipInputStream(Files.newInputStream(zipFile))) {
 			ZipEntry entry;
@@ -190,8 +197,22 @@ public class JavadocZipFromFile {
 				String zipPath = entry.getName();
 				Path destFile = destinationDir.resolve(zipPath);
 
-				Files.createDirectories(destFile.getParent());
-				Files.copy(zin, destFile);
+				//entry is a directory
+				if (zipPath.endsWith("/")) {
+					if (!Files.exists(destFile)) {
+						Files.createDirectories(destFile);
+					}
+					continue;
+				}
+
+				//make sure the parent directory exists
+				Path parent = destFile.getParent();
+				if (!Files.exists(parent)) {
+					Files.createDirectories(parent);
+				}
+
+				//copy the file
+				Files.copy(zin, destFile, StandardCopyOption.REPLACE_EXISTING);
 			}
 		}
 	}
