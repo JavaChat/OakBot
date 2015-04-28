@@ -28,9 +28,9 @@ public class BotProperties extends PropertiesWrapper {
 		password = get("login.password");
 		botname = get("botname");
 		trigger = get("trigger", "=");
-		rooms = getIntList("rooms", Arrays.asList(1)); //default to "Sandbox"
-		admins = getIntList("admins");
-		heartbeat = getInt("heartbeat", 3000);
+		rooms = getIntegerList("rooms", Arrays.asList(1)); //default to "Sandbox"
+		admins = getIntegerList("admins");
+		heartbeat = getInteger("heartbeat", 3000);
 		javadocPath = Paths.get(get("javadoc.folder", "javadocs"));
 	}
 
