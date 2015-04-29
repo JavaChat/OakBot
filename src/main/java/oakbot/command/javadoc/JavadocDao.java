@@ -203,7 +203,8 @@ public class JavadocDao {
 			try {
 				addApi(file);
 				logger.info("ZIP file " + file + " loaded.");
-			} catch (IOException e) {
+			} catch (Exception e) {
+				//catch RuntimeExceptions too
 				logger.log(Level.SEVERE, "Could not parse Javadoc ZIP file.  ZIP file was not added to the JavadocDao.", e);
 			}
 		}
