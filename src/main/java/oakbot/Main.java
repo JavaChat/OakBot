@@ -87,6 +87,8 @@ public class Main {
 		commands.add(new ShutdownCommand());
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
+		
+		Statistics stats = new Statistics(Paths.get("statistics.properties"));
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
@@ -99,6 +101,7 @@ public class Main {
 		.name(props.getBotname())
 		.trigger(props.getTrigger())
 		.rooms(props.getRooms())
+		.stats(stats)
 		.build();
 		//@formatter:on
 

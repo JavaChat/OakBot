@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import oakbot.Statistics;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
@@ -33,6 +34,7 @@ public class Bot {
 	private final List<Integer> rooms, admins;
 	private final List<Command> commands;
 	private final List<Listener> listeners;
+	private final Statistics stats;
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
 
 	private Bot(Builder builder) {
@@ -44,6 +46,7 @@ public class Bot {
 		heartbeat = builder.heartbeat;
 		rooms = builder.rooms;
 		admins = builder.admins;
+		stats = builder.stats;
 		commands = builder.commands.build();
 		listeners = builder.listeners.build();
 	}
@@ -102,6 +105,7 @@ public class Bot {
 
 						if (reply != null) {
 							logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+							stats.incMessagesRespondedTo();
 							replies.add(reply);
 						}
 					}
@@ -140,6 +144,7 @@ public class Bot {
 								}
 
 								if (reply != null) {
+									stats.incMessagesRespondedTo();
 									replies.add(reply);
 								}
 							}
@@ -209,6 +214,7 @@ public class Bot {
 		private List<Integer> admins = new ArrayList<>();
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
+		private Statistics stats;
 
 		public Builder login(String email, String password) {
 			this.email = email;
@@ -269,6 +275,11 @@ public class Bot {
 
 		public Builder listeners(Collection<Listener> listeners) {
 			this.listeners.addAll(listeners);
+			return this;
+		}
+		
+		public Builder stats(Statistics stats){
+			this.stats = stats;
 			return this;
 		}
 
