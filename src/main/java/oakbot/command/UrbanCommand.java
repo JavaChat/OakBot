@@ -96,7 +96,7 @@ public class UrbanCommand implements Command {
 			//do not use markup if the definition contains newlines
 
 			//remove links
-			String definition = urbanWord.definition.replaceAll("\\[\\]", "");
+			String definition = urbanWord.definition.replaceAll("[\\[\\]]", "");
 
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
