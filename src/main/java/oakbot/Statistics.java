@@ -24,8 +24,8 @@ public class Statistics {
 		responses = properties.getInteger("responses", 0);
 	}
 
-	public synchronized void incMessagesRespondedTo() {
-		responses++;
+	public synchronized void incMessagesRespondedTo(int amount) {
+		responses += amount;
 		properties.set("responses", responses);
 		save();
 	}

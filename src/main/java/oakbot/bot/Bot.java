@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ public class Bot {
 	private final List<Listener> listeners;
 	private final Statistics stats;
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
+	private final Pattern commandRegex;
 
 	private Bot(Builder builder) {
 		connection = builder.connection;
@@ -49,10 +51,12 @@ public class Bot {
 		stats = builder.stats;
 		commands = builder.commands.build();
 		listeners = builder.listeners.build();
+		commandRegex = Pattern.compile("^" + Pattern.quote(trigger) + "\\s*(.*?)(\\s+(.*)|$)");
 	}
 
 	/**
-	 * Starts the chat bot. This method is blocking.
+	 * Starts the chat bot. This method blocks until the bot is terminated,
+	 * either by an unexpected error or a shutdown command.
 	 * @throws IllegalArgumentException if the login credentials are bad
 	 * @throws IOException if there's an I/O problem
 	 */
@@ -67,7 +71,6 @@ public class Bot {
 		}
 
 		//listen for and reply to messages
-		Pattern commandRegex = Pattern.compile("^" + Pattern.quote(trigger) + "\\s*(.*?)(\\s+(.*)|$)");
 		while (true) {
 			long start = System.currentTimeMillis();
 
@@ -83,80 +86,37 @@ public class Bot {
 				}
 
 				for (ChatMessage message : newMessages) {
-					String content = message.getContent();
-					if (content == null) {
+					if (message.getContent() == null) {
 						//user deleted his/her message, ignore
 						continue;
 					}
 
 					List<ChatResponse> replies = new ArrayList<>();
-					boolean isAdmin = admins.contains(message.getUserId());
-
-					//handle listeners
-					for (Listener listener : listeners) {
-						ChatResponse reply;
-						try {
-							reply = listener.onMessage(message, isAdmin);
-						} catch (ShutdownException e) {
-							broadcast("Shutting down.  See you later.");
-							connection.flush();
-							return;
-						}
-
-						if (reply != null) {
-							logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
-							stats.incMessagesRespondedTo();
-							replies.add(reply);
-						}
-					}
-
-					//handle commands
-					Matcher matcher = commandRegex.matcher(content);
-					if (matcher.find()) {
-						logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
-
-						String commandName = matcher.group(1);
-						String text = matcher.group(3);
-						if (text == null) {
-							text = "";
-						}
-						message.setContent(text);
-
-						List<Command> commands = getCommands(commandName);
-						if (commands.isEmpty()) {
-							//@formatter:off
-							replies.add(new ChatResponse(new ChatBuilder()
-								.reply(message)
-								.append("I don't know that command. o_O  Type ")
-								.code(trigger + "help")
-								.append(" to see my commands.")
-							));
-							//@formatter:on
-						} else {
-							for (Command command : commands) {
-								ChatResponse reply;
-								try {
-									reply = command.onMessage(message, isAdmin);
-								} catch (ShutdownException e) {
-									broadcast("Shutting down.  See you later.");
-									connection.flush();
-									return;
-								}
-
-								if (reply != null) {
-									stats.incMessagesRespondedTo();
-									replies.add(reply);
-								}
-							}
-						}
-					}
-
+					boolean isUserAdmin = admins.contains(message.getUserId());
 					try {
-						for (ChatResponse reply : replies) {
+						replies.addAll(handleListeners(message, isUserAdmin));
+						replies.addAll(handleCommands(message, isUserAdmin));
+					} catch (ShutdownException e) {
+						broadcast("Shutting down.  See you later.");
+						connection.flush();
+						return;
+					}
+
+					if (replies.isEmpty()) {
+						continue;
+					}
+
+					if (logger.isLoggable(Level.INFO)) {
+						logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+					}
+					stats.incMessagesRespondedTo(replies.size());
+
+					for (ChatResponse reply : replies) {
+						try {
 							connection.sendMessage(room, reply.getMessage(), reply.getSplitStrategy());
+						} catch (IOException e) {
+							logger.log(Level.SEVERE, "Problem sending chat message.", e);
 						}
-					} catch (IOException e) {
-						logger.log(Level.SEVERE, "Problem sending chat message.", e);
 					}
 				}
 
@@ -164,6 +124,7 @@ public class Bot {
 				prevMessageIds.put(room, latestMessage.getMessageId());
 			}
 
+			//sleep before pinging again
 			long elapsed = System.currentTimeMillis() - start;
 			long sleep = heartbeat - elapsed;
 			if (sleep > 0) {
@@ -176,6 +137,56 @@ public class Bot {
 		}
 	}
 
+	private List<ChatResponse> handleListeners(ChatMessage message, boolean isAdmin) {
+		List<ChatResponse> replies = new ArrayList<>();
+		for (Listener listener : listeners) {
+			ChatResponse reply = listener.onMessage(message, isAdmin);
+			if (reply != null) {
+				replies.add(reply);
+			}
+		}
+		return replies;
+	}
+
+	private List<ChatResponse> handleCommands(ChatMessage message, boolean isAdmin) {
+		String content = message.getContent();
+		Matcher matcher = commandRegex.matcher(content);
+		if (!matcher.find()) {
+			//it's not a command
+			return Collections.emptyList();
+		}
+
+		//remove the command text from the chat message
+		String text = matcher.group(3);
+		if (text == null) {
+			text = "";
+		}
+		message.setContent(text);
+
+		String commandName = matcher.group(1);
+		List<Command> commands = getCommands(commandName);
+		if (commands.isEmpty()) {
+			//@formatter:off
+			ChatResponse reply = new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append("I don't know that command. o_O  Type ")
+				.code(trigger + "help")
+				.append(" to see my commands.")
+			);
+			//@formatter:on
+			return Arrays.asList(reply);
+		}
+
+		List<ChatResponse> replies = new ArrayList<>(1);
+		for (Command command : commands) {
+			ChatResponse reply = command.onMessage(message, isAdmin);
+			if (reply != null) {
+				replies.add(reply);
+			}
+		}
+		return replies;
+	}
+
 	/**
 	 * Gets all commands that have a given name.
 	 * @param name the command name
@@ -184,7 +195,7 @@ public class Bot {
 	private List<Command> getCommands(String name) {
 		List<Command> result = new ArrayList<>();
 		for (Command command : commands) {
-			if (command.name().equals(name)) {
+			if (command.name().equals(name) || command.aliases().contains(name)) {
 				result.add(command);
 			}
 		}
@@ -277,8 +288,8 @@ public class Bot {
 			this.listeners.addAll(listeners);
 			return this;
 		}
-		
-		public Builder stats(Statistics stats){
+
+		public Builder stats(Statistics stats) {
 			this.stats = stats;
 			return this;
 		}

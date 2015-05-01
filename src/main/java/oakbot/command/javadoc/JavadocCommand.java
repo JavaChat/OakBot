@@ -99,6 +99,10 @@ public class JavadocCommand implements Command {
 	public String name() {
 		return "javadoc";
 	}
+	
+	public Collection<String> aliases(){
+		return Arrays.asList("javadocs");
+	}
 
 	@Override
 	public String description() {

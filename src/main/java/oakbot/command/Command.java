@@ -1,5 +1,8 @@
 package oakbot.command;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 
@@ -13,6 +16,14 @@ public interface Command {
 	 * @return the name
 	 */
 	String name();
+
+	/**
+	 * Gets other names that can be used to invoke the command.
+	 * @return the command name aliases
+	 */
+	default Collection<String> aliases(){
+		return Collections.emptyList();
+	}
 
 	/**
 	 * Gets the command's description. This should be a short, one sentence
