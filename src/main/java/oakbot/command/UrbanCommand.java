@@ -1,9 +1,12 @@
 package oakbot.command;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
@@ -90,23 +93,46 @@ public class UrbanCommand implements Command {
 		}
 
 		if (urbanWord.definition.contains("\n") || urbanWord.definition.contains("\r")) {
+			//do not use markup if the definition contains newlines
+
+			//remove links
+			String definition = urbanWord.definition.replaceAll("\\[\\]", "");
+
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
 				.append(urbanWord.word)
 				.append(" (").append(urbanWord.permalink).append("):\n")
-				.append(urbanWord.definition)
+				.append(definition)
 				.toString()
 			, SplitStrategy.WORD);
 			//@formatter:on
 		}
 
+		//encode links in markdown
+		String definition;
+		{
+			Pattern p = Pattern.compile("\\[(.*?)\\]");
+			Matcher m = p.matcher(urbanWord.definition);
+			StringBuffer sb = new StringBuffer();
+			while (m.find()) {
+				ChatBuilder cb = new ChatBuilder();
+				try {
+					cb.link(m.group(1), "http://www.urbandictionary.com/define.php?term=" + URLEncoder.encode(m.group(1), "UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+					throw new RuntimeException(e);
+				}
+				m.appendReplacement(sb, cb.toString());
+			}
+			m.appendTail(sb);
+			definition = sb.toString();
+		}
 		//@formatter:off
 		return new ChatResponse(new ChatBuilder()
 			.reply(message)
 			.link(new ChatBuilder().bold().code(urbanWord.word).bold().toString(), urbanWord.permalink)
 			.append(": ")
-			.append(urbanWord.definition)
+			.append(definition)
 			.toString()
 		, SplitStrategy.WORD);
 		//@formatter:on
