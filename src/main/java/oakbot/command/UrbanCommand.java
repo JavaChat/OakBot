@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
+import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
 import org.apache.http.HttpResponse;
@@ -96,7 +97,7 @@ public class UrbanCommand implements Command {
 			.append(": ")
 			.append(urbanWord.definition)
 			.toString()
-		);
+		, SplitStrategy.WORD);
 		//@formatter:on
 	}
 
