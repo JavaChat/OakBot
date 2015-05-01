@@ -37,16 +37,15 @@ public class UrbanCommand implements Command {
 
 	@Override
 	public String description() {
-		ChatBuilder cb = new ChatBuilder();
-		cb.append("Retrieves definitions from ");
-		cb.link("urbandictionary.com", "http://www.urbandictionary.com");
-		cb.append(".");
-		return cb.toString();
+		return "Retrieves definitions from urbandictionary.com";
 	}
 
 	@Override
 	public String helpText() {
-		ChatBuilder cb = new ChatBuilder(description());
+		ChatBuilder cb = new ChatBuilder();
+		cb.append("Retrieves definitions from ");
+		cb.link("urbandictionary.com", "http://www.urbandictionary.com");
+		cb.append(".");
 		cb.code().append("  =").append(name()).append(" word").code();
 		return cb.toString();
 	}
@@ -87,6 +86,18 @@ public class UrbanCommand implements Command {
 				.append("No definition found.")
 				.toString()
 			);
+			//@formatter:on
+		}
+
+		if (urbanWord.definition.contains("\n") || urbanWord.definition.contains("\r")) {
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append(urbanWord.word)
+				.append(" (").append(urbanWord.permalink).append("):\n")
+				.append(urbanWord.definition)
+				.toString()
+			, SplitStrategy.WORD);
 			//@formatter:on
 		}
 
