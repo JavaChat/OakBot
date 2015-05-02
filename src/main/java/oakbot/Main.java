@@ -27,10 +27,10 @@ import oakbot.command.AboutCommand;
 import oakbot.command.Command;
 import oakbot.command.HelpCommand;
 import oakbot.command.ShutdownCommand;
-import oakbot.command.UrbanCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
 import oakbot.command.javadoc.JavadocDao;
+import oakbot.command.urban.UrbanCommand;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
@@ -85,7 +85,7 @@ public class Main {
 		commands.add(new HelpCommand(commands, listeners, props.getTrigger()));
 		commands.add(javadocCommand);
 		commands.add(new HttpCommand());
-		commands.add(new UrbanCommand(HttpClientBuilder.create().build()));
+		commands.add(new UrbanCommand());
 		commands.add(new ShutdownCommand());
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
