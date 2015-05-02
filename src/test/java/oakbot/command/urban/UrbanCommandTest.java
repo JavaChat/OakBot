@@ -150,4 +150,78 @@ public class UrbanCommandTest {
 		};
 		urban.onMessage(message, false);
 	}
+
+	@Test
+	public void other_definition() throws Exception {
+		ChatMessage message = new ChatMessage();
+		message.setMessageId(1);
+		message.setContent("cool 2");
+
+		UrbanCommand urban = new UrbanCommand() {
+			@Override
+			String get(String url) throws IOException {
+				assertEquals("http://api.urbandictionary.com/v0/define?term=cool", url);
+				try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("urbandictionary.cool.json"))) {
+					return CharStreams.toString(reader);
+				}
+			}
+		};
+		ChatResponse response = urban.onMessage(message, false);
+		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/1030338): A word to use when you don't know what else to say, or when you are not that interested in the conversation. Sometimes, it can be used when you do not have any knowledge of the subject, yet you want to act as if you know-it-all.", response.getMessage());
+	}
+
+	@Test
+	public void other_definition_range_low() throws Exception {
+		ChatMessage message = new ChatMessage();
+		message.setMessageId(1);
+		message.setContent("cool -1");
+
+		UrbanCommand urban = new UrbanCommand() {
+			@Override
+			String get(String url) throws IOException {
+				assertEquals("http://api.urbandictionary.com/v0/define?term=cool", url);
+				try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("urbandictionary.cool.json"))) {
+					return CharStreams.toString(reader);
+				}
+			}
+		};
+		ChatResponse response = urban.onMessage(message, false);
+		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", response.getMessage());
+	}
+
+	@Test
+	public void other_definition_range_high() throws Exception {
+		ChatMessage message = new ChatMessage();
+		message.setMessageId(1);
+		message.setContent("cool 9000");
+
+		UrbanCommand urban = new UrbanCommand() {
+			@Override
+			String get(String url) throws IOException {
+				assertEquals("http://api.urbandictionary.com/v0/define?term=cool", url);
+				try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("urbandictionary.cool.json"))) {
+					return CharStreams.toString(reader);
+				}
+			}
+		};
+		ChatResponse response = urban.onMessage(message, false);
+		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/1096252): a simplified way of telling someone to shut the fuck up because you don't give a shit.", response.getMessage());
+	}
+
+	@Test
+	public void word_with_spaces() throws Exception {
+		ChatMessage message = new ChatMessage();
+		message.setMessageId(1);
+		message.setContent("fucked up");
+
+		UrbanCommand urban = new UrbanCommand() {
+			@Override
+			String get(String url) throws IOException {
+				assertEquals("http://api.urbandictionary.com/v0/define?term=fucked+up", url);
+				return "{\"list\":[{\"word\":\"fucked up\", \"definition\":\"Definition\", \"permalink\":\"Permalink\"}]}";
+			}
+		};
+		ChatResponse response = urban.onMessage(message, false);
+		assertEquals(":1 [**`fucked up`**](Permalink): Definition", response.getMessage());
+	}
 }

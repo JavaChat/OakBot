@@ -3,9 +3,8 @@ package oakbot.command.urban;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,6 +16,8 @@ import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
+
+import org.apache.http.client.utils.URIBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.CharStreams;
@@ -46,14 +47,14 @@ public class UrbanCommand implements Command {
 		cb.append("Retrieves definitions from ");
 		cb.link("urbandictionary.com", "http://www.urbandictionary.com");
 		cb.append(".  ");
-		cb.code().append("=").append(name()).append(" word").code();
+		cb.code().append("=").append(name()).append(" word [definition-number=1]").code();
 		return cb.toString();
 	}
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
-		String word = message.getContent();
-		if (word.isEmpty()) {
+		String content = message.getContent().trim();
+		if (content.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
@@ -63,12 +64,39 @@ public class UrbanCommand implements Command {
 			//@formatter:on
 		}
 
+		//parse the user's input
+		String word;
+		int definitionToDisplay;
+		{
+			int lastSpace = content.lastIndexOf(' ');
+			if (lastSpace < 0) {
+				word = content;
+				definitionToDisplay = 1;
+			} else {
+				String afterLastSpace = content.substring(lastSpace + 1);
+				try {
+					definitionToDisplay = Integer.parseInt(afterLastSpace);
+					if (definitionToDisplay < 1) {
+						definitionToDisplay = 1;
+					}
+					word = content.substring(0, lastSpace);
+				} catch (NumberFormatException e) {
+					word = content;
+					definitionToDisplay = 1;
+				}
+			}
+		}
+
 		UrbanResponse response;
 		try {
-			String url = "http://api.urbandictionary.com/v0/define?term=" + URLEncoder.encode(word, "UTF-8");
+			URIBuilder b = new URIBuilder("http://api.urbandictionary.com/v0/define");
+			b.addParameter("term", word);
+			String url = b.toString();
+
 			response = mapper.readValue(get(url), UrbanResponse.class);
-		} catch (IOException e) {
+		} catch (IOException | URISyntaxException e) {
 			logger.log(Level.SEVERE, "Problem getting word from Urban Dictionary.", e);
+
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
@@ -91,9 +119,13 @@ public class UrbanCommand implements Command {
 			//@formatter:on
 		}
 
-		UrbanDefinition urbanWord = words.get(0);
+		if (definitionToDisplay > words.size()) {
+			definitionToDisplay = words.size();
+		}
+
+		UrbanDefinition urbanWord = words.get(definitionToDisplay - 1);
 		String definition = urbanWord.getDefinition();
-		if (definition.contains("\n") || definition.contains("\r")) {
+		if (containsNewlines(definition)) {
 			//do not use markup if the definition contains newlines
 			definition = removeLinks(definition);
 
@@ -121,6 +153,10 @@ public class UrbanCommand implements Command {
 		//@formatter:on
 	}
 
+	private static boolean containsNewlines(String definition) {
+		return definition.contains("\n") || definition.contains("\r");
+	}
+
 	private static String removeLinks(String definition) {
 		return definition.replaceAll("[\\[\\]]", "");
 	}
@@ -130,13 +166,20 @@ public class UrbanCommand implements Command {
 		Matcher m = p.matcher(definition);
 		StringBuffer sb = new StringBuffer();
 		while (m.find()) {
-			ChatBuilder cb = new ChatBuilder();
+			String word = m.group(1);
 			try {
-				cb.link(m.group(1), "http://www.urbandictionary.com/define.php?term=" + URLEncoder.encode(m.group(1), "UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				throw new RuntimeException(e);
+				URIBuilder b = new URIBuilder("http://www.urbandictionary.com/define.php");
+				b.addParameter("term", word);
+				String url = b.toString();
+
+				ChatBuilder cb = new ChatBuilder();
+				cb.link(word, url);
+				m.appendReplacement(sb, cb.toString());
+			} catch (URISyntaxException e) {
+				//should never be thrown since the URL string is hard-coded, but just incase...
+				//remove the link
+				m.appendReplacement(sb, word);
 			}
-			m.appendReplacement(sb, cb.toString());
 		}
 		m.appendTail(sb);
 		return sb.toString();
