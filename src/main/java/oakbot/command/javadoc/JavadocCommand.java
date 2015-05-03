@@ -144,30 +144,25 @@ public class JavadocCommand implements Command {
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		} catch (MultipleClassesFoundException e) {
-			ChatBuilder cb = new ChatBuilder();
-			cb.reply(message);
-			return handleMultipleMatches(commandText, e.getClasses(), cb);
+			return handleMultipleMatches(commandText, e.getClasses(), message);
 		}
 
-		if (info == null) {
-			//couldn't find the class
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(message)
-				.append("Sorry, I never heard of that class. :(")
-			);
-			//@formatter:on
-		}
-
-		ChatBuilder cb = new ChatBuilder();
-		cb.reply(message);
-		return handleSingleMatch(commandText, info, cb);
+		return (info == null) ? handleNoMatch(message) : handleSingleMatch(commandText, info, message);
 	}
 
-	private ChatResponse handleSingleMatch(CommandTextParser commandText, ClassInfo info, ChatBuilder cb) {
+	private ChatResponse handleNoMatch(ChatMessage message) {
+		//@formatter:off
+		return new ChatResponse(new ChatBuilder()
+			.reply(message)
+			.append("Sorry, I never heard of that class. :(")
+		);
+		//@formatter:on
+	}
+
+	private ChatResponse handleSingleMatch(CommandTextParser commandText, ClassInfo info, ChatMessage message) {
 		if (commandText.methodName == null) {
 			//method name not specified, so print the class docs
-			return printClass(info, commandText.paragraph, cb);
+			return printClass(info, commandText.paragraph, message);
 		}
 
 		//print the method docs
@@ -180,29 +175,33 @@ public class JavadocCommand implements Command {
 
 		if (matchingMethods.isEmpty()) {
 			//no matches found
-			cb.append("Sorry, I can't find that method. :(");
-			return new ChatResponse(cb);
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append("Sorry, I can't find that method. :(")
+			);
+			//@formatter:on
 		}
 
 		if (matchingMethods.exactSignature != null) {
 			//an exact match was found!
-			return printMethod(matchingMethods.exactSignature, info, commandText.paragraph, cb);
+			return printMethod(matchingMethods.exactSignature, info, commandText.paragraph, message);
 		}
 
 		if (matchingMethods.matchingName.size() == 1 && commandText.parameters == null) {
-			return printMethod(matchingMethods.matchingName.get(0), info, commandText.paragraph, cb);
+			return printMethod(matchingMethods.matchingName.get(0), info, commandText.paragraph, message);
 		}
 
 		//print the methods with the same name
 		Multimap<ClassInfo, MethodInfo> map = ArrayListMultimap.create();
 		map.putAll(info, matchingMethods.matchingName);
-		return printMethodChoices(map, commandText.parameters, cb);
+		return printMethodChoices(map, commandText.parameters, message);
 	}
 
-	private ChatResponse handleMultipleMatches(CommandTextParser commandText, Collection<String> matches, ChatBuilder cb) {
+	private ChatResponse handleMultipleMatches(CommandTextParser commandText, Collection<String> matches, ChatMessage message) {
 		if (commandText.methodName == null) {
 			//user is just querying for a class, so print the class choices
-			return printClassChoices(matches, cb);
+			return printClassChoices(matches, message);
 		}
 
 		//user is querying for a method
@@ -225,15 +224,19 @@ public class JavadocCommand implements Command {
 
 		if (exactMatches.isEmpty() && matchingNames.isEmpty()) {
 			//no matches found
-			cb.append("Sorry, I can't find that method. :(");
-			return new ChatResponse(cb);
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append("Sorry, I can't find that method. :(")
+			);
+			//@formatter:on
 		}
 
 		if (exactMatches.size() == 1) {
 			//a single, exact match was found!
 			MethodInfo method = exactMatches.values().iterator().next();
 			ClassInfo classInfo = exactMatches.keySet().iterator().next();
-			return printMethod(method, classInfo, commandText.paragraph, cb);
+			return printMethod(method, classInfo, commandText.paragraph, message);
 		}
 
 		//multiple matches were found
@@ -246,7 +249,7 @@ public class JavadocCommand implements Command {
 		} else {
 			methodsToPrint = matchingNames;
 		}
-		return printMethodChoices(methodsToPrint, commandText.parameters, cb);
+		return printMethodChoices(methodsToPrint, commandText.parameters, message);
 	}
 
 	/**
@@ -274,8 +277,12 @@ public class JavadocCommand implements Command {
 		int index = num - 1;
 		if (index < 0 || index >= prevChoices.size()) {
 			//check to make sure the number corresponds to a choice
-			ChatBuilder cb = new ChatBuilder().reply(message).append("That's not a valid choice.");
-			return new ChatResponse(cb);
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append("That's not a valid choice.")
+			);
+			//@formatter:on
 		}
 
 		//valid choice entered, print the info
@@ -291,7 +298,10 @@ public class JavadocCommand implements Command {
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printMethod(MethodInfo methodInfo, ClassInfo classInfo, int paragraph, ChatBuilder cb) {
+	private ChatResponse printMethod(MethodInfo methodInfo, ClassInfo classInfo, int paragraph, ChatMessage message) {
+		ChatBuilder cb = new ChatBuilder();
+		cb.reply(message);
+
 		if (paragraph == 1) {
 			//print library name
 			LibraryZipFile zipFile = classInfo.getZipFile();
@@ -347,9 +357,12 @@ public class JavadocCommand implements Command {
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, List<String> methodParams, ChatBuilder cb) {
+	private ChatResponse printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, List<String> methodParams, ChatMessage message) {
 		prevChoices = new ArrayList<>();
 		prevChoicesPinged = System.currentTimeMillis();
+
+		ChatBuilder cb = new ChatBuilder();
+		cb.reply(message);
 
 		if (matchingMethods.size() == 1) {
 			if (methodParams == null) {
@@ -400,6 +413,7 @@ public class JavadocCommand implements Command {
 			prevChoices.add(signature);
 			count++;
 		}
+
 		return new ChatResponse(cb, SplitStrategy.NEWLINE);
 	}
 
@@ -409,12 +423,14 @@ public class JavadocCommand implements Command {
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printClassChoices(Collection<String> classes, ChatBuilder cb) {
+	private ChatResponse printClassChoices(Collection<String> classes, ChatMessage message) {
 		List<String> choices = new ArrayList<>(classes);
 		Collections.sort(choices);
 		prevChoices = choices;
 		prevChoicesPinged = System.currentTimeMillis();
 
+		ChatBuilder cb = new ChatBuilder();
+		cb.reply(message);
 		cb.append("Which one do you mean? (type the number)");
 
 		int count = 1;
@@ -426,7 +442,10 @@ public class JavadocCommand implements Command {
 		return new ChatResponse(cb, SplitStrategy.NEWLINE);
 	}
 
-	private ChatResponse printClass(ClassInfo info, int paragraph, ChatBuilder cb) {
+	private ChatResponse printClass(ClassInfo info, int paragraph, ChatMessage message) {
+		ChatBuilder cb = new ChatBuilder();
+		cb.reply(message);
+
 		if (paragraph == 1) {
 			//print the library name
 			LibraryZipFile zipFile = info.getZipFile();
@@ -610,7 +629,7 @@ public class JavadocCommand implements Command {
 
 			cb.append(get(num));
 			if (count() > 1) {
-				cb.append(" (").append(num + "").append("/").append(count() + "").append(")");
+				cb.append(" (").append(num).append('/').append(count()).append(')');
 			}
 		}
 	}
