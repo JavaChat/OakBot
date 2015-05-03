@@ -18,7 +18,6 @@ import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.listener.Listener;
-import oakbot.util.ChatBuilder;
 
 import com.google.common.collect.ImmutableList;
 
@@ -149,6 +148,8 @@ public class Bot {
 				if (reply != null) {
 					replies.add(reply);
 				}
+			} catch (ShutdownException e) {
+				throw e;
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "An error occurred responding to a message.", e);
 			}
@@ -193,6 +194,8 @@ public class Bot {
 				if (reply != null) {
 					replies.add(reply);
 				}
+			} catch (ShutdownException e) {
+				throw e;
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "An error occurred responding to a command.", e);
 			}
