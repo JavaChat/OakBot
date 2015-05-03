@@ -47,13 +47,13 @@ public class HttpCommand implements Command {
 	}
 
 	@Override
-	public String helpText() {
+	public String helpText(String trigger) {
 		//@formatter:off
 		return new ChatBuilder()
 		.fixed().append("Displays information about HTTP status codes and methods.  Descriptions come from the official RFC specifications.  Examples:").nl()
-		.fixed().append("=http 200     Displays information on HTTP 200.").nl()
-		.fixed().append("=http GET     Displays information on HTTP GET.").nl()
-		.fixed().append("=http 200 2   Displays the second paragraph of the HTTP 200 description.")
+		.fixed().append(trigger).append(name()).append(" 200     Displays information on HTTP 200.").nl()
+		.fixed().append(trigger).append(name()).append(" GET     Displays information on HTTP GET.").nl()
+		.fixed().append(trigger).append(name()).append(" 200 2   Displays the second paragraph of the HTTP 200 description.")
 		.toString();
 		//@formatter:on
 	}

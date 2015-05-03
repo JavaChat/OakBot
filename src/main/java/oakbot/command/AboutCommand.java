@@ -25,7 +25,7 @@ public class AboutCommand implements Command {
 	}
 
 	@Override
-	public String helpText() {
+	public String helpText(String trigger) {
 		return description();
 	}
 

@@ -39,7 +39,7 @@ public class HelpCommand implements Command {
 	}
 
 	@Override
-	public String helpText() {
+	public String helpText(String trigger) {
 		return "Displays the list of available commands, as well as detailed information about specific commands.";
 	}
 
@@ -55,7 +55,7 @@ public class HelpCommand implements Command {
 				String name = command.name();
 				if (name != null && name.equalsIgnoreCase(commandText)) {
 					names.add(command.name());
-					helpTexts.add(command.helpText());
+					helpTexts.add(command.helpText(trigger));
 				}
 			}
 			for (Listener listener : listeners) {

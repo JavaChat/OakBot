@@ -42,12 +42,12 @@ public class UrbanCommand implements Command {
 	}
 
 	@Override
-	public String helpText() {
+	public String helpText(String trigger) {
 		ChatBuilder cb = new ChatBuilder();
 		cb.append("Retrieves definitions from ");
 		cb.link("urbandictionary.com", "http://www.urbandictionary.com");
 		cb.append(".  ");
-		cb.code().append("=").append(name()).append(" word [definition-number=1]").code();
+		cb.code().append(trigger).append(name()).append(" word [definition-number=1]").code();
 		return cb.toString();
 	}
 

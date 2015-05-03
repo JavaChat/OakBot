@@ -99,8 +99,8 @@ public class JavadocCommand implements Command {
 	public String name() {
 		return "javadoc";
 	}
-	
-	public Collection<String> aliases(){
+
+	public Collection<String> aliases() {
 		return Arrays.asList("javadocs");
 	}
 
@@ -110,8 +110,14 @@ public class JavadocCommand implements Command {
 	}
 
 	@Override
-	public String helpText() {
-		return description(); //TODO finish
+	public String helpText(String trigger) {
+		//@formatter:off
+		return new ChatBuilder()
+		.fixed().append(description()).append("  If more than one class/method matches the query, then a list of choices is displayed.  Queries are case-insensitive!  Examples:").nl()
+		.fixed().append(trigger).append(name()).append(" String").nl()
+		.fixed().append(trigger).append(name()).append(" java.lang.String#indexOf").nl()
+		.toString();
+		//@formatter:on
 	}
 
 	@Override
@@ -142,11 +148,11 @@ public class JavadocCommand implements Command {
 			cb.append("Sorry, I never heard of that class. :(");
 			return new ChatResponse(cb);
 		}
-		
+
 		return handleSingleMatch(commandText, info, cb);
 	}
-	
-	private ChatResponse handleSingleMatch(CommandTextParser commandText, ClassInfo info, ChatBuilder cb){
+
+	private ChatResponse handleSingleMatch(CommandTextParser commandText, ClassInfo info, ChatBuilder cb) {
 		if (commandText.methodName == null) {
 			//method name not specified, so print the class docs
 			return printClass(info, commandText.paragraph, cb);
@@ -180,13 +186,13 @@ public class JavadocCommand implements Command {
 		map.putAll(info, matchingMethods.matchingName);
 		return printMethodChoices(map, commandText.parameters, cb);
 	}
-	
-	private ChatResponse handleMultipleMatches(CommandTextParser commandText, Collection<String> matches, ChatBuilder cb){
+
+	private ChatResponse handleMultipleMatches(CommandTextParser commandText, Collection<String> matches, ChatBuilder cb) {
 		if (commandText.methodName == null) {
 			//user is just querying for a class, so print the class choices
 			return printClassChoices(matches, cb);
 		}
-		
+
 		//user is querying for a method
 
 		//search each class for a method that matches the given signature

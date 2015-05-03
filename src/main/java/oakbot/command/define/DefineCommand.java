@@ -86,12 +86,12 @@ public class DefineCommand implements Command {
 	}
 
 	@Override
-	public String helpText() {
+	public String helpText(String trigger) {
 		ChatBuilder cb = new ChatBuilder();
 		cb.append("Retrieves definitions from ");
 		cb.link("Merriam-Webster's dictionary API", "http://www.dictionaryapi.com/");
 		cb.append(".  Usage: ");
-		cb.code().append("=").append(name()).append(" word").code(); //TODO pass "=" into this method
+		cb.code().append(trigger).append(name()).append(" word").code();
 		return cb.toString();
 	}
 

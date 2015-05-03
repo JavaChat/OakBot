@@ -21,7 +21,7 @@ public interface Command {
 	 * Gets other names that can be used to invoke the command.
 	 * @return the command name aliases
 	 */
-	default Collection<String> aliases(){
+	default Collection<String> aliases() {
 		return Collections.emptyList();
 	}
 
@@ -35,9 +35,11 @@ public interface Command {
 	/**
 	 * Gets the command's help text. This is shown when this command is queried
 	 * with the "help" command (e.g. "help mycommand")
+	 * @param trigger the command trigger (for including examples in the
+	 * description)
 	 * @return the help text
 	 */
-	String helpText();
+	String helpText(String trigger);
 
 	/**
 	 * Called when a user invokes this command.
