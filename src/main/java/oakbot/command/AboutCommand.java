@@ -42,20 +42,23 @@ public class AboutCommand implements Command {
 	@Override
 	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
 		RelativeDateFormat relativeDf = new RelativeDateFormat();
-		Date since = stats.getSince();
 
 		//@formatter:off
 		ChatBuilder cb = new ChatBuilder()
 		.bold("OakBot").append(" by ").link("Michael", "http://stackoverflow.com/users/13379/michael").append(" | ")
 		.link("source code", Main.URL).append(" | ")
 		.append("built: ").append(relativeDf.format(Main.BUILT)).append(" | ")
-		.append("started up: ").append(relativeDf.format(startedUp)).append(" | ")
-		.append("responded to ").append(stats.getMessagesRespondedTo()).append(" commands");
+		.append("started up: ").append(relativeDf.format(startedUp));
 		//@formatter:on
 
-		if (since != null) {
-			DateFormat df = new SimpleDateFormat("MMM dd, yyyy");
-			cb.append(" since ").append(df.format(since));
+		if (stats != null) {
+			cb.append(" | ").append("responded to ").append(stats.getMessagesRespondedTo()).append(" commands");
+
+			Date since = stats.getSince();
+			if (since != null) {
+				DateFormat df = new SimpleDateFormat("MMM d, yyyy");
+				cb.append(" since ").append(df.format(since));
+			}
 		}
 
 		return new ChatResponse(cb, SplitStrategy.WORD);
