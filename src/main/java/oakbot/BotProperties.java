@@ -13,7 +13,7 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
-	private final String loginEmail, password, botname, trigger;
+	private final String loginEmail, password, botname, trigger, dictionaryKey;
 	private final List<Integer> rooms, admins;
 	private final int heartbeat;
 	private final Path javadocPath;
@@ -32,6 +32,7 @@ public class BotProperties extends PropertiesWrapper {
 		admins = getIntegerList("admins");
 		heartbeat = getInteger("heartbeat", 3000);
 		javadocPath = Paths.get(get("javadoc.folder", "javadocs"));
+		dictionaryKey = get("dictionary.key");
 	}
 
 	/**
@@ -97,5 +98,13 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public Path getJavadocPath() {
 		return javadocPath;
+	}
+
+	/**
+	 * Gets the API key for the define command.
+	 * @return the API key or null if not found
+	 */
+	public String getDictionaryKey() {
+		return dictionaryKey;
 	}
 }

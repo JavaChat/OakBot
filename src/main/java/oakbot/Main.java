@@ -27,6 +27,7 @@ import oakbot.command.AboutCommand;
 import oakbot.command.Command;
 import oakbot.command.HelpCommand;
 import oakbot.command.ShutdownCommand;
+import oakbot.command.define.DefineCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
 import oakbot.command.javadoc.JavadocDao;
@@ -86,10 +87,14 @@ public class Main {
 		commands.add(javadocCommand);
 		commands.add(new HttpCommand());
 		commands.add(new UrbanCommand());
+		String dictionaryKey = props.getDictionaryKey();
+		if (dictionaryKey != null) {
+			commands.add(new DefineCommand(dictionaryKey));
+		}
 		commands.add(new ShutdownCommand());
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
-		
+
 		Statistics stats = new Statistics(Paths.get("statistics.properties"));
 
 		//@formatter:off
