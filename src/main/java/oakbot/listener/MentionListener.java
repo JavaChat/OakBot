@@ -40,9 +40,12 @@ public class MentionListener implements Listener {
 			return null;
 		}
 
-		ChatBuilder cb = new ChatBuilder();
-		cb.reply(message).append("Type ").code(trigger + "help").append(" to see all my commands.");
-		return new ChatResponse(cb);
+		//@formatter:off
+		return new ChatResponse(new ChatBuilder()
+			.reply(message)
+			.append("Type ").code().append(trigger).append("help").code().append(" to see all my commands.")
+		);
+		//@formatter:on
 	}
 
 }

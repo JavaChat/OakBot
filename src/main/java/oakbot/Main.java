@@ -69,6 +69,8 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
+		boolean quiet = args.length > 0 && args[0].equals("-q");
+
 		setupLogging();
 		BotProperties props = loadProperties();
 
@@ -81,8 +83,10 @@ public class Main {
 		);
 		//@formatter:on
 
+		Statistics stats = new Statistics(Paths.get("statistics.properties"));
+
 		List<Command> commands = new ArrayList<>();
-		commands.add(new AboutCommand());
+		commands.add(new AboutCommand(stats));
 		commands.add(new HelpCommand(commands, listeners, props.getTrigger()));
 		commands.add(javadocCommand);
 		commands.add(new HttpCommand());
@@ -94,8 +98,6 @@ public class Main {
 		commands.add(new ShutdownCommand());
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
-
-		Statistics stats = new Statistics(Paths.get("statistics.properties"));
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
@@ -112,7 +114,7 @@ public class Main {
 		.build();
 		//@formatter:on
 
-		bot.connect();
+		bot.connect(quiet);
 
 		logger.info("Terminating.");
 	}

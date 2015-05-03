@@ -3,9 +3,9 @@ package oakbot.command.urban;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.InputStream;
 import java.util.logging.LogManager;
 
 import oakbot.bot.ChatResponse;
@@ -13,8 +13,6 @@ import oakbot.chat.ChatMessage;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.google.common.io.CharStreams;
 
 /**
  * @author Michael Angstadt
@@ -45,7 +43,7 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				throw new IOException();
 			}
 		};
@@ -62,9 +60,9 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				assertEquals("http://api.urbandictionary.com/v0/define?term=cool", url);
-				return "<html>not JSON</html>";
+				return in("<html>not JSON</html>");
 			}
 		};
 		ChatResponse response = urban.onMessage(message, false);
@@ -79,9 +77,9 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				assertEquals("http://api.urbandictionary.com/v0/define?term=cool", url);
-				return "{}";
+				return in("{}");
 			}
 		};
 		ChatResponse response = urban.onMessage(message, false);
@@ -96,11 +94,9 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				assertEquals("http://api.urbandictionary.com/v0/define?term=cool", url);
-				try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("urbandictionary.cool.json"))) {
-					return CharStreams.toString(reader);
-				}
+				return getClass().getResourceAsStream("urbandictionary.cool.json");
 			}
 		};
 		ChatResponse response = urban.onMessage(message, false);
@@ -115,11 +111,9 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				assertEquals("http://api.urbandictionary.com/v0/define?term=snafu", url);
-				try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("urbandictionary.snafu.json"))) {
-					return CharStreams.toString(reader);
-				}
+				return getClass().getResourceAsStream("urbandictionary.snafu.json");
 			}
 		};
 		ChatResponse response = urban.onMessage(message, false);
@@ -143,9 +137,9 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				assertEquals("http://api.urbandictionary.com/v0/define?term=fucked+up", url);
-				return "";
+				return in("");
 			}
 		};
 		urban.onMessage(message, false);
@@ -159,11 +153,9 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				assertEquals("http://api.urbandictionary.com/v0/define?term=cool", url);
-				try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("urbandictionary.cool.json"))) {
-					return CharStreams.toString(reader);
-				}
+				return getClass().getResourceAsStream("urbandictionary.cool.json");
 			}
 		};
 		ChatResponse response = urban.onMessage(message, false);
@@ -178,11 +170,9 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				assertEquals("http://api.urbandictionary.com/v0/define?term=cool", url);
-				try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("urbandictionary.cool.json"))) {
-					return CharStreams.toString(reader);
-				}
+				return getClass().getResourceAsStream("urbandictionary.cool.json");
 			}
 		};
 		ChatResponse response = urban.onMessage(message, false);
@@ -197,11 +187,9 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				assertEquals("http://api.urbandictionary.com/v0/define?term=cool", url);
-				try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("urbandictionary.cool.json"))) {
-					return CharStreams.toString(reader);
-				}
+				return getClass().getResourceAsStream("urbandictionary.cool.json");
 			}
 		};
 		ChatResponse response = urban.onMessage(message, false);
@@ -216,12 +204,16 @@ public class UrbanCommandTest {
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
-			String get(String url) throws IOException {
+			InputStream get(String url) throws IOException {
 				assertEquals("http://api.urbandictionary.com/v0/define?term=fucked+up", url);
-				return "{\"list\":[{\"word\":\"fucked up\", \"definition\":\"Definition\", \"permalink\":\"Permalink\"}]}";
+				return in("{\"list\":[{\"word\":\"fucked up\", \"definition\":\"Definition\", \"permalink\":\"Permalink\"}]}");
 			}
 		};
 		ChatResponse response = urban.onMessage(message, false);
 		assertEquals(":1 [**`fucked up`**](Permalink): Definition", response.getMessage());
+	}
+	
+	private static InputStream in(String string){
+		return new ByteArrayInputStream(string.getBytes());
 	}
 }

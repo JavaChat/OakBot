@@ -113,22 +113,26 @@ public class JavadocCommand implements Command {
 	public String helpText(String trigger) {
 		//@formatter:off
 		return new ChatBuilder()
-		.fixed().append(description()).append("  If more than one class/method matches the query, then a list of choices is displayed.  Queries are case-insensitive!  Examples:").nl()
-		.fixed().append(trigger).append(name()).append(" String").nl()
-		.fixed().append(trigger).append(name()).append(" java.lang.String#indexOf").nl()
+			.append("Displays class documentation from the Javadocs.  ")
+			.append("If more than one class or method matches the query, then a list of choices is displayed.  Queries are case-insensitive.").nl()
+			.append("Usage: ").append(trigger).append(name()).append(" CLASS_NAME[#METHOD_NAME]").nl()
+			.append("Examples:").nl()
+			.append(trigger).append(name()).append(" String").nl()
+			.append(trigger).append(name()).append(" java.lang.String#indexOf").nl()
 		.toString();
 		//@formatter:on
 	}
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
-		ChatBuilder cb = new ChatBuilder();
-		cb.reply(message);
-
 		String content = message.getContent();
 		if (content.isEmpty()) {
-			cb.append("Type the name of a Java class (e.g. \"java.lang.String\") or a method (e.g. \"Integer#parseInt\").");
-			return new ChatResponse(cb);
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append("Type the name of a Java class (e.g. \"java.lang.String\") or a method (e.g. \"Integer#parseInt\").")
+			);
+			//@formatter:on
 		}
 
 		//parse the command
@@ -140,15 +144,23 @@ public class JavadocCommand implements Command {
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		} catch (MultipleClassesFoundException e) {
+			ChatBuilder cb = new ChatBuilder();
+			cb.reply(message);
 			return handleMultipleMatches(commandText, e.getClasses(), cb);
 		}
 
 		if (info == null) {
 			//couldn't find the class
-			cb.append("Sorry, I never heard of that class. :(");
-			return new ChatResponse(cb);
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append("Sorry, I never heard of that class. :(")
+			);
+			//@formatter:on
 		}
 
+		ChatBuilder cb = new ChatBuilder();
+		cb.reply(message);
 		return handleSingleMatch(commandText, info, cb);
 	}
 
@@ -324,7 +336,7 @@ public class JavadocCommand implements Command {
 		Paragraphs paragraphs = new Paragraphs(description);
 		paragraphs.append(paragraph, cb);
 
-		return new ChatResponse(cb.toString(), SplitStrategy.WORD);
+		return new ChatResponse(cb, SplitStrategy.WORD);
 	}
 
 	/**
@@ -388,7 +400,7 @@ public class JavadocCommand implements Command {
 			prevChoices.add(signature);
 			count++;
 		}
-		return new ChatResponse(cb.toString(), SplitStrategy.NEWLINE);
+		return new ChatResponse(cb, SplitStrategy.NEWLINE);
 	}
 
 	/**
@@ -411,7 +423,7 @@ public class JavadocCommand implements Command {
 			count++;
 		}
 
-		return new ChatResponse(cb.toString(), SplitStrategy.NEWLINE);
+		return new ChatResponse(cb, SplitStrategy.NEWLINE);
 	}
 
 	private ChatResponse printClass(ClassInfo info, int paragraph, ChatBuilder cb) {
@@ -472,7 +484,7 @@ public class JavadocCommand implements Command {
 		String description = info.getDescription();
 		Paragraphs paragraphs = new Paragraphs(description);
 		paragraphs.append(paragraph, cb);
-		return new ChatResponse(cb.toString(), SplitStrategy.WORD);
+		return new ChatResponse(cb, SplitStrategy.WORD);
 	}
 
 	/**

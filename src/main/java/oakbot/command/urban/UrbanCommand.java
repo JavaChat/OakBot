@@ -1,8 +1,7 @@
 package oakbot.command.urban;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
@@ -20,7 +19,6 @@ import oakbot.util.ChatBuilder;
 import org.apache.http.client.utils.URIBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.CharStreams;
 
 /**
  * Gets word definitions from urbandictionary.com
@@ -43,12 +41,15 @@ public class UrbanCommand implements Command {
 
 	@Override
 	public String helpText(String trigger) {
-		ChatBuilder cb = new ChatBuilder();
-		cb.append("Retrieves definitions from ");
-		cb.link("urbandictionary.com", "http://www.urbandictionary.com");
-		cb.append(".  ");
-		cb.code().append(trigger).append(name()).append(" word [definition-number=1]").code();
-		return cb.toString();
+		//@formatter:off
+		return new ChatBuilder()
+			.append("Retrieves definitions from urbandictionary.com").nl()
+			.append("Usage: ").append(trigger).append(name()).append(" WORD [DEFINITION_NUM=1]").nl()
+			.append("Examples:").nl()
+			.append(trigger).append(name()).append(" brah").nl()
+			.append(trigger).append(name()).append(" wut 2")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override
@@ -59,7 +60,6 @@ public class UrbanCommand implements Command {
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
 				.append("You have to type a word to see its definition... -_-")
-				.toString()
 			);
 			//@formatter:on
 		}
@@ -103,7 +103,6 @@ public class UrbanCommand implements Command {
 				.append("Sorry, an unexpected error occurred contacting ")
 				.link("urbandictionary.com", "http://www.ubrandictionary.com")
 				.append("... >.>")
-				.toString()
 			);
 			//@formatter:on
 		}
@@ -114,7 +113,6 @@ public class UrbanCommand implements Command {
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
 				.append("No definition found.")
-				.toString()
 			);
 			//@formatter:on
 		}
@@ -135,7 +133,6 @@ public class UrbanCommand implements Command {
 				.append(urbanWord.getWord())
 				.append(" (").append(urbanWord.getPermalink()).append("):\n")
 				.append(definition)
-				.toString()
 			, SplitStrategy.WORD);
 			//@formatter:on
 		}
@@ -148,7 +145,6 @@ public class UrbanCommand implements Command {
 			.link(new ChatBuilder().bold().code(urbanWord.getWord()).bold().toString(), urbanWord.getPermalink())
 			.append(": ")
 			.append(definition)
-			.toString()
 		, SplitStrategy.WORD);
 		//@formatter:on
 	}
@@ -191,10 +187,8 @@ public class UrbanCommand implements Command {
 	 * @return the response body
 	 * @throws IOException
 	 */
-	String get(String url) throws IOException {
+	InputStream get(String url) throws IOException {
 		URL urlObj = new URL(url);
-		try (Reader reader = new InputStreamReader(urlObj.openStream())) {
-			return CharStreams.toString(reader);
-		}
+		return urlObj.openStream();	
 	}
 }

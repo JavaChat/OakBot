@@ -57,17 +57,21 @@ public class Bot {
 	/**
 	 * Starts the chat bot. This method blocks until the bot is terminated,
 	 * either by an unexpected error or a shutdown command.
+	 * @param quiet true to broadcast an announcement message when it connects,
+	 * false not to
 	 * @throws IllegalArgumentException if the login credentials are bad
 	 * @throws IOException if there's an I/O problem
 	 */
-	public void connect() throws IllegalArgumentException, IOException {
+	public void connect(boolean quiet) throws IllegalArgumentException, IOException {
 		//login
 		connection.login(email, password);
 
 		//post a message to each room
 		for (Integer room : rooms) {
 			connection.getNewMessages(room); //prime the "previous message ID" counter
-			connection.sendMessage(room, "OakBot Online.");
+			if (!quiet) {
+				connection.sendMessage(room, "OakBot Online.");
+			}
 		}
 
 		//listen for and reply to messages

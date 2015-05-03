@@ -1,6 +1,9 @@
 package oakbot.command;
 
+import static com.google.common.base.Strings.repeat;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -40,101 +43,140 @@ public class HelpCommand implements Command {
 
 	@Override
 	public String helpText(String trigger) {
-		return "Displays the list of available commands, as well as detailed information about specific commands.";
+		//@formatter:off
+		return new ChatBuilder()
+			.append("Displays the list of available commands, as well as detailed information about specific commands.").nl()
+			.append("Usage: ").append(trigger).append(name()).append(" [COMMAND_NAME]").nl()
+			.append("Examples:").nl()
+			.append(trigger).append(name()).nl()
+			.append(trigger).append(name()).append(" javadoc")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
-		String commandText = message.getContent();
-		if (!commandText.isEmpty()) {
-			ChatBuilder cb = new ChatBuilder();
-			cb.reply(message);
-
-			List<String> names = new ArrayList<>(), helpTexts = new ArrayList<>();
-			for (Command command : commands) {
-				String name = command.name();
-				if (name != null && name.equalsIgnoreCase(commandText)) {
-					names.add(command.name());
-					helpTexts.add(command.helpText(trigger));
-				}
-			}
-			for (Listener listener : listeners) {
-				String name = listener.name();
-				if (name != null && name.equalsIgnoreCase(commandText)) {
-					names.add(listener.name());
-					helpTexts.add(listener.helpText());
-				}
-			}
-
-			if (names.isEmpty()) {
-				cb.append("No command or listener exists with that name.");
-			} else {
-				boolean first = true;
-				for (int i = 0; i < names.size(); i++) {
-					if (first) {
-						first = false;
-					} else {
-						cb.nl();
-					}
-					cb.code(names.get(i)).append(": ").append(helpTexts.get(i));
-				}
-			}
-
-			return new ChatResponse(cb.toString(), SplitStrategy.WORD);
+		if (!message.getContent().isEmpty()) {
+			return showHelpText(message);
 		}
 
-		//build each line of the reply and keep them sorted alphabetically
-		Multimap<String, String> commandLines = TreeMultimap.create();
-		for (Command command : commands) {
-			String name = command.name();
-			if (name != null) {
-				commandLines.put(name, command.description());
-			}
-		}
-		Multimap<String, String> listenerLines = TreeMultimap.create();
-		for (Listener listener : listeners) {
-			String name = listener.name();
-			if (name != null) {
-				listenerLines.put(name, listener.description());
-			}
-		}
+		Multimap<String, String> commandDescriptions = getCommandDescriptions();
+		Multimap<String, String> listenerDescriptions = getListenerDescriptions();
 
-		//get the length of the longest command name
-		int longestName = 0;
-		for (String key : commandLines.keySet()) {
-			int length = key.length();
-			if (length > longestName) {
-				longestName = length;
-			}
-		}
+		Collection<String> allNames = new ArrayList<>(commandDescriptions.size() + listenerDescriptions.size());
+		allNames.addAll(commandDescriptions.keySet());
+		allNames.addAll(listenerDescriptions.keySet());
+		int longestNameLength = longestStringLength(allNames);
 
 		//build message
 		ChatBuilder cb = new ChatBuilder();
-		cb.fixed().append("Commands=====================").nl();
-		for (Map.Entry<String, String> entry : commandLines.entries()) {
-			String name = entry.getKey();
-			String description = entry.getValue();
+		if (!commandDescriptions.isEmpty()) {
+			cb.fixed().append("Commands=====================").nl();
+			for (Map.Entry<String, String> entry : commandDescriptions.entries()) {
+				String name = entry.getKey();
+				String description = entry.getValue();
 
-			cb.fixed().append(trigger).append(name);
-			for (int i = name.length(); i < longestName + 2; i++) {
-				cb.append(' ');
+				cb.fixed().append(trigger).append(name);
+				cb.append(repeat(" ", longestNameLength - name.length() + 2));
+				cb.append(description).nl();
 			}
-			cb.append(description).nl();
+			cb.fixed().nl();
 		}
 
-		cb.fixed().nl();
-		cb.fixed().append("Listeners====================").nl();
-		for (Map.Entry<String, String> entry : listenerLines.entries()) {
-			String name = entry.getKey();
-			String description = entry.getValue();
+		if (!listenerDescriptions.isEmpty()) {
+			cb.fixed().append("Listeners====================").nl();
+			for (Map.Entry<String, String> entry : listenerDescriptions.entries()) {
+				String name = entry.getKey();
+				String description = entry.getValue();
 
-			cb.fixed().append(name);
-			for (int i = name.length(); i < longestName + 2; i++) {
-				cb.append(' ');
+				cb.fixed().append(name);
+				cb.append(repeat(" ", longestNameLength - name.length() + 2));
+				cb.append(description).nl();
 			}
-			cb.append(description).nl();
 		}
 
-		return new ChatResponse(cb.toString(), SplitStrategy.NEWLINE);
+		return new ChatResponse(cb, SplitStrategy.NEWLINE);
+	}
+
+	private static int longestStringLength(Collection<String> strings) {
+		int longestLength = 0;
+		for (String string : strings) {
+			int length = string.length();
+			if (length > longestLength) {
+				longestLength = length;
+			}
+		}
+		return longestLength;
+	}
+
+	private Multimap<String, String> getCommandDescriptions() {
+		Multimap<String, String> descriptions = TreeMultimap.create();
+		for (Command command : commands) {
+			String name = command.name();
+			if (name == null) {
+				continue;
+			}
+
+			descriptions.put(name, command.description());
+		}
+		return descriptions;
+	}
+
+	private Multimap<String, String> getListenerDescriptions() {
+		Multimap<String, String> descriptions = TreeMultimap.create();
+		for (Listener listener : listeners) {
+			String name = listener.name();
+			if (name == null) {
+				continue;
+			}
+
+			descriptions.put(name, listener.description());
+		}
+		return descriptions;
+	}
+
+	private ChatResponse showHelpText(ChatMessage message) {
+		String commandText = message.getContent().toLowerCase();
+		List<String> helpTexts = new ArrayList<>();
+
+		for (Command command : commands) {
+			String name = command.name();
+			if (name == null) {
+				continue;
+			}
+
+			name = name.toLowerCase();
+			if (name.equals(commandText) || command.aliases().contains(commandText)) {
+				helpTexts.add(command.helpText(trigger));
+			}
+		}
+
+		for (Listener listener : listeners) {
+			String name = listener.name();
+			if (name == null) {
+				continue;
+			}
+
+			name = name.toLowerCase();
+			if (name.equals(commandText)) {
+				helpTexts.add(listener.helpText());
+			}
+		}
+
+		if (helpTexts.isEmpty()) {
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append("No command or listener exists with that name.")
+			);
+			//@formatter:on
+		}
+
+		ChatBuilder cb = new ChatBuilder();
+		cb.reply(message);
+		for (String helpText : helpTexts) {
+			cb.append(helpText).nl();
+		}
+		return new ChatResponse(cb.toString().trim(), SplitStrategy.NEWLINE);
 	}
 }

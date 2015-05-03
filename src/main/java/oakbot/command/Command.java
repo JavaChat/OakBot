@@ -27,14 +27,14 @@ public interface Command {
 
 	/**
 	 * Gets the command's description. This should be a short, one sentence
-	 * description.
+	 * description. SO markdown should not be used.
 	 * @return the description
 	 */
 	String description();
 
 	/**
 	 * Gets the command's help text. This is shown when this command is queried
-	 * with the "help" command (e.g. "help mycommand")
+	 * with the "help" command. SO markdown should not be used.
 	 * @param trigger the command trigger (for including examples in the
 	 * description)
 	 * @return the help text

@@ -2,6 +2,7 @@ package oakbot.command.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,6 +16,7 @@ import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
 import oakbot.util.DocumentWrapper;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -50,24 +52,27 @@ public class HttpCommand implements Command {
 	public String helpText(String trigger) {
 		//@formatter:off
 		return new ChatBuilder()
-		.fixed().append("Displays information about HTTP status codes and methods.  Descriptions come from the official RFC specifications.  Examples:").nl()
-		.fixed().append(trigger).append(name()).append(" 200     Displays information on HTTP 200.").nl()
-		.fixed().append(trigger).append(name()).append(" GET     Displays information on HTTP GET.").nl()
-		.fixed().append(trigger).append(name()).append(" 200 2   Displays the second paragraph of the HTTP 200 description.")
+			.append("Displays information about HTTP status codes and methods.  Descriptions come from the official RFC specifications.").nl()
+			.append("Usage: ").append(trigger).append(name()).append(" METHOD|STATUS_CODE [PARAGRAPH=1]").nl()
+			.append("Examples:").nl()
+			.append(trigger).append(name()).append(" 200").nl()
+			.append(trigger).append(name()).append(" GET").nl()
+			.append(trigger).append(name()).append(" 200 2")
 		.toString();
 		//@formatter:on
 	}
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
-		ChatBuilder cb = new ChatBuilder();
-		cb.reply(message);
-
 		String split[] = message.getContent().split("\\s+");
 		String code = split[0].toUpperCase();
 		if (code.isEmpty()) {
-			cb.append("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.");
-			return new ChatResponse(cb);
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.")
+			);
+			//@formatter:on
 		}
 
 		boolean isStatusCode = true;
@@ -77,8 +82,12 @@ public class HttpCommand implements Command {
 			element = document.element("/http/method[@name='" + code + "']");
 			if (element == null) {
 				String reply = code.matches("[0-9]+") ? "Status code not recognized." : "Method not recognized.";
-				cb.append(reply);
-				return new ChatResponse(cb);
+				//@formatter:off
+				return new ChatResponse(new ChatBuilder()
+					.reply(message)
+					.append(reply)
+				);
+				//@formatter:on
 			}
 		}
 
@@ -96,6 +105,8 @@ public class HttpCommand implements Command {
 
 		String defaultRfc = getDefaultRfc(element);
 
+		ChatBuilder cb = new ChatBuilder();
+		cb.reply(message);
 		if (paragraph == 1) {
 			String name = element.getAttribute("name");
 			String section = element.getAttribute("section");
@@ -127,7 +138,7 @@ public class HttpCommand implements Command {
 			cb.append(" (").append(paragraph + "").append("/").append(paragraphs.length + "").append(")");
 		}
 
-		return new ChatResponse(cb.toString(), SplitStrategy.WORD);
+		return new ChatResponse(cb, SplitStrategy.WORD);
 	}
 
 	private static String processSectionAnnotations(String description, String defaultRfc) {
@@ -163,12 +174,19 @@ public class HttpCommand implements Command {
 	}
 
 	private static String rfcUrl(String rfc, String section) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("http://tools.ietf.org/html/rfc").append(rfc);
-		if (section != null && !section.isEmpty()) {
-			sb.append("#section-").append(section);
+		URIBuilder uri;
+		try {
+			uri = new URIBuilder("http://tools.ietf.org/html/rfc" + rfc);
+		} catch (URISyntaxException e) {
+			//should never be thrown
+			throw new RuntimeException(e);
 		}
-		return sb.toString();
+
+		if (section != null && !section.isEmpty()) {
+			uri.setFragment("section-" + section);
+		}
+
+		return uri.toString();
 	}
 
 	private static String getDefaultRfc(Element element) {

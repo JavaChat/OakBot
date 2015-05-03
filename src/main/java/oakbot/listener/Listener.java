@@ -16,14 +16,14 @@ public interface Listener {
 
 	/**
 	 * Gets the listener's description. This should be a short, one sentence
-	 * description.
+	 * description. SO markdown should not be used.
 	 * @return the description
 	 */
 	String description();
 
 	/**
 	 * Gets the listener's help text. This is shown when this listener is
-	 * queried with the "help" command (e.g. "help listener-name")
+	 * queried with the "help" command. SO markdown should not be used.
 	 * @return the help text
 	 */
 	String helpText();

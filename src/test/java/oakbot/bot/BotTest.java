@@ -41,7 +41,7 @@ public class BotTest {
 		doThrow(new IllegalArgumentException()).when(connection).login("user", "pass");
 
 		Bot bot = new Bot.Builder().login("user", "pass").connection(connection).build();
-		bot.connect();
+		bot.connect(false);
 	}
 
 	@Ignore
@@ -81,7 +81,7 @@ public class BotTest {
 		});
 
 		Bot bot = new Bot.Builder().connection(connection).rooms(1).heartbeat(100).build();
-		bot.connect(); //TODO this call is blocking...how to test?
+		bot.connect(false); //TODO this call is blocking...how to test?
 	}
 
 	@Ignore

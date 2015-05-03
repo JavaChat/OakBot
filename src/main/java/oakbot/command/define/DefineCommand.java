@@ -82,17 +82,19 @@ public class DefineCommand implements Command {
 
 	@Override
 	public String description() {
-		return "Retrieves definitions from Merriam-Webster's online dictionary API.";
+		return "Displays word definitions from the dictionary.";
 	}
 
 	@Override
 	public String helpText(String trigger) {
-		ChatBuilder cb = new ChatBuilder();
-		cb.append("Retrieves definitions from ");
-		cb.link("Merriam-Webster's dictionary API", "http://www.dictionaryapi.com/");
-		cb.append(".  Usage: ");
-		cb.code().append(trigger).append(name()).append(" word").code();
-		return cb.toString();
+		//@formatter:off
+		return new ChatBuilder()
+			.append("Displays word definitions from the dictionary.  ")
+			.append("Definitions are retrieved from Merriam-Webster's dictionary API (http://www.dictionaryapi.com/).").nl()
+			.append("Usage: ").append(trigger).append(name()).append(" WORD").nl()
+			.append("Example: ").append(trigger).append(name()).append(" steganography")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override
@@ -103,7 +105,6 @@ public class DefineCommand implements Command {
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
 				.append("You have to type a word to see its definition... -_-")
-				.toString()
 			);
 			//@formatter:on
 		}
@@ -124,7 +125,6 @@ public class DefineCommand implements Command {
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
 				.append("Sorry, an unexpected error occurred getting the definition. >.>")
-				.toString()
 			);
 			//@formatter:on
 		}
@@ -134,7 +134,6 @@ public class DefineCommand implements Command {
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
 				.append("No definitions found.")
-				.toString()
 			);
 			//@formatter:on
 		}

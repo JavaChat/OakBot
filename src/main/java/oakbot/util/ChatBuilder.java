@@ -164,6 +164,16 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
+	 * Appends a number.
+	 * @param i the number to append
+	 * @return this
+	 */
+	public ChatBuilder append(int i) {
+		sb.append(i);
+		return this;
+	}
+
+	/**
 	 * Appends a raw string.
 	 * @param text the string to append
 	 * @return this
