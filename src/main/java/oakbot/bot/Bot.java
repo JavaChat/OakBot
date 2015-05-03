@@ -144,9 +144,13 @@ public class Bot {
 	private List<ChatResponse> handleListeners(ChatMessage message, boolean isAdmin) {
 		List<ChatResponse> replies = new ArrayList<>();
 		for (Listener listener : listeners) {
-			ChatResponse reply = listener.onMessage(message, isAdmin);
-			if (reply != null) {
-				replies.add(reply);
+			try {
+				ChatResponse reply = listener.onMessage(message, isAdmin);
+				if (reply != null) {
+					replies.add(reply);
+				}
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "An error occurred responding to a message.", e);
 			}
 		}
 		return replies;
@@ -170,22 +174,27 @@ public class Bot {
 		String commandName = matcher.group(1);
 		List<Command> commands = getCommands(commandName);
 		if (commands.isEmpty()) {
-			//@formatter:off
-			ChatResponse reply = new ChatResponse(new ChatBuilder()
-				.reply(message)
-				.append("I don't know that command. o_O  Type ")
-				.code(trigger + "help")
-				.append(" to see my commands.")
-			);
-			//@formatter:on
-			return Arrays.asList(reply);
+			return Collections.emptyList();
+//			//@formatter:off
+//			ChatResponse reply = new ChatResponse(new ChatBuilder()
+//				.reply(message)
+//				.append("I don't know that command. o_O  Type ")
+//				.code(trigger + "help")
+//				.append(" to see my commands.")
+//			);
+//			//@formatter:on
+			//			return Arrays.asList(reply);
 		}
 
 		List<ChatResponse> replies = new ArrayList<>(1);
 		for (Command command : commands) {
-			ChatResponse reply = command.onMessage(message, isAdmin);
-			if (reply != null) {
-				replies.add(reply);
+			try {
+				ChatResponse reply = command.onMessage(message, isAdmin);
+				if (reply != null) {
+					replies.add(reply);
+				}
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "An error occurred responding to a command.", e);
 			}
 		}
 		return replies;
