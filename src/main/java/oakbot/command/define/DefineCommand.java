@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -30,6 +29,9 @@ import org.w3c.dom.Text;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+
+import com.google.common.escape.Escaper;
+import com.google.common.net.UrlEscapers;
 
 /**
  * Gets word definitions from urbandictionary.com
@@ -111,7 +113,8 @@ public class DefineCommand implements Command {
 
 		List<Definition> definitions;
 		try {
-			URIBuilder b = new URIBuilder("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/" + URLEncoder.encode(word, "UTF-8"));
+			Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
+			URIBuilder b = new URIBuilder("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/" + escaper.escape(word));
 			b.addParameter("key", apiKey);
 			String url = b.toString();
 
