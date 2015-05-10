@@ -27,6 +27,7 @@ import oakbot.command.AboutCommand;
 import oakbot.command.Command;
 import oakbot.command.HelpCommand;
 import oakbot.command.ShutdownCommand;
+import oakbot.command.WikiCommand;
 import oakbot.command.define.DefineCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
@@ -90,6 +91,7 @@ public class Main {
 		commands.add(new HelpCommand(commands, listeners, props.getTrigger()));
 		commands.add(javadocCommand);
 		commands.add(new HttpCommand());
+		commands.add(new WikiCommand());
 		commands.add(new UrbanCommand());
 		String dictionaryKey = props.getDictionaryKey();
 		if (dictionaryKey != null) {
