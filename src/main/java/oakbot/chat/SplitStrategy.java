@@ -151,5 +151,5 @@ public enum SplitStrategy {
 		return _split(message, maxLength);
 	}
 
-	protected abstract List<String> _split(String message, int maxLenght);
+	protected abstract List<String> _split(String message, int maxLength);
 }
