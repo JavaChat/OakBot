@@ -56,6 +56,26 @@ public class SplitStrategyTest {
 	}
 
 	@Test
+	public void word_with_markdown_section_that_exceeds_max_length() {
+		List<String> actual = SplitStrategy.WORD.split("Java is a general-purpose computer programming language that is concurrent, class-based, object-oriented, and specifically designed to have **as few implementation dependencies as possible**.", 30);
+		//@formatter:off
+		List<String> expected = Arrays.asList(
+			"Java is a general-purpose ...",
+			"computer programming ...",
+			"language that is ...",
+			"concurrent, class-based, ...",
+			"object-oriented, and ...",
+			"specifically designed to ...",
+			"have ...",
+			"**as few implementation ...",
+			"dependencies as ...",
+			"possible**."
+		);
+		//@formatter:on
+		assertEquals(expected, actual);
+	}
+
+	@Test
 	public void newline() {
 		List<String> actual = SplitStrategy.NEWLINE.split("Java is a general-purpose computer programming language that is\nconcurrent, class-based, object-oriented, and specifically designed to have as few implementation dependencies as possible.", 100);
 		//@formatter:off
