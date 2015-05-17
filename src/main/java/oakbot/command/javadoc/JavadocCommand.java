@@ -409,7 +409,7 @@ public class JavadocCommand implements Command {
 				signature = sb.toString();
 			}
 
-			cb.nl().append(count + "").append(". ").append(signature);
+			cb.nl().append(count).append(". ").append(signature);
 			prevChoices.add(signature);
 			count++;
 		}
@@ -435,7 +435,7 @@ public class JavadocCommand implements Command {
 
 		int count = 1;
 		for (String name : choices) {
-			cb.nl().append(count + "").append(". ").append(name);
+			cb.nl().append(count).append(". ").append(name);
 			count++;
 		}
 

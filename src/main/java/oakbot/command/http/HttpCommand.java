@@ -135,7 +135,7 @@ public class HttpCommand implements Command {
 		String paragraphText = paragraphs[paragraph - 1];
 		cb.append(paragraphText);
 		if (paragraphs.length > 1) {
-			cb.append(" (").append(paragraph + "").append("/").append(paragraphs.length + "").append(")");
+			cb.append(" (").append(paragraph).append("/").append(paragraphs.length).append(")");
 		}
 
 		return new ChatResponse(cb, SplitStrategy.WORD);

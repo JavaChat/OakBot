@@ -124,7 +124,7 @@ public class ChatBuilder implements CharSequence {
 	 * @return this
 	 */
 	public ChatBuilder reply(ChatMessage message) {
-		return append(':').append(message.getMessageId() + "").append(' ');
+		return append(':').append(message.getMessageId()).append(' ');
 	}
 
 	/**
@@ -170,6 +170,16 @@ public class ChatBuilder implements CharSequence {
 	 */
 	public ChatBuilder append(int i) {
 		sb.append(i);
+		return this;
+	}
+	
+	/**
+	 * Appends a number.
+	 * @param l the number to append
+	 * @return this
+	 */
+	public ChatBuilder append(long l) {
+		sb.append(l);
 		return this;
 	}
 
