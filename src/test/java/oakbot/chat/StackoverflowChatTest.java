@@ -10,9 +10,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -34,13 +32,13 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -48,9 +46,6 @@ import org.mockito.stubbing.Answer;
  * @author Michael Angstadt
  */
 public class StackoverflowChatTest {
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
 	@BeforeClass
 	public static void beforeClass() {
 		//turn off logging
@@ -89,8 +84,12 @@ public class StackoverflowChatTest {
 		});
 
 		StackoverflowChat chat = new StackoverflowChat(client);
-		thrown.expect(IllegalArgumentException.class);
-		chat.login("email@example.com", "password");
+		try {
+			chat.login("email@example.com", "password");
+			fail();
+		} catch (IllegalArgumentException e) {
+			//expected
+		}
 
 		verify(client, times(2)).execute(any(HttpUriRequest.class));
 	}
@@ -237,11 +236,11 @@ public class StackoverflowChatTest {
 					assertTrue(diff >= 500); //should sleep before retrying
 
 					//@formatter:off
-			return response(200,
-			"{\"events\":[" +
-				"{\"event_type\":1,\"time_stamp\":1417041460,\"content\":\"message 1\",\"user_id\":50,\"user_name\":\"User1\",\"room_id\":1,\"message_id\":20157245}" +
-			"]}");
-			//@formatter:on
+					return response(200,
+					"{\"events\":[" +
+						"{\"event_type\":1,\"time_stamp\":1417041460,\"content\":\"message 1\",\"user_id\":50,\"user_name\":\"User1\",\"room_id\":1,\"message_id\":20157245}" +
+					"]}");
+					//@formatter:on
 				}
 
 				return super.answer(method, uri, body);
@@ -532,18 +531,11 @@ public class StackoverflowChatTest {
 		}
 
 		protected HttpResponse response(int statusCode, String body) throws IOException {
-			HttpEntity entity = null;
-			if (body != null) {
-				entity = mock(HttpEntity.class);
-				when(entity.getContent()).thenReturn(new ByteArrayInputStream(body.getBytes()));
-			}
-
+			HttpEntity entity = new StringEntity(body);
 			StatusLine statusLine = new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), statusCode, "");
 
-			HttpResponse response = mock(HttpResponse.class);
-			when(response.getEntity()).thenReturn(entity);
-			when(response.getStatusLine()).thenReturn(statusLine);
-
+			HttpResponse response = new BasicHttpResponse(statusLine);
+			response.setEntity(entity);
 			return response;
 		}
 

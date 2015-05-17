@@ -20,10 +20,13 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.net.ssl.SSLHandshakeException;
+
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
+import org.apache.http.ParseException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -197,7 +200,7 @@ public class StackoverflowChat implements ChatConnection {
 	 */
 	private String parseFkey(String url) throws IOException {
 		HttpGet request = new HttpGet(url);
-		HttpResponse response = executeWithRetries(request, null);
+		HttpResponse response = executeWithRetries(request);
 		String html = EntityUtils.toString(response.getEntity());
 		Matcher m = fkeyRegex.matcher(html);
 		return m.find() ? m.group(1) : null;
@@ -218,16 +221,23 @@ public class StackoverflowChat implements ChatConnection {
 		return fkey;
 	}
 
+	/**
+	 * Executes an HTTP request whose response is expected to be JSON. The
+	 * request is retried if it fails.
+	 * @param request the request to send
+	 * @return the parsed JSON response
+	 * @throws IOException if there was an I/O error
+	 */
 	private JsonNode executeWithRetriesJson(HttpUriRequest request) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		while (true) {
-			HttpResponse response = executeWithRetries(request, null);
+			HttpResponse response = executeWithRetries(request);
 			try {
 				return mapper.readTree(response.getEntity().getContent());
 			} catch (JsonParseException e) {
 				//make the request again if a non-JSON response is returned
-				logger.log(Level.SEVERE, "Could not parse JSON response.  Retrying the request in " + retryPause + "ms.", e);
+				logger.log(Level.SEVERE, "Could not parse the response as a JSON object.  Retrying the request in " + retryPause + "ms.", e);
 				try {
 					Thread.sleep(retryPause);
 				} catch (InterruptedException e2) {
@@ -241,13 +251,11 @@ public class StackoverflowChat implements ChatConnection {
 	 * Executes an HTTP request, retrying after a short pause if the request
 	 * fails.
 	 * @param request the request to send
-	 * @param numRetries the number of times to retry the request if it fails,
-	 * or null to retry forever
 	 * @return the HTTP response
 	 * @throws IOException if there was an I/O error
 	 */
-	private HttpResponse executeWithRetries(HttpUriRequest request, Integer numRetries) throws IOException {
-		return executeWithRetries(request, numRetries, null);
+	private HttpResponse executeWithRetries(HttpUriRequest request) throws IOException {
+		return executeWithRetries(request, null, null);
 	}
 
 	/**
@@ -285,28 +293,16 @@ public class StackoverflowChat implements ChatConnection {
 			HttpResponse response;
 			try {
 				response = client.execute(request);
-			} catch (NoHttpResponseException e) {
-				logger.log(Level.SEVERE, "No HTTP response received from request " + request.getURI() + ".", e);
-				continue;
-			} catch (SocketException e) {
-				logger.log(Level.SEVERE, "SocketException thrown from request " + request.getURI() + ".", e);
-				continue;
-			} catch (ConnectTimeoutException e) {
-				logger.log(Level.SEVERE, "ConnectTimeoutException thrown from request " + request.getURI() + ".", e);
+			} catch (NoHttpResponseException | SocketException | ConnectTimeoutException | SSLHandshakeException e) {
+				logger.log(Level.SEVERE, e.getClass().getSimpleName() + " thrown from request " + request.getURI() + ".", e);
 				continue;
 			}
 
 			int actualStatusCode = response.getStatusLine().getStatusCode();
 			if (actualStatusCode == 409) {
 				//"You can perform this action again in 2 seconds"
-				String body = EntityUtils.toString(response.getEntity());
-				logger.fine("409 response received: " + body);
-				Pattern p = Pattern.compile("\\d+");
-				Matcher m = p.matcher(body);
-				if (m.find()) {
-					int seconds = Integer.parseInt(m.group(0));
-					sleep = TimeUnit.SECONDS.toMillis(seconds);
-				}
+				Long sleepValue = parse409Response(response);
+				sleep = (sleepValue == null) ? 5000 : sleepValue;
 				continue;
 			}
 
@@ -324,6 +320,31 @@ public class StackoverflowChat implements ChatConnection {
 			return response;
 		}
 		return null;
+	}
+
+	/**
+	 * Parses an HTTP 409 response, which indicates that the bot is sending
+	 * messages too quickly.
+	 * @param response the HTTP response
+	 * @return the amount of time (in milliseconds) the bot must wait before SO
+	 * Chat will continue to accept chat messages or null if this value could
+	 * not be parsed from the response
+	 * @throws ParseException
+	 * @throws IOException
+	 */
+	private Long parse409Response(HttpResponse response) throws ParseException, IOException {
+		//"You can perform this action again in 2 seconds"
+		String body = EntityUtils.toString(response.getEntity());
+		logger.fine("409 response received: " + body);
+
+		Pattern p = Pattern.compile("\\d+");
+		Matcher m = p.matcher(body);
+		if (!m.find()) {
+			return null;
+		}
+
+		int seconds = Integer.parseInt(m.group(0));
+		return TimeUnit.SECONDS.toMillis(seconds);
 	}
 
 	@Override
