@@ -14,7 +14,7 @@ import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
-import oakbot.util.DocumentWrapper;
+import oakbot.util.XPathWrapper;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.w3c.dom.Document;
@@ -26,12 +26,12 @@ import org.xml.sax.SAXException;
  * @author Michael Angstadt
  */
 public class HttpCommand implements Command {
-	private final DocumentWrapper document;
+	private final Document document;
+	private final XPathWrapper xpath = new XPathWrapper();
 
 	public HttpCommand() {
 		try (InputStream in = getClass().getResourceAsStream("http.xml")) {
-			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
-			this.document = new DocumentWrapper(document);
+			this.document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
 		} catch (IOException | SAXException | ParserConfigurationException e) {
 			//these should never be thrown because the XML is on the classpath
 			throw new RuntimeException(e);
@@ -76,10 +76,10 @@ public class HttpCommand implements Command {
 		}
 
 		boolean isStatusCode = true;
-		Element element = document.element("/http/statusCode[@code='" + code + "']");
+		Element element = xpath.element("/http/statusCode[@code='" + code + "']", document);
 		if (element == null) {
 			isStatusCode = false;
-			element = document.element("/http/method[@name='" + code + "']");
+			element = xpath.element("/http/method[@name='" + code + "']", document);
 			if (element == null) {
 				String reply = code.matches("[0-9]+") ? "Status code not recognized." : "Method not recognized.";
 				//@formatter:off

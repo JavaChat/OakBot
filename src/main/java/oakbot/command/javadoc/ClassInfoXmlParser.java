@@ -2,7 +2,7 @@ package oakbot.command.javadoc;
 
 import java.util.Arrays;
 
-import oakbot.util.DocumentWrapper;
+import oakbot.util.XPathWrapper;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -12,7 +12,8 @@ import org.w3c.dom.Element;
  * @author Michael Angstadt
  */
 public class ClassInfoXmlParser {
-	private final DocumentWrapper document;
+	private final Document document;
+	private final XPathWrapper xpath = new XPathWrapper();
 	private final LibraryZipFile zipFile;
 
 	/**
@@ -20,7 +21,7 @@ public class ClassInfoXmlParser {
 	 * @param zipFile the ZIP file the class belongs to
 	 */
 	public ClassInfoXmlParser(Document document, LibraryZipFile zipFile) {
-		this.document = new DocumentWrapper(document);
+		this.document = document;
 		this.zipFile = zipFile;
 	}
 
@@ -33,7 +34,7 @@ public class ClassInfoXmlParser {
 		builder.zipFile(zipFile);
 
 		//class name
-		Element classElement = document.element("/class");
+		Element classElement = xpath.element("/class", document);
 		String fullName = classElement.getAttribute("fullName");
 		String simpleName = classElement.getAttribute("simpleName");
 		builder.name(fullName, simpleName);
@@ -63,19 +64,19 @@ public class ClassInfoXmlParser {
 		builder.deprecated(value.isEmpty() ? false : Boolean.parseBoolean(value));
 
 		//description
-		Element element = document.element("/class/description");
+		Element element = xpath.element("/class/description", document);
 		if (element != null) {
 			builder.description(element.getTextContent());
 		}
 
 		//constructors
-		for (Element constructorElement : document.elements("/class/constructors/constructor")) {
+		for (Element constructorElement : xpath.elements("/class/constructors/constructor", document)) {
 			MethodInfo info = parseConstructor(constructorElement, simpleName);
 			builder.method(info);
 		}
 
 		//methods
-		for (Element methodElement : document.elements("/class/methods/method")) {
+		for (Element methodElement : xpath.elements("/class/methods/method", document)) {
 			MethodInfo method = parseMethod(methodElement);
 			builder.method(method);
 		}
@@ -96,7 +97,7 @@ public class ClassInfoXmlParser {
 		}
 
 		//description
-		Element descriptionElement = document.element("description", element);
+		Element descriptionElement = xpath.element("description", element);
 		if (descriptionElement != null) {
 			builder.description(descriptionElement.getTextContent());
 		}
@@ -106,7 +107,7 @@ public class ClassInfoXmlParser {
 		builder.deprecated(value.isEmpty() ? false : Boolean.parseBoolean(value));
 
 		//parameters
-		for (Element parameterElement : document.elements("parameters/parameter", element)) {
+		for (Element parameterElement : xpath.elements("parameters/parameter", element)) {
 			ParameterInfo parameter = parseParameter(parameterElement);
 			builder.parameter(parameter);
 		}
@@ -127,7 +128,7 @@ public class ClassInfoXmlParser {
 		}
 
 		//description
-		Element descriptionElement = document.element("description", element);
+		Element descriptionElement = xpath.element("description", element);
 		if (descriptionElement != null) {
 			builder.description(descriptionElement.getTextContent());
 		}
@@ -143,7 +144,7 @@ public class ClassInfoXmlParser {
 		builder.deprecated(value.isEmpty() ? false : Boolean.parseBoolean(value));
 
 		//parameters
-		for (Element parameterElement : document.elements("parameters/parameter", element)) {
+		for (Element parameterElement : xpath.elements("parameters/parameter", element)) {
 			ParameterInfo parameter = parseParameter(parameterElement);
 			builder.parameter(parameter);
 		}

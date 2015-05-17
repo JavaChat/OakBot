@@ -1,6 +1,6 @@
 package oakbot.command.define;
 
-import static oakbot.util.XPathWrapper.it;
+import static oakbot.util.XPathWrapper.children;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -203,7 +203,7 @@ public class DefineCommand implements Command {
 	}
 
 	private String firstTextNode(Node node) {
-		for (Node child : it(node.getChildNodes())) {
+		for (Node child : children(node)) {
 			if (child instanceof Text) {
 				return child.getTextContent();
 			}
@@ -218,7 +218,7 @@ public class DefineCommand implements Command {
 		}
 
 		StringBuilder sb = new StringBuilder();
-		for (Node child : it(viNode.getChildNodes())) {
+		for (Node child : children(dtNode)) {
 			if ("aq".equals(child.getNodeName())) {
 				//don't include the author of the example (for user-contributed content)
 				continue;

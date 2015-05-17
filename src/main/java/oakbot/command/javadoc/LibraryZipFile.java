@@ -12,7 +12,7 @@ import java.util.Iterator;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import oakbot.util.DocumentWrapper;
+import oakbot.util.XPathWrapper;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,12 +41,8 @@ public class LibraryZipFile {
 			}
 
 			Element infoElement;
-			try (InputStream in = Files.newInputStream(info)) {
-				DocumentWrapper document = new DocumentWrapper(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in));
-				infoElement = document.element("/info");
-			} catch (ParserConfigurationException e) {
-				//should never be thrown
-				throw new RuntimeException(e);
+			try {
+				infoElement = parseInfo(info);
 			} catch (SAXException e) {
 				//XML parse error
 				throw new IOException(e);
@@ -72,6 +68,17 @@ public class LibraryZipFile {
 
 			String version = infoElement.getAttribute("version");
 			this.version = version.isEmpty() ? null : version;
+		}
+	}
+
+	private Element parseInfo(Path path) throws IOException, SAXException {
+		try (InputStream in = Files.newInputStream(path)) {
+			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
+			XPathWrapper xpath = new XPathWrapper();
+			return xpath.element("/info", document);
+		} catch (ParserConfigurationException e) {
+			//should never be thrown
+			throw new RuntimeException(e);
 		}
 	}
 

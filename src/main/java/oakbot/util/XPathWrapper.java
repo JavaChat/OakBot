@@ -8,6 +8,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -65,13 +66,39 @@ public class XPathWrapper {
 	}
 
 	/**
-	 * Evaluates an expression, returning a {@link NodeList}.
+	 * Evaluates an expression, returning a {@link Element}.
+	 * @param expression the expression to evaluate
+	 * @param node the parent node
+	 * @return the element or null if not found
+	 */
+	public Element element(String expression, Object node) {
+		return (Element) node(expression, node);
+	}
+
+	/**
+	 * Evaluates an expression, returning an iterable collection of {@link Node}
+	 * s.
 	 * @param expression the expression to evaluate
 	 * @param node the parent node
 	 * @return the node list
 	 */
 	public Iterable<Node> nodelist(String expression, Object node) {
-		return it((NodeList) eval(expression, node, XPathConstants.NODESET));
+		return it(_nodeList(expression, node));
+	}
+
+	/**
+	 * Evaluates an expression, returning an iterable collection of
+	 * {@link Element}s.
+	 * @param expression the expression to evaluate
+	 * @param node the parent node
+	 * @return the node or null if not found
+	 */
+	public Iterable<Element> elements(String expression, Object node) {
+		return it(_nodeList(expression, node), Element.class);
+	}
+
+	private NodeList _nodeList(String expression, Object node) {
+		return (NodeList) eval(expression, node, XPathConstants.NODESET);
 	}
 
 	/**
@@ -83,12 +110,32 @@ public class XPathWrapper {
 	}
 
 	/**
+	 * Returns an iterable collection containing the children of a {@link Node}.
+	 * @param node the parent node
+	 * @return the children
+	 */
+	public static Iterable<Node> children(Node node) {
+		return it(node.getChildNodes());
+	}
+
+	/**
 	 * Allows {@link NodeList} objects to be used in foreach loops.
 	 * @param list the node list
 	 * @return the iterable instance
 	 */
-	public static Iterable<Node> it(final NodeList list) {
-		final Iterator<Node> it = new Iterator<Node>() {
+	private static Iterable<Node> it(NodeList list) {
+		return it(list, Node.class);
+	}
+
+	/**
+	 * Allows {@link NodeList} objects to be used in foreach loops.
+	 * @param list the node list
+	 * @param clazz the class to cast each {@link Node} in the {@link NodeList}
+	 * as.
+	 * @return the iterable instance
+	 */
+	private static <T extends Node> Iterable<T> it(final NodeList list, final Class<T> clazz) {
+		final Iterator<T> it = new Iterator<T>() {
 			private int cur = 0;
 
 			@Override
@@ -97,14 +144,14 @@ public class XPathWrapper {
 			}
 
 			@Override
-			public Node next() {
-				return list.item(cur++);
+			public T next() {
+				return clazz.cast(list.item(cur++));
 			}
 		};
 
-		return new Iterable<Node>() {
+		return new Iterable<T>() {
 			@Override
-			public Iterator<Node> iterator() {
+			public Iterator<T> iterator() {
 				return it;
 			}
 		};
