@@ -40,7 +40,7 @@ public class WikiCommand implements Command {
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
 				.append("Please specify the term you'd like to display.")
-			.toString());
+			);
 			//@formatter:on
 		}
 
@@ -50,7 +50,7 @@ public class WikiCommand implements Command {
 		return new ChatResponse(new ChatBuilder()
 			.reply(message)
 			.append(url)
-		.toString());
+		);
 		//@formatter:on
 	}
 }
