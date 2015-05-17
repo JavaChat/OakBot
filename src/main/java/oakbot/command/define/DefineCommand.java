@@ -218,7 +218,7 @@ public class DefineCommand implements Command {
 		}
 
 		StringBuilder sb = new StringBuilder();
-		for (Node child : children(dtNode)) {
+		for (Node child : children(viNode)) {
 			if ("aq".equals(child.getNodeName())) {
 				//don't include the author of the example (for user-contributed content)
 				continue;
