@@ -169,7 +169,7 @@ public class DefineCommandTest {
 		DefineCommand urban = new DefineCommand("theKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand+piano?key=theKey", url);
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand%20piano?key=theKey", url);
 				return new ByteArrayInputStream("<entry_list/>".getBytes());
 			}
 		};
