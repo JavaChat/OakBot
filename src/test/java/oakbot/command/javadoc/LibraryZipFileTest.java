@@ -11,9 +11,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import oakbot.command.javadoc.ClassInfo;
-import oakbot.command.javadoc.LibraryZipFile;
-
 import org.junit.Test;
 
 /**
@@ -53,6 +50,23 @@ public class LibraryZipFileTest {
 		assertEquals("8", zip.getVersion());
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/", zip.getBaseUrl());
 		assertEquals("http://java.oracle.com", zip.getProjectUrl());
+	}
+
+	@Test
+	public void getUrl() {
+		ClassInfo info = new ClassInfo.Builder().name("java.util.List", "List").build();
+		assertEquals("https://docs.oracle.com/javase/8/docs/api/java/util/List.html", zip.getUrl(info));
+		assertEquals("https://docs.oracle.com/javase/8/docs/api/index.html?java/util/List.html", zip.getFrameUrl(info));
+	}
+
+	@Test
+	public void getUrl_javadocUrlPattern() throws Exception {
+		Path file = root.resolve(getClass().getSimpleName() + "-javadocUrlPattern.zip");
+		LibraryZipFile zip = new LibraryZipFile(file);
+
+		ClassInfo info = new ClassInfo.Builder().name("android.app.Application", "Application").build();
+		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getUrl(info));
+		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getFrameUrl(info));
 	}
 
 	@Test

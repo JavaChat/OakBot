@@ -8,6 +8,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -27,8 +29,9 @@ public class LibraryZipFile {
 	private static final String extension = ".xml";
 	private static final String infoFileName = "info" + extension;
 
+	private final Pattern javadocUrlPatternFieldRegex = Pattern.compile("\\{(.*?)(\\s+(.*?))?\\}");
 	private final Path file;
-	private final String baseUrl, name, version, projectUrl;
+	private final String baseUrl, name, version, projectUrl, javadocUrlPattern;
 
 	public LibraryZipFile(Path file) throws IOException {
 		this.file = file.toRealPath();
@@ -36,7 +39,7 @@ public class LibraryZipFile {
 		try (FileSystem fs = FileSystems.newFileSystem(file, null)) {
 			Path info = fs.getPath("/" + infoFileName);
 			if (!Files.exists(info)) {
-				baseUrl = name = version = projectUrl = null;
+				baseUrl = name = version = projectUrl = javadocUrlPattern = null;
 				return;
 			}
 
@@ -49,7 +52,7 @@ public class LibraryZipFile {
 			}
 
 			if (infoElement == null) {
-				baseUrl = name = version = projectUrl = null;
+				baseUrl = name = version = projectUrl = javadocUrlPattern = null;
 				return;
 			}
 
@@ -68,6 +71,9 @@ public class LibraryZipFile {
 
 			String version = infoElement.getAttribute("version");
 			this.version = version.isEmpty() ? null : version;
+
+			String javadocUrlPattern = infoElement.getAttribute("javadocUrlPattern");
+			this.javadocUrlPattern = javadocUrlPattern.isEmpty() ? null : javadocUrlPattern;
 		}
 	}
 
@@ -88,6 +94,10 @@ public class LibraryZipFile {
 	 * @return the URL or null if no base URL was given
 	 */
 	public String getFrameUrl(ClassInfo info) {
+		if (javadocUrlPattern != null) {
+			return javadocUrlPattern(info);
+		}
+
 		if (baseUrl == null) {
 			return null;
 		}
@@ -100,10 +110,42 @@ public class LibraryZipFile {
 	 * @return the URL or null if no base URL was given
 	 */
 	public String getUrl(ClassInfo info) {
+		if (javadocUrlPattern != null) {
+			return javadocUrlPattern(info);
+		}
+
 		if (baseUrl == null) {
 			return null;
 		}
 		return baseUrl + info.getName().getFullyQualified().replace('.', '/') + ".html";
+	}
+
+	private String javadocUrlPattern(ClassInfo info) {
+		Matcher m = javadocUrlPatternFieldRegex.matcher(javadocUrlPattern);
+		StringBuffer sb = new StringBuffer();
+		while (m.find()) {
+			String field = m.group(1);
+			String replacement;
+			switch (field) {
+			case "baseUrl":
+				replacement = baseUrl;
+				break;
+			case "full":
+				replacement = info.getName().getFullyQualified();
+				String delimitor = m.group(3);
+				if (delimitor != null) {
+					replacement = replacement.replace(".", delimitor);
+				}
+				break;
+			default:
+				replacement = "";
+				break;
+			}
+
+			m.appendReplacement(sb, replacement);
+		}
+		m.appendTail(sb);
+		return sb.toString();
 	}
 
 	/**
