@@ -26,6 +26,7 @@ import oakbot.chat.StackoverflowChat;
 import oakbot.command.AboutCommand;
 import oakbot.command.Command;
 import oakbot.command.HelpCommand;
+import oakbot.command.RollCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.TagCommand;
 import oakbot.command.WikiCommand;
@@ -99,6 +100,7 @@ public class Main {
 		if (dictionaryKey != null) {
 			commands.add(new DefineCommand(dictionaryKey));
 		}
+		commands.add(new RollCommand());
 		commands.add(new ShutdownCommand());
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
