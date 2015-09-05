@@ -1,6 +1,8 @@
 package oakbot.command;
 
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
@@ -11,6 +13,7 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class RollCommand implements Command {
+	private final Pattern diceRegex = Pattern.compile("^(\\d+)d(\\d+)$", Pattern.CASE_INSENSITIVE);
 	private final Random random = new Random();
 
 	@Override
@@ -28,82 +31,43 @@ public class RollCommand implements Command {
 		//@formatter:off
 		return new ChatBuilder()
 			.append("Rolls a variable-sided die or makes a choice.").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" [SIDES=6] [TIMES=1]").nl()
+			.append("Usage: ").append(trigger).append(name()).append(" <TIMES>d<SIDES>").nl()
 			.append("Usage: ").append(trigger).append(name()).append(" choice1 choice2 ... choiceN").nl()
-			.append("Example: ").append(trigger).append(name()).nl()
-			.append("Example: ").append(trigger).append(name()).append(" 20").nl()
-			.append("Example: ").append(trigger).append(name()).append(" 20 5").nl()
-			.append("Example: ").append(trigger).append(name()).append(" java scala c#")
+			.append("Examples").nl()
+			.append("Roll a six-sided die: ").append(trigger).append(name()).nl()
+			.append("Roll two twenty-sided dice: ").append(trigger).append(name()).append(" 2d20").nl()
+			.append("Pick a choice: ").append(trigger).append(name()).append(" java scala c#")
 		.toString();
 		//@formatter:on
 	}
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
-		ChatResponse response = choiceRoll(message);
-		if (response != null) {
-			return response;
+		Parameters parameters = parseParameters(message);
+		if (parameters.choices != null) {
+			int index = random.nextInt(parameters.choices.length);
+			String choice = parameters.choices[index];
+
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append(choice)
+			);
+			//@formatter:on
 		}
 
-		return diceRoll(message);
-	}
-
-	private ChatResponse choiceRoll(ChatMessage message) {
-		String content = message.getContent().trim();
-		if (content.isEmpty()) {
-			//no words specified, do a dice roll
-			return null;
+		if (parameters.times > 100) {
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(message)
+				.append("I'm sorry, I can't do that, Dave.")
+			);
+			//@formatter:on
 		}
 
-		String[] words = getParameters(content);
-		if (isNumber(words[0]) && (words.length < 2 || isNumber(words[1]))) {
-			//first two words are numbers, which means it's a dice roll
-			return null;
-		}
-
-		int index = random.nextInt(words.length);
-		String word = words[index];
-
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(message)
-			.append(word)
-		);
-		//@formatter:on
-
-	}
-
-	private boolean isNumber(String value) {
-		return value.matches("\\d+");
-	}
-
-	private ChatResponse diceRoll(ChatMessage message) {
-		int sides = 6;
-		int times = 1;
-		String content = message.getContent().trim();
-		if (!content.isEmpty()) {
-			String split[] = getParameters(content);
-
-			if (split.length > 0) {
-				try {
-					sides = Integer.parseInt(split[0]);
-				} catch (NumberFormatException e) {
-					//ignore
-				}
-			}
-
-			if (split.length > 1) {
-				try {
-					times = Integer.parseInt(split[1]);
-				} catch (NumberFormatException e) {
-					//ignore
-				}
-			}
-		}
-
-		int results[] = new int[times];
-		for (int i = 0; i < times; i++) {
-			results[i] = random.nextInt(sides) + 1;
+		int results[] = new int[parameters.times];
+		for (int i = 0; i < parameters.times; i++) {
+			results[i] = random.nextInt(parameters.sides) + 1;
 		}
 
 		ChatBuilder cb = new ChatBuilder().reply(message);
@@ -120,7 +84,38 @@ public class RollCommand implements Command {
 		return new ChatResponse(cb);
 	}
 
-	private String[] getParameters(String content) {
-		return content.split("\\s+");
+	private Parameters parseParameters(ChatMessage message) {
+		String content = message.getContent().trim();
+		if (content.isEmpty()) {
+			//roll 6-sided die
+			return new Parameters(1, 6);
+		}
+
+		Matcher m = diceRegex.matcher(content);
+		if (m.find()) {
+			int times = Integer.parseInt(m.group(1));
+			int sides = Integer.parseInt(m.group(2));
+			return new Parameters(times, sides);
+		}
+
+		String[] words = content.split("[\\s,]+");
+		return new Parameters(words);
+	}
+
+	private class Parameters {
+		private final int times, sides;
+		private final String[] choices;
+
+		public Parameters(int times, int sides) {
+			this.times = times;
+			this.sides = sides;
+			this.choices = null;
+		}
+
+		public Parameters(String[] choices) {
+			this.sides = 0;
+			this.times = 0;
+			this.choices = choices;
+		}
 	}
 }
