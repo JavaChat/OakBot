@@ -34,7 +34,12 @@ public class EightBallCommand implements Command {
 		"My reply is no",
 		"My sources say no",
 		"Outlook not so good",
-		"Very doubtful"
+		"Very doubtful",
+		"That's impossible",
+		"When pigs fly",
+		"Chances are lower than skynet",
+		"Are you kidding? No!",
+		"No way"
 	};
 	//@formatter:on
 
