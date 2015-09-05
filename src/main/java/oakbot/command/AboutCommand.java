@@ -47,7 +47,7 @@ public class AboutCommand implements Command {
 		ChatBuilder cb = new ChatBuilder()
 		.bold("OakBot").append(" by ").link("Michael", "http://stackoverflow.com/users/13379/michael").append(" | ")
 		.link("source code", Main.URL).append(" | ")
-		.append("built: ").append(relativeDf.format(Main.BUILT)).append(" | ")
+		.append("JAR built on: ").append(relativeDf.format(Main.BUILT)).append(" | ")
 		.append("started up: ").append(relativeDf.format(startedUp));
 		//@formatter:on
 
