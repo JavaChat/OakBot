@@ -15,6 +15,7 @@ public class EightBallCommand implements Command {
 
 	//@formatter:off
 	private final String answers[] = {
+		//positive
 		"It is certain",
 		"It is decidedly so",
 		"Without a doubt",
@@ -25,11 +26,15 @@ public class EightBallCommand implements Command {
 		"Outlook good",
 		"Yes",
 		"Signs point to yes",
+		
+		//neutral
 		"Reply hazy try again",
 		"Ask again later",
 		"Better not tell you now",
 		"Cannot predict now",
 		"Concentrate and ask again",
+		
+		//negative
 		"Don't count on it",
 		"My reply is no",
 		"My sources say no",
