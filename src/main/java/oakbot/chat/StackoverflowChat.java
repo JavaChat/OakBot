@@ -447,9 +447,15 @@ public class StackoverflowChat implements ChatConnection {
 
 				try {
 					String fkey = getFKey(room);
-
 					String url = "https://chat.stackoverflow.com/chats/" + room + "/messages/new";
-					List<String> posts = splitStrategy.split(message, MAX_MESSAGE_LENGTH);
+
+					List<String> posts;
+					if (message.contains("\n")) {
+						//messages with newlines have no length limit
+						posts = Arrays.asList(message);
+					} else {
+						posts = splitStrategy.split(message, MAX_MESSAGE_LENGTH);
+					}
 
 					for (String post : posts) {
 						send(room, url, fkey, post);
