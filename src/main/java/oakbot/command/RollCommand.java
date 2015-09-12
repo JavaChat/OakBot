@@ -65,9 +65,12 @@ public class RollCommand implements Command {
 			//@formatter:on
 		}
 
+		int total = 0;
 		int results[] = new int[parameters.times];
 		for (int i = 0; i < parameters.times; i++) {
-			results[i] = random.nextInt(parameters.sides) + 1;
+			int result = random.nextInt(parameters.sides) + 1;
+			results[i] = result;
+			total += result;
 		}
 
 		ChatBuilder cb = new ChatBuilder().reply(message);
@@ -79,6 +82,9 @@ public class RollCommand implements Command {
 				cb.append(", ");
 			}
 			cb.append(result);
+		}
+		if (results.length > 1) {
+			cb.nl().append("Total = ").append(total);
 		}
 
 		return new ChatResponse(cb);
