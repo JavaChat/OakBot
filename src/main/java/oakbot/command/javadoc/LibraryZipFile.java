@@ -216,7 +216,7 @@ public class LibraryZipFile {
 				throw new IOException(e);
 			}
 
-			return new ClassInfoXmlParser(document, this).parse();
+			return ClassInfoXmlParser.parse(document, this);
 		}
 	}
 

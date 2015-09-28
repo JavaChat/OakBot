@@ -12,26 +12,27 @@ import org.w3c.dom.Element;
  * @author Michael Angstadt
  */
 public class ClassInfoXmlParser {
-	private final Document document;
 	private final XPathWrapper xpath = new XPathWrapper();
-	private final LibraryZipFile zipFile;
 
 	/**
+	 * Parses a {@link ClassInfo} object out of the XML data.
 	 * @param document the XML document to parse
 	 * @param zipFile the ZIP file the class belongs to
+	 * @return
 	 */
-	public ClassInfoXmlParser(Document document, LibraryZipFile zipFile) {
-		this.document = document;
-		this.zipFile = zipFile;
+	public static ClassInfo parse(Document document, LibraryZipFile zipFile) {
+		ClassInfoXmlParser parser = new ClassInfoXmlParser();
+		ClassInfo.Builder builder = parser.parse(document);
+		builder.zipFile(zipFile);
+		return builder.build();
 	}
 
 	/**
 	 * Parses the {@link ClassInfo} object out of the XML data.
-	 * @return the parse object
+	 * @return the parsed object
 	 */
-	public ClassInfo parse() {
+	public ClassInfo.Builder parse(Document document) {
 		ClassInfo.Builder builder = new ClassInfo.Builder();
-		builder.zipFile(zipFile);
 
 		//class name
 		Element classElement = xpath.element("/class", document);
@@ -81,7 +82,7 @@ public class ClassInfoXmlParser {
 			builder.method(method);
 		}
 
-		return builder.build();
+		return builder;
 	}
 
 	private MethodInfo parseConstructor(Element element, String simpleName) {
