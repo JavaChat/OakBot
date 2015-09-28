@@ -3,7 +3,7 @@ package oakbot.command.javadoc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -46,45 +47,37 @@ public class JavadocDaoTest {
 	}
 
 	@Test
-	public void simpleName_single_match() throws Exception {
-		ClassInfo info = dao.getClassInfo("Collection");
-		assertEquals("java.util.Collection", info.getName().getFullyQualified());
+	public void search_multiple_results() {
+		Collection<String> names = dao.search("list");
+		Set<String> actual = new HashSet<>(names);
+		Set<String> expected = new HashSet<>(Arrays.asList("java.awt.List", "java.util.List"));
+		assertEquals(expected, actual);
 	}
 
 	@Test
-	public void simpleName_no_match() throws Exception {
-		ClassInfo info = dao.getClassInfo("FooBar");
-		assertNull(info);
+	public void search_single_result() {
+		Collection<String> names = dao.search("java.awt.list");
+		Set<String> actual = new HashSet<>(names);
+		Set<String> expected = new HashSet<>(Arrays.asList("java.awt.List"));
+		assertEquals(expected, actual);
 	}
 
 	@Test
-	public void simpleName_case_insensitive() throws Exception {
-		ClassInfo info = dao.getClassInfo("collection");
-		assertEquals("java.util.Collection", info.getName().getFullyQualified());
+	public void search_no_results() {
+		Collection<String> names = dao.search("lsit");
+		assertTrue(names.isEmpty());
 	}
 
 	@Test
-	public void simpleName_multiple_matches() throws Exception {
-		try {
-			dao.getClassInfo("List");
-			fail();
-		} catch (MultipleClassesFoundException e) {
-			Set<String> actual = new HashSet<>(e.getClasses());
-			Set<String> expected = new HashSet<>(Arrays.asList("java.awt.List", "java.util.List"));
-			assertEquals(expected, actual);
-		}
-	}
-
-	@Test
-	public void fullName() throws Exception {
+	public void getClassInfo() throws Exception {
 		ClassInfo info = dao.getClassInfo("java.util.List");
 		assertEquals("java.util.List", info.getName().getFullyQualified());
 	}
 
 	@Test
-	public void fullName_case_insensitive() throws Exception {
+	public void getClassInfo_case_sensitive() throws Exception {
 		ClassInfo info = dao.getClassInfo("java.util.list");
-		assertEquals("java.util.List", info.getName().getFullyQualified());
+		assertNull(info);
 	}
 
 	@Test
@@ -154,7 +147,7 @@ public class JavadocDaoTest {
 		Path source = root.resolve("LibraryZipFileTest.zip");
 		Path dest = dir.resolve("LibraryZipFileTest.zip");
 		Files.copy(source, dest);
-		
+
 		Thread.sleep(1500); //wait a bit before modifying the file so the timestamp is significantly different (for Macs)
 
 		JavadocDao dao = new JavadocDao(dir);

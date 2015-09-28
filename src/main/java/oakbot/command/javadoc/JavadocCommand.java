@@ -98,6 +98,7 @@ public class JavadocCommand implements Command {
 		return "javadoc";
 	}
 
+	@Override
 	public Collection<String> aliases() {
 		return Arrays.asList("javadocs");
 	}
@@ -134,18 +135,32 @@ public class JavadocCommand implements Command {
 		}
 
 		//parse the command
-		JavadocCommandArguments commandText = JavadocCommandArguments.parse(content);
+		JavadocCommandArguments arguments = JavadocCommandArguments.parse(content);
+
+		//search for the class
+		Collection<String> fullyQualifiedNames = dao.search(arguments.getClassName());
+
+		if (fullyQualifiedNames.isEmpty()) {
+			return handleNoMatch(message);
+		}
+
+		if (fullyQualifiedNames.size() > 1) {
+			return handleMultipleMatches(arguments, fullyQualifiedNames, message);
+		}
 
 		ClassInfo info;
 		try {
-			info = dao.getClassInfo(commandText.getClassName());
+			String fullyQualifiedName = fullyQualifiedNames.iterator().next();
+			info = dao.getClassInfo(fullyQualifiedName);
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
-		} catch (MultipleClassesFoundException e) {
-			return handleMultipleMatches(commandText, e.getClasses(), message);
 		}
 
-		return (info == null) ? handleNoMatch(message) : handleSingleMatch(commandText, info, message);
+		if (info == null){
+			//this should never happen, since we got the fully-qualified name from "dao.search()"
+			return handleNoMatch(message);
+		}
+		return handleSingleMatch(arguments, info, message);
 	}
 
 	private ChatResponse handleNoMatch(ChatMessage message) {
