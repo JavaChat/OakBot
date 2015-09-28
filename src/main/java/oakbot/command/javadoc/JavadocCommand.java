@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
@@ -136,11 +134,11 @@ public class JavadocCommand implements Command {
 		}
 
 		//parse the command
-		CommandTextParser commandText = new CommandTextParser(content);
+		JavadocCommandArguments commandText = JavadocCommandArguments.parse(content);
 
 		ClassInfo info;
 		try {
-			info = dao.getClassInfo(commandText.className);
+			info = dao.getClassInfo(commandText.getClassName());
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		} catch (MultipleClassesFoundException e) {
@@ -159,16 +157,16 @@ public class JavadocCommand implements Command {
 		//@formatter:on
 	}
 
-	private ChatResponse handleSingleMatch(CommandTextParser commandText, ClassInfo info, ChatMessage message) {
-		if (commandText.methodName == null) {
+	private ChatResponse handleSingleMatch(JavadocCommandArguments commandText, ClassInfo info, ChatMessage message) {
+		if (commandText.getMethodName() == null) {
 			//method name not specified, so print the class docs
-			return printClass(info, commandText.paragraph, message);
+			return printClass(info, commandText.getParagraph(), message);
 		}
 
 		//print the method docs
 		MatchingMethods matchingMethods;
 		try {
-			matchingMethods = getMatchingMethods(info, commandText.methodName, commandText.parameters);
+			matchingMethods = getMatchingMethods(info, commandText.getMethodName(), commandText.getParameters());
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		}
@@ -185,21 +183,21 @@ public class JavadocCommand implements Command {
 
 		if (matchingMethods.exactSignature != null) {
 			//an exact match was found!
-			return printMethod(matchingMethods.exactSignature, info, commandText.paragraph, message);
+			return printMethod(matchingMethods.exactSignature, info, commandText.getParagraph(), message);
 		}
 
-		if (matchingMethods.matchingName.size() == 1 && commandText.parameters == null) {
-			return printMethod(matchingMethods.matchingName.get(0), info, commandText.paragraph, message);
+		if (matchingMethods.matchingName.size() == 1 && commandText.getParameters() == null) {
+			return printMethod(matchingMethods.matchingName.get(0), info, commandText.getParagraph(), message);
 		}
 
 		//print the methods with the same name
 		Multimap<ClassInfo, MethodInfo> map = ArrayListMultimap.create();
 		map.putAll(info, matchingMethods.matchingName);
-		return printMethodChoices(map, commandText.parameters, message);
+		return printMethodChoices(map, commandText.getParameters(), message);
 	}
 
-	private ChatResponse handleMultipleMatches(CommandTextParser commandText, Collection<String> matches, ChatMessage message) {
-		if (commandText.methodName == null) {
+	private ChatResponse handleMultipleMatches(JavadocCommandArguments commandText, Collection<String> matches, ChatMessage message) {
+		if (commandText.getMethodName() == null) {
 			//user is just querying for a class, so print the class choices
 			return printClassChoices(matches, message);
 		}
@@ -212,7 +210,7 @@ public class JavadocCommand implements Command {
 		for (String className : matches) {
 			try {
 				ClassInfo classInfo = dao.getClassInfo(className);
-				MatchingMethods methods = getMatchingMethods(classInfo, commandText.methodName, commandText.parameters);
+				MatchingMethods methods = getMatchingMethods(classInfo, commandText.getMethodName(), commandText.getParameters());
 				if (methods.exactSignature != null) {
 					exactMatches.put(classInfo, methods.exactSignature);
 				}
@@ -236,7 +234,7 @@ public class JavadocCommand implements Command {
 			//a single, exact match was found!
 			MethodInfo method = exactMatches.values().iterator().next();
 			ClassInfo classInfo = exactMatches.keySet().iterator().next();
-			return printMethod(method, classInfo, commandText.paragraph, message);
+			return printMethod(method, classInfo, commandText.getParagraph(), message);
 		}
 
 		//multiple matches were found
@@ -249,7 +247,7 @@ public class JavadocCommand implements Command {
 		} else {
 			methodsToPrint = matchingNames;
 		}
-		return printMethodChoices(methodsToPrint, commandText.parameters, message);
+		return printMethodChoices(methodsToPrint, commandText.getParameters(), message);
 	}
 
 	/**
@@ -631,77 +629,6 @@ public class JavadocCommand implements Command {
 			if (count() > 1) {
 				cb.append(" (").append(num).append('/').append(count()).append(')');
 			}
-		}
-	}
-
-	/**
-	 * Parses a "=javadoc" chat command.
-	 */
-	static class CommandTextParser {
-		private final static Pattern messageRegex = Pattern.compile("(.*?)(\\((.*?)\\))?(#(.*?)(\\((.*?)\\))?)?(\\s+(.*?))?$");
-
-		private final String className, methodName;
-		private final List<String> parameters;
-		private final int paragraph;
-
-		/**
-		 * @param message the command text
-		 */
-		public CommandTextParser(String message) {
-			Matcher m = messageRegex.matcher(message);
-			m.find();
-
-			className = m.group(1);
-
-			if (m.group(2) != null) { //e.g. java.lang.string(string, string)
-				int dot = className.lastIndexOf('.');
-				String simpleName = (dot < 0) ? className : className.substring(dot + 1);
-				methodName = simpleName;
-			} else {
-				methodName = m.group(5); //e.g. java.lang.string#indexOf(int)
-			}
-
-			String parametersStr = m.group(4); //e.g. java.lang.string(string, string)
-			if (parametersStr == null || parametersStr.startsWith("#")) {
-				parametersStr = m.group(7); //e.g. java.lang.string#string(string, string)
-				if (parametersStr == null) {
-					parametersStr = m.group(3);
-				}
-			}
-			if (parametersStr == null || parametersStr.equals("*")) {
-				parameters = null;
-			} else if (parametersStr.isEmpty()) {
-				parameters = Collections.emptyList();
-			} else {
-				parameters = Arrays.asList(parametersStr.split("\\s*,\\s*"));
-			}
-
-			int paragraph;
-			try {
-				paragraph = Integer.parseInt(m.group(9));
-				if (paragraph < 1) {
-					paragraph = 1;
-				}
-			} catch (NumberFormatException e) {
-				paragraph = 1;
-			}
-			this.paragraph = paragraph;
-		}
-
-		public String getClassName() {
-			return className;
-		}
-
-		public String getMethodName() {
-			return methodName;
-		}
-
-		public List<String> getParameters() {
-			return parameters;
-		}
-
-		public int getParagraph() {
-			return paragraph;
 		}
 	}
 }

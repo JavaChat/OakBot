@@ -5,95 +5,93 @@ import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
 
-import oakbot.command.javadoc.JavadocCommand.CommandTextParser;
-
 import org.junit.Test;
 
 /**
  * @author Michael Angstadt
  */
-public class CommandTextParserTest {
+public class JavadocCommandArgumentsTest {
 	@Test
-	public void onMessage() {
-		CommandTextParser parser = new CommandTextParser("java.lang.string");
+	public void parse() {
+		JavadocCommandArguments parser = JavadocCommandArguments.parse("java.lang.string");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertNull(parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertNull(parser.getParameters());
 
-		parser = new CommandTextParser("java.lang.string#indexOf");
+		parser = JavadocCommandArguments.parse("java.lang.string#indexOf");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertNull(parser.getParameters());
 		
-		parser = new CommandTextParser("java.lang.string#indexOf(*)");
+		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(*)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertNull(parser.getParameters());
 
-		parser = new CommandTextParser("java.lang.string#indexOf()");
+		parser = JavadocCommandArguments.parse("java.lang.string#indexOf()");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList(), parser.getParameters());
 
-		parser = new CommandTextParser("java.lang.string#indexOf(int)");
+		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList("int"), parser.getParameters());
 		
-		parser = new CommandTextParser("java.lang.string#indexOf(int[])");
+		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int[])");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList("int[]"), parser.getParameters());
 		
-		parser = new CommandTextParser("java.lang.string#indexOf(int...)");
+		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int...)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList("int..."), parser.getParameters());
 
-		parser = new CommandTextParser("java.lang.string#indexOf(int, int)");
+		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int, int)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList("int", "int"), parser.getParameters());
 		
-		parser = new CommandTextParser("java.lang.string#indexOf(int, int) 2");
+		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int, int) 2");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(2, parser.getParagraph());
 		assertEquals(Arrays.asList("int", "int"), parser.getParameters());
 
-		parser = new CommandTextParser("java.lang.string#indexOf(int,int)");
+		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int,int)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList("int", "int"), parser.getParameters());
 
-		parser = new CommandTextParser("string()");
+		parser = JavadocCommandArguments.parse("string()");
 		assertEquals("string", parser.getClassName());
 		assertEquals("string", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList(), parser.getParameters());
 
-		parser = new CommandTextParser("string(string)");
+		parser = JavadocCommandArguments.parse("string(string)");
 		assertEquals("string", parser.getClassName());
 		assertEquals("string", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList("string"), parser.getParameters());
 
-		parser = new CommandTextParser("java.lang.string()");
+		parser = JavadocCommandArguments.parse("java.lang.string()");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("string", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertEquals(Arrays.asList(), parser.getParameters());
 
-		parser = new CommandTextParser("java.lang.string(string)");
+		parser = JavadocCommandArguments.parse("java.lang.string(string)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("string", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
@@ -101,20 +99,20 @@ public class CommandTextParserTest {
 	}
 
 	@Test
-	public void onMessage_invalid_paragraph() {
-		CommandTextParser parser = new CommandTextParser("java.lang.string foo");
+	public void parse_invalid_paragraph() {
+		JavadocCommandArguments parser = JavadocCommandArguments.parse("java.lang.string foo");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertNull(parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertNull(parser.getParameters());
 
-		parser = new CommandTextParser("java.lang.string -1");
+		parser = JavadocCommandArguments.parse("java.lang.string -1");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertNull(parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
 		assertNull(parser.getParameters());
 		
-		parser = new CommandTextParser("java.lang.string 1.2");
+		parser = JavadocCommandArguments.parse("java.lang.string 1.2");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertNull(parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
