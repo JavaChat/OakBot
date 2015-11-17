@@ -6,8 +6,9 @@ OakBot is a chat bot for [Stackoverflow Chat](http://chat.stackoverflow.com) tha
 
 OakBot requires Java 1.8 and uses the [Maven](http://maven.apache.org) build system.
 
-The easiest way to build it for production use is to create a fat JAR like so:  
-`mvn package assembly:single`
+The easiest way to build it for production use is to create a fat JAR like so:
+
+`mvn test assembly:single`
 
 # Deploy Instructions
 
