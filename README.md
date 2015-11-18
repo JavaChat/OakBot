@@ -22,6 +22,10 @@ OakBot requires Java 1.8 to run.
    1. The "&" at the end of the command launches the program in the background.  This is useful if you are ssh-ing into a server and need to logout after launching OakBot.
    1. Adding a `-q` after the JAR filename will launch OakBot in "quiet mode", which means it will not send a notification message to each chat room it joins when it first starts up.
 
+# statistics.properties
+
+When OakBot responds to its first command, a "statistics.properties" file will be created.  This file keeps a count of how many messages it has responded to.  It displays this statistic in the "about" command. 
+
 # bot.properties
 
 Note that OakBot must be restarted in order to pick up any changes you make to these settings.
