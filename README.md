@@ -18,7 +18,7 @@ OakBot requires Java 1.8 to run.
    1. **The OakBot fat JAR**
    1. **bot.properties** - Configures the bot.  A sample file is located in the root of this project.  See the section below descriptions of the fields that make up this file.
    1. **logging.properties** - (optional) A config file for the Java Logging API.  A sample file is located in the root of this project.
-1. Run OakBot: `java -jar name-of-oakbot-fat-jar.jar &`  
+1. Run OakBot: `java -jar oakbot-fat-jar.jar &`  
    1. The "&" at the end of the command launches the program in the background.  This is useful if you are ssh-ing into a server and need to logout after launching OakBot.
    1. Adding a `-q` after the JAR filename will launch OakBot in "quiet mode", which means it will not send a notification message to each chat room it joins when it first starts up.
 
