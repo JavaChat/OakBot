@@ -156,7 +156,7 @@ public class JavadocCommand implements Command {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		}
 
-		if (info == null){
+		if (info == null) {
 			//this should never happen, since we got the fully-qualified name from "dao.search()"
 			return handleNoMatch(message);
 		}
@@ -317,7 +317,7 @@ public class JavadocCommand implements Command {
 
 		if (paragraph == 1) {
 			//print library name
-			LibraryZipFile zipFile = classInfo.getZipFile();
+			JavadocZipFile zipFile = classInfo.getZipFile();
 			if (zipFile != null) {
 				String name = zipFile.getName();
 				if (name != null && !name.equalsIgnoreCase("java")) {
@@ -343,7 +343,7 @@ public class JavadocCommand implements Command {
 			//print signature
 			if (deprecated) cb.strike();
 			String signature = methodInfo.getSignatureString();
-			String url = classInfo.getUrl();
+			String url = classInfo.getUrl(false);
 			if (url == null) {
 				cb.bold().code(signature).bold();
 			} else {
@@ -461,7 +461,7 @@ public class JavadocCommand implements Command {
 
 		if (paragraph == 1) {
 			//print the library name
-			LibraryZipFile zipFile = info.getZipFile();
+			JavadocZipFile zipFile = info.getZipFile();
 			if (zipFile != null) {
 				String name = zipFile.getName();
 				if (name != null && !name.equalsIgnoreCase("Java")) {
@@ -502,7 +502,7 @@ public class JavadocCommand implements Command {
 			//print class name
 			if (deprecated) cb.strike();
 			String fullName = info.getName().getFullyQualified();
-			String url = info.getFrameUrl();
+			String url = info.getUrl(true);
 			if (url == null) {
 				cb.bold().code(fullName).bold();
 			} else {

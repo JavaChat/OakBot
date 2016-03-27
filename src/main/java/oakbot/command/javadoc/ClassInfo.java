@@ -9,7 +9,13 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 /**
+ * <p>
  * Holds the Javadoc info of a class.
+ * </p>
+ * <p>
+ * This class is immutable. Use its {@link Builder} class to create new
+ * instances.
+ * </p>
  * @author Michael Angstadt
  */
 public class ClassInfo {
@@ -19,7 +25,7 @@ public class ClassInfo {
 	private final Set<ClassName> interfaces;
 	private final Multimap<String, MethodInfo> methods;
 	private final boolean deprecated;
-	private final LibraryZipFile zipFile;
+	private final JavadocZipFile zipFile;
 
 	private ClassInfo(Builder builder) {
 		name = builder.name;
@@ -57,19 +63,13 @@ public class ClassInfo {
 	}
 
 	/**
-	 * Gets the URL to this class's Javadoc page (with frames).
+	 * Gets the URL to this class's Javadoc page.
+	 * @param frames true to return the version of the page with frames, false
+	 * not to
 	 * @return the URL or null if no base URL was given
 	 */
-	public String getFrameUrl() {
-		return zipFile.getFrameUrl(this);
-	}
-
-	/**
-	 * Gets the URL to this class's Javadoc page (without frames).
-	 * @return the URL or null if no base URL was given
-	 */
-	public String getUrl() {
-		return zipFile.getUrl(this);
+	public String getUrl(boolean frames) {
+		return zipFile.getUrl(this, frames);
 	}
 
 	/**
@@ -114,10 +114,10 @@ public class ClassInfo {
 	}
 
 	/**
-	 * Gets the ZIP file that the class's parsed Javadoc info is stored in.
+	 * Gets the Javadoc ZIP file that the class's info is stored in.
 	 * @return the ZIP file
 	 */
-	public LibraryZipFile getZipFile() {
+	public JavadocZipFile getZipFile() {
 		return zipFile;
 	}
 
@@ -132,7 +132,7 @@ public class ClassInfo {
 		private ImmutableSet.Builder<ClassName> interfaces = ImmutableSet.builder();
 		private ImmutableMultimap.Builder<String, MethodInfo> methods = ImmutableMultimap.builder();
 		private boolean deprecated = false;
-		private LibraryZipFile zipFile;
+		private JavadocZipFile zipFile;
 
 		public Builder name(String full, String simple) {
 			this.name = new ClassName(full, simple);
@@ -174,7 +174,7 @@ public class ClassInfo {
 			return this;
 		}
 
-		public Builder zipFile(LibraryZipFile zipFile) {
+		public Builder zipFile(JavadocZipFile zipFile) {
 			this.zipFile = zipFile;
 			return this;
 		}

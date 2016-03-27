@@ -8,21 +8,22 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
+
+import oakbot.util.CloseableIterator;
 
 import org.junit.Test;
 
 /**
  * @author Michael Angstadt
  */
-public class LibraryZipFileTest {
+public class JavadocZipFileTest {
 	private final Path root = Paths.get("src", "test", "resources", "oakbot", "command", "javadoc");
-	private final LibraryZipFile zip;
+	private final JavadocZipFile zip;
 	{
 		Path file = root.resolve(getClass().getSimpleName() + ".zip");
 		try {
-			zip = new LibraryZipFile(file);
+			zip = new JavadocZipFile(file);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -31,7 +32,7 @@ public class LibraryZipFileTest {
 	@Test
 	public void info_without_file() throws Exception {
 		Path file = root.resolve(getClass().getSimpleName() + "-no-info.zip");
-		LibraryZipFile zip = new LibraryZipFile(file);
+		JavadocZipFile zip = new JavadocZipFile(file);
 		assertNull(zip.getName());
 		assertNull(zip.getBaseUrl());
 	}
@@ -39,7 +40,7 @@ public class LibraryZipFileTest {
 	@Test
 	public void info_without_attributes() throws Exception {
 		Path file = root.resolve(getClass().getSimpleName() + "-no-attributes.zip");
-		LibraryZipFile zip = new LibraryZipFile(file);
+		JavadocZipFile zip = new JavadocZipFile(file);
 		assertNull(zip.getName());
 		assertNull(zip.getBaseUrl());
 	}
@@ -55,26 +56,27 @@ public class LibraryZipFileTest {
 	@Test
 	public void getUrl() {
 		ClassInfo info = new ClassInfo.Builder().name("java.util.List", "List").build();
-		assertEquals("https://docs.oracle.com/javase/8/docs/api/java/util/List.html", zip.getUrl(info));
-		assertEquals("https://docs.oracle.com/javase/8/docs/api/index.html?java/util/List.html", zip.getFrameUrl(info));
+		assertEquals("https://docs.oracle.com/javase/8/docs/api/java/util/List.html", zip.getUrl(info, false));
+		assertEquals("https://docs.oracle.com/javase/8/docs/api/index.html?java/util/List.html", zip.getUrl(info, true));
 	}
 
 	@Test
 	public void getUrl_javadocUrlPattern() throws Exception {
 		Path file = root.resolve(getClass().getSimpleName() + "-javadocUrlPattern.zip");
-		LibraryZipFile zip = new LibraryZipFile(file);
+		JavadocZipFile zip = new JavadocZipFile(file);
 
 		ClassInfo info = new ClassInfo.Builder().name("android.app.Application", "Application").build();
-		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getUrl(info));
-		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getFrameUrl(info));
+		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getUrl(info, false));
+		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getUrl(info, true));
 	}
 
 	@Test
 	public void getClasses() throws Exception {
-		Iterator<ClassName> it = zip.getClasses();
 		Set<String> actual = new HashSet<>();
-		while (it.hasNext()) {
-			actual.add(it.next().getFullyQualified());
+		try (CloseableIterator<ClassName> it = zip.getClasses()) {
+			while (it.hasNext()) {
+				actual.add(it.next().getFullyQualified());
+			}
 		}
 
 		//@formatter:off

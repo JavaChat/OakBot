@@ -16,11 +16,13 @@ public class ClassInfoXmlParser {
 
 	/**
 	 * Parses a {@link ClassInfo} object out of the XML data.
-	 * @param document the XML document to parse
+	 * @param document the XML document
 	 * @param zipFile the ZIP file the class belongs to
-	 * @return
+	 * @return the parsed information
+	 * @throws IllegalArgumentException if the given XML document does not have
+	 * a root {@literal <class>} element.
 	 */
-	public static ClassInfo parse(Document document, LibraryZipFile zipFile) {
+	public static ClassInfo parse(Document document, JavadocZipFile zipFile) {
 		ClassInfoXmlParser parser = new ClassInfoXmlParser();
 		ClassInfo.Builder builder = parser.parse(document);
 		builder.zipFile(zipFile);
@@ -28,14 +30,21 @@ public class ClassInfoXmlParser {
 	}
 
 	/**
-	 * Parses the {@link ClassInfo} object out of the XML data.
+	 * Parses a {@link ClassInfo} object from an XML document.
+	 * @param document the XML document
 	 * @return the parsed object
+	 * @throws IllegalArgumentException if the given XML document does not have
+	 * a root {@literal <class>} element.
 	 */
 	public ClassInfo.Builder parse(Document document) {
 		ClassInfo.Builder builder = new ClassInfo.Builder();
 
-		//class name
 		Element classElement = xpath.element("/class", document);
+		if (classElement == null) {
+			throw new IllegalArgumentException("XML file does not have a root <class> element.");
+		}
+
+		//class name
 		String fullName = classElement.getAttribute("fullName");
 		String simpleName = classElement.getAttribute("simpleName");
 		builder.name(fullName, simpleName);
@@ -79,7 +88,9 @@ public class ClassInfoXmlParser {
 		//methods
 		for (Element methodElement : xpath.elements("/class/methods/method", document)) {
 			MethodInfo method = parseMethod(methodElement);
-			builder.method(method);
+			if (method != null) {
+				builder.method(method);
+			}
 		}
 
 		return builder;
@@ -120,7 +131,11 @@ public class ClassInfoXmlParser {
 		MethodInfo.Builder builder = new MethodInfo.Builder();
 
 		//name
-		builder.name(element.getAttribute("name"));
+		String name = element.getAttribute("name");
+		if (name.isEmpty()) {
+			return null;
+		}
+		builder.name(name);
 
 		//modifiers
 		String value = element.getAttribute("modifiers");
@@ -147,7 +162,9 @@ public class ClassInfoXmlParser {
 		//parameters
 		for (Element parameterElement : xpath.elements("parameters/parameter", element)) {
 			ParameterInfo parameter = parseParameter(parameterElement);
-			builder.parameter(parameter);
+			if (parameter != null) {
+				builder.parameter(parameter);
+			}
 		}
 
 		return builder.build();
@@ -155,6 +172,9 @@ public class ClassInfoXmlParser {
 
 	private ParameterInfo parseParameter(Element element) {
 		String type = element.getAttribute("type");
+		if (type.isEmpty()) {
+			return null;
+		}
 
 		//is it an array?
 		boolean array = type.endsWith("[]");

@@ -9,7 +9,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * Contains information on a method.
+ * <p>
+ * Contains Javadoc information on a method.
+ * </p>
+ * <p>
+ * This class is immutable. Use its {@link Builder} class to create new
+ * instances.
+ * </p>
  * @author Michael Angstadt
  */
 public class MethodInfo {
@@ -139,6 +145,9 @@ public class MethodInfo {
 		return sb.toString();
 	}
 
+	/**
+	 * Builds new instances of {@link MethodInfo}.
+	 */
 	public static class Builder {
 		private String name;
 		private ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();

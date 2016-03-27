@@ -87,8 +87,8 @@ public class JavadocDaoTest {
 
 		assertNull(dao.getClassInfo("java.util.List"));
 
-		Path source = root.resolve("LibraryZipFileTest.zip");
-		Path dest = dir.resolve("LibraryZipFileTest.txt");
+		Path source = root.resolve("JavadocZipFileTest.zip");
+		Path dest = dir.resolve("JavadocZipFileTest.txt");
 		Files.copy(source, dest);
 		Thread.sleep(1000);
 		assertNull(dao.getClassInfo("java.util.List"));
@@ -101,8 +101,8 @@ public class JavadocDaoTest {
 
 		assertNull(dao.getClassInfo("java.util.List"));
 
-		Path source = root.resolve("LibraryZipFileTest.zip");
-		Path dest = dir.resolve("LibraryZipFileTest.zip");
+		Path source = root.resolve("JavadocZipFileTest.zip");
+		Path dest = dir.resolve("JavadocZipFileTest.zip");
 		Files.copy(source, dest);
 
 		//wait for the WatchService to pick up the file
@@ -119,8 +119,8 @@ public class JavadocDaoTest {
 	@Test
 	public void directory_watcher_remove() throws Exception {
 		Path dir = temporaryFolder.getRoot().toPath();
-		Path source = root.resolve("LibraryZipFileTest.zip");
-		Path dest = dir.resolve("LibraryZipFileTest.zip");
+		Path source = root.resolve("JavadocZipFileTest.zip");
+		Path dest = dir.resolve("JavadocZipFileTest.zip");
 		Files.copy(source, dest);
 
 		JavadocDao dao = new JavadocDao(dir);
@@ -128,7 +128,7 @@ public class JavadocDaoTest {
 		ClassInfo info = dao.getClassInfo("java.util.List");
 		assertNotNull(info);
 
-		source = dir.resolve("LibraryZipFileTest.zip");
+		source = dir.resolve("JavadocZipFileTest.zip");
 		Files.delete(source);
 
 		//wait for the WatchService to pick up the deleted file
@@ -144,8 +144,8 @@ public class JavadocDaoTest {
 	@Test
 	public void directory_watcher_modified() throws Exception {
 		Path dir = temporaryFolder.getRoot().toPath();
-		Path source = root.resolve("LibraryZipFileTest.zip");
-		Path dest = dir.resolve("LibraryZipFileTest.zip");
+		Path source = root.resolve("JavadocZipFileTest.zip");
+		Path dest = dir.resolve("JavadocZipFileTest.zip");
 		Files.copy(source, dest);
 
 		Thread.sleep(1500); //wait a bit before modifying the file so the timestamp is significantly different (for Macs)
