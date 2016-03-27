@@ -2,19 +2,21 @@ package oakbot.command.javadoc;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Iterator;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import oakbot.util.CloseableIterator;
 import oakbot.util.XPathWrapper;
 
 import org.w3c.dom.Document;
@@ -172,56 +174,46 @@ public class JavadocZipFile {
 
 	/**
 	 * Gets a list of all classes that are in the library.
-	 * @return the fully-qualified names of all the classes
+	 * @return the class names (in no particular order)
 	 * @throws IOException if there's a problem reading the ZIP file
 	 */
-	public CloseableIterator<ClassName> getClasses() throws IOException {
-		/*
-		 * TODO Support XML files that are nested in directory trees instead of
-		 * all the files being in the root.
-		 * 
-		 * For example, instead of "/java.lang.String.xml", support
-		 * "/java/lang/String.xml"
-		 */
-		final FileSystem fs = open();
-		final DirectoryStream<Path> stream = Files.newDirectoryStream(fs.getPath("/"), entry -> {
-			String name = entry.getFileName().toString();
-			if (!name.endsWith(extension)) {
-				return false;
-			}
-
-			return !name.equals(infoFileName);
-		});
-
-		final Iterator<Path> it = stream.iterator();
-		return new CloseableIterator<ClassName>() {
-			@Override
-			public boolean hasNext() {
-				return it.hasNext();
-			}
-
-			@Override
-			public ClassName next() {
-				Path file = it.next();
-				return toClassName(file);
-			}
-
-			@Override
-			public void close() throws IOException {
-				try {
-					stream.close();
-				} catch (IOException e) {
-					//ignore
+	public Collection<ClassName> getClassNames() throws IOException {
+		final Collection<ClassName> classNames = new ArrayList<>();
+		try (FileSystem fs = open()) {
+			Path root = fs.getPath("/");
+			Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					if (isJavadocFile(file)) {
+						classNames.add(toClassName(file));
+					}
+					return FileVisitResult.CONTINUE;
 				}
-				fs.close();
-			}
 
-			private ClassName toClassName(Path file) {
-				String fileName = file.getFileName().toString();
-				String fullName = fileName.substring(0, fileName.length() - extension.length());
-				return new ClassName(fullName);
-			}
-		};
+				private boolean isJavadocFile(Path file) {
+					String fullPath = file.toString();
+					if (!fullPath.endsWith(extension)) {
+						return false;
+					}
+
+					return !fullPath.equals('/' + infoFileName);
+				}
+
+				private ClassName toClassName(Path file) {
+					//e.g. "/java/lang/String.xml" or "/java.lang.String.xml"
+					String fullPath = file.toString();
+
+					//e.g. "java/lang/String" or "java.lang.String"
+					String fullName = fullPath.substring(1, fullPath.length() - extension.length());
+
+					if (!fullName.contains(".")) {
+						fullName = fullName.replace('/', '.');
+					}
+					return new ClassName(fullName);
+				}
+			});
+		}
+		return classNames;
 	}
 
 	/**

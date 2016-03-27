@@ -15,8 +15,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import oakbot.util.CloseableIterator;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.sun.nio.file.SensitivityWatchEventModifier;
@@ -87,20 +85,15 @@ public class JavadocDao {
 	 */
 	private void register(Path file) throws IOException {
 		JavadocZipFile zip = new JavadocZipFile(file);
-		try (CloseableIterator<ClassName> it = zip.getClasses()) {
-			synchronized (this) {
-				while (it.hasNext()) {
-					ClassName className = it.next();
-					String fullName = className.getFullyQualified();
-					String simpleName = className.getSimple();
+		for (ClassName className : zip.getClassNames()) {
+			String fullName = className.getFullyQualified();
+			String simpleName = className.getSimple();
 
-					aliases.put(simpleName.toLowerCase(), fullName);
-					aliases.put(simpleName, fullName);
-					aliases.put(fullName.toLowerCase(), fullName);
-					aliases.put(fullName, fullName);
-					libraryClasses.put(zip, fullName);
-				}
-			}
+			aliases.put(simpleName.toLowerCase(), fullName);
+			aliases.put(simpleName, fullName);
+			aliases.put(fullName.toLowerCase(), fullName);
+			aliases.put(fullName, fullName);
+			libraryClasses.put(zip, fullName);
 		}
 	}
 

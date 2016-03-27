@@ -4,13 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import oakbot.util.CloseableIterator;
 
 import org.junit.Test;
 
@@ -18,29 +18,25 @@ import org.junit.Test;
  * @author Michael Angstadt
  */
 public class JavadocZipFileTest {
-	private final Path root = Paths.get("src", "test", "resources", "oakbot", "command", "javadoc");
 	private final JavadocZipFile zip;
 	{
-		Path file = root.resolve(getClass().getSimpleName() + ".zip");
 		try {
-			zip = new JavadocZipFile(file);
-		} catch (IOException e) {
+			zip = load("");
+		} catch (IOException | URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Test
 	public void info_without_file() throws Exception {
-		Path file = root.resolve(getClass().getSimpleName() + "-no-info.zip");
-		JavadocZipFile zip = new JavadocZipFile(file);
+		JavadocZipFile zip = load("-no-info");
 		assertNull(zip.getName());
 		assertNull(zip.getBaseUrl());
 	}
 
 	@Test
 	public void info_without_attributes() throws Exception {
-		Path file = root.resolve(getClass().getSimpleName() + "-no-attributes.zip");
-		JavadocZipFile zip = new JavadocZipFile(file);
+		JavadocZipFile zip = load("-no-attributes");
 		assertNull(zip.getName());
 		assertNull(zip.getBaseUrl());
 	}
@@ -62,8 +58,7 @@ public class JavadocZipFileTest {
 
 	@Test
 	public void getUrl_javadocUrlPattern() throws Exception {
-		Path file = root.resolve(getClass().getSimpleName() + "-javadocUrlPattern.zip");
-		JavadocZipFile zip = new JavadocZipFile(file);
+		JavadocZipFile zip = load("-javadocUrlPattern");
 
 		ClassInfo info = new ClassInfo.Builder().name("android.app.Application", "Application").build();
 		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getUrl(info, false));
@@ -71,24 +66,25 @@ public class JavadocZipFileTest {
 	}
 
 	@Test
-	public void getClasses() throws Exception {
-		Set<String> actual = new HashSet<>();
-		try (CloseableIterator<ClassName> it = zip.getClasses()) {
-			while (it.hasNext()) {
-				actual.add(it.next().getFullyQualified());
+	public void getClassNames() throws Exception {
+		JavadocZipFile zips[] = new JavadocZipFile[] { zip, load("-directories") };
+		for (JavadocZipFile zip : zips) {
+			Set<String> actual = new HashSet<>();
+			for (ClassName className : zip.getClassNames()) {
+				actual.add(className.getFullyQualified());
 			}
+
+			//@formatter:off
+			Set<String> expected = new HashSet<>(Arrays.asList(
+				"java.lang.Object",
+				"java.awt.List",
+				"java.util.List",
+				"java.util.Collection"
+			));
+			//@formatter:on
+
+			assertEquals(expected, actual);
 		}
-
-		//@formatter:off
-		Set<String> expected = new HashSet<>(Arrays.asList(
-			"java.lang.Object",
-			"java.awt.List",
-			"java.util.List",
-			"java.util.Collection"
-		));
-		//@formatter:on
-
-		assertEquals(expected, actual);
 	}
 
 	@Test
@@ -99,8 +95,17 @@ public class JavadocZipFileTest {
 
 	@Test
 	public void getClassInfo() throws Exception {
-		ClassInfo info = zip.getClassInfo("java.lang.Object");
-		assertEquals("java.lang.Object", info.getName().getFullyQualified());
-		assertEquals("Object", info.getName().getSimple());
+		JavadocZipFile zips[] = new JavadocZipFile[] { zip, load("-directories") };
+		for (JavadocZipFile zip : zips) {
+			ClassInfo info = zip.getClassInfo("java.lang.Object");
+			assertEquals("java.lang.Object", info.getName().getFullyQualified());
+			assertEquals("Object", info.getName().getSimple());
+		}
+	}
+
+	private static JavadocZipFile load(String suffix) throws IOException, URISyntaxException {
+		URI uri = JavadocZipFileTest.class.getResource(JavadocZipFileTest.class.getSimpleName() + suffix + ".zip").toURI();
+		Path file = Paths.get(uri);
+		return new JavadocZipFile(file);
 	}
 }
