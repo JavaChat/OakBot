@@ -11,6 +11,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -200,20 +201,19 @@ public class JavadocZipFile {
 				}
 
 				private ClassName toClassName(Path file) {
-					//e.g. "/java/lang/String.xml" or "/java.lang.String.xml"
+					//e.g. "/java/util/Map.Entry.xml" or "/java.util.Map.Entry.xml"
 					String fullPath = file.toString();
 
-					//e.g. "java/lang/String" or "java.lang.String"
+					//e.g. "java/util/Map.Entry" or "java.util.Map.Entry"
 					String fullName = fullPath.substring(1, fullPath.length() - extension.length());
 
-					if (!fullName.contains(".")) {
-						fullName = fullName.replace('/', '.');
-					}
+					fullName = fullName.replace('/', '.');
+
 					return new ClassName(fullName);
 				}
 			});
 		}
-		return classNames;
+		return Collections.unmodifiableCollection(classNames);
 	}
 
 	/**
@@ -226,18 +226,49 @@ public class JavadocZipFile {
 	public ClassInfo getClassInfo(String fullName) throws IOException {
 		Document document;
 		try (FileSystem fs = open()) {
-			Path path = fs.getPath(fullName + extension);
-			if (!Files.exists(path)) {
-				path = fs.getPath(fullName.replace('.', '/') + extension);
-				if (!Files.exists(path)) {
-					return null;
-				}
+			Path path = findClassFile(fs, fullName);
+			if (path == null) {
+				return null;
 			}
 
 			document = parseXml(path);
 		}
 
 		return ClassInfoXmlParser.parse(document, this);
+	}
+
+	/**
+	 * Gets the path to a class's XML file.
+	 * @param fs the ZIP file
+	 * @param fullName the fully-qualified class name
+	 * @return the path to the class's XML file or null if not found
+	 */
+	private Path findClassFile(FileSystem fs, String fullName) {
+		//e.g. "java.util.Map.Entry.xml"
+		Path path = fs.getPath(fullName + extension);
+		if (Files.exists(path)) {
+			return path;
+		}
+
+		//e.g. "java/util/Map/Entry.xml", followed by "java/util/Map.Entry.xml", etc
+		String split[] = fullName.split("\\.");
+		for (int i = split.length; i > 0; i--) {
+			StringBuilder sb = new StringBuilder();
+			for (int j = 0; j < i; j++) {
+				sb.append('/').append(split[j]);
+			}
+			for (int j = i; j < split.length; j++) {
+				sb.append('.').append(split[j]);
+			}
+			sb.append(extension);
+
+			path = fs.getPath(sb.toString());
+			if (Files.exists(path)) {
+				return path;
+			}
+		}
+
+		return null;
 	}
 
 	/**
