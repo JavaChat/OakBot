@@ -71,7 +71,7 @@ public class JavadocDaoTest {
 	@Test
 	public void getClassInfo() throws Exception {
 		ClassInfo info = dao.getClassInfo("java.util.List");
-		assertEquals("java.util.List", info.getName().getFullyQualified());
+		assertEquals("java.util.List", info.getName().getFullyQualifiedName());
 	}
 
 	@Test
@@ -156,7 +156,7 @@ public class JavadocDaoTest {
 		assertNotNull(info);
 
 		try (FileSystem fs = FileSystems.newFileSystem(dest, null)) {
-			Path path = fs.getPath("java.util.List.xml");
+			Path path = fs.getPath("java/util/List.xml");
 			Files.delete(path);
 		}
 

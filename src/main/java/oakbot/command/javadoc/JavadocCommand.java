@@ -418,11 +418,11 @@ public class JavadocCommand implements Command {
 			String signature;
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.append(classInfo.getName().getFullyQualified()).append("#").append(methodInfo.getName());
+				sb.append(classInfo.getName().getFullyQualifiedName()).append("#").append(methodInfo.getName());
 
 				List<String> paramList = new ArrayList<>();
 				for (ParameterInfo param : methodInfo.getParameters()) {
-					paramList.add(param.getType().getSimple() + (param.isArray() ? "[]" : ""));
+					paramList.add(param.getType().getSimpleName() + (param.isArray() ? "[]" : ""));
 				}
 				sb.append('(').append(String.join(", ", paramList)).append(')');
 
@@ -508,7 +508,7 @@ public class JavadocCommand implements Command {
 
 			//print class name
 			if (deprecated) cb.strike();
-			String fullName = info.getName().getFullyQualified();
+			String fullName = info.getName().getFullyQualifiedName();
 			String url = info.getUrl(true);
 			if (url == null) {
 				cb.bold().code(fullName).bold();
@@ -577,7 +577,7 @@ public class JavadocCommand implements Command {
 				boolean exactMatch = true;
 				for (int i = 0; i < curParameters.size(); i++) {
 					ParameterInfo curParameter = curParameters.get(i);
-					String curParameterName = curParameter.getType().getSimple() + (curParameter.isArray() ? "[]" : "");
+					String curParameterName = curParameter.getType().getSimpleName() + (curParameter.isArray() ? "[]" : "");
 
 					String methodParameter = methodParameters.get(i);
 
@@ -595,7 +595,7 @@ public class JavadocCommand implements Command {
 			//add parent class to the stack
 			ClassName superClass = curInfo.getSuperClass();
 			if (superClass != null) {
-				ClassInfo superClassInfo = dao.getClassInfo(superClass.getFullyQualified());
+				ClassInfo superClassInfo = dao.getClassInfo(superClass.getFullyQualifiedName());
 				if (superClassInfo != null) {
 					stack.add(superClassInfo);
 				}
@@ -603,7 +603,7 @@ public class JavadocCommand implements Command {
 
 			//add interfaces to the stack
 			for (ClassName interfaceName : curInfo.getInterfaces()) {
-				ClassInfo interfaceInfo = dao.getClassInfo(interfaceName.getFullyQualified());
+				ClassInfo interfaceInfo = dao.getClassInfo(interfaceName.getFullyQualifiedName());
 				if (interfaceInfo != null) {
 					stack.add(interfaceInfo);
 				}

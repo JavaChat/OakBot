@@ -134,8 +134,8 @@ public class ClassInfo {
 		private boolean deprecated = false;
 		private JavadocZipFile zipFile;
 
-		public Builder name(String full, String simple) {
-			this.name = new ClassName(full, simple);
+		public Builder name(ClassName name) {
+			this.name = name;
 			return this;
 		}
 
@@ -144,8 +144,8 @@ public class ClassInfo {
 			return this;
 		}
 
-		public Builder superClass(String superClass) {
-			this.superClass = new ClassName(superClass);
+		public Builder superClass(ClassName superClass) {
+			this.superClass = superClass;
 			return this;
 		}
 
@@ -154,8 +154,8 @@ public class ClassInfo {
 			return this;
 		}
 
-		public Builder interface_(String interface_) {
-			interfaces.add(new ClassName(interface_));
+		public Builder interface_(ClassName interface_) {
+			interfaces.add(interface_);
 			return this;
 		}
 

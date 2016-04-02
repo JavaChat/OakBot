@@ -37,7 +37,7 @@ public class MethodInfo {
 		sb.append(name).append('-');
 		List<String> fullNames = new ArrayList<>();
 		for (ParameterInfo parameter : parameters) {
-			String fullName = parameter.getType().getFullyQualified();
+			String fullName = parameter.getType().getFullyQualifiedName();
 			if (parameter.isArray()) {
 				fullName += ":A";
 			}
@@ -108,7 +108,7 @@ public class MethodInfo {
 	public String getSignature() {
 		List<String> params = new ArrayList<>();
 		for (ParameterInfo parameter : parameters) {
-			params.add(parameter.getType().getFullyQualified() + (parameter.isArray() ? "[]" : ""));
+			params.add(parameter.getType().getFullyQualifiedName() + (parameter.isArray() ? "[]" : ""));
 		}
 		return name + "(" + String.join(", ", params) + ")";
 	}
@@ -121,13 +121,13 @@ public class MethodInfo {
 		StringBuilder sb = new StringBuilder();
 
 		if (returnValue != null) {
-			sb.append(returnValue.getSimple()).append(' ');
+			sb.append(returnValue.getSimpleName()).append(' ');
 		}
 		sb.append(name);
 
 		List<String> params = new ArrayList<>();
 		for (ParameterInfo parameter : parameters) {
-			String type = parameter.getType().getSimple();
+			String type = parameter.getType().getSimpleName();
 			String generic = parameter.getGeneric();
 			if (generic != null) {
 				type += generic;

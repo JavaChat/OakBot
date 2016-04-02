@@ -86,8 +86,8 @@ public class JavadocDao {
 	private void register(Path file) throws IOException {
 		JavadocZipFile zip = new JavadocZipFile(file);
 		for (ClassName className : zip.getClassNames()) {
-			String fullName = className.getFullyQualified();
-			String simpleName = className.getSimple();
+			String fullName = className.getFullyQualifiedName();
+			String simpleName = className.getSimpleName();
 
 			aliases.put(simpleName.toLowerCase(), fullName);
 			aliases.put(simpleName, fullName);

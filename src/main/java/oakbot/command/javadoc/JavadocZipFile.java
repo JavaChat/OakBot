@@ -12,6 +12,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -133,11 +134,20 @@ public class JavadocZipFile {
 			return null;
 		}
 
-		//@formatter:off
-		return frames ?
-		baseUrl + "index.html?" + info.getName().getFullyQualified().replace('.', '/') + ".html" :
-		baseUrl + info.getName().getFullyQualified().replace('.', '/') + ".html";
-		//@formatter:on
+		StringBuilder sb = new StringBuilder(baseUrl);
+		if (frames) {
+			sb.append("index.html?");
+		}
+		ClassName className = info.getName();
+		if (className.getPackageName() != null) {
+			sb.append(className.getPackageName().replace('.', '/')).append('/');
+		}
+		for (String outerClass : className.getOuterClassNames()) {
+			sb.append(outerClass).append('.');
+		}
+		sb.append(className.getSimpleName()).append(".html");
+
+		return sb.toString();
 	}
 
 	/**
@@ -156,7 +166,7 @@ public class JavadocZipFile {
 				replacement = baseUrl;
 				break;
 			case "full":
-				replacement = info.getName().getFullyQualified();
+				replacement = info.getName().getFullyQualifiedName();
 				String delimitor = m.group(3);
 				if (delimitor != null) {
 					replacement = replacement.replace(".", delimitor);
@@ -201,33 +211,31 @@ public class JavadocZipFile {
 				}
 
 				private ClassName toClassName(Path file) {
+					String packageName;
 					Path directory = file.getParent();
 					if (directory == null) {
-						//e.g. "/java.util.Map.Entry.xml"
-						String fullPath = file.toString();
+						//class is in the default package
+						packageName = null;
+					} else {
+						//e.g. "/java/util"
+						packageName = directory.toString();
 
-						//e.g. "java.util.Map.Entry"
-						String fullName = fullPath.substring(1, fullPath.length() - extension.length());
-
-						return new ClassName(fullName);
+						//e.g. "java.util"
+						packageName = packageName.substring(1).replace('/', '.');
 					}
-
-					//e.g. "/java/util" 
-					String directoryFullPath = directory.toString();
-
-					//e.g. "java.util"
-					String packageName = directoryFullPath.substring(1).replace('/', '.');
 
 					//e.g. "Map.Entry.xml"
 					String fileName = file.getFileName().toString();
 
-					//e.g. "Map.Entry"
-					String className = fileName.substring(0, fileName.length() - extension.length());
+					String split[] = fileName.split("\\.");
+					List<String> outerClasses = new ArrayList<>();
+					for (int i = 0; i < split.length - 2; i++) { //ignore extension and simple name
+						outerClasses.add(split[i]);
+					}
 
-					//e.g. "java.util.Map.Entry"
-					String fullName = packageName + '.' + className;
+					String simpleName = split[split.length - 2];
 
-					return new ClassName(fullName);
+					return new ClassName(packageName, outerClasses, simpleName);
 				}
 			});
 		}
@@ -258,17 +266,12 @@ public class JavadocZipFile {
 	/**
 	 * Gets the path to a class's XML file.
 	 * @param fs the ZIP file
-	 * @param fullName the fully-qualified class name
+	 * @param fullName the fully-qualified class name (e.g.
+	 * "java.util.Map.Entry")
 	 * @return the path to the class's XML file or null if not found
 	 */
 	private Path findClassFile(FileSystem fs, String fullName) {
-		//e.g. "java.util.Map.Entry.xml"
-		Path path = fs.getPath(fullName + extension);
-		if (Files.exists(path)) {
-			return path;
-		}
-
-		//e.g. "java/util/Map/Entry.xml", followed by "java/util/Map.Entry.xml", etc
+		//e.g. "/java/util/Map/Entry.xml", followed by "/java/util/Map.Entry.xml", etc
 		String split[] = fullName.split("\\.");
 		for (int i = split.length; i > 0; i--) {
 			StringBuilder sb = new StringBuilder();
@@ -280,7 +283,7 @@ public class JavadocZipFile {
 			}
 			sb.append(extension);
 
-			path = fs.getPath(sb.toString());
+			Path path = fs.getPath(sb.toString());
 			if (Files.exists(path)) {
 				return path;
 			}

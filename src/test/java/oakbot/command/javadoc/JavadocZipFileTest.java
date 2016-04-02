@@ -51,7 +51,7 @@ public class JavadocZipFileTest {
 
 	@Test
 	public void getUrl() {
-		ClassInfo info = new ClassInfo.Builder().name("java.util.List", "List").build();
+		ClassInfo info = new ClassInfo.Builder().name(new ClassName("java.util", "List")).build();
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/java/util/List.html", zip.getUrl(info, false));
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/index.html?java/util/List.html", zip.getUrl(info, true));
 	}
@@ -60,21 +60,19 @@ public class JavadocZipFileTest {
 	public void getUrl_javadocUrlPattern() throws Exception {
 		JavadocZipFile zip = load("-javadocUrlPattern");
 
-		ClassInfo info = new ClassInfo.Builder().name("android.app.Application", "Application").build();
+		ClassInfo info = new ClassInfo.Builder().name(new ClassName("android.app", "Application")).build();
 		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getUrl(info, false));
 		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getUrl(info, true));
 	}
 
 	@Test
 	public void getClassNames() throws Exception {
-		JavadocZipFile zips[] = new JavadocZipFile[] { zip, load("-directories") };
-		for (JavadocZipFile zip : zips) {
-			Set<String> actual = new HashSet<>();
-			for (ClassName className : zip.getClassNames()) {
-				actual.add(className.getFullyQualified());
-			}
+		Set<String> actual = new HashSet<>();
+		for (ClassName className : zip.getClassNames()) {
+			actual.add(className.getFullyQualifiedName());
+		}
 
-			//@formatter:off
+		//@formatter:off
 			Set<String> expected = new HashSet<>(Arrays.asList(
 				"java.lang.Object",
 				"java.awt.List",
@@ -83,8 +81,7 @@ public class JavadocZipFileTest {
 			));
 			//@formatter:on
 
-			assertEquals(expected, actual);
-		}
+		assertEquals(expected, actual);
 	}
 
 	@Test
@@ -95,12 +92,9 @@ public class JavadocZipFileTest {
 
 	@Test
 	public void getClassInfo() throws Exception {
-		JavadocZipFile zips[] = new JavadocZipFile[] { zip, load("-directories") };
-		for (JavadocZipFile zip : zips) {
-			ClassInfo info = zip.getClassInfo("java.lang.Object");
-			assertEquals("java.lang.Object", info.getName().getFullyQualified());
-			assertEquals("Object", info.getName().getSimple());
-		}
+		ClassInfo info = zip.getClassInfo("java.lang.Object");
+		assertEquals("java.lang.Object", info.getName().getFullyQualifiedName());
+		assertEquals("Object", info.getName().getSimpleName());
 	}
 
 	private static JavadocZipFile load(String suffix) throws IOException, URISyntaxException {
