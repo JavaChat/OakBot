@@ -230,8 +230,8 @@ public class JavadocCommand implements Command {
 					exactMatches.put(classInfo, methods.exactSignature);
 				}
 				matchingNames.putAll(classInfo, methods.matchingName);
-			} catch (IOException e2) {
-				throw new RuntimeException("Problem getting Javadoc info.", e2);
+			} catch (IOException e) {
+				throw new RuntimeException("Problem getting Javadoc info.", e);
 			}
 		}
 
@@ -249,6 +249,13 @@ public class JavadocCommand implements Command {
 			//a single, exact match was found!
 			MethodInfo method = exactMatches.values().iterator().next();
 			ClassInfo classInfo = exactMatches.keySet().iterator().next();
+			return printMethod(method, classInfo, commandText.getParagraph(), message);
+		}
+
+		if (matchingNames.size() == 1 && commandText.getParameters() == null) {
+			//user did not specify parameters and there is method with a matching name
+			MethodInfo method = matchingNames.values().iterator().next();
+			ClassInfo classInfo = matchingNames.keySet().iterator().next();
 			return printMethod(method, classInfo, commandText.getParagraph(), message);
 		}
 
