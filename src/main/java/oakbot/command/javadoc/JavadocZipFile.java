@@ -201,13 +201,31 @@ public class JavadocZipFile {
 				}
 
 				private ClassName toClassName(Path file) {
-					//e.g. "/java/util/Map.Entry.xml" or "/java.util.Map.Entry.xml"
-					String fullPath = file.toString();
+					Path directory = file.getParent();
+					if (directory == null) {
+						//e.g. "/java.util.Map.Entry.xml"
+						String fullPath = file.toString();
 
-					//e.g. "java/util/Map.Entry" or "java.util.Map.Entry"
-					String fullName = fullPath.substring(1, fullPath.length() - extension.length());
+						//e.g. "java.util.Map.Entry"
+						String fullName = fullPath.substring(1, fullPath.length() - extension.length());
 
-					fullName = fullName.replace('/', '.');
+						return new ClassName(fullName);
+					}
+
+					//e.g. "/java/util" 
+					String directoryFullPath = directory.toString();
+
+					//e.g. "java.util"
+					String packageName = directoryFullPath.substring(1).replace('/', '.');
+
+					//e.g. "Map.Entry.xml"
+					String fileName = file.getFileName().toString();
+
+					//e.g. "Map.Entry"
+					String className = fileName.substring(0, fileName.length() - extension.length());
+
+					//e.g. "java.util.Map.Entry"
+					String fullName = packageName + '.' + className;
 
 					return new ClassName(fullName);
 				}
