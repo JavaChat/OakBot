@@ -120,9 +120,7 @@ public class MethodInfo {
 	public String getSignatureString() {
 		StringBuilder sb = new StringBuilder();
 
-		if (returnValue != null) {
-			sb.append(returnValue.getSimpleName()).append(' ');
-		}
+		sb.append((returnValue == null) ? "void" : returnValue.getSimpleName()).append(' ');
 		sb.append(name);
 
 		List<String> params = new ArrayList<>();
