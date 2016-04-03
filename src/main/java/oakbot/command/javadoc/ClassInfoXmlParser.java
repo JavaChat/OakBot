@@ -73,6 +73,12 @@ public class ClassInfoXmlParser {
 		value = classElement.getAttribute("deprecated");
 		builder.deprecated(value.isEmpty() ? false : Boolean.parseBoolean(value));
 
+		//since
+		value = classElement.getAttribute("since");
+		if (!value.isEmpty()) {
+			builder.since(value);
+		}
+
 		//description
 		Element element = xpath.element("/class/description", document);
 		if (element != null) {
@@ -142,6 +148,12 @@ public class ClassInfoXmlParser {
 			builder.modifiers(Arrays.asList(value.split("\\s+")));
 		}
 
+		//since
+		value = element.getAttribute("since");
+		if (!value.isEmpty()) {
+			builder.since(value);
+		}
+
 		//description
 		Element descriptionElement = xpath.element("description", element);
 		if (descriptionElement != null) {
@@ -175,6 +187,12 @@ public class ClassInfoXmlParser {
 		String value = element.getAttribute("modifiers");
 		if (!value.isEmpty()) {
 			builder.modifiers(Arrays.asList(value.split("\\s+")));
+		}
+
+		//since
+		value = element.getAttribute("since");
+		if (!value.isEmpty()) {
+			builder.since(value);
 		}
 
 		//description

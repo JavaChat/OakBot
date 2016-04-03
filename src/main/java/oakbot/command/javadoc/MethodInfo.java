@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Michael Angstadt
  */
 public class MethodInfo {
-	private final String name, description, urlAnchor;
+	private final String name, description, urlAnchor, since;
 	private final Set<String> modifiers;
 	private final List<ParameterInfo> parameters;
 	private final ClassName returnValue;
@@ -29,6 +29,7 @@ public class MethodInfo {
 		name = builder.name;
 		modifiers = builder.modifiers.build();
 		parameters = builder.parameters.build();
+		since = builder.since;
 		description = builder.description;
 		returnValue = builder.returnValue;
 		deprecated = builder.deprecated;
@@ -65,6 +66,14 @@ public class MethodInfo {
 	 */
 	public List<ParameterInfo> getParameters() {
 		return parameters;
+	}
+
+	/**
+	 * Gets the value of the method's {@literal @since} tag.
+	 * @return the {@literal @since} tag or null if it doesn't have one
+	 */
+	public String getSince() {
+		return since;
 	}
 
 	/**
@@ -147,10 +156,9 @@ public class MethodInfo {
 	 * Builds new instances of {@link MethodInfo}.
 	 */
 	public static class Builder {
-		private String name;
+		private String name, description, since;
 		private ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();
 		private ImmutableList.Builder<ParameterInfo> parameters = ImmutableList.builder();
-		private String description;
 		private ClassName returnValue;
 		private boolean deprecated;
 
@@ -166,6 +174,11 @@ public class MethodInfo {
 
 		public Builder parameter(ParameterInfo parameter) {
 			this.parameters.add(parameter);
+			return this;
+		}
+
+		public Builder since(String since) {
+			this.since = since;
 			return this;
 		}
 

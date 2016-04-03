@@ -363,7 +363,8 @@ public class JavadocCommand implements Command {
 
 		//print the method description
 		String description = methodInfo.getDescription();
-		Paragraphs paragraphs = new Paragraphs(description);
+		String since = methodInfo.getSince();
+		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
 
 		return new ChatResponse(cb, SplitStrategy.WORD);
@@ -521,7 +522,8 @@ public class JavadocCommand implements Command {
 
 		//print the class description
 		String description = info.getDescription();
-		Paragraphs paragraphs = new Paragraphs(description);
+		String since = info.getSince();
+		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
 		return new ChatResponse(cb, SplitStrategy.WORD);
 	}
@@ -624,9 +626,11 @@ public class JavadocCommand implements Command {
 
 	private static class Paragraphs {
 		private final String paragraphs[];
+		private final String since;
 
-		public Paragraphs(String text) {
+		public Paragraphs(String text, String since) {
 			paragraphs = text.split("\n\n");
+			this.since = since;
 		}
 
 		public int count() {
@@ -648,6 +652,9 @@ public class JavadocCommand implements Command {
 			}
 
 			cb.append(get(num));
+			if (num == 1 && since != null) {
+				cb.append(' ').italic().append("@since ").append(since).italic();
+			}
 			if (count() > 1) {
 				cb.append(" (").append(num).append('/').append(count()).append(')');
 			}

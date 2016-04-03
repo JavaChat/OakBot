@@ -20,7 +20,7 @@ import com.google.common.collect.Multimap;
  */
 public class ClassInfo {
 	private final ClassName name, superClass;
-	private final String description;
+	private final String description, since;
 	private final Set<String> modifiers;
 	private final Set<ClassName> interfaces;
 	private final Multimap<String, MethodInfo> methods;
@@ -30,6 +30,7 @@ public class ClassInfo {
 	private ClassInfo(Builder builder) {
 		name = builder.name;
 		superClass = builder.superClass;
+		since = builder.since;
 		description = builder.description;
 		modifiers = builder.modifiers.build();
 		interfaces = builder.interfaces.build();
@@ -52,6 +53,14 @@ public class ClassInfo {
 	 */
 	public ClassName getSuperClass() {
 		return superClass;
+	}
+
+	/**
+	 * Gets the value of the class's {@literal @since} tag.
+	 * @return the {@literal @since} tag or null if it doesn't have one
+	 */
+	public String getSince() {
+		return since;
 	}
 
 	/**
@@ -125,9 +134,8 @@ public class ClassInfo {
 	 * Builds new instances of {@link ClassInfo}.
 	 */
 	public static class Builder {
-		private ClassName name;
-		private ClassName superClass;
-		private String description;
+		private ClassName name, superClass;
+		private String description, since;
 		private ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();
 		private ImmutableSet.Builder<ClassName> interfaces = ImmutableSet.builder();
 		private ImmutableMultimap.Builder<String, MethodInfo> methods = ImmutableMultimap.builder();
@@ -136,6 +144,11 @@ public class ClassInfo {
 
 		public Builder name(ClassName name) {
 			this.name = name;
+			return this;
+		}
+
+		public Builder since(String since) {
+			this.since = since;
 			return this;
 		}
 
