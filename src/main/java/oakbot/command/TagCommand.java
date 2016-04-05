@@ -1,9 +1,6 @@
 package oakbot.command;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,6 +9,12 @@ import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -55,7 +58,7 @@ public class TagCommand implements Command {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
-				.append("Please specify the tag name.")
+				.append("Please specify the tag name (e.g. \"java\").")
 			);
 			//@formatter:on
 		}
@@ -64,27 +67,22 @@ public class TagCommand implements Command {
 		Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
 		String url = "http://stackoverflow.com/tags/" + escaper.escape(tag) + "/info";
 
-		Document document;
+		String response;
 		try {
-			document = Jsoup.parse(get(url), "UTF-8", "");
-		} catch (FileNotFoundException e) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(message)
-				.append("Tag not found. :(")
-			);
-			//@formatter:on
+			response = get(url);
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Error getting tag description.", e);
 
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
-				.append("An error occurred retrieving the tag description. D:<")
+				.append("An error occurred retrieving the tag description: ")
+				.append(e.getMessage())
 			);
 			//@formatter:on
 		}
 
+		Document document = Jsoup.parse(response);
 		Element element = document.getElementById("wiki-excerpt");
 		if (element == null) {
 			//@formatter:off
@@ -105,8 +103,17 @@ public class TagCommand implements Command {
 		//@formatter:on
 	}
 
-	InputStream get(String url) throws IOException {
-		URL urlObj = new URL(url);
-		return urlObj.openStream();
+	/**
+	 * Sends an HTTP GET request.
+	 * @param url the URL
+	 * @return the response body
+	 * @throws IOException if there's a problem sending the request
+	 */
+	String get(String url) throws IOException {
+		HttpUriRequest request = new HttpGet(url);
+		try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+			HttpResponse response = client.execute(request);
+			return EntityUtils.toString(response.getEntity());
+		}
 	}
 }
