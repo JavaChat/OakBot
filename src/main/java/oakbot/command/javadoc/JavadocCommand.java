@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
@@ -123,7 +124,7 @@ public class JavadocCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
+	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
 		String content = message.getContent();
 		if (content.isEmpty()) {
 			//@formatter:off
@@ -307,7 +308,7 @@ public class JavadocCommand implements Command {
 
 		//valid choice entered, print the info
 		message.setContent(prevChoices.get(index));
-		return onMessage(message, false);
+		return onMessage(message, false, null);
 	}
 
 	/**

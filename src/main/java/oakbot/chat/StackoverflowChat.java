@@ -26,7 +26,6 @@ import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
-import org.apache.http.ParseException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -44,8 +43,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * A connection to Stackoverflow chat.
  * @author Michael Angstadt
  * @see <a href="http://chat.stackoverflow.com">chat.stackoverflow.com</a>
- * @see <a
- * href="https://github.com/Zirak/SO-ChatBot/blob/master/source/adapter.js">Good
+ * @see <a href=
+ * "https://github.com/Zirak/SO-ChatBot/blob/master/source/adapter.js">Good
  * explanation of how SO Chat works</a>
  */
 public class StackoverflowChat implements ChatConnection {
@@ -87,7 +86,10 @@ public class StackoverflowChat implements ChatConnection {
 	public void login(String email, String password) throws IOException {
 		logger.info("Logging in as " + email + "...");
 
-		String fkey = parseFkey("https://stackoverflow.com/users/login");
+		String fkey = parseFkeyFromUrl("https://stackoverflow.com/users/login");
+		if (fkey == null) {
+			throw new IOException("\"fkey\" field not found on page, cannot login.");
+		}
 
 		HttpPost request = new HttpPost("https://stackoverflow.com/users/login");
 		//@formatter:off
@@ -105,6 +107,15 @@ public class StackoverflowChat implements ChatConnection {
 		if (statusCode != 302) {
 			throw new IllegalArgumentException("Bad login");
 		}
+	}
+
+	@Override
+	public void joinRoom(int roomId) throws IOException {
+		/*
+		 * Checks if the room exists and if the bot user can post messages to
+		 * it. Then primes the "previous message ID" counter
+		 */
+		getNewMessages(roomId);
 	}
 
 	@Override
@@ -193,32 +204,79 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	/**
-	 * Parses the infamous "fkey" parameter from a webpage.
+	 * Parses the "fkey" parameter from a webpage.
 	 * @param url the URL of the webpage
 	 * @return the fkey or null if not found
 	 * @throws IOException if there's a problem loading the page
 	 */
-	private String parseFkey(String url) throws IOException {
+	private String parseFkeyFromUrl(String url) throws IOException {
 		HttpGet request = new HttpGet(url);
 		HttpResponse response = executeWithRetries(request);
+		if (response == null) {
+			throw new IOException("Couldn't load page.");
+		}
+
 		String html = EntityUtils.toString(response.getEntity());
+		return parseFkey(html);
+	}
+
+	/**
+	 * Parses the "fkey" parameter from a given HTML page.
+	 * @param html the HTML page
+	 * @return the fkey or null if not found
+	 */
+	private String parseFkey(String html) {
 		Matcher m = fkeyRegex.matcher(html);
 		return m.find() ? m.group(1) : null;
 	}
 
 	/**
-	 * Gets the "fkey" for a room
+	 * Gets the "fkey" parameter for a room.
 	 * @param room the room ID
 	 * @return the fkey
-	 * @throws IOException if there's a problem getting the fkey
+	 * @throws IOException if there's a problem getting the fkey, or if messages
+	 * can't be posted to this room, or if the room doesn't exist
 	 */
 	private synchronized String getFKey(int room) throws IOException {
 		String fkey = fkeyCache.get(room);
-		if (fkey == null) {
-			fkey = parseFkey("https://chat.stackoverflow.com/rooms/" + room);
-			fkeyCache.put(room, fkey);
+		if (fkey != null) {
+			return fkey;
 		}
+
+		String roomUrl = "https://chat.stackoverflow.com/rooms/" + room;
+		HttpGet request = new HttpGet(roomUrl);
+		HttpResponse response = executeWithRetries(request);
+		if (response == null) {
+			throw new IOException("Room doesn't exist.");
+		}
+
+		String html = EntityUtils.toString(response.getEntity());
+		if (!canPostToRoom(html)) {
+			throw new IOException("Cannot post to this room. It's either inactive or protected.");
+		}
+
+		fkey = parseFkey(html);
+		if (fkey == null) {
+			throw new IOException("Cannot get room's fkey.");
+		}
+
+		fkeyCache.put(room, fkey);
 		return fkey;
+	}
+
+	/**
+	 * Determines if messages can be posted to a room. A room can be inactive,
+	 * which means it does not accept new messages. A room can also be
+	 * protected, which means only approved users can post.
+	 * @param html the HTML of the room
+	 * @return true if messages can be posted, false if not
+	 */
+	private boolean canPostToRoom(String html) {
+		/*
+		 * The textbox for sending messages won't be there if the bot user can't
+		 * post to the room.
+		 */
+		return html.contains("<textarea id=\"input\">");
 	}
 
 	/**
@@ -251,7 +309,7 @@ public class StackoverflowChat implements ChatConnection {
 	 * Executes an HTTP request, retrying after a short pause if the request
 	 * fails.
 	 * @param request the request to send
-	 * @return the HTTP response
+	 * @return the HTTP response or null if the request couldn't be executed
 	 * @throws IOException if there was an I/O error
 	 */
 	private HttpResponse executeWithRetries(HttpUriRequest request) throws IOException {
@@ -266,7 +324,7 @@ public class StackoverflowChat implements ChatConnection {
 	 * or null to retry forever
 	 * @param expectedStatusCode the expected HTTP response status code. If the
 	 * response does not have this status code, the request will be retried
-	 * @return the HTTP response
+	 * @return the HTTP response or null if the request couldn't be executed
 	 * @throws IOException if there was an I/O error
 	 */
 	private HttpResponse executeWithRetries(HttpUriRequest request, Integer numRetries, Integer expectedStatusCode) throws IOException {
@@ -325,14 +383,13 @@ public class StackoverflowChat implements ChatConnection {
 	/**
 	 * Parses an HTTP 409 response, which indicates that the bot is sending
 	 * messages too quickly.
-	 * @param response the HTTP response
+	 * @param response the HTTP 409 response
 	 * @return the amount of time (in milliseconds) the bot must wait before SO
-	 * Chat will continue to accept chat messages or null if this value could
+	 * Chat will continue to accept chat messages, or null if this value could
 	 * not be parsed from the response
-	 * @throws ParseException
-	 * @throws IOException
+	 * @throws IOException if there's a problem getting the response body
 	 */
-	private Long parse409Response(HttpResponse response) throws ParseException, IOException {
+	private Long parse409Response(HttpResponse response) throws IOException {
 		//"You can perform this action again in 2 seconds"
 		String body = EntityUtils.toString(response.getEntity());
 		logger.fine("409 response received: " + body);

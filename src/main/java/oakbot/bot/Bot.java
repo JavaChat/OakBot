@@ -13,13 +13,13 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableList;
+
 import oakbot.Statistics;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.listener.Listener;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * A Stackoverflow chat bot.
@@ -56,8 +56,8 @@ public class Bot {
 	/**
 	 * Starts the chat bot. This method blocks until the bot is terminated,
 	 * either by an unexpected error or a shutdown command.
-	 * @param quiet true to broadcast an announcement message when it connects,
-	 * false not to
+	 * @param quiet true to start the bot without broadcasting a startup
+	 * message, false to broadcast a startup message
 	 * @throws IllegalArgumentException if the login credentials are bad
 	 * @throws IOException if there's an I/O problem
 	 */
@@ -65,11 +65,14 @@ public class Bot {
 		//login
 		connection.login(email, password);
 
-		//post a message to each room
+		//connect to each room
+		List<Integer> rooms = new ArrayList<>(this.rooms);
 		for (Integer room : rooms) {
-			connection.getNewMessages(room); //prime the "previous message ID" counter
-			if (!quiet) {
-				connection.sendMessage(room, "OakBot Online.");
+			try {
+				join(room, quiet);
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, "Could not join room " + room + ".", e);
+				this.rooms.remove(room);
 			}
 		}
 
@@ -77,6 +80,11 @@ public class Bot {
 		while (true) {
 			long start = System.currentTimeMillis();
 
+			/*
+			 * Commands can join rooms, so make a copy of the room list to prevent a
+			 * concurrent modification exception.
+			 */
+			rooms = new ArrayList<>(this.rooms);
 			for (Integer room : rooms) {
 				logger.fine("Pinging room " + room);
 
@@ -140,6 +148,37 @@ public class Bot {
 		}
 	}
 
+	/**
+	 * Joins a room.
+	 * @param roomId the room ID
+	 * @throws IOException if there's a problem connected to the room
+	 */
+	public void join(int roomId) throws IOException {
+		join(roomId, false);
+		rooms.add(roomId);
+	}
+
+	/**
+	 * Joins a room.
+	 * @param roomId the room ID
+	 * @param quiet true to not post an announcement message, false to post one
+	 * @throws IOException if there's a problem connected to the room
+	 */
+	private void join(int roomId, boolean quiet) throws IOException {
+		connection.joinRoom(roomId);
+		if (!quiet) {
+			connection.sendMessage(roomId, "OakBot Online.");
+		}
+	}
+
+	/**
+	 * Gets the rooms that the bot is connected to.
+	 * @return the room IDs
+	 */
+	public List<Integer> getRooms() {
+		return Collections.unmodifiableList(new ArrayList<>(rooms));
+	}
+
 	private List<ChatResponse> handleListeners(ChatMessage message, boolean isAdmin) {
 		List<ChatResponse> replies = new ArrayList<>();
 		for (Listener listener : listeners) {
@@ -176,21 +215,21 @@ public class Bot {
 		List<Command> commands = getCommands(commandName);
 		if (commands.isEmpty()) {
 			return Collections.emptyList();
-//			//@formatter:off
+			//@formatter:off
 //			ChatResponse reply = new ChatResponse(new ChatBuilder()
 //				.reply(message)
 //				.append("I don't know that command. o_O  Type ")
 //				.code(trigger + "help")
 //				.append(" to see my commands.")
 //			);
-//			//@formatter:on
-			//			return Arrays.asList(reply);
+//			return Arrays.asList(reply);
+			//@formatter:on
 		}
 
 		List<ChatResponse> replies = new ArrayList<>(1);
 		for (Command command : commands) {
 			try {
-				ChatResponse reply = command.onMessage(message, isAdmin);
+				ChatResponse reply = command.onMessage(message, isAdmin, this);
 				if (reply != null) {
 					replies.add(reply);
 				}
@@ -224,6 +263,11 @@ public class Bot {
 	 * @throws IOException if there's a problem sending the message
 	 */
 	private void broadcast(String message) throws IOException {
+		/*
+		 * Commands can join rooms, so make a copy of the room list to prevent a
+		 * concurrent modification exception.
+		 */
+		List<Integer> rooms = new ArrayList<>(this.rooms);
 		for (Integer room : rooms) {
 			connection.sendMessage(room, message);
 		}

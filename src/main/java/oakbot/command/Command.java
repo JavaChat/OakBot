@@ -3,6 +3,7 @@ package oakbot.command;
 import java.util.Collection;
 import java.util.Collections;
 
+import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 
@@ -45,7 +46,8 @@ public interface Command {
 	 * Called when a user invokes this command.
 	 * @param message the message that invoked the command
 	 * @param isAdmin true if the message sender is an admin, false if not
+	 * @param bot a reference to the bot
 	 * @return the response
 	 */
-	ChatResponse onMessage(ChatMessage message, boolean isAdmin);
+	ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot);
 }

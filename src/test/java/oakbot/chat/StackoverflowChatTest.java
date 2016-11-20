@@ -132,6 +132,62 @@ public class StackoverflowChatTest {
 	}
 
 	@Test
+	public void joinRoom() throws Exception {
+		HttpClient client = mockClient(new AnswerImpl() {
+			@Override
+			public HttpResponse answer(String method, String uri, String body) throws IOException {
+				switch (count) {
+				case 1:
+					assertEquals("GET", method);
+					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
+					return response(200, "404 NOT FOUND");
+				case 2:
+					assertEquals("GET", method);
+					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
+					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
+				case 3:
+					assertEquals("GET", method);
+					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
+					return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
+				case 4:
+					assertEquals("POST", method);
+					assertEquals("https://chat.stackoverflow.com/chats/1/events", uri);
+					//@formatter:off
+					Set<NameValuePair> expected = new HashSet<>(Arrays.asList(
+						new BasicNameValuePair("fkey", "0123456789abcdef0123456789abcdef"),
+						new BasicNameValuePair("mode", "messages"),
+						new BasicNameValuePair("msgCount", "1")
+					));
+					//@formatter:on
+					Set<NameValuePair> actual = params(body);
+					assertEquals(expected, actual);
+
+					return response(200, "{}");
+				}
+
+				return super.answer(method, uri, body);
+			}
+		});
+
+		StackoverflowChat chat = new StackoverflowChat(client);
+		try {
+			chat.joinRoom(1);
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+		try {
+			chat.joinRoom(1);
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+		chat.joinRoom(1);
+		chat.flush(); //should block until the message queue is empty
+		verify(client, times(4)).execute(any(HttpUriRequest.class));
+	}
+
+	@Test
 	public void sendMessage() throws Exception {
 		HttpClient client = mockClient(new AnswerImpl() {
 			private long prevRequestSent;
@@ -142,7 +198,7 @@ public class StackoverflowChatTest {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
+					return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
 				case 2:
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/messages/new", uri);
@@ -172,7 +228,7 @@ public class StackoverflowChatTest {
 				case 4:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/2", uri);
-					return response(200, "value=\"abcdef0123456789abcdef0123456789\"");
+					return response(200, "value=\"abcdef0123456789abcdef0123456789\" <textarea id=\"input\"></textarea>");
 				case 5:
 					prevRequestSent = System.currentTimeMillis();
 					assertEquals("https://chat.stackoverflow.com/chats/2/messages/new", uri);
@@ -226,7 +282,7 @@ public class StackoverflowChatTest {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
+					return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
 				case 2:
 					prevRequestSent = System.currentTimeMillis();
 					return response(200, "<html>error!</html>");
@@ -273,7 +329,7 @@ public class StackoverflowChatTest {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
+					return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
 				case 2:
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/events", uri);
@@ -345,7 +401,7 @@ public class StackoverflowChatTest {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
+					return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
 				case 2:
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/events", uri);

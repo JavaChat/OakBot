@@ -8,7 +8,7 @@ import java.util.List;
  * Represents a connection to a chat room.
  * @author Michael Angstadt
  */
-public interface ChatConnection extends Flushable{
+public interface ChatConnection extends Flushable {
 	/**
 	 * Logs into the chat room. This should be called before any other method.
 	 * @param email the login email
@@ -17,6 +17,15 @@ public interface ChatConnection extends Flushable{
 	 * @throws IllegalArgumentException if the login credentials are bad
 	 */
 	void login(String email, String password) throws IllegalArgumentException, IOException;
+
+	/**
+	 * Joins a chat room. A room should be joined before it is interacted with.
+	 * A room should be joined only once.
+	 * @param roomId the room ID
+	 * @throws IOException if there's network error, or if the room doesn't
+	 * exist, or if the bot can't post messages to the room
+	 */
+	void joinRoom(int roomId) throws IOException;
 
 	/**
 	 * Posts a message to a chat room. If the message exceeds the max message

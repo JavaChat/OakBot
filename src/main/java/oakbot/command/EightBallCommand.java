@@ -2,6 +2,7 @@ package oakbot.command;
 
 import java.util.Random;
 
+import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.util.ChatBuilder;
@@ -70,7 +71,7 @@ public class EightBallCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
+	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
 		int index = random.nextInt(answers.length);
 		String answer = answers[index];
 

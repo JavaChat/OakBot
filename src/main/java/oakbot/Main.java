@@ -20,6 +20,8 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import org.apache.http.impl.client.HttpClientBuilder;
+
 import oakbot.bot.Bot;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.StackoverflowChat;
@@ -29,6 +31,7 @@ import oakbot.command.EightBallCommand;
 import oakbot.command.HelpCommand;
 import oakbot.command.RollCommand;
 import oakbot.command.ShutdownCommand;
+import oakbot.command.SummonCommand;
 import oakbot.command.TagCommand;
 import oakbot.command.WikiCommand;
 import oakbot.command.define.DefineCommand;
@@ -39,8 +42,6 @@ import oakbot.command.urban.UrbanCommand;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
-
-import org.apache.http.impl.client.HttpClientBuilder;
 
 /**
  * @author Michael Angstadt
@@ -103,6 +104,7 @@ public class Main {
 		}
 		commands.add(new RollCommand());
 		commands.add(new EightBallCommand());
+		commands.add(new SummonCommand());
 		commands.add(new ShutdownCommand());
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
