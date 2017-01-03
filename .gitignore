@@ -14,5 +14,6 @@ javadocs/
 .project
 
 # Miscellenous
-*.properties
+bot.properties
+statistics.properties
 *.log
