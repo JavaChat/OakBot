@@ -38,8 +38,8 @@ public class LearnCommand implements Command {
 
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
-		String split[] = chatCommand.getContent().split("\\s+");
-		if (split.length != 2) {
+		String split[] = chatCommand.getContent().split("\\s+", 2);
+		if (split.length < 2) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
