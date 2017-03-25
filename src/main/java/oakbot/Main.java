@@ -158,7 +158,7 @@ public class Main {
 	}
 
 	private static BotProperties loadProperties() throws IOException {
-		Path file = Paths.get("bot.dev.properties");
+		Path file = Paths.get("bot.properties");
 		Properties properties = new Properties();
 		try (Reader reader = Files.newBufferedReader(file, Charset.forName("UTF-8"))) {
 			properties.load(reader);
