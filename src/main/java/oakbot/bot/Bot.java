@@ -30,7 +30,7 @@ import oakbot.listener.Listener;
 public class Bot {
 	private static final Logger logger = Logger.getLogger(Bot.class.getName());
 
-	private final String email, password, name, trigger;
+	private final String email, password, name, trigger, greeting;
 	private final ChatConnection connection;
 	private final int heartbeat;
 	private final List<Integer> rooms, admins;
@@ -47,6 +47,7 @@ public class Bot {
 		password = builder.password;
 		name = builder.name;
 		trigger = builder.trigger;
+		greeting = builder.greeting;
 		heartbeat = builder.heartbeat;
 		rooms = builder.rooms;
 		admins = builder.admins;
@@ -60,8 +61,8 @@ public class Bot {
 	/**
 	 * Starts the chat bot. This method blocks until the bot is terminated,
 	 * either by an unexpected error or a shutdown command.
-	 * @param quiet true to start the bot without broadcasting a startup
-	 * message, false to broadcast a startup message
+	 * @param quiet true to start the bot without broadcasting the greeting
+	 * message, false to broadcast the greeting message
 	 * @throws IllegalArgumentException if the login credentials are bad
 	 * @throws IOException if there's an I/O problem
 	 */
@@ -197,7 +198,7 @@ public class Bot {
 	private void join(int roomId, boolean quiet) throws IOException {
 		connection.joinRoom(roomId);
 		if (!quiet) {
-			connection.sendMessage(roomId, "OakBot Online.");
+			connection.sendMessage(roomId, greeting);
 		}
 	}
 
@@ -307,7 +308,7 @@ public class Bot {
 	 */
 	public static class Builder {
 		private ChatConnection connection;
-		private String email, password, name, trigger = "=";
+		private String email, password, name, trigger = "=", greeting;
 		private int heartbeat = 3000;
 		private List<Integer> rooms = new ArrayList<>();
 		private List<Integer> admins = new ArrayList<>();
@@ -334,6 +335,11 @@ public class Bot {
 
 		public Builder trigger(String trigger) {
 			this.trigger = trigger;
+			return this;
+		}
+
+		public Builder greeting(String greeting) {
+			this.greeting = greeting;
 			return this;
 		}
 

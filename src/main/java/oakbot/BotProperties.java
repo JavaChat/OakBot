@@ -13,7 +13,7 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
-	private final String loginEmail, password, botname, trigger, dictionaryKey, aboutHost;
+	private final String loginEmail, password, botname, trigger, greeting, dictionaryKey, aboutHost;
 	private final List<Integer> rooms, admins;
 	private final int heartbeat;
 	private final Path javadocPath;
@@ -35,6 +35,7 @@ public class BotProperties extends PropertiesWrapper {
 		String javadocPathStr = get("javadoc.folder");
 		javadocPath = (javadocPathStr == null) ? null : Paths.get(javadocPathStr);
 
+		greeting = get("greeting");
 		dictionaryKey = get("dictionary.key");
 		aboutHost = get("about.host");
 	}
@@ -102,6 +103,14 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public Path getJavadocPath() {
 		return javadocPath;
+	}
+
+	/**
+	 * Gets the message to post when the bot joins a room.
+	 * @return the message or null not to broadcast anything
+	 */
+	public String getGreeting() {
+		return greeting;
 	}
 
 	/**

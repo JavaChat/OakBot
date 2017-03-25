@@ -133,6 +133,7 @@ public class Main {
 		.admins(props.getAdmins())
 		.name(props.getBotname())
 		.trigger(props.getTrigger())
+		.greeting(props.getGreeting())
 		.rooms(props.getRooms())
 		.stats(stats)
 		.build();
