@@ -1,4 +1,6 @@
-package oakbot.chat;
+package oakbot.bot;
+
+import oakbot.chat.ChatMessage;
 
 /**
  * Represents a chat message that is in the form of a bot command.

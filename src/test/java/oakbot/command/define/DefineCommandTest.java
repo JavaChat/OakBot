@@ -11,8 +11,8 @@ import java.util.logging.LogManager;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatCommand;
 import oakbot.util.ChatCommandBuilder;
 
 public class DefineCommandTest {

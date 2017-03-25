@@ -1,6 +1,6 @@
 package oakbot.util;
 
-import oakbot.chat.ChatCommand;
+import oakbot.bot.ChatCommand;
 import oakbot.chat.ChatMessage;
 
 /**

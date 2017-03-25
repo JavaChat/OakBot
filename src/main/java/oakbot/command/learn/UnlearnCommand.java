@@ -3,8 +3,8 @@ package oakbot.command.learn;
 import java.util.List;
 
 import oakbot.bot.Bot;
+import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatCommand;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
 

@@ -1,9 +1,9 @@
 package oakbot.command;
 
 import oakbot.bot.Bot;
+import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.bot.ShutdownException;
-import oakbot.chat.ChatCommand;
 import oakbot.util.ChatBuilder;
 
 /**

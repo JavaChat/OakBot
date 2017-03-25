@@ -11,8 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import oakbot.bot.Bot;
+import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatCommand;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;

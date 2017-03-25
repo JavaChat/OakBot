@@ -27,8 +27,8 @@ import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 
 import oakbot.bot.Bot;
+import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatCommand;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;

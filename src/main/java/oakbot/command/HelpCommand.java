@@ -11,8 +11,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
 import oakbot.bot.Bot;
+import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatCommand;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommands;

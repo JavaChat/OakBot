@@ -3,8 +3,8 @@ package oakbot.command;
 import com.google.common.net.UrlEscapers;
 
 import oakbot.bot.Bot;
+import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatCommand;
 import oakbot.util.ChatBuilder;
 
 /**

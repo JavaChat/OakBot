@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 import com.google.common.collect.ImmutableList;
 
 import oakbot.Statistics;
-import oakbot.chat.ChatCommand;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;

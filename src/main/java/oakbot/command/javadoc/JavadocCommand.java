@@ -19,8 +19,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 import oakbot.bot.Bot;
+import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatCommand;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
