@@ -20,9 +20,11 @@ import oakbot.util.RelativeDateFormat;
 public class AboutCommand implements Command {
 	private final Date startedUp = new Date();
 	private final Statistics stats;
+	private final String host;
 
-	public AboutCommand(Statistics stats) {
+	public AboutCommand(Statistics stats, String host) {
 		this.stats = stats;
+		this.host = host;
 	}
 
 	@Override
@@ -51,6 +53,10 @@ public class AboutCommand implements Command {
 		.append("JAR built on: ").append(relativeDf.format(Main.BUILT)).append(" | ")
 		.append("started up: ").append(relativeDf.format(startedUp));
 		//@formatter:on
+
+		if (host != null) {
+			cb.append(" | ").append("hosted by: ").append(host);
+		}
 
 		if (stats != null) {
 			cb.append(" | ").append("responded to ").append(stats.getMessagesRespondedTo()).append(" commands");

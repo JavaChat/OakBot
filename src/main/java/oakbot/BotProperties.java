@@ -13,7 +13,7 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
-	private final String loginEmail, password, botname, trigger, dictionaryKey;
+	private final String loginEmail, password, botname, trigger, dictionaryKey, aboutHost;
 	private final List<Integer> rooms, admins;
 	private final int heartbeat;
 	private final Path javadocPath;
@@ -33,6 +33,7 @@ public class BotProperties extends PropertiesWrapper {
 		heartbeat = getInteger("heartbeat", 3000);
 		javadocPath = Paths.get(get("javadoc.folder", "javadocs"));
 		dictionaryKey = get("dictionary.key");
+		aboutHost = get("about.host");
 	}
 
 	/**
@@ -106,5 +107,13 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public String getDictionaryKey() {
 		return dictionaryKey;
+	}
+
+	/**
+	 * Gets the display name of the server hosting the bot.
+	 * @return the host or null if not defined
+	 */
+	public String getAboutHost() {
+		return aboutHost;
 	}
 }

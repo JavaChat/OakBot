@@ -91,7 +91,7 @@ public class Main {
 		Statistics stats = new Statistics(Paths.get("statistics.properties"));
 
 		List<Command> commands = new ArrayList<>();
-		commands.add(new AboutCommand(stats));
+		commands.add(new AboutCommand(stats, props.getAboutHost()));
 		commands.add(new HelpCommand(commands, listeners, props.getTrigger()));
 		commands.add(javadocCommand);
 		commands.add(new HttpCommand());
