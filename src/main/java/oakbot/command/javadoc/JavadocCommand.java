@@ -13,18 +13,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
+
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
+import oakbot.chat.ChatCommand;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.listener.JavadocListener;
 import oakbot.util.ChatBuilder;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
 
 /**
  * The command class for the chat bot.
@@ -124,12 +125,12 @@ public class JavadocCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
-		String content = message.getContent();
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+		String content = chatCommand.getContent();
 		if (content.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("Type the name of a Java class (e.g. \"java.lang.String\") or a method (e.g. \"Integer#parseInt\").")
 			);
 			//@formatter:on
@@ -142,11 +143,11 @@ public class JavadocCommand implements Command {
 		Collection<String> fullyQualifiedNames = dao.search(arguments.getClassName());
 
 		if (fullyQualifiedNames.isEmpty()) {
-			return handleNoMatch(message);
+			return handleNoMatch(chatCommand);
 		}
 
 		if (fullyQualifiedNames.size() > 1) {
-			return handleMultipleMatches(arguments, fullyQualifiedNames, message);
+			return handleMultipleMatches(arguments, fullyQualifiedNames, chatCommand);
 		}
 
 		ClassInfo info;
@@ -159,12 +160,12 @@ public class JavadocCommand implements Command {
 
 		if (info == null) {
 			//this should never happen, since we got the fully-qualified name from "dao.search()"
-			return handleNoMatch(message);
+			return handleNoMatch(chatCommand);
 		}
-		return handleSingleMatch(arguments, info, message);
+		return handleSingleMatch(arguments, info, chatCommand);
 	}
 
-	private ChatResponse handleNoMatch(ChatMessage message) {
+	private ChatResponse handleNoMatch(ChatCommand message) {
 		//@formatter:off
 		return new ChatResponse(new ChatBuilder()
 			.reply(message)
@@ -173,7 +174,7 @@ public class JavadocCommand implements Command {
 		//@formatter:on
 	}
 
-	private ChatResponse handleSingleMatch(JavadocCommandArguments commandText, ClassInfo info, ChatMessage message) {
+	private ChatResponse handleSingleMatch(JavadocCommandArguments commandText, ClassInfo info, ChatCommand message) {
 		if (commandText.getMethodName() == null) {
 			//method name not specified, so print the class docs
 			return printClass(info, commandText.getParagraph(), message);
@@ -212,7 +213,7 @@ public class JavadocCommand implements Command {
 		return printMethodChoices(map, commandText.getParameters(), message);
 	}
 
-	private ChatResponse handleMultipleMatches(JavadocCommandArguments commandText, Collection<String> matches, ChatMessage message) {
+	private ChatResponse handleMultipleMatches(JavadocCommandArguments commandText, Collection<String> matches, ChatCommand message) {
 		if (commandText.getMethodName() == null) {
 			//user is just querying for a class, so print the class choices
 			return printClassChoices(matches, message);
@@ -307,8 +308,8 @@ public class JavadocCommand implements Command {
 		}
 
 		//valid choice entered, print the info
-		message.setContent(prevChoices.get(index));
-		return onMessage(message, false, null);
+		ChatCommand newCommand = new ChatCommand(message, name(), prevChoices.get(index));
+		return onMessage(newCommand, false, null);
 	}
 
 	/**
@@ -319,7 +320,7 @@ public class JavadocCommand implements Command {
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printMethod(MethodInfo methodInfo, ClassInfo classInfo, int paragraph, ChatMessage message) {
+	private ChatResponse printMethod(MethodInfo methodInfo, ClassInfo classInfo, int paragraph, ChatCommand message) {
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(message);
 
@@ -379,7 +380,7 @@ public class JavadocCommand implements Command {
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, List<String> methodParams, ChatMessage message) {
+	private ChatResponse printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, List<String> methodParams, ChatCommand message) {
 		prevChoices = new ArrayList<>();
 		prevChoicesPinged = System.currentTimeMillis();
 
@@ -445,7 +446,7 @@ public class JavadocCommand implements Command {
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printClassChoices(Collection<String> classes, ChatMessage message) {
+	private ChatResponse printClassChoices(Collection<String> classes, ChatCommand message) {
 		List<String> choices = new ArrayList<>(classes);
 		Collections.sort(choices);
 		prevChoices = choices;
@@ -464,7 +465,7 @@ public class JavadocCommand implements Command {
 		return new ChatResponse(cb, SplitStrategy.NEWLINE);
 	}
 
-	private ChatResponse printClass(ClassInfo info, int paragraph, ChatMessage message) {
+	private ChatResponse printClass(ClassInfo info, int paragraph, ChatCommand message) {
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(message);
 

@@ -7,15 +7,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
+
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatCommand;
 import oakbot.chat.SplitStrategy;
 import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
-
-import com.google.common.collect.Multimap;
-import com.google.common.collect.TreeMultimap;
 
 /**
  * Displays help information on each chat command.
@@ -56,9 +56,9 @@ public class HelpCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
-		if (!message.getContent().isEmpty()) {
-			return showHelpText(message);
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+		if (!chatCommand.getContent().isEmpty()) {
+			return showHelpText(chatCommand);
 		}
 
 		Multimap<String, String> commandDescriptions = getCommandDescriptions();
@@ -136,7 +136,7 @@ public class HelpCommand implements Command {
 		return descriptions;
 	}
 
-	private ChatResponse showHelpText(ChatMessage message) {
+	private ChatResponse showHelpText(ChatCommand message) {
 		String commandText = message.getContent().toLowerCase();
 		List<String> helpTexts = new ArrayList<>();
 

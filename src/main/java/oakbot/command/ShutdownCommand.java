@@ -3,7 +3,7 @@ package oakbot.command;
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
 import oakbot.bot.ShutdownException;
-import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatCommand;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -28,14 +28,14 @@ public class ShutdownCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
 		if (isAdmin) {
 			throw new ShutdownException("Shutting down.  See you later.");
 		}
 
 		//@formatter:off
 		return new ChatResponse(new ChatBuilder()
-			.reply(message)
+			.reply(chatCommand)
 			.append("Only admins can shut me down. :P")
 		);
 		//@formatter:on

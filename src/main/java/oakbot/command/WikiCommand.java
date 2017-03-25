@@ -1,11 +1,11 @@
 package oakbot.command;
 
+import com.google.common.net.UrlEscapers;
+
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatCommand;
 import oakbot.util.ChatBuilder;
-
-import com.google.common.net.UrlEscapers;
 
 /**
  * Displays on-boxed Wikipedia pages.
@@ -34,12 +34,12 @@ public class WikiCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
-		String content = message.getContent().trim();
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("Please specify the term you'd like to display.")
 			);
 			//@formatter:on
@@ -49,7 +49,7 @@ public class WikiCommand implements Command {
 
 		//@formatter:off
 		return new ChatResponse(new ChatBuilder()
-			.reply(message)
+			.reply(chatCommand)
 			.append(url)
 		);
 		//@formatter:on

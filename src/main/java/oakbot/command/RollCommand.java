@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatCommand;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -43,15 +43,15 @@ public class RollCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
-		Parameters parameters = parseParameters(message);
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+		Parameters parameters = parseParameters(chatCommand);
 		if (parameters.choices != null) {
 			int index = random.nextInt(parameters.choices.length);
 			String choice = parameters.choices[index];
 
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append(choice)
 			);
 			//@formatter:on
@@ -60,7 +60,7 @@ public class RollCommand implements Command {
 		if (parameters.times > 100) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("I'm sorry, I can't do that, Dave.")
 			);
 			//@formatter:on
@@ -74,7 +74,7 @@ public class RollCommand implements Command {
 			total += result;
 		}
 
-		ChatBuilder cb = new ChatBuilder().reply(message);
+		ChatBuilder cb = new ChatBuilder().reply(chatCommand);
 		boolean first = true;
 		for (int result : results) {
 			if (first) {
@@ -91,8 +91,8 @@ public class RollCommand implements Command {
 		return new ChatResponse(cb);
 	}
 
-	private Parameters parseParameters(ChatMessage message) {
-		String content = message.getContent().trim();
+	private Parameters parseParameters(ChatCommand chatCommand) {
+		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			//roll 6-sided die
 			return new Parameters(1, 6);

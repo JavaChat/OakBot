@@ -15,14 +15,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import oakbot.bot.Bot;
-import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
-import oakbot.chat.SplitStrategy;
-import oakbot.command.Command;
-import oakbot.util.ChatBuilder;
-import oakbot.util.XPathWrapper;
-
 import org.apache.http.client.utils.URIBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -33,6 +25,14 @@ import org.xml.sax.SAXParseException;
 
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
+
+import oakbot.bot.Bot;
+import oakbot.bot.ChatResponse;
+import oakbot.chat.ChatCommand;
+import oakbot.chat.SplitStrategy;
+import oakbot.command.Command;
+import oakbot.util.ChatBuilder;
+import oakbot.util.XPathWrapper;
 
 /**
  * Gets word definitions from urbandictionary.com
@@ -101,12 +101,12 @@ public class DefineCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
-		String word = message.getContent().trim();
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+		String word = chatCommand.getContent().trim();
 		if (word.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("You have to type a word to see its definition... -_-")
 			);
 			//@formatter:on
@@ -127,7 +127,7 @@ public class DefineCommand implements Command {
 
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("Sorry, an unexpected error occurred getting the definition. >.>")
 			);
 			//@formatter:on
@@ -136,14 +136,14 @@ public class DefineCommand implements Command {
 		if (definitions.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("No definitions found.")
 			);
 			//@formatter:on
 		}
 
 		ChatBuilder cb = new ChatBuilder();
-		cb.reply(message);
+		cb.reply(chatCommand);
 		for (Definition definition : definitions) {
 			cb.append(word).append(" (").append(definition.getWordType()).append("):").nl();
 			cb.append(definition.getDefinition());

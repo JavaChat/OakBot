@@ -11,7 +11,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatCommand;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
@@ -64,13 +64,13 @@ public class HttpCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
-		String split[] = message.getContent().split("\\s+");
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+		String split[] = chatCommand.getContent().split("\\s+");
 		String code = split[0].toUpperCase();
 		if (code.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.")
 			);
 			//@formatter:on
@@ -85,7 +85,7 @@ public class HttpCommand implements Command {
 				String reply = code.matches("[0-9]+") ? "Status code not recognized." : "Method not recognized.";
 				//@formatter:off
 				return new ChatResponse(new ChatBuilder()
-					.reply(message)
+					.reply(chatCommand)
 					.append(reply)
 				);
 				//@formatter:on
@@ -107,7 +107,7 @@ public class HttpCommand implements Command {
 		String defaultRfc = getDefaultRfc(element);
 
 		ChatBuilder cb = new ChatBuilder();
-		cb.reply(message);
+		cb.reply(chatCommand);
 		if (paragraph == 1) {
 			String name = element.getAttribute("name");
 			String section = element.getAttribute("section");

@@ -5,7 +5,7 @@ import java.util.Collections;
 
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatCommand;
 
 /**
  * A chat bot command
@@ -44,10 +44,10 @@ public interface Command {
 
 	/**
 	 * Called when a user invokes this command.
-	 * @param message the message that invoked the command
+	 * @param chatCommand the command that the user has sent
 	 * @param isAdmin true if the message sender is an admin, false if not
 	 * @param bot a reference to the bot
 	 * @return the response
 	 */
-	ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot);
+	ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot);
 }

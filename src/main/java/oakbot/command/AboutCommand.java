@@ -8,7 +8,7 @@ import oakbot.Main;
 import oakbot.Statistics;
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatCommand;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 import oakbot.util.RelativeDateFormat;
@@ -43,7 +43,7 @@ public class AboutCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
 		RelativeDateFormat relativeDf = new RelativeDateFormat();
 
 		//@formatter:off

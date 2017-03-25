@@ -1,5 +1,6 @@
 package oakbot.util;
 
+import oakbot.chat.ChatCommand;
 import oakbot.chat.ChatMessage;
 
 /**
@@ -128,6 +129,15 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
+	 * Appends the "reply to message" syntax.
+	 * @param command the message to reply to
+	 * @return this
+	 */
+	public ChatBuilder reply(ChatCommand command) {
+		return reply(command.getMessage());
+	}
+
+	/**
 	 * Appends the character sequence for "strike through".
 	 * @return this
 	 */
@@ -172,7 +182,7 @@ public class ChatBuilder implements CharSequence {
 		sb.append(i);
 		return this;
 	}
-	
+
 	/**
 	 * Appends a number.
 	 * @param l the number to append

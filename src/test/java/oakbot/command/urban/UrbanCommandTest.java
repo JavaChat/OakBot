@@ -8,16 +8,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.LogManager;
 
-import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import oakbot.bot.ChatResponse;
+import oakbot.chat.ChatCommand;
+import oakbot.util.ChatCommandBuilder;
 
 /**
  * @author Michael Angstadt
  */
 public class UrbanCommandTest {
+	private final ChatCommandBuilder chatCommandBuilder = new ChatCommandBuilder(new UrbanCommand().name());
+
 	@BeforeClass
 	public static void beforeClass() {
 		//turn off logging
@@ -26,9 +29,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void no_word() {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("");
+		ChatCommand message = chatCommandBuilder.build(1, "");
 
 		UrbanCommand urban = new UrbanCommand();
 		ChatResponse response = urban.onMessage(message, false, null);
@@ -37,9 +38,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void ioexception() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool");
+		ChatCommand message = chatCommandBuilder.build(1, "cool");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -54,9 +53,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void non_json_response() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool");
+		ChatCommand message = chatCommandBuilder.build(1, "cool");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -71,9 +68,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void not_found() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool");
+		ChatCommand message = chatCommandBuilder.build(1, "cool");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -88,9 +83,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void no_newlines_in_definition() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool");
+		ChatCommand message = chatCommandBuilder.build(1, "cool");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -105,9 +98,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void newlines_in_definition() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("snafu");
+		ChatCommand message = chatCommandBuilder.build(1, "snafu");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -131,9 +122,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void encode_parameters() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("fucked up");
+		ChatCommand message = chatCommandBuilder.build(1, "fucked up");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -147,9 +136,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void other_definition() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool 2");
+		ChatCommand message = chatCommandBuilder.build(1, "cool 2");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -164,9 +151,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void other_definition_range_low() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool -1");
+		ChatCommand message = chatCommandBuilder.build(1, "cool -1");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -181,9 +166,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void other_definition_range_high() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool 9000");
+		ChatCommand message = chatCommandBuilder.build(1, "cool 9000");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -198,9 +181,7 @@ public class UrbanCommandTest {
 
 	@Test
 	public void word_with_spaces() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("fucked up");
+		ChatCommand message = chatCommandBuilder.build(1, "fucked up");
 
 		UrbanCommand urban = new UrbanCommand() {
 			@Override
@@ -212,8 +193,8 @@ public class UrbanCommandTest {
 		ChatResponse response = urban.onMessage(message, false, null);
 		assertEquals(":1 [**`fucked up`**](Permalink): Definition", response.getMessage());
 	}
-	
-	private static InputStream in(String string){
+
+	private static InputStream in(String string) {
 		return new ByteArrayInputStream(string.getBytes());
 	}
 }

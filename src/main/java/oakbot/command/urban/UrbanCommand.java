@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatCommand;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
@@ -54,12 +54,12 @@ public class UrbanCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
-		String content = message.getContent().trim();
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("You have to type a word to see its definition... -_-")
 			);
 			//@formatter:on
@@ -100,7 +100,7 @@ public class UrbanCommand implements Command {
 
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("Sorry, an unexpected error occurred contacting ")
 				.link("urbandictionary.com", "http://www.ubrandictionary.com")
 				.append("... >.>")
@@ -112,7 +112,7 @@ public class UrbanCommand implements Command {
 		if (words == null || words.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("No definition found.")
 			);
 			//@formatter:on
@@ -130,7 +130,7 @@ public class UrbanCommand implements Command {
 
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append(urbanWord.getWord())
 				.append(" (").append(urbanWord.getPermalink()).append("):\n")
 				.append(definition)
@@ -142,7 +142,7 @@ public class UrbanCommand implements Command {
 
 		//@formatter:off
 		return new ChatResponse(new ChatBuilder()
-			.reply(message)
+			.reply(chatCommand)
 			.link(new ChatBuilder().bold().code(urbanWord.getWord()).bold().toString(), urbanWord.getPermalink())
 			.append(": ")
 			.append(definition)

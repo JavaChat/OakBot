@@ -8,13 +8,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.LogManager;
 
-import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import oakbot.bot.ChatResponse;
+import oakbot.chat.ChatCommand;
+import oakbot.util.ChatCommandBuilder;
+
 public class DefineCommandTest {
+	private final ChatCommandBuilder chatCommandBuilder = new ChatCommandBuilder(new DefineCommand("").name());
+
 	@BeforeClass
 	public static void beforeClass() {
 		//turn off logging
@@ -23,10 +26,7 @@ public class DefineCommandTest {
 
 	@Test
 	public void no_word() {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("");
-
+		ChatCommand message = chatCommandBuilder.build(1, "");
 		DefineCommand urban = new DefineCommand("theKey");
 		ChatResponse response = urban.onMessage(message, false, null);
 		assertEquals(":1 You have to type a word to see its definition... -_-", response.getMessage());
@@ -34,10 +34,7 @@ public class DefineCommandTest {
 
 	@Test
 	public void ioexception() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool");
-
+		ChatCommand message = chatCommandBuilder.build(1, "cool");
 		DefineCommand urban = new DefineCommand("theKey") {
 			@Override
 			InputStream get(String url) throws IOException {
@@ -51,10 +48,7 @@ public class DefineCommandTest {
 
 	@Test
 	public void non_xml_response() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool");
-
+		ChatCommand message = chatCommandBuilder.build(1, "cool");
 		DefineCommand urban = new DefineCommand("theKey") {
 			@Override
 			InputStream get(String url) throws IOException {
@@ -68,10 +62,7 @@ public class DefineCommandTest {
 
 	@Test
 	public void not_found() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool");
-
+		ChatCommand message = chatCommandBuilder.build(1, "cool");
 		DefineCommand urban = new DefineCommand("theKey") {
 			@Override
 			InputStream get(String url) throws IOException {
@@ -85,10 +76,7 @@ public class DefineCommandTest {
 
 	@Test
 	public void multiple_definitions() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("cool");
-
+		ChatCommand message = chatCommandBuilder.build(1, "cool");
 		DefineCommand urban = new DefineCommand("theKey") {
 			@Override
 			InputStream get(String url) throws IOException {
@@ -159,13 +147,10 @@ public class DefineCommandTest {
 		);
 		//@formatter:on
 	}
-	
+
 	@Test
 	public void encode_parameters() throws Exception {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(1);
-		message.setContent("grand piano");
-
+		ChatCommand message = chatCommandBuilder.build(1, "grand piano");
 		DefineCommand urban = new DefineCommand("theKey") {
 			@Override
 			InputStream get(String url) throws IOException {

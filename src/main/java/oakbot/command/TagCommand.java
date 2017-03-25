@@ -4,12 +4,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import oakbot.bot.Bot;
-import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
-import oakbot.chat.SplitStrategy;
-import oakbot.util.ChatBuilder;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -22,6 +16,12 @@ import org.jsoup.nodes.Element;
 
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
+
+import oakbot.bot.Bot;
+import oakbot.bot.ChatResponse;
+import oakbot.chat.ChatCommand;
+import oakbot.chat.SplitStrategy;
+import oakbot.util.ChatBuilder;
 
 /**
  * Displays StackOverflow tag descriptions (can sort of act like a Computer
@@ -53,12 +53,12 @@ public class TagCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
-		String content = message.getContent().trim();
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("Please specify the tag name (e.g. \"java\").")
 			);
 			//@formatter:on
@@ -76,7 +76,7 @@ public class TagCommand implements Command {
 
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("An error occurred retrieving the tag description: ")
 				.append(e.getMessage())
 			);
@@ -88,7 +88,7 @@ public class TagCommand implements Command {
 		if (element == null) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
-				.reply(message)
+				.reply(chatCommand)
 				.append("Tag not found. :(")
 			);
 			//@formatter:on
@@ -97,7 +97,7 @@ public class TagCommand implements Command {
 		String definition = element.text();
 		//@formatter:off
 		return new ChatResponse(new ChatBuilder()
-			.reply(message)
+			.reply(chatCommand)
 			.tag(tag)
 			.append(' ').append(definition)
 		, SplitStrategy.WORD);

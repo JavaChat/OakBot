@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import com.google.common.collect.ImmutableList;
 
 import oakbot.Statistics;
+import oakbot.chat.ChatCommand;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
@@ -81,8 +82,8 @@ public class Bot {
 			long start = System.currentTimeMillis();
 
 			/*
-			 * Commands can join rooms, so make a copy of the room list to prevent a
-			 * concurrent modification exception.
+			 * Commands can join rooms, so make a copy of the room list to
+			 * prevent a concurrent modification exception.
 			 */
 			rooms = new ArrayList<>(this.rooms);
 			for (Integer room : rooms) {
@@ -104,9 +105,14 @@ public class Bot {
 
 					List<ChatResponse> replies = new ArrayList<>();
 					boolean isUserAdmin = admins.contains(message.getUserId());
+
 					try {
 						replies.addAll(handleListeners(message, isUserAdmin));
-						replies.addAll(handleCommands(message, isUserAdmin));
+
+						ChatCommand command = asCommand(message);
+						if (command != null) {
+							replies.addAll(handleCommands(command, isUserAdmin));
+						}
 					} catch (ShutdownException e) {
 						broadcast("Shutting down.  See you later.");
 						connection.flush();
@@ -146,6 +152,27 @@ public class Bot {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Tests to see if a chat message is in the format of a command, and parses
+	 * it as such.
+	 * @param message the chat message
+	 * @return the chat command if null if the message is not a command
+	 */
+	private ChatCommand asCommand(ChatMessage message) {
+		String content = message.getContent();
+		Matcher matcher = commandRegex.matcher(content);
+		if (!matcher.find()) {
+			return null;
+		}
+
+		String name = matcher.group(1);
+		String text = matcher.group(3);
+		if (text == null) {
+			text = "";
+		}
+		return new ChatCommand(message, name, text);
 	}
 
 	/**
@@ -196,23 +223,8 @@ public class Bot {
 		return replies;
 	}
 
-	private List<ChatResponse> handleCommands(ChatMessage message, boolean isAdmin) {
-		String content = message.getContent();
-		Matcher matcher = commandRegex.matcher(content);
-		if (!matcher.find()) {
-			//it's not a command
-			return Collections.emptyList();
-		}
-
-		//remove the command text from the chat message
-		String text = matcher.group(3);
-		if (text == null) {
-			text = "";
-		}
-		message.setContent(text);
-
-		String commandName = matcher.group(1);
-		List<Command> commands = getCommands(commandName);
+	private List<ChatResponse> handleCommands(ChatCommand chatCommand, boolean isAdmin) {
+		List<Command> commands = getCommands(chatCommand.getCommandName());
 		if (commands.isEmpty()) {
 			return Collections.emptyList();
 			//@formatter:off
@@ -229,7 +241,7 @@ public class Bot {
 		List<ChatResponse> replies = new ArrayList<>(1);
 		for (Command command : commands) {
 			try {
-				ChatResponse reply = command.onMessage(message, isAdmin, this);
+				ChatResponse reply = command.onMessage(chatCommand, isAdmin, this);
 				if (reply != null) {
 					replies.add(reply);
 				}

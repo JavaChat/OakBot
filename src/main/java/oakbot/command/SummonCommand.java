@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatCommand;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -28,30 +28,30 @@ public class SummonCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin, Bot bot) {
-		String content = message.getContent().trim();
+	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+		String content = chatCommand.getContent().trim();
 
 		int roomToJoin;
 		try {
 			roomToJoin = Integer.parseInt(content);
 		} catch (NumberFormatException e) {
-			return reply("Please specify the room ID.", message);
+			return reply("Please specify the room ID.", chatCommand);
 		}
 
 		if (bot.getRooms().contains(roomToJoin)) {
-			return reply("I'm already there... -_-", message);
+			return reply("I'm already there... -_-", chatCommand);
 		}
 
 		try {
 			bot.join(roomToJoin);
 		} catch (IOException e) {
-			return reply("Sorry, couldn't join that room.", message);
+			return reply("Sorry, couldn't join that room.", chatCommand);
 		}
 
-		return reply("Joined.", message);
+		return reply("Joined.", chatCommand);
 	}
 
-	private static ChatResponse reply(String content, ChatMessage message) {
+	private static ChatResponse reply(String content, ChatCommand message) {
 		//@formatter:off
 		return new ChatResponse(new ChatBuilder()
 			.reply(message)
