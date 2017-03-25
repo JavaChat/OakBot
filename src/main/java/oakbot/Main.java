@@ -12,7 +12,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -83,14 +82,14 @@ public class Main {
 		setupLogging();
 		BotProperties props = loadProperties();
 
-		JavadocCommand javadocCommand = createJavadocCommand(props.getJavadocPath());
+		Path javadocPath = props.getJavadocPath();
+		JavadocCommand javadocCommand = (javadocPath == null) ? null : createJavadocCommand(javadocPath);
 
-		//@formatter:off
-		List<Listener> listeners = Arrays.asList(
-			new MentionListener(props.getBotname(), props.getTrigger()),
-			new JavadocListener(javadocCommand)
-		);
-		//@formatter:on
+		List<Listener> listeners = new ArrayList<>();
+		listeners.add(new MentionListener(props.getBotname(), props.getTrigger()));
+		if (javadocCommand != null) {
+			listeners.add(new JavadocListener(javadocCommand));
+		}
 
 		Statistics stats = new Statistics(Paths.get("statistics.properties"));
 		LearnedCommands learnedCommands = new LearnedCommands(Paths.get("learned-commands.json"));
@@ -98,15 +97,21 @@ public class Main {
 		List<Command> commands = new ArrayList<>();
 		commands.add(new AboutCommand(stats, props.getAboutHost()));
 		commands.add(new HelpCommand(commands, learnedCommands, listeners));
-		commands.add(javadocCommand);
+
+		if (javadocCommand != null) {
+			commands.add(javadocCommand);
+		}
+
 		commands.add(new HttpCommand());
 		commands.add(new WikiCommand());
 		commands.add(new TagCommand());
 		commands.add(new UrbanCommand());
+
 		String dictionaryKey = props.getDictionaryKey();
 		if (dictionaryKey != null) {
 			commands.add(new DefineCommand(dictionaryKey));
 		}
+
 		commands.add(new RollCommand());
 		commands.add(new EightBallCommand());
 		commands.add(new SummonCommand());

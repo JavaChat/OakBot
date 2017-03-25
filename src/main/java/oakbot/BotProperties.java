@@ -31,7 +31,10 @@ public class BotProperties extends PropertiesWrapper {
 		rooms = getIntegerList("rooms", Arrays.asList(1)); //default to "Sandbox"
 		admins = getIntegerList("admins");
 		heartbeat = getInteger("heartbeat", 3000);
-		javadocPath = Paths.get(get("javadoc.folder", "javadocs"));
+
+		String javadocPathStr = get("javadoc.folder");
+		javadocPath = (javadocPathStr == null) ? null : Paths.get(javadocPathStr);
+
 		dictionaryKey = get("dictionary.key");
 		aboutHost = get("about.host");
 	}
