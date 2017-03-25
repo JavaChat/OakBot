@@ -5,12 +5,12 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Represents a connection to a chat room.
+ * Represents a connection to a chat system.
  * @author Michael Angstadt
  */
 public interface ChatConnection extends Flushable {
 	/**
-	 * Logs into the chat room. This should be called before any other method.
+	 * Logs into the chat system. This should be called before any other method.
 	 * @param email the login email
 	 * @param password the login password
 	 * @throws IOException if there's a problem logging in
