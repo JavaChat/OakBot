@@ -30,6 +30,7 @@ import oakbot.command.Command;
 import oakbot.command.EightBallCommand;
 import oakbot.command.HelpCommand;
 import oakbot.command.RollCommand;
+import oakbot.command.ShrugCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.SummonCommand;
 import oakbot.command.TagCommand;
@@ -112,6 +113,7 @@ public class Main {
 		commands.add(new ShutdownCommand());
 		commands.add(new LearnCommand(commands, learnedCommands));
 		commands.add(new UnlearnCommand(commands, learnedCommands));
+		commands.add(new ShrugCommand());
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
 
