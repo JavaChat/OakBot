@@ -38,6 +38,9 @@ import oakbot.command.define.DefineCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
 import oakbot.command.javadoc.JavadocDao;
+import oakbot.command.learn.LearnCommand;
+import oakbot.command.learn.LearnedCommands;
+import oakbot.command.learn.UnlearnCommand;
 import oakbot.command.urban.UrbanCommand;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
@@ -89,10 +92,11 @@ public class Main {
 		//@formatter:on
 
 		Statistics stats = new Statistics(Paths.get("statistics.properties"));
+		LearnedCommands learnedCommands = new LearnedCommands(Paths.get("learned-commands.json"));
 
 		List<Command> commands = new ArrayList<>();
 		commands.add(new AboutCommand(stats, props.getAboutHost()));
-		commands.add(new HelpCommand(commands, listeners, props.getTrigger()));
+		commands.add(new HelpCommand(commands, learnedCommands, listeners));
 		commands.add(javadocCommand);
 		commands.add(new HttpCommand());
 		commands.add(new WikiCommand());
@@ -106,6 +110,8 @@ public class Main {
 		commands.add(new EightBallCommand());
 		commands.add(new SummonCommand());
 		commands.add(new ShutdownCommand());
+		commands.add(new LearnCommand(commands, learnedCommands));
+		commands.add(new UnlearnCommand(commands, learnedCommands));
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
 
@@ -113,6 +119,7 @@ public class Main {
 		Bot bot = new Bot.Builder()
 		.login(props.getLoginEmail(), props.getLoginPassword())
 		.commands(commands)
+		.learnedCommands(learnedCommands)
 		.listeners(listeners)
 		.connection(connection)
 		.heartbeat(props.getHeartbeat())
@@ -149,7 +156,7 @@ public class Main {
 	}
 
 	private static BotProperties loadProperties() throws IOException {
-		Path file = Paths.get("bot.properties");
+		Path file = Paths.get("bot.dev.properties");
 		Properties properties = new Properties();
 		try (Reader reader = Files.newBufferedReader(file, Charset.forName("UTF-8"))) {
 			properties.load(reader);

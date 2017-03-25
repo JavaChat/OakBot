@@ -14,6 +14,8 @@ import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatCommand;
 import oakbot.chat.SplitStrategy;
+import oakbot.command.learn.LearnedCommand;
+import oakbot.command.learn.LearnedCommands;
 import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
 
@@ -23,13 +25,13 @@ import oakbot.util.ChatBuilder;
  */
 public class HelpCommand implements Command {
 	private final List<Command> commands;
+	private final LearnedCommands learnedCommands;
 	private final List<Listener> listeners;
-	private final String trigger;
 
-	public HelpCommand(List<Command> commands, List<Listener> listeners, String trigger) {
+	public HelpCommand(List<Command> commands, LearnedCommands learnedCommands, List<Listener> listeners) {
 		this.commands = commands;
+		this.learnedCommands = learnedCommands;
 		this.listeners = listeners;
-		this.trigger = trigger;
 	}
 
 	@Override
@@ -58,16 +60,19 @@ public class HelpCommand implements Command {
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
 		if (!chatCommand.getContent().isEmpty()) {
-			return showHelpText(chatCommand);
+			return showHelpText(chatCommand, bot.getTrigger());
 		}
 
 		Multimap<String, String> commandDescriptions = getCommandDescriptions();
 		Multimap<String, String> listenerDescriptions = getListenerDescriptions();
 
-		Collection<String> allNames = new ArrayList<>(commandDescriptions.size() + listenerDescriptions.size());
-		allNames.addAll(commandDescriptions.keySet());
-		allNames.addAll(listenerDescriptions.keySet());
-		int longestNameLength = longestStringLength(allNames);
+		int longestNameLength;
+		{
+			Collection<String> allNames = new ArrayList<>(commandDescriptions.size() + listenerDescriptions.size());
+			allNames.addAll(commandDescriptions.keySet());
+			allNames.addAll(listenerDescriptions.keySet());
+			longestNameLength = longestStringLength(allNames);
+		}
 
 		//build message
 		ChatBuilder cb = new ChatBuilder();
@@ -77,11 +82,26 @@ public class HelpCommand implements Command {
 				String name = entry.getKey();
 				String description = entry.getValue();
 
-				cb.fixed().append(trigger).append(name);
+				cb.fixed().append(bot.getTrigger()).append(name);
 				cb.append(repeat(" ", longestNameLength - name.length() + 2));
 				cb.append(description).nl();
 			}
 			cb.fixed().nl();
+		}
+
+		List<String> learnedCommandNames = getLearnedCommandNames();
+		if (!learnedCommandNames.isEmpty()) {
+			cb.fixed().append("Learned Commands=============").nl();
+			cb.fixed();
+			boolean first = true;
+			for (String name : learnedCommandNames) {
+				if (!first) {
+					cb.append(", ");
+				}
+				cb.append(bot.getTrigger()).append(name);
+				first = false;
+			}
+			cb.nl().fixed().nl();
 		}
 
 		if (!listenerDescriptions.isEmpty()) {
@@ -123,6 +143,14 @@ public class HelpCommand implements Command {
 		return descriptions;
 	}
 
+	private List<String> getLearnedCommandNames() {
+		List<String> names = new ArrayList<>();
+		for (LearnedCommand command : learnedCommands) {
+			names.add(command.name());
+		}
+		return names;
+	}
+
 	private Multimap<String, String> getListenerDescriptions() {
 		Multimap<String, String> descriptions = TreeMultimap.create();
 		for (Listener listener : listeners) {
@@ -136,7 +164,7 @@ public class HelpCommand implements Command {
 		return descriptions;
 	}
 
-	private ChatResponse showHelpText(ChatCommand message) {
+	private ChatResponse showHelpText(ChatCommand message, String trigger) {
 		String commandText = message.getContent().toLowerCase();
 		List<String> helpTexts = new ArrayList<>();
 
@@ -148,6 +176,13 @@ public class HelpCommand implements Command {
 
 			name = name.toLowerCase();
 			if (name.equals(commandText) || command.aliases().contains(commandText)) {
+				helpTexts.add(command.helpText(trigger));
+			}
+		}
+
+		for (LearnedCommand command : learnedCommands) {
+			String name = command.name().toLowerCase();
+			if (name.equals(commandText)) {
 				helpTexts.add(command.helpText(trigger));
 			}
 		}

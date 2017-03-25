@@ -20,6 +20,8 @@ import oakbot.chat.ChatCommand;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
+import oakbot.command.learn.LearnedCommand;
+import oakbot.command.learn.LearnedCommands;
 import oakbot.listener.Listener;
 
 /**
@@ -34,6 +36,7 @@ public class Bot {
 	private final int heartbeat;
 	private final List<Integer> rooms, admins;
 	private final List<Command> commands;
+	private final LearnedCommands learnedCommands;
 	private final List<Listener> listeners;
 	private final Statistics stats;
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
@@ -50,6 +53,7 @@ public class Bot {
 		admins = builder.admins;
 		stats = builder.stats;
 		commands = builder.commands.build();
+		learnedCommands = builder.learnedCommands;
 		listeners = builder.listeners.build();
 		commandRegex = Pattern.compile("^" + Pattern.quote(trigger) + "\\s*(.*?)(\\s+(.*)|$)");
 	}
@@ -199,6 +203,14 @@ public class Bot {
 	}
 
 	/**
+	 * Gets the bot's command trigger.
+	 * @return the trigger (e.g. "/")
+	 */
+	public String getTrigger() {
+		return trigger;
+	}
+
+	/**
 	 * Gets the rooms that the bot is connected to.
 	 * @return the room IDs
 	 */
@@ -266,6 +278,11 @@ public class Bot {
 				result.add(command);
 			}
 		}
+		for (LearnedCommand command : learnedCommands) {
+			if (command.name().equals(name) || command.aliases().contains(name)) {
+				result.add(command);
+			}
+		}
 		return result;
 	}
 
@@ -296,6 +313,7 @@ public class Bot {
 		private List<Integer> rooms = new ArrayList<>();
 		private List<Integer> admins = new ArrayList<>();
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
+		private LearnedCommands learnedCommands = new LearnedCommands();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
 		private Statistics stats;
 
@@ -349,6 +367,11 @@ public class Bot {
 
 		public Builder commands(Collection<Command> commands) {
 			this.commands.addAll(commands);
+			return this;
+		}
+
+		public Builder learnedCommands(LearnedCommands commands) {
+			this.learnedCommands = commands;
 			return this;
 		}
 
