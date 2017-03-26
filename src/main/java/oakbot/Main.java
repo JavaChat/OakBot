@@ -83,62 +83,68 @@ public class Main {
 		setupLogging();
 		BotProperties props = loadProperties();
 
+		Database db = new JsonDatabase(Paths.get("db.json"));
+		Statistics stats = new Statistics(db);
+		Rooms rooms = new Rooms(db, props.getHomeRooms());
+		LearnedCommands learnedCommands = new LearnedCommands(db);
+
 		Path javadocPath = props.getJavadocPath();
 		JavadocCommand javadocCommand = (javadocPath == null) ? null : createJavadocCommand(javadocPath);
 
 		List<Listener> listeners = new ArrayList<>();
-		listeners.add(new MentionListener(props.getBotname(), props.getTrigger()));
-		if (javadocCommand != null) {
-			listeners.add(new JavadocListener(javadocCommand));
+		{
+			listeners.add(new MentionListener(props.getBotname(), props.getTrigger()));
+			if (javadocCommand != null) {
+				listeners.add(new JavadocListener(javadocCommand));
+			}
 		}
-
-		Statistics stats = new Statistics(Paths.get("statistics.properties"));
-		Rooms rooms = new Rooms(Paths.get("rooms.properties"), props.getHomeRooms());
-		LearnedCommands learnedCommands = new LearnedCommands(Paths.get("learned-commands.json"));
 
 		List<Command> commands = new ArrayList<>();
-		commands.add(new AboutCommand(stats, props.getAboutHost()));
-		commands.add(new HelpCommand(commands, learnedCommands, listeners));
+		{
+			commands.add(new AboutCommand(stats, props.getAboutHost()));
+			commands.add(new HelpCommand(commands, learnedCommands, listeners));
 
-		if (javadocCommand != null) {
-			commands.add(javadocCommand);
+			if (javadocCommand != null) {
+				commands.add(javadocCommand);
+			}
+
+			commands.add(new HttpCommand());
+			commands.add(new WikiCommand());
+			commands.add(new TagCommand());
+			commands.add(new UrbanCommand());
+
+			String dictionaryKey = props.getDictionaryKey();
+			if (dictionaryKey != null) {
+				commands.add(new DefineCommand(dictionaryKey));
+			}
+
+			commands.add(new RollCommand());
+			commands.add(new EightBallCommand());
+			commands.add(new SummonCommand());
+			commands.add(new UnsummonCommand());
+			commands.add(new ShutdownCommand());
+			commands.add(new LearnCommand(commands, learnedCommands));
+			commands.add(new UnlearnCommand(commands, learnedCommands));
+			commands.add(new ShrugCommand());
 		}
-
-		commands.add(new HttpCommand());
-		commands.add(new WikiCommand());
-		commands.add(new TagCommand());
-		commands.add(new UrbanCommand());
-
-		String dictionaryKey = props.getDictionaryKey();
-		if (dictionaryKey != null) {
-			commands.add(new DefineCommand(dictionaryKey));
-		}
-
-		commands.add(new RollCommand());
-		commands.add(new EightBallCommand());
-		commands.add(new SummonCommand());
-		commands.add(new UnsummonCommand());
-		commands.add(new ShutdownCommand());
-		commands.add(new LearnCommand(commands, learnedCommands));
-		commands.add(new UnlearnCommand(commands, learnedCommands));
-		commands.add(new ShrugCommand());
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
-		.login(props.getLoginEmail(), props.getLoginPassword())
-		.commands(commands)
-		.learnedCommands(learnedCommands)
-		.listeners(listeners)
-		.connection(connection)
-		.heartbeat(props.getHeartbeat())
-		.admins(props.getAdmins())
-		.name(props.getBotname())
-		.trigger(props.getTrigger())
-		.greeting(props.getGreeting())
-		.rooms(rooms)
-		.stats(stats)
+			.login(props.getLoginEmail(), props.getLoginPassword())
+			.commands(commands)
+			.learnedCommands(learnedCommands)
+			.listeners(listeners)
+			.connection(connection)
+			.heartbeat(props.getHeartbeat())
+			.admins(props.getAdmins())
+			.name(props.getBotname())
+			.trigger(props.getTrigger())
+			.greeting(props.getGreeting())
+			.rooms(rooms)
+			.stats(stats)
+			.database(db)
 		.build();
 		//@formatter:on
 

@@ -1,49 +1,41 @@
 package oakbot;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import oakbot.util.PropertiesWrapper;
 
 /**
  * Records and persists the rooms the bot has joined.
  * @author Michael Angstadt
  */
 public class Rooms {
-	private static final Logger logger = Logger.getLogger(Rooms.class.getName());
-	private final Path file;
+	private final Database db;
 	private final List<Integer> rooms = new ArrayList<>();
 	private final List<Integer> homeRooms;
 
 	/**
 	 * This constructor will not persist any of the rooms the bot joins.
 	 * @param homeRooms the bot's home rooms
-	 * @throws IOException if there's a problem reading from the file
 	 */
 	public Rooms(List<Integer> homeRooms) {
-		this.file = null;
-		this.homeRooms = homeRooms;
-		rooms.addAll(homeRooms);
+		this(null, homeRooms);
 	}
 
 	/**
 	 * This constructor will persist the rooms the bot joins.
-	 * @param file the file where the room data is stored.
+	 * @param db the database
 	 * @param homeRooms the bot's home rooms
-	 * @throws IOException if there's a problem reading from the file
 	 */
-	public Rooms(Path file, List<Integer> homeRooms) throws IOException {
-		this.file = file;
+	public Rooms(Database db, List<Integer> homeRooms) {
+		this.db = db;
 		this.homeRooms = homeRooms;
 
-		if (Files.exists(file)) {
-			load();
+		if (db != null) {
+			@SuppressWarnings("unchecked")
+			List<Integer> rooms = (List<Integer>) db.get("rooms");
+			if (rooms != null) {
+				this.rooms.addAll(rooms);
+			}
 		}
 
 		/*
@@ -51,8 +43,8 @@ public class Rooms {
 		 */
 		boolean modified = false;
 		for (Integer homeRoom : homeRooms) {
-			if (!rooms.contains(homeRoom)) {
-				rooms.add(homeRoom);
+			if (!this.rooms.contains(homeRoom)) {
+				this.rooms.add(homeRoom);
 				modified = true;
 			}
 		}
@@ -113,26 +105,11 @@ public class Rooms {
 		return rooms.contains((Integer) roomId);
 	}
 
-	private void load() throws IOException {
-		if (file == null) {
-			return;
-		}
-
-		PropertiesWrapper properties = new PropertiesWrapper(file);
-		rooms.addAll(properties.getIntegerList("rooms"));
-	}
-
 	private void save() {
-		if (file == null) {
+		if (db == null) {
 			return;
 		}
 
-		PropertiesWrapper properties = new PropertiesWrapper();
-		properties.setIntegerList("rooms", rooms);
-		try {
-			properties.store(file);
-		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Could not persist room data.", e);
-		}
+		db.set("rooms", rooms);
 	}
 }

@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 
+import oakbot.Database;
 import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.chat.ChatConnection;
@@ -40,6 +41,7 @@ public class Bot {
 	private final LearnedCommands learnedCommands;
 	private final List<Listener> listeners;
 	private final Statistics stats;
+	private final Database database;
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
 	private final Pattern commandRegex;
 
@@ -54,6 +56,7 @@ public class Bot {
 		rooms = builder.rooms;
 		admins = builder.admins;
 		stats = builder.stats;
+		database = builder.database;
 		commands = builder.commands.build();
 		learnedCommands = builder.learnedCommands;
 		listeners = builder.listeners.build();
@@ -132,7 +135,10 @@ public class Bot {
 					if (logger.isLoggable(Level.INFO)) {
 						logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
 					}
-					stats.incMessagesRespondedTo(replies.size());
+
+					if (stats != null) {
+						stats.incMessagesRespondedTo(replies.size());
+					}
 
 					for (ChatResponse reply : replies) {
 						try {
@@ -145,6 +151,10 @@ public class Bot {
 
 				ChatMessage latestMessage = newMessages.get(newMessages.size() - 1);
 				prevMessageIds.put(room, latestMessage.getMessageId());
+			}
+
+			if (database != null) {
+				database.commit();
 			}
 
 			//sleep before pinging again
@@ -327,6 +337,7 @@ public class Bot {
 		private LearnedCommands learnedCommands = new LearnedCommands();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
 		private Statistics stats;
+		private Database database;
 
 		public Builder login(String email, String password) {
 			this.email = email;
@@ -402,6 +413,11 @@ public class Bot {
 
 		public Builder stats(Statistics stats) {
 			this.stats = stats;
+			return this;
+		}
+
+		public Builder database(Database database) {
+			this.database = database;
 			return this;
 		}
 

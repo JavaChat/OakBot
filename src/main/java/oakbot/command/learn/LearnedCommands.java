@@ -1,48 +1,34 @@
 package oakbot.command.learn;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import oakbot.Database;
 
 /**
  * Manages all of the bot's learned commands
  * @author Michael Angstadt
  */
 public class LearnedCommands implements Iterable<LearnedCommand> {
-	private static final Logger logger = Logger.getLogger(LearnedCommands.class.getName());
-	private final Path file;
+	private final Database db;
 	private final List<LearnedCommand> commands = new ArrayList<>();
 
 	/**
-	 * Using this constructor will not persist any learned commands to a file.
+	 * Using this constructor will not persist any learned commands.
 	 */
 	public LearnedCommands() {
-		this.file = null;
+		this(null);
 	}
 
 	/**
-	 * @param file the file where the learned commands are persisted
-	 * @throws IOException if the file exists and there's a problem loading it
+	 * @param db the database where the learned commands are persisted
 	 */
-	public LearnedCommands(Path file) throws IOException {
-		this.file = file;
-		if (Files.exists(file)) {
-			load();
-		}
+	public LearnedCommands(Database db) {
+		this.db = db;
+		load();
 	}
 
 	/**
@@ -97,77 +83,43 @@ public class LearnedCommands implements Iterable<LearnedCommand> {
 		return false;
 	}
 
-	/**
-	 * Persists the commands to the file system.
-	 */
-	private void save() {
-		if (file == null) {
+	private void load() {
+		if (db == null) {
 			return;
 		}
 
-		StandardOpenOption[] openOptions;
-		if (Files.exists(file)) {
-			openOptions = new StandardOpenOption[] { StandardOpenOption.TRUNCATE_EXISTING };
-		} else {
-			openOptions = new StandardOpenOption[] {};
-		}
-
-		try (Writer writer = Files.newBufferedWriter(file, openOptions)) {
-			JsonFactory fact = new JsonFactory();
-			try (JsonGenerator generator = fact.createGenerator(writer)) {
-				generator.setPrettyPrinter(new DefaultPrettyPrinter());
-				generator.writeStartArray();
-
-				for (LearnedCommand command : commands) {
-					generator.writeStartObject();
-					generator.writeStringField("name", command.name());
-					generator.writeStringField("output", command.output());
-					generator.writeEndObject();
-				}
-
-				generator.writeEndArray();
-			}
-		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Could not persist learned commands.", e);
-		}
-	}
-
-	/**
-	 * Loads the commands from the file system.
-	 * @throws IOException if there was a problem reading from the file
-	 */
-	private void load() throws IOException {
-		if (file == null) {
+		List<Object> list = db.getList("learned-commands");
+		if (list == null) {
 			return;
 		}
 
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode root;
-		try (Reader reader = Files.newBufferedReader(file)) {
-			root = mapper.readTree(reader);
-		}
+		for (Object item : list) {
+			@SuppressWarnings("unchecked")
+			Map<String, String> map = (Map<String, String>) item;
 
-		Iterator<JsonNode> it = root.elements();
-		while (it.hasNext()) {
-			JsonNode node = it.next();
-
-			String name = getField(node, "name");
-			if (name.isEmpty()) {
-				continue;
-			}
-
-			String output = getField(node, "output");
-			if (output.isEmpty()) {
-				continue;
-			}
-
+			String name = map.get("name");
+			String output = map.get("output");
 			commands.add(new LearnedCommand(name, output));
 		}
 	}
 
-	private static String getField(JsonNode object, String fieldName) {
-		JsonNode field = object.get(fieldName);
-		return (field == null) ? "" : field.asText();
+	/**
+	 * Persists the commands to the file system.
+	 */
+	private void save() {
+		if (db == null) {
+			return;
+		}
+
+		List<Map<String, String>> list = new ArrayList<>();
+		for (LearnedCommand command : commands) {
+			Map<String, String> map = new HashMap<>();
+			map.put("name", command.name());
+			map.put("output", command.output());
+			list.add(map);
+		}
+
+		db.set("learned-commands", list);
 	}
 
 	@Override
