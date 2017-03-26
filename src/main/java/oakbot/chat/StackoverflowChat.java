@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -425,7 +426,8 @@ public class StackoverflowChat implements ChatConnection {
 
 		JsonNode value = element.get("content");
 		if (value != null) {
-			chatMessage.setContent(value.asText());
+			String content = StringEscapeUtils.unescapeHtml4(value.asText());
+			chatMessage.setContent(content);
 		}
 
 		value = element.get("edits");
