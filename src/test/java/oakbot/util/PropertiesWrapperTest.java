@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -136,18 +135,8 @@ public class PropertiesWrapperTest {
 		PropertiesWrapper wrapper = new PropertiesWrapper(props);
 		assertEquals(Arrays.asList(1), wrapper.getIntegerList("key1"));
 		assertEquals(Arrays.asList(2, 3, 4), wrapper.getIntegerList("key2"));
-		try {
-			wrapper.getIntegerList("key3");
-			fail();
-		} catch (NumberFormatException e) {
-			//expected
-		}
-		try {
-			wrapper.getIntegerList("key4");
-			fail();
-		} catch (NumberFormatException e) {
-			//expected
-		}
+		assertEquals(Arrays.asList(2), wrapper.getIntegerList("key3"));
+		assertEquals(Arrays.asList(), wrapper.getIntegerList("key4"));
 		assertEquals(Arrays.asList(), wrapper.getIntegerList("foo"));
 	}
 
