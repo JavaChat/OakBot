@@ -77,16 +77,40 @@ public class Main {
 		BUILT = built;
 	}
 
+	public static final Path defaultSettings = Paths.get("bot.properties");
+	public static final Path defaultDb = Paths.get("db.json");
+
 	public static void main(String[] args) throws Exception {
-		boolean quiet = args.length > 0 && args[0].equals("-q");
+		CliArguments arguments = new CliArguments(args);
+
+		if (arguments.help()) {
+			String help = arguments.printHelp(defaultSettings, defaultDb);
+			System.out.println(help);
+			return;
+		}
+
+		if (arguments.version()) {
+			System.out.println(Main.VERSION);
+			return;
+		}
+
+		Path settings = arguments.settings();
+		if (settings == null) {
+			settings = defaultSettings;
+		}
+
+		Path db = arguments.db();
+		if (db == null) {
+			db = defaultDb;
+		}
 
 		setupLogging();
-		BotProperties props = loadProperties();
+		BotProperties props = loadProperties(settings);
 
-		Database db = new JsonDatabase(Paths.get("db.json"));
-		Statistics stats = new Statistics(db);
-		Rooms rooms = new Rooms(db, props.getHomeRooms());
-		LearnedCommands learnedCommands = new LearnedCommands(db);
+		Database database = new JsonDatabase(db);
+		Statistics stats = new Statistics(database);
+		Rooms rooms = new Rooms(database, props.getHomeRooms());
+		LearnedCommands learnedCommands = new LearnedCommands(database);
 
 		Path javadocPath = props.getJavadocPath();
 		JavadocCommand javadocCommand = (javadocPath == null) ? null : createJavadocCommand(javadocPath);
@@ -144,11 +168,11 @@ public class Main {
 			.greeting(props.getGreeting())
 			.rooms(rooms)
 			.stats(stats)
-			.database(db)
+			.database(database)
 		.build();
 		//@formatter:on
 
-		bot.connect(quiet);
+		bot.connect(arguments.quiet());
 
 		logger.info("Terminating.");
 	}
@@ -172,8 +196,7 @@ public class Main {
 		});
 	}
 
-	private static BotProperties loadProperties() throws IOException {
-		Path file = Paths.get("bot.properties");
+	private static BotProperties loadProperties(Path file) throws IOException {
 		Properties properties = new Properties();
 		try (Reader reader = Files.newBufferedReader(file, Charset.forName("UTF-8"))) {
 			properties.load(reader);
