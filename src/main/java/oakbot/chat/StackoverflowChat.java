@@ -119,6 +119,12 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	@Override
+	public void leaveRoom(int roomId) throws IOException {
+		fkeyCache.remove(roomId);
+		prevMessageIds.remove(roomId);
+	}
+
+	@Override
 	public void sendMessage(int room, String message) throws IOException {
 		sendMessage(room, message, SplitStrategy.NONE);
 	}

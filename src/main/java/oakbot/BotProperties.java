@@ -14,7 +14,7 @@ import oakbot.util.PropertiesWrapper;
  */
 public class BotProperties extends PropertiesWrapper {
 	private final String loginEmail, password, botname, trigger, greeting, dictionaryKey, aboutHost;
-	private final List<Integer> rooms, admins;
+	private final List<Integer> homeRooms, admins;
 	private final int heartbeat;
 	private final Path javadocPath;
 
@@ -28,7 +28,7 @@ public class BotProperties extends PropertiesWrapper {
 		password = get("login.password");
 		botname = get("botname");
 		trigger = get("trigger", "=");
-		rooms = getIntegerList("rooms", Arrays.asList(1)); //default to "Sandbox"
+		homeRooms = getIntegerList("rooms", Arrays.asList(1)); //default to "Sandbox"
 		admins = getIntegerList("admins");
 		heartbeat = getInteger("heartbeat", 3000);
 
@@ -73,11 +73,11 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the IDs of the rooms to join.
-	 * @return the room IDs (defaults to "1" for "Sandbox")
+	 * Gets the rooms that the bot cannot be unsummoned from.
+	 * @return the room IDs
 	 */
-	public List<Integer> getRooms() {
-		return rooms;
+	public List<Integer> getHomeRooms() {
+		return homeRooms;
 	}
 
 	/**

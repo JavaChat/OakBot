@@ -1,6 +1,7 @@
 package oakbot.command;
 
 import java.io.IOException;
+import java.util.Random;
 
 import oakbot.bot.Bot;
 import oakbot.bot.ChatCommand;
@@ -45,10 +46,11 @@ public class SummonCommand implements Command {
 		try {
 			bot.join(roomToJoin);
 		} catch (IOException e) {
-			return reply("Sorry, couldn't join that room.", chatCommand);
+			return reply("Hmm, I couldn't join that room.", chatCommand);
 		}
 
-		return reply("Joined.", chatCommand);
+		String reply = random("I love making new friends! <3", "Joining!", "I hope they like me!");
+		return reply(reply, chatCommand);
 	}
 
 	private static ChatResponse reply(String content, ChatCommand message) {
@@ -58,5 +60,11 @@ public class SummonCommand implements Command {
 			.append(content)
 		);
 		//@formatter:on
+	}
+
+	private static String random(String... choices) {
+		Random random = new Random();
+		int index = random.nextInt(choices.length);
+		return choices[index];
 	}
 }

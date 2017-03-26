@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 
+import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
@@ -33,7 +34,8 @@ public class Bot {
 	private final String email, password, name, trigger, greeting;
 	private final ChatConnection connection;
 	private final int heartbeat;
-	private final List<Integer> rooms, admins;
+	private final List<Integer> admins;
+	private final Rooms rooms;
 	private final List<Command> commands;
 	private final LearnedCommands learnedCommands;
 	private final List<Listener> listeners;
@@ -71,7 +73,7 @@ public class Bot {
 		connection.login(email, password);
 
 		//connect to each room
-		List<Integer> rooms = new ArrayList<>(this.rooms);
+		List<Integer> rooms = new ArrayList<>(this.rooms.getRooms());
 		for (Integer room : rooms) {
 			try {
 				join(room, quiet);
@@ -89,7 +91,7 @@ public class Bot {
 			 * Commands can join rooms, so make a copy of the room list to
 			 * prevent a concurrent modification exception.
 			 */
-			rooms = new ArrayList<>(this.rooms);
+			rooms = new ArrayList<>(this.rooms.getRooms());
 			for (Integer room : rooms) {
 				logger.fine("Pinging room " + room);
 
@@ -182,7 +184,7 @@ public class Bot {
 	/**
 	 * Joins a room.
 	 * @param roomId the room ID
-	 * @throws IOException if there's a problem connected to the room
+	 * @throws IOException if there's a problem connecting to the room
 	 */
 	public void join(int roomId) throws IOException {
 		join(roomId, false);
@@ -193,13 +195,22 @@ public class Bot {
 	 * Joins a room.
 	 * @param roomId the room ID
 	 * @param quiet true to not post an announcement message, false to post one
-	 * @throws IOException if there's a problem connected to the room
+	 * @throws IOException if there's a problem connecting to the room
 	 */
 	private void join(int roomId, boolean quiet) throws IOException {
 		connection.joinRoom(roomId);
-		if (!quiet) {
+		if (!quiet && greeting != null) {
 			connection.sendMessage(roomId, greeting);
 		}
+	}
+
+	/**
+	 * Leaves a room.
+	 * @param roomId the room ID
+	 */
+	public void leave(int roomId) throws IOException {
+		connection.leaveRoom(roomId);
+		rooms.remove(roomId);
 	}
 
 	/**
@@ -214,8 +225,8 @@ public class Bot {
 	 * Gets the rooms that the bot is connected to.
 	 * @return the room IDs
 	 */
-	public List<Integer> getRooms() {
-		return Collections.unmodifiableList(new ArrayList<>(rooms));
+	public Rooms getRooms() {
+		return rooms;
 	}
 
 	private List<ChatResponse> handleListeners(ChatMessage message, boolean isAdmin) {
@@ -296,7 +307,7 @@ public class Bot {
 		 * Commands can join rooms, so make a copy of the room list to prevent a
 		 * concurrent modification exception.
 		 */
-		List<Integer> rooms = new ArrayList<>(this.rooms);
+		List<Integer> rooms = new ArrayList<>(this.rooms.getRooms());
 		for (Integer room : rooms) {
 			connection.sendMessage(room, message);
 		}
@@ -310,7 +321,7 @@ public class Bot {
 		private ChatConnection connection;
 		private String email, password, name, trigger = "=", greeting;
 		private int heartbeat = 3000;
-		private List<Integer> rooms = new ArrayList<>();
+		private Rooms rooms = new Rooms(Arrays.asList(1));
 		private List<Integer> admins = new ArrayList<>();
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
 		private LearnedCommands learnedCommands = new LearnedCommands();
@@ -348,13 +359,13 @@ public class Bot {
 			return this;
 		}
 
-		public Builder rooms(Integer... rooms) {
-			return rooms(Arrays.asList(rooms));
+		public Builder rooms(Rooms rooms) {
+			this.rooms = rooms;
+			return this;
 		}
 
-		public Builder rooms(Collection<Integer> rooms) {
-			this.rooms.addAll(rooms);
-			return this;
+		public Builder rooms(Integer... roomIds) {
+			return rooms(new Rooms(Arrays.asList(roomIds)));
 		}
 
 		public Builder admins(Integer... admins) {

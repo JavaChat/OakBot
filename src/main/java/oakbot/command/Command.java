@@ -47,7 +47,7 @@ public interface Command {
 	 * @param chatCommand the command that the user has sent
 	 * @param isAdmin true if the message sender is an admin, false if not
 	 * @param bot a reference to the bot
-	 * @return the response
+	 * @return the response or null not to send a response
 	 */
 	ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot);
 }

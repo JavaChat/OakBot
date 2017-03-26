@@ -28,6 +28,14 @@ public interface ChatConnection extends Flushable {
 	void joinRoom(int roomId) throws IOException;
 
 	/**
+	 * Leaves a chat room. This method does nothing if the room was never
+	 * joined.
+	 * @param roomId the room ID
+	 * @throws IOException if there's network error
+	 */
+	void leaveRoom(int roomId) throws IOException;
+
+	/**
 	 * Posts a message to a chat room. If the message exceeds the max message
 	 * size, it will be truncated.
 	 * @param room the ID of the chat room

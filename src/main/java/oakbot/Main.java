@@ -33,6 +33,7 @@ import oakbot.command.ShrugCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.SummonCommand;
 import oakbot.command.TagCommand;
+import oakbot.command.UnsummonCommand;
 import oakbot.command.WikiCommand;
 import oakbot.command.define.DefineCommand;
 import oakbot.command.http.HttpCommand;
@@ -92,6 +93,7 @@ public class Main {
 		}
 
 		Statistics stats = new Statistics(Paths.get("statistics.properties"));
+		Rooms rooms = new Rooms(Paths.get("rooms.properties"), props.getHomeRooms());
 		LearnedCommands learnedCommands = new LearnedCommands(Paths.get("learned-commands.json"));
 
 		List<Command> commands = new ArrayList<>();
@@ -115,6 +117,7 @@ public class Main {
 		commands.add(new RollCommand());
 		commands.add(new EightBallCommand());
 		commands.add(new SummonCommand());
+		commands.add(new UnsummonCommand());
 		commands.add(new ShutdownCommand());
 		commands.add(new LearnCommand(commands, learnedCommands));
 		commands.add(new UnlearnCommand(commands, learnedCommands));
@@ -134,7 +137,7 @@ public class Main {
 		.name(props.getBotname())
 		.trigger(props.getTrigger())
 		.greeting(props.getGreeting())
-		.rooms(props.getRooms())
+		.rooms(rooms)
 		.stats(stats)
 		.build();
 		//@formatter:on

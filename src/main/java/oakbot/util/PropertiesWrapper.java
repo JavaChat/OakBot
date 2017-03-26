@@ -11,7 +11,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -64,11 +63,12 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	public String get(String key) {
 		return get(key, null);
 	}
-	
+
 	/**
 	 * Gets a property value.
 	 * @param key the key
-	 * @return the value or null if not found
+	 * @param defaultValue the value to return if the property does not exist
+	 * @return the value
 	 */
 	public String get(String key, String defaultValue) {
 		String value = properties.getProperty(key);
@@ -76,9 +76,16 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	}
 
 	/**
+	 * <p>
 	 * Sets a property value.
+	 * </p>
+	 * <p>
+	 * The value's {@code toString()} is called in order to generate a string
+	 * value. If the object is a {@link Date}, then its string value will be
+	 * generated using an internal {@link DateFormat} object.
+	 * <p>
 	 * @param key the key
-	 * @param value the value (calls the object's {@code toString()} method)
+	 * @param value the value or null to remove
 	 */
 	public void set(String key, Object value) {
 		if (value == null) {
@@ -118,30 +125,70 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * Gets an integer property value.
 	 * @param key the key
 	 * @param defaultValue the value to return if the property does not exist
-	 * @return the value or null if not found
+	 * @return the value
 	 * @throws NumberFormatException if it could parse the value as an integer
 	 */
 	public Integer getInteger(String key, Integer defaultValue) {
 		String value = get(key);
 		return (value == null) ? defaultValue : Integer.valueOf(value);
 	}
-	
+
+	/**
+	 * Parses a comma-delimited list of integers. If any non-integer values are
+	 * encountered, they will be skipped.
+	 * @param key the key
+	 * @return the list or empty list of not found
+	 */
 	public List<Integer> getIntegerList(String key) {
-		return getIntegerList(key, Collections.emptyList());
+		return getIntegerList(key, new ArrayList<>(0));
 	}
 
+	/**
+	 * Parses a comma-delimited list of integers. If any non-integer values are
+	 * encountered, they will be skipped.
+	 * @param key the key
+	 * @param defaultValue the list to return if the property does not exist
+	 * @return the list
+	 */
 	public List<Integer> getIntegerList(String key, List<Integer> defaultValue) {
 		String value = get(key);
 		if (value == null) {
 			return defaultValue;
 		}
 
-		List<Integer> rooms = new ArrayList<>();
-		for (String v : value.split("\\s*,\\s*")) { //split by comma
-			Integer room = Integer.valueOf(v);
-			rooms.add(room);
+		String split[] = value.split("\\s*,\\s*");
+		List<Integer> numbers = new ArrayList<>(split.length);
+		for (String v : split) {
+			try {
+				Integer number = Integer.valueOf(v);
+				numbers.add(number);
+			} catch (NumberFormatException e) {
+				//ignore
+			}
 		}
-		return rooms;
+		return numbers;
+	}
+
+	/**
+	 * Sets a comma-delimited list of integers.
+	 * @param key the key
+	 * @param list the list or null to remove
+	 */
+	public void setIntegerList(String key, List<Integer> list) {
+		if (list == null) {
+			set(key, null);
+		}
+
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (Integer item : list) {
+			if (!first) {
+				sb.append(',');
+			}
+			sb.append(item);
+			first = false;
+		}
+		set(key, sb.toString());
 	}
 
 	/**
