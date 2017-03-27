@@ -42,6 +42,7 @@ public class Bot {
 	private final List<Listener> listeners;
 	private final Statistics stats;
 	private final Database database;
+	private final UnknownCommandHandler unknownCommandHandler;
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
 	private final Pattern commandRegex;
 
@@ -57,6 +58,7 @@ public class Bot {
 		admins = builder.admins;
 		stats = builder.stats;
 		database = builder.database;
+		unknownCommandHandler = builder.unknownCommandHandler;
 		commands = builder.commands.build();
 		learnedCommands = builder.learnedCommands;
 		listeners = builder.listeners.build();
@@ -259,19 +261,13 @@ public class Bot {
 	private List<ChatResponse> handleCommands(ChatCommand chatCommand, boolean isAdmin) {
 		List<Command> commands = getCommands(chatCommand.getCommandName());
 		if (commands.isEmpty()) {
-			return Collections.emptyList();
-			//@formatter:off
-//			ChatResponse reply = new ChatResponse(new ChatBuilder()
-//				.reply(message)
-//				.append("I don't know that command. o_O  Type ")
-//				.code(trigger + "help")
-//				.append(" to see my commands.")
-//			);
-//			return Arrays.asList(reply);
-			//@formatter:on
+			if (unknownCommandHandler == null) {
+				return Collections.emptyList();
+			}
+			return Arrays.asList(unknownCommandHandler.onMessage(chatCommand, isAdmin, this));
 		}
 
-		List<ChatResponse> replies = new ArrayList<>(1);
+		List<ChatResponse> replies = new ArrayList<>(commands.size());
 		for (Command command : commands) {
 			try {
 				ChatResponse reply = command.onMessage(chatCommand, isAdmin, this);
@@ -338,6 +334,7 @@ public class Bot {
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
 		private Statistics stats;
 		private Database database;
+		private UnknownCommandHandler unknownCommandHandler;
 
 		public Builder login(String email, String password) {
 			this.email = email;
@@ -418,6 +415,11 @@ public class Bot {
 
 		public Builder database(Database database) {
 			this.database = database;
+			return this;
+		}
+
+		public Builder unknownCommandHandler(UnknownCommandHandler unknownCommandHandler) {
+			this.unknownCommandHandler = unknownCommandHandler;
 			return this;
 		}
 
