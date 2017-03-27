@@ -422,46 +422,46 @@ public class StackoverflowChat implements ChatConnection {
 	 * @return the parsed chat message
 	 */
 	private static ChatMessage parseChatMessage(JsonNode element) {
-		ChatMessage chatMessage = new ChatMessage();
+		ChatMessage.Builder builder = new ChatMessage.Builder();
 
 		JsonNode value = element.get("content");
 		if (value != null) {
 			String content = StringEscapeUtils.unescapeHtml4(value.asText());
-			chatMessage.setContent(content);
+			builder.content(content);
 		}
 
 		value = element.get("edits");
 		if (value != null) {
-			chatMessage.setEdits(value.asInt());
+			builder.edits(value.asInt());
 		}
 
 		value = element.get("message_id");
 		if (value != null) {
-			chatMessage.setMessageId(value.asLong());
+			builder.messageId(value.asLong());
 		}
 
 		value = element.get("room_id");
 		if (value != null) {
-			chatMessage.setRoomId(value.asInt());
+			builder.roomId(value.asInt());
 		}
 
 		value = element.get("time_stamp");
 		if (value != null) {
 			LocalDateTime ts = LocalDateTime.ofInstant(Instant.ofEpochMilli(value.asLong() * 1000), ZoneId.systemDefault());
-			chatMessage.setTimestamp(ts);
+			builder.timestamp(ts);
 		}
 
 		value = element.get("user_id");
 		if (value != null) {
-			chatMessage.setUserId(value.asInt());
+			builder.userId(value.asInt());
 		}
 
 		value = element.get("user_name");
 		if (value != null) {
-			chatMessage.setUsername(value.asText());
+			builder.username(value.asText());
 		}
 
-		return chatMessage;
+		return builder.build();
 	}
 
 	private class MessageSenderThread extends Thread {

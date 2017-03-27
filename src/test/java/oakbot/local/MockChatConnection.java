@@ -96,14 +96,16 @@ public class MockChatConnection implements ChatConnection {
 	 * @param content the message content
 	 */
 	public void postMessage(int roomId, int userId, String username, String content) {
-		ChatMessage message = new ChatMessage();
-		message.setRoomId(roomId);
-		message.setUserId(userId);
-		message.setUsername(username);
-		message.setContent(content);
-		message.setMessageId(messageIdCounter.incrementAndGet());
-		message.setEdits(0);
-		message.setTimestamp(LocalDateTime.now());
+		//@formatter:off
+		ChatMessage message = new ChatMessage.Builder()
+			.roomId(roomId)
+			.userId(userId)
+			.username(username)
+			.content(content)
+			.messageId(messageIdCounter.incrementAndGet())
+			.timestamp(LocalDateTime.now())
+		.build();
+		//@formatter:on
 
 		synchronized (this) {
 			List<ChatMessage> messages = rooms.get(roomId);

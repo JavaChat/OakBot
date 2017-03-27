@@ -24,9 +24,13 @@ public class ChatCommandBuilder {
 	 * @return the chat command
 	 */
 	public ChatCommand build(int messageId, String content) {
-		ChatMessage message = new ChatMessage();
-		message.setMessageId(messageId);
-		message.setContent("/" + commandName + " " + content);
+		//@formatter:off
+		ChatMessage message = new ChatMessage.Builder()
+			.messageId(messageId)
+			.content("/" + commandName + " " + content)
+		.build();
+		//@formatter:on
+
 		return new ChatCommand(message, commandName, content);
 	}
 }

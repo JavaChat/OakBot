@@ -57,22 +57,28 @@ public class BotTest {
 				case 0:
 					return Collections.emptyList();
 				case 1:
-					ChatMessage message = new ChatMessage();
-					message.setContent("=foobar");
-					message.setMessageId(1);
-					message.setRoomId(1);
-					message.setTimestamp(LocalDateTime.now());
-					message.setUserId(1);
-					message.setUsername("User1");
+					//@formatter:off
+					ChatMessage message = new ChatMessage.Builder()
+						.content("=foobar")
+						.messageId(1)
+						.roomId(1)
+						.timestamp(LocalDateTime.now())
+						.userId(1)
+						.username("User1")
+					.build();
+					//@formatter:on
 					return Arrays.asList(message);
 				case 2:
-					message = new ChatMessage();
-					message.setContent("=shutdown");
-					message.setMessageId(2);
-					message.setRoomId(1);
-					message.setTimestamp(LocalDateTime.now());
-					message.setUserId(1);
-					message.setUsername("User1");
+					//@formatter:off
+					message = new ChatMessage.Builder()
+						.content("=shutdown")
+						.messageId(2)
+						.roomId(1)
+						.timestamp(LocalDateTime.now())
+						.userId(1)
+						.username("User1")
+					.build();
+					//@formatter:on
 					return Arrays.asList(message);
 				}
 				fail();
