@@ -33,7 +33,8 @@ Property | Description
 -------- | -----------
 login.email | The email address of the StackOverflow user that the bot will login as. It must be a StackExchange login.  It cannot be a login from another provider, like Google or Facebook.
 login.password | The password of the StackOverflow user (yes, it's in plain text, so sue me).
-bot.name | The username assoicated with the StackOverflow user.
+bot.userName | The username associated with the StackOverflow user.
+bot.userId | The user ID of the bot's StackOverflow account. You can get this from the URL of your profile page.
 trigger | The character that prefixes all commands.  For example, if the trigger was "/", then posting "/about" in the chat room will cause the bot to display information about itself.
 homeRooms | A comma-separated list of room IDs that OakBot will join and which OakBot cannot be unsummoned from.  A chat room's room ID can be found in its URL.
 heartbeat | How often OakBot will poll each chat room to look for new messages (in milliseconds).  Unfortunately, OakBot does not use websockets, like your browser does.

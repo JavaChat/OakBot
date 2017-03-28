@@ -32,7 +32,8 @@ import oakbot.listener.Listener;
 public class Bot {
 	private static final Logger logger = Logger.getLogger(Bot.class.getName());
 
-	private final String email, password, name, trigger, greeting;
+	private final String email, password, userName, trigger, greeting;
+	private final Integer userId;
 	private final ChatConnection connection;
 	private final int heartbeat;
 	private final List<Integer> admins;
@@ -50,7 +51,8 @@ public class Bot {
 		connection = builder.connection;
 		email = builder.email;
 		password = builder.password;
-		name = builder.name;
+		userName = builder.userName;
+		userId = builder.userId;
 		trigger = builder.trigger;
 		greeting = builder.greeting;
 		heartbeat = builder.heartbeat;
@@ -325,7 +327,8 @@ public class Bot {
 	 */
 	public static class Builder {
 		private ChatConnection connection;
-		private String email, password, name, trigger = "=", greeting;
+		private String email, password, userName, trigger = "=", greeting;
+		private Integer userId;
 		private int heartbeat = 3000;
 		private Rooms rooms = new Rooms(Arrays.asList(1));
 		private List<Integer> admins = new ArrayList<>();
@@ -347,8 +350,9 @@ public class Bot {
 			return this;
 		}
 
-		public Builder name(String name) {
-			this.name = (name == null || name.isEmpty()) ? null : name;
+		public Builder user(String userName, Integer userId) {
+			this.userName = (userName == null || userName.isEmpty()) ? null : userName;
+			this.userId = userId;
 			return this;
 		}
 

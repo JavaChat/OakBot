@@ -117,7 +117,7 @@ public class Main {
 
 		List<Listener> listeners = new ArrayList<>();
 		{
-			listeners.add(new MentionListener(props.getBotname(), props.getTrigger()));
+			listeners.add(new MentionListener(props.getBotUserName(), props.getTrigger()));
 			if (javadocCommand != null) {
 				listeners.add(new JavadocListener(javadocCommand));
 			}
@@ -163,7 +163,7 @@ public class Main {
 			.connection(connection)
 			.heartbeat(props.getHeartbeat())
 			.admins(props.getAdmins())
-			.name(props.getBotname())
+			.user(props.getBotUserName(), props.getBotUserId())
 			.trigger(props.getTrigger())
 			.greeting(props.getGreeting())
 			.rooms(rooms)
