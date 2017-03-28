@@ -2,8 +2,6 @@ package oakbot.listener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
@@ -18,7 +16,7 @@ import oakbot.util.ChatBuilder;
  * @see AfkCommand
  */
 public class AfkListener implements Listener {
-	private final Pattern mentionRegex = Pattern.compile("@(.{3,}?)\\b");
+
 	private final AfkCommand command;
 	private final String trigger;
 
@@ -50,14 +48,13 @@ public class AfkListener implements Listener {
 
 		boolean returned = command.setBack(message.getUserId());
 
-		String content = message.getContent();
-		List<String> mentions = parseMentions(content);
-		List<AfkUser> afkUsers = getAfkUsers(mentions);
-		if (!afkUsers.isEmpty()) {
+		List<String> mentions = message.getMentions();
+		List<AfkUser> mentionedAfkUsers = getAfkUsers(mentions);
+		if (!mentionedAfkUsers.isEmpty()) {
 			ChatBuilder cb = new ChatBuilder();
 			cb.reply(message);
 			boolean first = true;
-			for (AfkUser afkUser : afkUsers) {
+			for (AfkUser afkUser : mentionedAfkUsers) {
 				if (!first) {
 					cb.nl();
 				}
@@ -83,15 +80,6 @@ public class AfkListener implements Listener {
 		}
 
 		return null;
-	}
-
-	private List<String> parseMentions(String message) {
-		List<String> mentions = new ArrayList<>();
-		Matcher m = mentionRegex.matcher(message);
-		while (m.find()) {
-			mentions.add(m.group(1));
-		}
-		return mentions;
 	}
 
 	private List<AfkUser> getAfkUsers(List<String> mentions) {
