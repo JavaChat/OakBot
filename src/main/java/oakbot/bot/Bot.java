@@ -116,6 +116,11 @@ public class Bot {
 						continue;
 					}
 
+					if (message.getUserId() == userId) {
+						//message was posted by this bot, ignore
+						continue;
+					}
+
 					List<ChatResponse> replies = new ArrayList<>();
 					boolean isUserAdmin = admins.contains(message.getUserId());
 
