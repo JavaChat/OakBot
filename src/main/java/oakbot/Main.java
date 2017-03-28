@@ -30,6 +30,7 @@ import oakbot.command.Command;
 import oakbot.command.EightBallCommand;
 import oakbot.command.HelpCommand;
 import oakbot.command.RollCommand;
+import oakbot.command.RolloverCommand;
 import oakbot.command.ShrugCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.SummonCommand;
@@ -44,6 +45,8 @@ import oakbot.command.learn.LearnCommand;
 import oakbot.command.learn.LearnedCommands;
 import oakbot.command.learn.UnlearnCommand;
 import oakbot.command.urban.UrbanCommand;
+import oakbot.filter.ChatResponseFilter;
+import oakbot.filter.UpsidedownTextFilter;
 import oakbot.listener.AfkListener;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
@@ -119,6 +122,9 @@ public class Main {
 
 		AfkCommand afkCommand = new AfkCommand();
 
+		UpsidedownTextFilter upsidedownTextFilter = new UpsidedownTextFilter();
+		upsidedownTextFilter.setEnabled(false);
+
 		List<Listener> listeners = new ArrayList<>();
 		{
 			listeners.add(new MentionListener(props.getBotUserName(), props.getTrigger()));
@@ -156,6 +162,12 @@ public class Main {
 			commands.add(new UnlearnCommand(commands, learnedCommands));
 			commands.add(new ShrugCommand());
 			commands.add(afkCommand);
+			commands.add(new RolloverCommand(upsidedownTextFilter));
+		}
+
+		List<ChatResponseFilter> filters = new ArrayList<>();
+		{
+			filters.add(upsidedownTextFilter);
 		}
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
@@ -166,6 +178,7 @@ public class Main {
 			.commands(commands)
 			.learnedCommands(learnedCommands)
 			.listeners(listeners)
+			.responseFilters(filters)
 			.connection(connection)
 			.heartbeat(props.getHeartbeat())
 			.admins(props.getAdmins())

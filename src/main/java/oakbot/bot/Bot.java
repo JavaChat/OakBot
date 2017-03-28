@@ -23,6 +23,7 @@ import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommands;
+import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.Listener;
 
 /**
@@ -41,6 +42,7 @@ public class Bot {
 	private final List<Command> commands;
 	private final LearnedCommands learnedCommands;
 	private final List<Listener> listeners;
+	private final List<ChatResponseFilter> responseFilters;
 	private final Statistics stats;
 	private final Database database;
 	private final UnknownCommandHandler unknownCommandHandler;
@@ -64,6 +66,7 @@ public class Bot {
 		commands = builder.commands.build();
 		learnedCommands = builder.learnedCommands;
 		listeners = builder.listeners.build();
+		responseFilters = builder.responseFilters.build();
 		commandRegex = Pattern.compile("^" + Pattern.quote(trigger) + "\\s*(.*?)(\\s+(.*)|$)");
 	}
 
@@ -150,8 +153,15 @@ public class Bot {
 					}
 
 					for (ChatResponse reply : replies) {
+						String messageText = reply.getMessage();
+						for (ChatResponseFilter filter : responseFilters) {
+							if (filter.isEnabled()) {
+								messageText = filter.filter(messageText);
+							}
+						}
+
 						try {
-							connection.sendMessage(room, reply.getMessage(), reply.getSplitStrategy());
+							connection.sendMessage(room, messageText, reply.getSplitStrategy());
 						} catch (IOException e) {
 							logger.log(Level.SEVERE, "Problem sending chat message.", e);
 						}
@@ -340,6 +350,7 @@ public class Bot {
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
 		private LearnedCommands learnedCommands = new LearnedCommands();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
+		private ImmutableList.Builder<ChatResponseFilter> responseFilters = ImmutableList.builder();
 		private Statistics stats;
 		private Database database;
 		private UnknownCommandHandler unknownCommandHandler;
@@ -414,6 +425,15 @@ public class Bot {
 
 		public Builder listeners(Collection<Listener> listeners) {
 			this.listeners.addAll(listeners);
+			return this;
+		}
+
+		public Builder responseFilters(ChatResponseFilter... filters) {
+			return responseFilters(Arrays.asList(filters));
+		}
+
+		public Builder responseFilters(Collection<ChatResponseFilter> filters) {
+			this.responseFilters.addAll(filters);
 			return this;
 		}
 
