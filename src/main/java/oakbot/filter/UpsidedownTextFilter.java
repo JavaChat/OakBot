@@ -45,9 +45,25 @@ public class UpsidedownTextFilter extends ChatResponseFilter {
 		StringBuilder sb = new StringBuilder(message.length());
 
 		char prev = 0;
-		boolean flip = true;
+		boolean flip = true, reply = false;
 		for (int i = 0; i < message.length(); i++) {
 			char n = message.charAt(i);
+
+			if (i == 0 && n == ':') {
+				reply = true;
+				sb.append(n);
+				prev = n;
+				continue;
+			}
+
+			if (reply) {
+				if (Character.isDigit(n)) {
+					sb.append(n);
+					prev = n;
+					continue;
+				}
+				reply = false;
+			}
 
 			if (prev == ']' && n == '(') {
 				//URL
