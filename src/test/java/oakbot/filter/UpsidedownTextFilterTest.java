@@ -12,5 +12,6 @@ public class UpsidedownTextFilterTest {
 	public void filter() {
 		UpsidedownTextFilter filter = new UpsidedownTextFilter();
 		assertEquals("Hǝllo' ʍoɹlp¡", filter.filter("Hello, world!"));
+		assertEquals("Hǝllo' [ʍoɹlp¡](http://google.com)", filter.filter("Hello, [world!](http://google.com)"));
 	}
 }

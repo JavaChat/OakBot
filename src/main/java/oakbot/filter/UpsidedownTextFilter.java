@@ -20,8 +20,8 @@ public class UpsidedownTextFilter extends ChatResponseFilter {
 		normal +=     "0123456789";
 		upsideDown += "0ƖᄅƐㄣϛ9ㄥ86";
 		
-		normal +=     "()<>[]&_,;.?!'\"";
-		upsideDown += ")(><][⅋‾'؛˙¿¡,„";
+		normal +=     "<>&,;.?!'\"";
+		upsideDown += "><⅋'؛˙¿¡,„";
 		//@formatter:on
 
 		int max = -1;
@@ -44,15 +44,36 @@ public class UpsidedownTextFilter extends ChatResponseFilter {
 	public String filter(String message) {
 		StringBuilder sb = new StringBuilder(message.length());
 
+		char prev = 0;
+		boolean flip = true;
 		for (int i = 0; i < message.length(); i++) {
 			char n = message.charAt(i);
-			if (n >= map.length) {
+
+			if (prev == ']' && n == '(') {
+				//URL
+				flip = false;
 				sb.append(n);
+				prev = n;
 				continue;
 			}
 
-			char u = map[n];
-			sb.append((u == 0) ? n : u);
+			if (!flip) {
+				if (n == ')') {
+					flip = true;
+				}
+				sb.append(n);
+				prev = n;
+				continue;
+			}
+
+			if (n < map.length) {
+				char u = map[n];
+				sb.append((u == 0) ? n : u);
+			} else {
+				sb.append(n);
+			}
+
+			prev = n;
 		}
 
 		return sb.toString();
