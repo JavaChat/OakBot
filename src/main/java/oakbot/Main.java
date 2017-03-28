@@ -123,7 +123,6 @@ public class Main {
 		AfkCommand afkCommand = new AfkCommand();
 
 		UpsidedownTextFilter upsidedownTextFilter = new UpsidedownTextFilter();
-		upsidedownTextFilter.setEnabled(false);
 
 		List<Listener> listeners = new ArrayList<>();
 		{

@@ -33,8 +33,9 @@ public class RolloverCommand implements Command {
 
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
-		boolean enabled = filter.isEnabled();
-		filter.setEnabled(!enabled);
+		int roomId = chatCommand.getMessage().getRoomId();
+		boolean enabled = filter.isEnabled(roomId);
+		filter.setEnabled(roomId, !enabled);
 		return null;
 	}
 }

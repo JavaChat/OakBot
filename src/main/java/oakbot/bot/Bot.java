@@ -155,7 +155,7 @@ public class Bot {
 					for (ChatResponse reply : replies) {
 						String messageText = reply.getMessage();
 						for (ChatResponseFilter filter : responseFilters) {
-							if (filter.isEnabled()) {
+							if (filter.isEnabled(room)) {
 								messageText = filter.filter(messageText);
 							}
 						}
