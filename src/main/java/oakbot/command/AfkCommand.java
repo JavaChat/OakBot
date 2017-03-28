@@ -102,7 +102,7 @@ public class AfkCommand implements Command {
 	 * @param awayMessage the away message or null not to leave an away message
 	 */
 	public void setAway(int userId, String username, String awayMessage) {
-		if (awayMessage.isEmpty()) {
+		if (awayMessage != null && awayMessage.isEmpty()) {
 			awayMessage = null;
 		}
 
