@@ -1,5 +1,6 @@
 package oakbot.command.learn;
 
+import java.util.Arrays;
 import java.util.List;
 
 import oakbot.bot.Bot;
@@ -24,6 +25,11 @@ public class UnlearnCommand implements Command {
 	@Override
 	public String name() {
 		return "unlearn";
+	}
+
+	@Override
+	public List<String> aliases() {
+		return Arrays.asList("forget");
 	}
 
 	@Override
