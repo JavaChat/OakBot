@@ -164,6 +164,16 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
+	 * Appends a mention.
+	 * @param username the username to mention (must be at least 3 characters
+	 * long and must not contain spaces)
+	 * @return this
+	 */
+	public ChatBuilder mention(String username) {
+		return append('@').append(username);
+	}
+
+	/**
 	 * Appends a raw character.
 	 * @param c the character to append
 	 * @return this
