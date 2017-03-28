@@ -25,6 +25,7 @@ import oakbot.bot.Bot;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.StackoverflowChat;
 import oakbot.command.AboutCommand;
+import oakbot.command.AfkCommand;
 import oakbot.command.Command;
 import oakbot.command.EightBallCommand;
 import oakbot.command.HelpCommand;
@@ -43,6 +44,7 @@ import oakbot.command.learn.LearnCommand;
 import oakbot.command.learn.LearnedCommands;
 import oakbot.command.learn.UnlearnCommand;
 import oakbot.command.urban.UrbanCommand;
+import oakbot.listener.AfkListener;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
@@ -115,12 +117,15 @@ public class Main {
 		Path javadocPath = props.getJavadocPath();
 		JavadocCommand javadocCommand = (javadocPath == null) ? null : createJavadocCommand(javadocPath);
 
+		AfkCommand afkCommand = new AfkCommand();
+
 		List<Listener> listeners = new ArrayList<>();
 		{
 			listeners.add(new MentionListener(props.getBotUserName(), props.getTrigger()));
 			if (javadocCommand != null) {
 				listeners.add(new JavadocListener(javadocCommand));
 			}
+			listeners.add(new AfkListener(afkCommand, props.getTrigger()));
 		}
 
 		List<Command> commands = new ArrayList<>();
@@ -150,6 +155,7 @@ public class Main {
 			commands.add(new LearnCommand(commands, learnedCommands));
 			commands.add(new UnlearnCommand(commands, learnedCommands));
 			commands.add(new ShrugCommand());
+			commands.add(afkCommand);
 		}
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
