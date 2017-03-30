@@ -9,10 +9,11 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class MentionListener implements Listener {
-	private final String botUsernameMention, trigger;
+	private final String botUsername, trigger;
+	private boolean ignore = false;
 
 	public MentionListener(String botUsername, String trigger) {
-		botUsernameMention = botUsername.replace(" ", "").toLowerCase();
+		this.botUsername = botUsername;
 		this.trigger = trigger;
 	}
 
@@ -33,7 +34,12 @@ public class MentionListener implements Listener {
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
-		if (mentioned(message)) {
+		if (ignore) {
+			ignore = false;
+			return null;
+		}
+
+		if (message.isMentioned(botUsername)) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(message)
@@ -46,17 +52,9 @@ public class MentionListener implements Listener {
 	}
 
 	/**
-	 * Determines if the bot was mentioned in a chat message.
-	 * @param message the chat message
-	 * @return true if the bot was mentioned, false if not
+	 * Tells this listener to not respond to the next message it receives.
 	 */
-	private boolean mentioned(ChatMessage message) {
-		for (String mention : message.getMentions()) {
-			mention = mention.toLowerCase();
-			if (botUsernameMention.startsWith(mention)) {
-				return true;
-			}
-		}
-		return false;
+	public void ignoreNextMessage() {
+		ignore = true;
 	}
 }

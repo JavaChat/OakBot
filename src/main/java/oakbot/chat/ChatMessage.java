@@ -107,6 +107,27 @@ public class ChatMessage {
 		return mentions;
 	}
 
+	/**
+	 * Determines if a user is mentioned in the chat message.
+	 * @param username the username to look for
+	 * @return true if the user is mentioned, false if not
+	 */
+	public boolean isMentioned(String username) {
+		List<String> mentions = getMentions();
+		if (mentions.isEmpty()) {
+			return false;
+		}
+
+		username = username.toLowerCase().replace(" ", "");
+		for (String mention : mentions) {
+			mention = mention.toLowerCase();
+			if (username.startsWith(mention)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public int getUserId() {
 		return userId;
 	}

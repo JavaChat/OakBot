@@ -31,4 +31,21 @@ public class ChatMessageTest {
 
 		assertEquals(Arrays.asList(expectedMentions), chatMessage.getMentions());
 	}
+
+	@Test
+	public void isMentioned() {
+		assertIsMentioned("Hello, @FrankSmi", "frank smith", true);
+		assertIsMentioned("Hello", "frank smith", false);
+		assertIsMentioned("Hello, @FrankSmi", "bob", false);
+	}
+
+	private static void assertIsMentioned(String message, String username, boolean expected) {
+		//@formatter:off
+		ChatMessage chatMessage = new ChatMessage.Builder()
+			.content(message)
+		.build();
+		//@formatter:on
+
+		assertEquals(expected, chatMessage.isMentioned(username));
+	}
 }

@@ -46,6 +46,7 @@ import oakbot.listener.AfkListener;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
+import oakbot.listener.WaveListener;
 
 /**
  * <p>
@@ -100,11 +101,19 @@ public class Main {
 
 		List<Listener> listeners = new ArrayList<>();
 		{
-			listeners.add(new MentionListener(props.getBotUserName(), props.getTrigger()));
+			MentionListener mentionListener = new MentionListener(props.getBotUserName(), props.getTrigger());
+
 			if (javadocCommand != null) {
 				listeners.add(new JavadocListener(javadocCommand));
 			}
 			listeners.add(new AfkListener(afkCommand, props.getTrigger()));
+			listeners.add(new WaveListener(props.getBotUserName(), mentionListener));
+
+			/*
+			 * Put mention listener at the bottom so the other listeners have a
+			 * chance to override it.
+			 */
+			listeners.add(mentionListener);
 		}
 
 		List<Command> commands = new ArrayList<>();
@@ -143,7 +152,7 @@ public class Main {
 			filters.add(upsidedownTextFilter);
 		}
 
-		final MockChatConnection connection = new MockChatConnection(1, props.getBotUserName());
+		final MockChatConnection connection = new MockChatConnection(props.getBotUserId(), props.getBotUserName());
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
