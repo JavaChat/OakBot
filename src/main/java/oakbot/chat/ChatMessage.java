@@ -99,7 +99,9 @@ public class ChatMessage {
 		}
 
 		if (inMention) {
-			mentions.add(buffer.toString());
+			if (buffer.length() >= minLength) {
+				mentions.add(buffer.toString());
+			}
 		}
 
 		return mentions;
