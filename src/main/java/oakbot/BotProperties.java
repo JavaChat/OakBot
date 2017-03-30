@@ -14,7 +14,7 @@ import oakbot.util.PropertiesWrapper;
  */
 public class BotProperties extends PropertiesWrapper {
 	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost;
-	private final List<Integer> homeRooms, admins;
+	private final List<Integer> homeRooms, admins, bannedUsers;
 	private final int heartbeat, botUserId;
 	private final Path javadocPath;
 
@@ -31,6 +31,7 @@ public class BotProperties extends PropertiesWrapper {
 		trigger = get("trigger", "=");
 		homeRooms = getIntegerList("rooms", Arrays.asList(1)); //default to "Sandbox"
 		admins = getIntegerList("admins");
+		bannedUsers = getIntegerList("bannedUsers");
 		heartbeat = getInteger("heartbeat", 3000);
 
 		String javadocPathStr = get("javadoc.folder");
@@ -74,7 +75,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the string sequence that triggers the bot.
+	 * Gets the string sequence that triggers a bot command.
 	 * @return the trigger (defaults to "=")
 	 */
 	public String getTrigger() {
@@ -90,11 +91,19 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the IDs of the users who have bot admin permissions.
+	 * Gets the users who have bot admin permissions.
 	 * @return the user IDs
 	 */
 	public List<Integer> getAdmins() {
 		return admins;
+	}
+
+	/**
+	 * Gets the users who have been banned from interacting with the bot.
+	 * @return the user IDs
+	 */
+	public List<Integer> getBannedUsers() {
+		return bannedUsers;
 	}
 
 	/**

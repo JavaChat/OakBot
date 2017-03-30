@@ -181,6 +181,7 @@ public class Main {
 			.connection(connection)
 			.heartbeat(props.getHeartbeat())
 			.admins(props.getAdmins())
+			.bannedUsers(props.getBannedUsers())
 			.user(props.getBotUserName(), props.getBotUserId())
 			.trigger(props.getTrigger())
 			.greeting(props.getGreeting())

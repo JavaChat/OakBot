@@ -38,7 +38,8 @@ bot.userId | The user ID of the bot's StackOverflow account. You can get this fr
 trigger | The character that prefixes all commands.  For example, if the trigger was "/", then posting "/about" in the chat room will cause the bot to display information about itself.
 homeRooms | A comma-separated list of room IDs that OakBot will join and which OakBot cannot be unsummoned from.  A chat room's room ID can be found in its URL.
 heartbeat | How often OakBot will poll each chat room to look for new messages (in milliseconds).  Unfortunately, OakBot does not use websockets, like your browser does.
-admins | (optional) A comma-separated list of user IDs that can run admin-level commands against the bot (notably, the "shutdown" command).
+admins | (optional) Users that can run admin-level commands against the bot (notably, the "shutdown" command). Comma-separated list of user IDs.
+bannedUsers | (optional) Users that have been banned from using the bot. The bot will ignore all messages from these users. Comma-separated list of user IDs.
 javadoc.folder | (optional) The folder that contains the Javadoc information used with the "javadoc" command.  The Javadoc info for various libraries (including the Java 8 API) are stored on a [public Dropbox folder](https://www.dropbox.com/sh/xkf7kua3hzd8xvo/AAC1sOkVTNUE2MKPAXTm28bna?dl=0) (they are ZIP files).  You can also build these ZIP files yourself using the [oakbot-doclet](https://github.com/mangstadt/oakbot-doclet) tool. If this property is not defined, the "javadoc" command will not be activated.
 dictionary.key | (optional) This is used by the "define" command to lookup dictionary definitions from the [dictionaryapi.com](http://www.dictionaryapi.com/) website. If this property is not defined, the "define" command will not be activated.
 greeting | (optional) The message OakBot will post when it joins a room. If this property is not defined, OakBot will not say anything when it joins a room.

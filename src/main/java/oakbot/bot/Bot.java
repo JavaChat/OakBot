@@ -37,7 +37,7 @@ public class Bot {
 	private final Integer userId;
 	private final ChatConnection connection;
 	private final int heartbeat;
-	private final List<Integer> admins;
+	private final List<Integer> admins, bannedUsers;
 	private final Rooms rooms;
 	private final List<Command> commands;
 	private final LearnedCommands learnedCommands;
@@ -59,7 +59,8 @@ public class Bot {
 		greeting = builder.greeting;
 		heartbeat = builder.heartbeat;
 		rooms = builder.rooms;
-		admins = builder.admins;
+		admins = builder.admins.build();
+		bannedUsers = builder.bannedUsers.build();
 		stats = builder.stats;
 		database = builder.database;
 		unknownCommandHandler = builder.unknownCommandHandler;
@@ -121,6 +122,11 @@ public class Bot {
 
 					if (message.getUserId() == userId) {
 						//message was posted by this bot, ignore
+						continue;
+					}
+
+					if (bannedUsers.contains(message.getUserId())) {
+						//message was posted by a banned user, ignore
 						continue;
 					}
 
@@ -346,7 +352,8 @@ public class Bot {
 		private Integer userId;
 		private int heartbeat = 3000;
 		private Rooms rooms = new Rooms(Arrays.asList(1));
-		private List<Integer> admins = new ArrayList<>();
+		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
+		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
 		private LearnedCommands learnedCommands = new LearnedCommands();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
@@ -402,6 +409,15 @@ public class Bot {
 
 		public Builder admins(Collection<Integer> admins) {
 			this.admins.addAll(admins);
+			return this;
+		}
+
+		public Builder bannedUsers(Integer... bannedUsers) {
+			return bannedUsers(Arrays.asList(bannedUsers));
+		}
+
+		public Builder bannedUsers(Collection<Integer> bannedUsers) {
+			this.bannedUsers.addAll(bannedUsers);
 			return this;
 		}
 
