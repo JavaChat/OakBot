@@ -94,7 +94,7 @@ public class CatCommand implements Command {
 
 	@Override
 	public String description() {
-		return "Displays a random cat picture.";
+		return "Displays a random cat picture. :3";
 	}
 
 	@Override

@@ -17,7 +17,7 @@ public class ShrugCommand implements Command {
 
 	@Override
 	public String description() {
-		return "Meh.";
+		return "lol idk";
 	}
 
 	@Override

@@ -38,7 +38,7 @@ public class TagCommand implements Command {
 
 	@Override
 	public String description() {
-		return "Displays the description of a StackOverflow tag (acts like a Computer Science urban dictionary).";
+		return "Displays the description of a StackOverflow tag.";
 	}
 
 	@Override
