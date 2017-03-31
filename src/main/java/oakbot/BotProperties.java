@@ -13,7 +13,7 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
-	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost;
+	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey;
 	private final List<Integer> homeRooms, admins, bannedUsers;
 	private final int heartbeat, botUserId;
 	private final Path javadocPath;
@@ -40,6 +40,7 @@ public class BotProperties extends PropertiesWrapper {
 		greeting = get("greeting");
 		dictionaryKey = get("dictionary.key");
 		aboutHost = get("about.host");
+		catKey = get("cat.key");
 	}
 
 	/**
@@ -145,5 +146,14 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public String getAboutHost() {
 		return aboutHost;
+	}
+
+	/**
+	 * Gets the API key for <a href="http://thecatapi.com">thecatapi.com</a>.
+	 * Requests to the API can still be made without a key.
+	 * @return the key or null if not set
+	 */
+	public String getCatKey() {
+		return catKey;
 	}
 }

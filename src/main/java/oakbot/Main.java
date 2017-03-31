@@ -26,6 +26,7 @@ import oakbot.chat.ChatConnection;
 import oakbot.chat.StackoverflowChat;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
+import oakbot.command.CatCommand;
 import oakbot.command.Command;
 import oakbot.command.EightBallCommand;
 import oakbot.command.HelpCommand;
@@ -171,6 +172,7 @@ public class Main {
 			commands.add(new ShrugCommand());
 			commands.add(afkCommand);
 			commands.add(new RolloverCommand(upsidedownTextFilter));
+			commands.add(new CatCommand(props.getCatKey()));
 		}
 
 		List<ChatResponseFilter> filters = new ArrayList<>();

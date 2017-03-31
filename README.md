@@ -44,6 +44,7 @@ javadoc.folder | (optional) The folder that contains the Javadoc information use
 dictionary.key | (optional) This is used by the "define" command to lookup dictionary definitions from the [dictionaryapi.com](http://www.dictionaryapi.com/) website. If this property is not defined, the "define" command will not be activated.
 greeting | (optional) The message OakBot will post when it joins a room. If this property is not defined, OakBot will not say anything when it joins a room.
 about.host | (optional) The name of the server that is hosting this bot.  Displayed in the "about" command.
+cat.key | (optional) API key for [thecatapi.com](http://thecatapi.com/docs.html), which is used with the "cat" command. A key is not required in order to query the API.
 
 # Adding/Removing Commands
 
