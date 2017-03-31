@@ -1,6 +1,8 @@
 package oakbot.command;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import oakbot.bot.Bot;
@@ -16,6 +18,11 @@ public class UnsummonCommand implements Command {
 	@Override
 	public String name() {
 		return "unsummon";
+	}
+
+	@Override
+	public List<String> aliases() {
+		return Arrays.asList("leave");
 	}
 
 	@Override
