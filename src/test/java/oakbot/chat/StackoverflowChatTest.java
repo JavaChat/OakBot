@@ -10,8 +10,10 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,21 +21,22 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.LogManager;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
@@ -54,10 +57,10 @@ public class StackoverflowChatTest {
 
 	@Test
 	public void login_failed() throws Exception {
-		HttpClient client = mockClient(new AnswerImpl() {
+		CloseableHttpClient client = mockClient(new AnswerImpl() {
 			@Override
 			public HttpResponse answer(String method, String uri, String body) throws IOException {
-				switch (count) {
+				switch (requestCount) {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://stackoverflow.com/users/login", uri);
@@ -83,23 +86,23 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		StackoverflowChat chat = new StackoverflowChat(client);
-		try {
+		try (StackoverflowChat chat = new StackoverflowChat(client)) {
 			chat.login("email@example.com", "password");
 			fail();
-		} catch (IllegalArgumentException e) {
+		} catch (InvalidCredentialsException e) {
 			//expected
 		}
 
 		verify(client, times(2)).execute(any(HttpUriRequest.class));
+		verify(client).close();
 	}
 
 	@Test
 	public void login() throws Exception {
-		HttpClient client = mockClient(new AnswerImpl() {
+		CloseableHttpClient client = mockClient(new AnswerImpl() {
 			@Override
 			public HttpResponse answer(String method, String uri, String body) throws IOException {
-				switch (count) {
+				switch (requestCount) {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://stackoverflow.com/users/login", uri);
@@ -125,31 +128,51 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		StackoverflowChat chat = new StackoverflowChat(client);
-		chat.login("email@example.com", "password");
+		try (StackoverflowChat chat = new StackoverflowChat(client)) {
+			chat.login("email@example.com", "password");
+		}
 
 		verify(client, times(2)).execute(any(HttpUriRequest.class));
+		verify(client).close();
 	}
 
 	@Test
 	public void joinRoom() throws Exception {
-		HttpClient client = mockClient(new AnswerImpl() {
+		CloseableHttpClient client = mockClient(new AnswerImpl() {
 			@Override
 			public HttpResponse answer(String method, String uri, String body) throws IOException {
-				switch (count) {
+				switch (requestCount) {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, "404 NOT FOUND");
+
+					/*
+					 * Room doesn't exist.
+					 */
+					return response(404, "");
 				case 2:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
+
+					/*
+					 * The lack of an fkey is treated as an IOException because
+					 * every chat room should have an fkey.
+					 */
+					return response(200, "");
 				case 3:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
+
+					/*
+					 * The lack of a textbox means the room is inactive or
+					 * doesn't allow the bot to post messages.
+					 */
+					return response(200, "value=\"0123456789abcdef0123456789abcdef\"");
 				case 4:
+					assertEquals("GET", method);
+					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
+					return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
+				case 5:
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/events", uri);
 					//@formatter:off
@@ -169,32 +192,41 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		StackoverflowChat chat = new StackoverflowChat(client);
-		try {
+		try (StackoverflowChat chat = new StackoverflowChat(client)) {
+			try {
+				chat.joinRoom(1);
+				fail();
+			} catch (RoomNotFoundException e) {
+				//expected
+			}
+			try {
+				chat.joinRoom(1);
+				fail();
+			} catch (IOException e) {
+				//expected
+			}
+			try {
+				chat.joinRoom(1);
+				fail();
+			} catch (RoomPermissionException e) {
+				//expected
+			}
+
 			chat.joinRoom(1);
-			fail();
-		} catch (IOException e) {
-			//expected
 		}
-		try {
-			chat.joinRoom(1);
-			fail();
-		} catch (IOException e) {
-			//expected
-		}
-		chat.joinRoom(1);
-		chat.flush(); //should block until the message queue is empty
-		verify(client, times(4)).execute(any(HttpUriRequest.class));
+
+		verify(client, times(5)).execute(any(HttpUriRequest.class));
+		verify(client).close();
 	}
 
 	@Test
 	public void sendMessage() throws Exception {
-		HttpClient client = mockClient(new AnswerImpl() {
+		CloseableHttpClient client = mockClient(new AnswerImpl() {
 			private long prevRequestSent;
 
 			@Override
 			public HttpResponse answer(String method, String uri, String body) throws IOException {
-				switch (count) {
+				switch (requestCount) {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
@@ -263,22 +295,24 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		StackoverflowChat chat = new StackoverflowChat(client);
-		chat.sendMessage(1, "Test1");
-		chat.sendMessage(1, "Test2");
-		chat.sendMessage(2, "Test3");
-		chat.flush(); //should block until the message queue is empty
+		try (StackoverflowChat chat = new StackoverflowChat(client)) {
+			chat.sendMessage(1, "Test1");
+			chat.sendMessage(1, "Test2");
+			chat.sendMessage(2, "Test3");
+		}
+
 		verify(client, times(6)).execute(any(HttpUriRequest.class));
+		verify(client).close();
 	}
 
 	@Test
 	public void getMessages_non_JSON_response() throws Exception {
-		HttpClient client = mockClient(new AnswerImpl() {
+		CloseableHttpClient client = mockClient(new AnswerImpl() {
 			private long prevRequestSent;
 
 			@Override
 			public HttpResponse answer(String method, String uri, String body) throws IOException {
-				switch (count) {
+				switch (requestCount) {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
@@ -303,29 +337,31 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		StackoverflowChat chat = new StackoverflowChat(client, 500);
-		Iterator<ChatMessage> messages = chat.getMessages(1, 1).iterator();
+		try (StackoverflowChat chat = new StackoverflowChat(client, 500, 0)) {
+			Iterator<ChatMessage> messages = chat.getMessages(1, 1).iterator();
 
-		ChatMessage message = messages.next();
-		assertEquals("message 1", message.getContent());
-		assertEquals(0, message.getEdits());
-		assertEquals(20157245L, message.getMessageId());
-		assertEquals(1, message.getRoomId());
-		assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417041460000L), ZoneId.systemDefault()), message.getTimestamp());
-		assertEquals(50, message.getUserId());
-		assertEquals("User1", message.getUsername());
+			ChatMessage message = messages.next();
+			assertEquals("message 1", message.getContent());
+			assertEquals(0, message.getEdits());
+			assertEquals(20157245L, message.getMessageId());
+			assertEquals(1, message.getRoomId());
+			assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417041460000L), ZoneId.systemDefault()), message.getTimestamp());
+			assertEquals(50, message.getUserId());
+			assertEquals("User1", message.getUsername());
 
-		assertFalse(messages.hasNext());
+			assertFalse(messages.hasNext());
+		}
 
 		verify(client, times(3)).execute(any(HttpUriRequest.class));
+		verify(client).close();
 	}
 
 	@Test
 	public void getMessages() throws Exception {
-		HttpClient client = mockClient(new AnswerImpl() {
+		CloseableHttpClient client = mockClient(new AnswerImpl() {
 			@Override
 			public HttpResponse answer(String method, String uri, String body) throws IOException {
-				switch (count) {
+				switch (requestCount) {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
@@ -357,47 +393,49 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		StackoverflowChat chat = new StackoverflowChat(client);
-		Iterator<ChatMessage> messages = chat.getMessages(1, 3).iterator();
+		try (StackoverflowChat chat = new StackoverflowChat(client)) {
+			Iterator<ChatMessage> messages = chat.getMessages(1, 3).iterator();
 
-		ChatMessage message = messages.next();
-		assertEquals("message 1", message.getContent());
-		assertEquals(0, message.getEdits());
-		assertEquals(20157245L, message.getMessageId());
-		assertEquals(1, message.getRoomId());
-		assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417041460000L), ZoneId.systemDefault()), message.getTimestamp());
-		assertEquals(50, message.getUserId());
-		assertEquals("User1", message.getUsername());
+			ChatMessage message = messages.next();
+			assertEquals("message 1", message.getContent());
+			assertEquals(0, message.getEdits());
+			assertEquals(20157245L, message.getMessageId());
+			assertEquals(1, message.getRoomId());
+			assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417041460000L), ZoneId.systemDefault()), message.getTimestamp());
+			assertEquals(50, message.getUserId());
+			assertEquals("User1", message.getUsername());
 
-		message = messages.next();
-		assertNull(message.getContent()); //deleted message
-		assertEquals(2, message.getEdits());
-		assertEquals(20157246L, message.getMessageId());
-		assertEquals(1, message.getRoomId());
-		assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417043460000L), ZoneId.systemDefault()), message.getTimestamp());
-		assertEquals(51, message.getUserId());
-		assertEquals("User2", message.getUsername());
+			message = messages.next();
+			assertNull(message.getContent()); //deleted message
+			assertEquals(2, message.getEdits());
+			assertEquals(20157246L, message.getMessageId());
+			assertEquals(1, message.getRoomId());
+			assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417043460000L), ZoneId.systemDefault()), message.getTimestamp());
+			assertEquals(51, message.getUserId());
+			assertEquals("User2", message.getUsername());
 
-		message = messages.next();
-		assertEquals("message 3", message.getContent());
-		assertEquals(0, message.getEdits());
-		assertEquals(20157247L, message.getMessageId());
-		assertEquals(1, message.getRoomId());
-		assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417045460000L), ZoneId.systemDefault()), message.getTimestamp());
-		assertEquals(50, message.getUserId());
-		assertEquals("User1", message.getUsername());
+			message = messages.next();
+			assertEquals("message 3", message.getContent());
+			assertEquals(0, message.getEdits());
+			assertEquals(20157247L, message.getMessageId());
+			assertEquals(1, message.getRoomId());
+			assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417045460000L), ZoneId.systemDefault()), message.getTimestamp());
+			assertEquals(50, message.getUserId());
+			assertEquals("User1", message.getUsername());
 
-		assertFalse(messages.hasNext());
+			assertFalse(messages.hasNext());
+		}
 
 		verify(client, times(2)).execute(any(HttpUriRequest.class));
+		verify(client).close();
 	}
 
 	@Test
-	public void getNewMessages() throws Exception {
-		HttpClient client = mockClient(new AnswerImpl() {
+	public void listen() throws Exception {
+		CloseableHttpClient client = mockClient(new AnswerImpl() {
 			@Override
 			public HttpResponse answer(String method, String uri, String body) throws IOException {
-				switch (count) {
+				switch (requestCount) {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
@@ -460,6 +498,12 @@ public class StackoverflowChatTest {
 					actual = params(body);
 					assertEquals(expected, actual);
 
+					/*
+					 * It notices that all the messages are new, which means
+					 * there may be some new messages it hasn't seen. So, it
+					 * will make another request to increase the number of
+					 * messages it receives.
+					 */
 					//@formatter:off
 					return response(200,
 					"{\"events\":[" +
@@ -483,6 +527,12 @@ public class StackoverflowChatTest {
 					actual = params(body);
 					assertEquals(expected, actual);
 
+					/*
+					 * This time, it sees a message it has seen before, which
+					 * means it's not missing any new messages. It can now parse
+					 * the new messages and send them to the handler, safely
+					 * knowing it has not missed any.
+					 */
 					//@formatter:off
 					return response(200,
 					"{\"events\":[" +
@@ -504,66 +554,32 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		StackoverflowChat chat = new StackoverflowChat(client);
-
-		Iterator<ChatMessage> messages = chat.getNewMessages(1).iterator();
-		{
-			assertFalse(messages.hasNext());
-		}
-
-		messages = chat.getNewMessages(1).iterator();
-		{
-			ChatMessage message = messages.next();
-			assertEquals("message 4", message.getContent());
-
-			message = messages.next();
-			assertEquals("message 5", message.getContent());
-
-			assertFalse(messages.hasNext());
-		}
-
-		messages = chat.getNewMessages(1).iterator();
-		{
-			assertFalse(messages.hasNext());
-		}
-
-		messages = chat.getNewMessages(1).iterator();
-		{
-			ChatMessage message = messages.next();
-			assertEquals("message 6", message.getContent());
-
-			message = messages.next();
-			assertEquals("message 7", message.getContent());
-
-			message = messages.next();
-			assertEquals("message 8", message.getContent());
-
-			message = messages.next();
-			assertEquals("message 9", message.getContent());
-
-			message = messages.next();
-			assertEquals("message 10", message.getContent());
-
-			message = messages.next();
-			assertEquals("message 11", message.getContent());
-
-			message = messages.next();
-			assertEquals("message 12", message.getContent());
-
-			assertFalse(messages.hasNext());
-		}
+		StackoverflowChat chat = new StackoverflowChat(client, 0, 10);
+		chat.joinRoom(1);
+		AtomicInteger number = new AtomicInteger(4);
+		chat.listen((message) -> {
+			assertEquals("message " + number.getAndIncrement(), message.getContent());
+			if (number.get() > 12) {
+				try {
+					chat.close();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
 
 		verify(client, times(6)).execute(any(HttpUriRequest.class));
+		verify(client).close();
 	}
 
-	private static HttpClient mockClient(AnswerImpl answer) throws IOException {
-		HttpClient client = mock(HttpClient.class);
+	private static CloseableHttpClient mockClient(AnswerImpl answer) throws IOException {
+		CloseableHttpClient client = mock(CloseableHttpClient.class);
 		doAnswer(answer).when(client).execute(any(HttpUriRequest.class));
 		return client;
 	}
 
 	private static class AnswerImpl implements Answer<HttpResponse> {
-		protected int count = 0;
+		protected int requestCount = 0;
 
 		@Override
 		public HttpResponse answer(InvocationOnMock invocation) throws Throwable {
@@ -577,25 +593,39 @@ public class StackoverflowChatTest {
 				body = EntityUtils.toString(post.getEntity());
 			}
 
-			count++;
+			requestCount++;
 			return answer(method, uri, body);
 		}
 
 		protected HttpResponse answer(String method, String uri, String body) throws IOException {
-			fail("Request not handled.");
+			fail("An extra request was generated, which was not anticipated by the unit test.");
 			return null;
 		}
 
-		protected HttpResponse response(int statusCode, String body) throws IOException {
+		/**
+		 * Generates a mock response
+		 * @param statusCode the status code
+		 * @param body the response body
+		 * @return the response
+		 * @throws UnsupportedEncodingException if the body contains unsupported
+		 * characters
+		 */
+		protected static HttpResponse response(int statusCode, String body) throws UnsupportedEncodingException {
 			HttpEntity entity = new StringEntity(body);
-			StatusLine statusLine = new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), statusCode, "");
+			StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, statusCode, "");
 
-			HttpResponse response = new BasicHttpResponse(statusLine);
-			response.setEntity(entity);
+			CloseableHttpResponse response = mock(CloseableHttpResponse.class);
+			when(response.getStatusLine()).thenReturn(statusLine);
+			when(response.getEntity()).thenReturn(entity);
 			return response;
 		}
 
-		protected Set<NameValuePair> params(String body) {
+		/**
+		 * Parses parameters from a POST request body.
+		 * @param body the request body
+		 * @return the parameters
+		 */
+		protected static Set<NameValuePair> params(String body) {
 			return new HashSet<>(URLEncodedUtils.parse(body, Consts.UTF_8));
 		}
 	};

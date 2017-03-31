@@ -178,7 +178,7 @@ public class Main {
 			filters.add(upsidedownTextFilter);
 		}
 
-		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build());
+		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build(), 5000, props.getHeartbeat());
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
@@ -188,7 +188,6 @@ public class Main {
 			.listeners(listeners)
 			.responseFilters(filters)
 			.connection(connection)
-			.heartbeat(props.getHeartbeat())
 			.admins(props.getAdmins())
 			.bannedUsers(props.getBannedUsers())
 			.user(props.getBotUserName(), props.getBotUserId())

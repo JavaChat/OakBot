@@ -1,24 +1,27 @@
 package oakbot.bot;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.logging.LogManager;
 
-import oakbot.chat.ChatConnection;
-import oakbot.chat.ChatMessage;
-
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import oakbot.chat.ChatConnection;
+import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatMessageHandler;
+import oakbot.chat.InvalidCredentialsException;
 
 /**
  * @author Michael Angstadt
@@ -30,69 +33,70 @@ public class BotTest {
 		LogManager.getLogManager().reset();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void builder() throws Exception {
+	@Test(expected = IllegalStateException.class)
+	public void builder_no_connection() throws Exception {
 		new Bot.Builder().build();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = InvalidCredentialsException.class)
 	public void bad_login() throws Exception {
 		ChatConnection connection = mock(ChatConnection.class);
-		doThrow(new IllegalArgumentException()).when(connection).login("user", "pass");
+		doThrow(new InvalidCredentialsException()).when(connection).login("user", "pass");
 
-		Bot bot = new Bot.Builder().login("user", "pass").connection(connection).build();
+		//@formatter:off
+		Bot bot = new Bot.Builder()
+			.login("user", "pass")
+			.connection(connection)
+		.build();
+		//@formatter:on
+
 		bot.connect(false);
 	}
 
-	@Ignore
 	@Test
 	public void unknown_command() throws Exception {
-		ChatConnection connection = mock(ChatConnection.class);
-		when(connection.getNewMessages(1)).then(new Answer<List<ChatMessage>>() {
-			private int count = 0;
+		//@formatter:off
+		ChatMessage message = new ChatMessage.Builder()
+			.content("=foobar")
+			.messageId(1)
+			.roomId(1)
+			.timestamp(LocalDateTime.now())
+			.userId(1)
+			.username("User1")
+		.build();
+		//@formatter:on
 
+		ChatConnection connection = mock(ChatConnection.class);
+		doAnswer(new Answer<Void>() {
 			@Override
-			public List<ChatMessage> answer(InvocationOnMock invocation) throws Throwable {
-				switch (count++) {
-				case 0:
-					return Collections.emptyList();
-				case 1:
-					//@formatter:off
-					ChatMessage message = new ChatMessage.Builder()
-						.content("=foobar")
-						.messageId(1)
-						.roomId(1)
-						.timestamp(LocalDateTime.now())
-						.userId(1)
-						.username("User1")
-					.build();
-					//@formatter:on
-					return Arrays.asList(message);
-				case 2:
-					//@formatter:off
-					message = new ChatMessage.Builder()
-						.content("=shutdown")
-						.messageId(2)
-						.roomId(1)
-						.timestamp(LocalDateTime.now())
-						.userId(1)
-						.username("User1")
-					.build();
-					//@formatter:on
-					return Arrays.asList(message);
-				}
-				fail();
+			public Void answer(InvocationOnMock invocation) {
+				ChatMessageHandler handler = (ChatMessageHandler) invocation.getArguments()[0];
+				handler.handle(message);
 				return null;
+			}
+		}).when(connection).listen(any(ChatMessageHandler.class));
+
+		ChatResponse response = new ChatResponse("");
+		UnknownCommandHandler handler = spy(new UnknownCommandHandler() {
+			@Override
+			public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+				assertSame(message, chatCommand.getMessage());
+				return response;
 			}
 		});
 
-		Bot bot = new Bot.Builder().connection(connection).rooms(1).heartbeat(100).build();
-		bot.connect(false); //TODO this call is blocking...how to test?
-	}
+		//@formatter:off
+		Bot bot = new Bot.Builder()
+			.connection(connection)
+			.trigger("=")
+			.rooms(1)
+			.user("bot", 2)
+			.unknownCommandHandler(handler)
+		.build();
+		//@formatter:on
 
-	@Ignore
-	@Test
-	public void command() {
-		//TODO
+		bot.connect(false);
+
+		verify(handler).onMessage(any(ChatCommand.class), eq(false), same(bot));
 	}
 }

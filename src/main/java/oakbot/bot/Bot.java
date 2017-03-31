@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -20,6 +18,9 @@ import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
+import oakbot.chat.InvalidCredentialsException;
+import oakbot.chat.RoomNotFoundException;
+import oakbot.chat.RoomPermissionException;
 import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommands;
@@ -36,7 +37,6 @@ public class Bot {
 	private final String email, password, userName, trigger, greeting;
 	private final Integer userId;
 	private final ChatConnection connection;
-	private final int heartbeat;
 	private final List<Integer> admins, bannedUsers;
 	private final Rooms rooms;
 	private final List<Command> commands;
@@ -46,7 +46,6 @@ public class Bot {
 	private final Statistics stats;
 	private final Database database;
 	private final UnknownCommandHandler unknownCommandHandler;
-	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
 	private final Pattern commandRegex;
 
 	private Bot(Builder builder) {
@@ -57,7 +56,6 @@ public class Bot {
 		userId = builder.userId;
 		trigger = builder.trigger;
 		greeting = builder.greeting;
-		heartbeat = builder.heartbeat;
 		rooms = builder.rooms;
 		admins = builder.admins.build();
 		bannedUsers = builder.bannedUsers.build();
@@ -76,10 +74,10 @@ public class Bot {
 	 * either by an unexpected error or a shutdown command.
 	 * @param quiet true to start the bot without broadcasting the greeting
 	 * message, false to broadcast the greeting message
-	 * @throws IllegalArgumentException if the login credentials are bad
-	 * @throws IOException if there's an I/O problem
+	 * @throws InvalidCredentialsException if the login credentials are bad
+	 * @throws IOException if there's a network problem
 	 */
-	public void connect(boolean quiet) throws IllegalArgumentException, IOException {
+	public void connect(boolean quiet) throws InvalidCredentialsException, IOException {
 		//login
 		connection.login(email, password);
 
@@ -94,110 +92,82 @@ public class Bot {
 			}
 		}
 
-		//listen for and reply to messages
-		while (true) {
-			long start = System.currentTimeMillis();
+		connection.listen((message) -> {
+			if (message.getContent() == null) {
+				//user deleted his/her message, ignore
+				return;
+			}
 
-			/*
-			 * Commands can join rooms, so make a copy of the room list to
-			 * prevent a concurrent modification exception.
-			 */
-			rooms = new ArrayList<>(this.rooms.getRooms());
-			for (Integer room : rooms) {
-				logger.fine("Pinging room " + room);
+			if (message.getUserId() == userId) {
+				//message was posted by this bot, ignore
+				return;
+			}
 
-				//get new messages since last ping
-				List<ChatMessage> newMessages = connection.getNewMessages(room);
-				logger.fine(newMessages.size() + " new messages found.");
-				if (newMessages.isEmpty()) {
-					//no new messages
-					continue;
+			if (bannedUsers.contains(message.getUserId())) {
+				//message was posted by a banned user, ignore
+				return;
+			}
+
+			List<ChatResponse> replies = new ArrayList<>();
+			boolean isUserAdmin = admins.contains(message.getUserId());
+
+			try {
+				replies.addAll(handleListeners(message, isUserAdmin));
+
+				ChatCommand command = asCommand(message);
+				if (command != null) {
+					replies.addAll(handleCommands(command, isUserAdmin));
 				}
+			} catch (ShutdownException e) {
+				try {
+					broadcast("Shutting down.  See you later.");
+				} catch (IOException e2) {
+					//ignore
+				}
+				try {
+					connection.close();
+				} catch (IOException e2) {
+					//ignore
+				}
+				return;
+			}
 
-				for (ChatMessage message : newMessages) {
-					if (message.getContent() == null) {
-						//user deleted his/her message, ignore
-						continue;
-					}
+			if (replies.isEmpty()) {
+				return;
+			}
 
-					if (message.getUserId() == userId) {
-						//message was posted by this bot, ignore
-						continue;
-					}
+			if (logger.isLoggable(Level.INFO)) {
+				logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+			}
 
-					if (bannedUsers.contains(message.getUserId())) {
-						//message was posted by a banned user, ignore
-						continue;
-					}
+			if (stats != null) {
+				stats.incMessagesRespondedTo(replies.size());
+			}
 
-					List<ChatResponse> replies = new ArrayList<>();
-					boolean isUserAdmin = admins.contains(message.getUserId());
-
-					try {
-						replies.addAll(handleListeners(message, isUserAdmin));
-
-						ChatCommand command = asCommand(message);
-						if (command != null) {
-							replies.addAll(handleCommands(command, isUserAdmin));
-						}
-					} catch (ShutdownException e) {
-						broadcast("Shutting down.  See you later.");
-						connection.flush();
-						return;
-					}
-
-					if (replies.isEmpty()) {
-						continue;
-					}
-
-					if (logger.isLoggable(Level.INFO)) {
-						logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
-					}
-
-					if (stats != null) {
-						stats.incMessagesRespondedTo(replies.size());
-					}
-
-					for (ChatResponse reply : replies) {
-						String messageText = reply.getMessage();
-						for (ChatResponseFilter filter : responseFilters) {
-							if (filter.isEnabled(room)) {
-								messageText = filter.filter(messageText);
-							}
-						}
-
-						try {
-							connection.sendMessage(room, messageText, reply.getSplitStrategy());
-						} catch (IOException e) {
-							logger.log(Level.SEVERE, "Problem sending chat message.", e);
-						}
+			for (ChatResponse reply : replies) {
+				String messageText = reply.getMessage();
+				for (ChatResponseFilter filter : responseFilters) {
+					if (filter.isEnabled(message.getRoomId())) {
+						messageText = filter.filter(messageText);
 					}
 				}
 
-				ChatMessage latestMessage = newMessages.get(newMessages.size() - 1);
-				prevMessageIds.put(room, latestMessage.getMessageId());
+				try {
+					connection.sendMessage(message.getRoomId(), messageText, reply.getSplitStrategy());
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem sending chat message.", e);
+				}
 			}
 
 			if (database != null) {
 				database.commit();
 			}
-
-			//sleep before pinging again
-			long elapsed = System.currentTimeMillis() - start;
-			long sleep = heartbeat - elapsed;
-			if (sleep > 0) {
-				try {
-					Thread.sleep(sleep);
-				} catch (InterruptedException e) {
-					return;
-				}
-			}
-		}
+		});
 	}
 
 	/**
-	 * Tests to see if a chat message is in the format of a command, and parses
-	 * it as such.
+	 * Tests to see if a chat message is in the format of a command, and if it
+	 * is, parses it as such.
 	 * @param message the chat message
 	 * @return the chat command if null if the message is not a command
 	 */
@@ -219,17 +189,24 @@ public class Bot {
 	/**
 	 * Joins a room.
 	 * @param roomId the room ID
+	 * @throws RoomNotFoundException if the room does not exist
+	 * @throws RoomPermissionException if messages cannot be posted to this room
 	 * @throws IOException if there's a problem connecting to the room
 	 */
 	public void join(int roomId) throws IOException {
+		if (rooms.contains(roomId)) {
+			return;
+		}
+
 		join(roomId, false);
-		rooms.add(roomId);
 	}
 
 	/**
 	 * Joins a room.
 	 * @param roomId the room ID
 	 * @param quiet true to not post an announcement message, false to post one
+	 * @throws RoomNotFoundException if the room does not exist
+	 * @throws RoomPermissionException if messages cannot be posted to this room
 	 * @throws IOException if there's a problem connecting to the room
 	 */
 	private void join(int roomId, boolean quiet) throws IOException {
@@ -237,6 +214,7 @@ public class Bot {
 		if (!quiet && greeting != null) {
 			connection.sendMessage(roomId, greeting);
 		}
+		rooms.add(roomId);
 	}
 
 	/**
@@ -350,7 +328,6 @@ public class Bot {
 		private ChatConnection connection;
 		private String email, password, userName, trigger = "=", greeting;
 		private Integer userId;
-		private int heartbeat = 3000;
 		private Rooms rooms = new Rooms(Arrays.asList(1));
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
@@ -386,11 +363,6 @@ public class Bot {
 
 		public Builder greeting(String greeting) {
 			this.greeting = greeting;
-			return this;
-		}
-
-		public Builder heartbeat(int heartbeat) {
-			this.heartbeat = heartbeat;
 			return this;
 		}
 
@@ -468,9 +440,9 @@ public class Bot {
 			return this;
 		}
 
-		public Bot build() throws IOException {
+		public Bot build() {
 			if (connection == null) {
-				throw new IllegalArgumentException("No ChatConnection given.");
+				throw new IllegalStateException("No ChatConnection given.");
 			}
 			return new Bot(this);
 		}

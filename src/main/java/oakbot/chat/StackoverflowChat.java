@@ -27,12 +27,12 @@ import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
@@ -51,36 +51,38 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class StackoverflowChat implements ChatConnection {
 	private static final Logger logger = Logger.getLogger(StackoverflowChat.class.getName());
 
-	private final HttpClient client;
+	private final CloseableHttpClient client;
 	private final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
 	private final Map<Integer, String> fkeyCache = new HashMap<>();
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
-
 	private final MessageSenderThread sender;
-	private final long retryPause;
+	private final long retryPause, heartbeat;
+	private boolean closed;
 
 	/**
-	 * Creates a new connection to Stackoverflow chat.
+	 * Creates a polling connection to Stackoverflow chat.
 	 * @param client the HTTP client
 	 */
-	public StackoverflowChat(HttpClient client) {
-		this(client, TimeUnit.SECONDS.toMillis(5));
+	public StackoverflowChat(CloseableHttpClient client) {
+		this(client, 5000, 3000);
 	}
 
 	/**
-	 * Creates a new connection to Stackoverflow chat.
+	 * Creates a polling connection to Stackoverflow chat.
 	 * @param client the HTTP client
 	 * @param retryPause the base amount of time to wait in between request
 	 * retries (in milliseconds)
+	 * @param heartbeat how often to poll each chat room looking for new
+	 * messages (in milliseconds)
 	 */
-	public StackoverflowChat(HttpClient client, long retryPause) {
+	public StackoverflowChat(CloseableHttpClient client, long retryPause, long heartbeat) {
 		this.client = client;
 		this.retryPause = retryPause;
+		this.heartbeat = heartbeat;
 
 		MessageSenderThread sender = new MessageSenderThread();
 		sender.start();
 		this.sender = sender;
-
 	}
 
 	@Override
@@ -106,7 +108,7 @@ public class StackoverflowChat implements ChatConnection {
 		int statusCode = response.getStatusLine().getStatusCode();
 		EntityUtils.consumeQuietly(response.getEntity());
 		if (statusCode != 302) {
-			throw new IllegalArgumentException("Bad login");
+			throw new InvalidCredentialsException();
 		}
 	}
 
@@ -126,24 +128,24 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	@Override
-	public void sendMessage(int room, String message) throws IOException {
-		sendMessage(room, message, SplitStrategy.NONE);
+	public void sendMessage(int roomId, String message) throws IOException {
+		sendMessage(roomId, message, SplitStrategy.NONE);
 	}
 
 	@Override
-	public void sendMessage(int room, String message, SplitStrategy splitStrategy) throws IOException {
-		sender.send(room, message, splitStrategy);
+	public void sendMessage(int roomId, String message, SplitStrategy splitStrategy) throws IOException {
+		sender.send(roomId, message, splitStrategy);
 	}
 
 	@Override
-	public List<ChatMessage> getMessages(int room, int num) throws IOException {
-		String fkey = getFKey(room);
+	public List<ChatMessage> getMessages(int roomId, int count) throws IOException {
+		String fkey = getFKey(roomId);
 
-		HttpPost request = new HttpPost("https://chat.stackoverflow.com/chats/" + room + "/events");
+		HttpPost request = new HttpPost("https://chat.stackoverflow.com/chats/" + roomId + "/events");
 		//@formatter:off
 		List<NameValuePair> params = Arrays.asList(
 			new BasicNameValuePair("mode", "messages"),
-			new BasicNameValuePair("msgCount", num + ""),
+			new BasicNameValuePair("msgCount", count + ""),
 			new BasicNameValuePair("fkey", fkey)
 		);
 		//@formatter:on
@@ -166,8 +168,7 @@ public class StackoverflowChat implements ChatConnection {
 		return messages;
 	}
 
-	@Override
-	public List<ChatMessage> getNewMessages(int room) throws IOException {
+	private List<ChatMessage> getNewMessages(int room) throws IOException {
 		Long prevMessageId = prevMessageIds.get(room);
 		if (prevMessageId == null) {
 			List<ChatMessage> messages = getMessages(room, 1);
@@ -210,6 +211,52 @@ public class StackoverflowChat implements ChatConnection {
 		return messages.subList(pos, messages.size());
 	}
 
+	@Override
+	public void listen(ChatMessageHandler handler) throws IOException {
+		while (true) {
+			long start = System.currentTimeMillis();
+
+			/*
+			 * Make a copy of the room list to prevent concurrent modification
+			 * exceptions.
+			 */
+			List<Integer> rooms = new ArrayList<>(fkeyCache.keySet());
+
+			for (Integer room : rooms) {
+				logger.fine("Pinging room " + room);
+
+				//get new messages since last ping
+				List<ChatMessage> newMessages = getNewMessages(room);
+				logger.fine(newMessages.size() + " new messages found.");
+				if (newMessages.isEmpty()) {
+					//no new messages
+					continue;
+				}
+
+				for (ChatMessage message : newMessages) {
+					handler.handle(message);
+					if (closed) {
+						return;
+					}
+				}
+
+				ChatMessage latestMessage = newMessages.get(newMessages.size() - 1);
+				prevMessageIds.put(room, latestMessage.getMessageId());
+			}
+
+			//sleep before pinging again
+			long elapsed = System.currentTimeMillis() - start;
+			long sleep = heartbeat - elapsed;
+			if (sleep > 0) {
+				try {
+					Thread.sleep(sleep);
+				} catch (InterruptedException e) {
+					return;
+				}
+			}
+		}
+	}
+
 	/**
 	 * Parses the "fkey" parameter from a webpage.
 	 * @param url the URL of the webpage
@@ -241,10 +288,11 @@ public class StackoverflowChat implements ChatConnection {
 	 * Gets the "fkey" parameter for a room.
 	 * @param room the room ID
 	 * @return the fkey
-	 * @throws IOException if there's a problem getting the fkey, or if messages
-	 * can't be posted to this room, or if the room doesn't exist
+	 * @throws RoomNotFoundException if the room does not exist
+	 * @throws RoomPermissionException if messages cannot be posted to this room
+	 * @throws IOException if there's a problem connecting to the room
 	 */
-	private synchronized String getFKey(int room) throws IOException {
+	private String getFKey(int room) throws IOException {
 		String fkey = fkeyCache.get(room);
 		if (fkey != null) {
 			return fkey;
@@ -254,17 +302,17 @@ public class StackoverflowChat implements ChatConnection {
 		HttpGet request = new HttpGet(roomUrl);
 		HttpResponse response = executeWithRetries(request);
 		if (response == null) {
-			throw new IOException("Room doesn't exist.");
+			throw new RoomNotFoundException(room);
 		}
 
 		String html = EntityUtils.toString(response.getEntity());
-		if (!canPostToRoom(html)) {
-			throw new IOException("Cannot post to this room. It's either inactive or protected.");
-		}
-
 		fkey = parseFkey(html);
 		if (fkey == null) {
 			throw new IOException("Cannot get room's fkey.");
+		}
+
+		if (!canPostToRoom(html)) {
+			throw new RoomPermissionException(room);
 		}
 
 		fkeyCache.put(room, fkey);
@@ -316,7 +364,8 @@ public class StackoverflowChat implements ChatConnection {
 	 * Executes an HTTP request, retrying after a short pause if the request
 	 * fails.
 	 * @param request the request to send
-	 * @return the HTTP response or null if the request couldn't be executed
+	 * @return the HTTP response, or null if it was a 404 response, or null if
+	 * the request couldn't be executed
 	 * @throws IOException if there was an I/O error
 	 */
 	private HttpResponse executeWithRetries(HttpUriRequest request) throws IOException {
@@ -331,7 +380,8 @@ public class StackoverflowChat implements ChatConnection {
 	 * or null to retry forever
 	 * @param expectedStatusCode the expected HTTP response status code. If the
 	 * response does not have this status code, the request will be retried
-	 * @return the HTTP response or null if the request couldn't be executed
+	 * @return the HTTP response, or null if it was a 404 response, or null if
+	 * the request couldn't be executed
 	 * @throws IOException if there was an I/O error
 	 */
 	private HttpResponse executeWithRetries(HttpUriRequest request, Integer numRetries, Integer expectedStatusCode) throws IOException {
@@ -409,6 +459,17 @@ public class StackoverflowChat implements ChatConnection {
 
 		int seconds = Integer.parseInt(m.group(0));
 		return TimeUnit.SECONDS.toMillis(seconds);
+	}
+
+	@Override
+	public void close() throws IOException {
+		flush();
+
+		try {
+			client.close();
+		} finally {
+			closed = true;
+		}
 	}
 
 	@Override

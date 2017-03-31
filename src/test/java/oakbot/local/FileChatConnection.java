@@ -1,0 +1,183 @@
+package oakbot.local;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import oakbot.chat.ChatConnection;
+import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatMessageHandler;
+import oakbot.chat.SplitStrategy;
+
+/**
+ * A mock chat connection that reads its chat messages from a text file.
+ * @author Michael Angstadt
+ */
+public class FileChatConnection implements ChatConnection {
+	private final Path inputFile;
+	private final int botUserId, humanUserId;
+	private final String botUsername, humanUsername;
+	private final int roomId;
+	private final Map<Integer, List<ChatMessage>> rooms = new HashMap<>();
+	private final Map<Integer, Integer> roomCursor = new HashMap<>();
+	private ChatMessageHandler handler;
+	private boolean closed = false;
+	private long messageIdCounter = 0;
+
+	public FileChatConnection(int botUserId, String botUsername, int humanUserId, String humanUsername, int roomId, Path inputFile) {
+		this.botUserId = botUserId;
+		this.botUsername = botUsername;
+		this.humanUserId = humanUserId;
+		this.humanUsername = humanUsername;
+		this.roomId = roomId;
+		this.inputFile = inputFile;
+	}
+
+	@Override
+	public void login(String email, String password) {
+		//empty
+	}
+
+	@Override
+	public void joinRoom(int roomId) {
+		if (!roomCursor.containsKey(roomId)) {
+			roomCursor.put(roomId, 0);
+		}
+	}
+
+	@Override
+	public void leaveRoom(int roomId) {
+		roomCursor.remove(roomId);
+	}
+
+	@Override
+	public List<ChatMessage> getMessages(int room, int count) {
+		List<ChatMessage> messages = rooms.get(room);
+		if (messages == null) {
+			return Collections.emptyList();
+		}
+
+		return new ArrayList<>(messages.subList(messages.size() - count, messages.size()));
+	}
+
+	@Override
+	public void listen(ChatMessageHandler handler) throws IOException {
+		this.handler = handler;
+
+		try (BufferedReader reader = Files.newBufferedReader(inputFile)) {
+			while (true) {
+				Thread.sleep(1000);
+
+				String line = reader.readLine();
+				if (line == null) {
+					//wait for more input
+					continue;
+				}
+
+				//read the next lien
+				StringBuilder sb = new StringBuilder(line.length());
+				while (line != null) {
+					boolean multiline = line.endsWith("\\");
+					if (!multiline) {
+						sb.append(line);
+						break;
+					}
+
+					sb.append(line, 0, line.length() - 1).append('\n');
+					line = reader.readLine();
+				}
+
+				//post the message
+				postMessage(roomId, humanUserId, humanUsername, sb.toString());
+
+				if (closed) {
+					break;
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (InterruptedException e) {
+			//ignore
+		}
+	}
+
+	@Override
+	public void sendMessage(int room, String message) {
+		sendMessage(room, message, null);
+	}
+
+	@Override
+	public void sendMessage(int room, String message, SplitStrategy splitStragey) {
+		postMessage(room, botUserId, botUsername, message);
+	}
+
+	/**
+	 * Posts a message to a chat room.
+	 * @param roomId the room ID
+	 * @param userId the user ID of the message author
+	 * @param username the username of the message author
+	 * @param content the message content
+	 */
+	public void postMessage(int roomId, int userId, String username, String content) {
+		//@formatter:off
+		ChatMessage message = new ChatMessage.Builder()
+			.roomId(roomId)
+			.userId(userId)
+			.username(username)
+			.content(content)
+			.messageId(messageIdCounter++)
+			.timestamp(LocalDateTime.now())
+		.build();
+		//@formatter:on
+
+		List<ChatMessage> messages = rooms.get(roomId);
+		if (messages == null) {
+			messages = new ArrayList<>();
+			rooms.put(roomId, messages);
+		}
+
+		//indent additional lines for readability
+		content = content.replaceAll("\r\n|\r|\n", "$0  ");
+
+		System.out.println(roomId + " > " + username + " > " + content);
+
+		messages.add(message);
+
+		if (handler != null) {
+			handler.handle(message);
+		}
+	}
+
+	@Override
+	public void flush() throws IOException {
+		//empty
+	}
+
+	@Override
+	public void close() throws IOException {
+		closed = true;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (Map.Entry<Integer, List<ChatMessage>> entry : rooms.entrySet()) {
+			Integer roomId = entry.getKey();
+			List<ChatMessage> messages = entry.getValue();
+
+			sb.append(roomId).append(": ").append(messages.size()).append(" messages\n");
+			for (ChatMessage message : messages) {
+				sb.append("  ").append(message.getContent()).append("\n");
+			}
+		}
+
+		return sb.toString();
+	}
+}

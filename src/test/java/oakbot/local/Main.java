@@ -1,6 +1,5 @@
 package oakbot.local;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -19,6 +18,7 @@ import oakbot.JsonDatabase;
 import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.bot.Bot;
+import oakbot.chat.ChatConnection;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.Command;
@@ -152,7 +152,14 @@ public class Main {
 			filters.add(upsidedownTextFilter);
 		}
 
-		final MockChatConnection connection = new MockChatConnection(props.getBotUserId(), props.getBotUserName());
+		//@formatter:off
+		ChatConnection connection = new FileChatConnection(
+			props.getBotUserId(), props.getBotUserName(),
+			props.getAdmins().get(0), "Michael",
+			rooms.getRooms().get(0),
+			input
+		);
+		//@formatter:on
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
@@ -162,7 +169,6 @@ public class Main {
 			.listeners(listeners)
 			.responseFilters(filters)
 			.connection(connection)
-			.heartbeat(props.getHeartbeat())
 			.admins(props.getAdmins())
 			.bannedUsers(props.getBannedUsers())
 			.user(props.getBotUserName(), props.getBotUserId())
@@ -174,44 +180,7 @@ public class Main {
 		.build();
 		//@formatter:on
 
-		monitorInputFile(props.getAdmins().get(0), connection);
-
 		bot.connect(false);
-	}
-
-	private static void monitorInputFile(int adminId, MockChatConnection connection) {
-		Thread t = new Thread(() -> {
-			try (BufferedReader reader = Files.newBufferedReader(input)) {
-				while (true) {
-					Thread.sleep(1000);
-
-					String line = reader.readLine();
-					if (line == null) {
-						continue;
-					}
-
-					StringBuilder sb = new StringBuilder(line.length());
-					while (line != null) {
-						boolean multiline = line.endsWith("\\");
-						if (!multiline) {
-							sb.append(line);
-							break;
-						}
-
-						sb.append(line, 0, line.length() - 1).append('\n');
-						line = reader.readLine();
-					}
-
-					connection.postMessage(1, adminId, "Michael", sb.toString());
-				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			} catch (InterruptedException e) {
-				return;
-			}
-		});
-		t.setDaemon(true);
-		t.start();
 	}
 
 	private static BotProperties loadProperties(Path file) throws IOException {
