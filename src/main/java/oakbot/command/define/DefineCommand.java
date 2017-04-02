@@ -26,7 +26,7 @@ import org.xml.sax.SAXParseException;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
@@ -101,7 +101,7 @@ public class DefineCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String word = chatCommand.getContent().trim();
 		if (word.isEmpty()) {
 			//@formatter:off

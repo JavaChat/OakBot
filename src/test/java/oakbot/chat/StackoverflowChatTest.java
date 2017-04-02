@@ -17,9 +17,11 @@ import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.LogManager;
@@ -44,6 +46,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Michael Angstadt
@@ -221,85 +226,59 @@ public class StackoverflowChatTest {
 
 	@Test
 	public void sendMessage() throws Exception {
+		List<Integer> joinedRooms = new ArrayList<>();
+		Multimap<Integer, String> messages = ArrayListMultimap.create();
 		CloseableHttpClient client = mockClient(new AnswerImpl() {
-			private long prevRequestSent;
+			private boolean slept = false;
 
 			@Override
 			public HttpResponse answer(String method, String uri, String body) throws IOException {
-				switch (requestCount) {
-				case 1:
-					assertEquals("GET", method);
-					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
-				case 2:
-					assertEquals("POST", method);
-					assertEquals("https://chat.stackoverflow.com/chats/1/messages/new", uri);
-					//@formatter:off
-					Set<NameValuePair> expected = new HashSet<>(Arrays.asList(
-						new BasicNameValuePair("fkey", "0123456789abcdef0123456789abcdef"),
-						new BasicNameValuePair("text", "Test1")
-					));
-					//@formatter:on
-					Set<NameValuePair> actual = params(body);
-					assertEquals(expected, actual);
-
-					return response(200, "{}");
-				case 3:
-					assertEquals("POST", method);
-					assertEquals("https://chat.stackoverflow.com/chats/1/messages/new", uri);
-					//@formatter:off
-					expected = new HashSet<>(Arrays.asList(
-						new BasicNameValuePair("fkey", "0123456789abcdef0123456789abcdef"),
-						new BasicNameValuePair("text", "Test2")
-					));
-					//@formatter:on
-					actual = params(body);
-					assertEquals(expected, actual);
-
-					return response(200, "{}");
-				case 4:
-					assertEquals("GET", method);
-					assertEquals("https://chat.stackoverflow.com/rooms/2", uri);
-					return response(200, "value=\"abcdef0123456789abcdef0123456789\" <textarea id=\"input\"></textarea>");
-				case 5:
-					prevRequestSent = System.currentTimeMillis();
-					assertEquals("https://chat.stackoverflow.com/chats/2/messages/new", uri);
-					//@formatter:off
-					expected = new HashSet<>(Arrays.asList(
-						new BasicNameValuePair("fkey", "abcdef0123456789abcdef0123456789"),
-						new BasicNameValuePair("text", "Test3")
-					));
-					//@formatter:on
-					actual = params(body);
-					assertEquals(expected, actual);
-
-					return response(409, "You can perform this action again in 2 seconds");
-				case 6:
-					long diff = System.currentTimeMillis() - prevRequestSent;
-					assertTrue(diff >= 2000);
-
-					assertEquals("https://chat.stackoverflow.com/chats/2/messages/new", uri);
-					//@formatter:off
-					expected = new HashSet<>(Arrays.asList(
-						new BasicNameValuePair("fkey", "abcdef0123456789abcdef0123456789"),
-						new BasicNameValuePair("text", "Test3")
-					));
-					//@formatter:on
-					actual = params(body);
-					assertEquals(expected, actual);
-
-					return response(200, "{}");
+				switch (method) {
+				case "GET":
+					if (uri.equals("https://chat.stackoverflow.com/rooms/1")) {
+						assertFalse(joinedRooms.contains(1));
+						joinedRooms.add(1);
+						return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
+					}
+					if (uri.equals("https://chat.stackoverflow.com/rooms/2")) {
+						assertFalse(joinedRooms.contains(2));
+						joinedRooms.add(2);
+						return response(200, "value=\"0123456789abcdef0123456789abcdef\" <textarea id=\"input\"></textarea>");
+					}
+					break;
+				case "POST":
+					if (messages.size() == 2 && !slept) {
+						slept = true;
+						return response(409, "You can perform this action again in 2 seconds");
+					}
+					if (uri.equals("https://chat.stackoverflow.com/chats/1/messages/new")) {
+						messages.put(1, body);
+						return response(200, "{}");
+					} else if (uri.equals("https://chat.stackoverflow.com/chats/2/messages/new")) {
+						messages.put(2, body);
+						return response(200, "{}");
+					}
+					break;
 				}
 
-				return super.answer(method, uri, body);
+				fail("Unexpected request: " + method + " " + uri + " " + body);
+				return null;
 			}
 		});
 
+		long start = System.currentTimeMillis();
 		try (StackoverflowChat chat = new StackoverflowChat(client)) {
 			chat.sendMessage(1, "Test1");
 			chat.sendMessage(1, "Test2");
 			chat.sendMessage(2, "Test3");
 		}
+		long end = System.currentTimeMillis();
+		long elapsed = end - start;
+
+		assertTrue(elapsed >= 2000);
+		assertEquals(Arrays.asList(1, 2), joinedRooms);
+		assertEquals(2, messages.get(1).size());
+		assertEquals(1, messages.get(2).size());
 
 		verify(client, times(6)).execute(any(HttpUriRequest.class));
 		verify(client).close();

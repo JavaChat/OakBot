@@ -32,7 +32,7 @@ public class WaveListenerTest {
 		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
 		WaveListener listener = new WaveListener("OakBot", mentionListener);
 
-		ChatResponse chatResponse = listener.onMessage(chatMessage, false);
+		ChatResponse chatResponse = listener.onMessage(chatMessage, null);
 		if (response == null) {
 			assertNull(chatResponse);
 		} else {
@@ -53,9 +53,9 @@ public class WaveListenerTest {
 		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
 		WaveListener listener = new WaveListener("OakBot", mentionListener);
 
-		ChatResponse chatResponse = listener.onMessage(chatMessage, false);
+		ChatResponse chatResponse = listener.onMessage(chatMessage, null);
 		assertEquals("\\o", chatResponse.getMessage());
-		chatResponse = listener.onMessage(chatMessage, false);
+		chatResponse = listener.onMessage(chatMessage, null);
 		assertNull(chatResponse);
 	}
 

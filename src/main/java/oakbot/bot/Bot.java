@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableList;
 import oakbot.Database;
 import oakbot.Rooms;
 import oakbot.Statistics;
+import oakbot.bot.BotContext.JoinRoomEvent;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.InvalidCredentialsException;
@@ -86,7 +87,7 @@ public class Bot {
 		for (Integer room : rooms) {
 			try {
 				join(room, quiet);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				logger.log(Level.SEVERE, "Could not join room " + room + ".", e);
 				this.rooms.remove(room);
 			}
@@ -110,52 +111,74 @@ public class Bot {
 
 			List<ChatResponse> replies = new ArrayList<>();
 			boolean isUserAdmin = admins.contains(message.getUserId());
+			BotContext context = new BotContext(isUserAdmin, trigger, this.rooms.getRooms(), this.rooms.getHomeRooms());
 
-			try {
-				replies.addAll(handleListeners(message, isUserAdmin));
+			replies.addAll(handleListeners(message, context));
 
-				ChatCommand command = asCommand(message);
-				if (command != null) {
-					replies.addAll(handleCommands(command, isUserAdmin));
-				}
-			} catch (ShutdownException e) {
-				try {
-					broadcast("Shutting down.  See you later.");
-				} catch (IOException e2) {
-					//ignore
+			ChatCommand command = asCommand(message);
+			if (command != null) {
+				replies.addAll(handleCommands(command, context));
+			}
+
+			if (context.isShutdown()) {
+				String shutdownMessage = context.getShutdownMessage();
+				if (shutdownMessage != null) {
+					try {
+						broadcast(shutdownMessage);
+					} catch (IOException e) {
+						//ignore
+					}
 				}
 				try {
 					connection.close();
-				} catch (IOException e2) {
+				} catch (IOException e) {
 					//ignore
 				}
-				return;
-			}
 
-			if (replies.isEmpty()) {
-				return;
-			}
-
-			if (logger.isLoggable(Level.INFO)) {
-				logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
-			}
-
-			if (stats != null) {
-				stats.incMessagesRespondedTo(replies.size());
-			}
-
-			for (ChatResponse reply : replies) {
-				String messageText = reply.getMessage();
-				for (ChatResponseFilter filter : responseFilters) {
-					if (filter.isEnabled(message.getRoomId())) {
-						messageText = filter.filter(messageText);
-					}
+				if (database != null) {
+					database.commit();
 				}
 
+				return;
+			}
+
+			if (!replies.isEmpty()) {
+				if (logger.isLoggable(Level.INFO)) {
+					logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+				}
+
+				if (stats != null) {
+					stats.incMessagesRespondedTo(replies.size());
+				}
+
+				for (ChatResponse reply : replies) {
+					sendMessage(message.getRoomId(), reply);
+				}
+			}
+
+			for (JoinRoomEvent event : context.getRoomsToJoin()) {
+				ChatResponse response = null;
 				try {
-					connection.sendMessage(message.getRoomId(), messageText, reply.getSplitStrategy());
+					join(event.getRoomId());
+					response = event.success();
+				} catch (RoomNotFoundException e) {
+					response = event.ifRoomDoesNotExist();
+				} catch (RoomPermissionException e) {
+					response = event.ifBotDoesNotHavePermission();
 				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem sending chat message.", e);
+					response = event.ifOther(e);
+				}
+
+				if (response != null) {
+					sendMessage(message.getRoomId(), response);
+				}
+			}
+
+			for (Integer roomId : context.getRoomsToLeave()) {
+				try {
+					leave(roomId);
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
 				}
 			}
 
@@ -163,6 +186,21 @@ public class Bot {
 				database.commit();
 			}
 		});
+	}
+
+	private void sendMessage(int roomId, ChatResponse reply) {
+		String messageText = reply.getMessage();
+		for (ChatResponseFilter filter : responseFilters) {
+			if (filter.isEnabled(roomId)) {
+				messageText = filter.filter(messageText);
+			}
+		}
+
+		try {
+			connection.sendMessage(roomId, messageText, reply.getSplitStrategy());
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Problem sending chat message.", e);
+		}
 	}
 
 	/**
@@ -209,7 +247,7 @@ public class Bot {
 	 * @throws RoomPermissionException if messages cannot be posted to this room
 	 * @throws IOException if there's a problem connecting to the room
 	 */
-	private void join(int roomId, boolean quiet) throws IOException {
+	private void join(int roomId, boolean quiet) throws RoomNotFoundException, RoomPermissionException, IOException {
 		connection.joinRoom(roomId);
 		if (!quiet && greeting != null) {
 			connection.sendMessage(roomId, greeting);
@@ -220,6 +258,7 @@ public class Bot {
 	/**
 	 * Leaves a room.
 	 * @param roomId the room ID
+	 * @throws IOException if there's a problem leaving the room
 	 */
 	public void leave(int roomId) throws IOException {
 		connection.leaveRoom(roomId);
@@ -242,43 +281,39 @@ public class Bot {
 		return rooms;
 	}
 
-	private List<ChatResponse> handleListeners(ChatMessage message, boolean isAdmin) {
+	private List<ChatResponse> handleListeners(ChatMessage message, BotContext context) {
 		List<ChatResponse> replies = new ArrayList<>();
 		for (Listener listener : listeners) {
 			try {
-				ChatResponse reply = listener.onMessage(message, isAdmin);
+				ChatResponse reply = listener.onMessage(message, context);
 				if (reply != null) {
 					replies.add(reply);
 				}
-			} catch (ShutdownException e) {
-				throw e;
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "An error occurred responding to a message.", e);
+				logger.log(Level.SEVERE, "A listener threw an exception responding to a message.", e);
 			}
 		}
 		return replies;
 	}
 
-	private List<ChatResponse> handleCommands(ChatCommand chatCommand, boolean isAdmin) {
+	private List<ChatResponse> handleCommands(ChatCommand chatCommand, BotContext context) {
 		List<Command> commands = getCommands(chatCommand.getCommandName());
 		if (commands.isEmpty()) {
 			if (unknownCommandHandler == null) {
 				return Collections.emptyList();
 			}
-			return Arrays.asList(unknownCommandHandler.onMessage(chatCommand, isAdmin, this));
+			return Arrays.asList(unknownCommandHandler.onMessage(chatCommand, context));
 		}
 
 		List<ChatResponse> replies = new ArrayList<>(commands.size());
 		for (Command command : commands) {
 			try {
-				ChatResponse reply = command.onMessage(chatCommand, isAdmin, this);
+				ChatResponse reply = command.onMessage(chatCommand, context);
 				if (reply != null) {
 					replies.add(reply);
 				}
-			} catch (ShutdownException e) {
-				throw e;
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "An error occurred responding to a command.", e);
+				logger.log(Level.SEVERE, "A command threw an exception responding to a message.", e);
 			}
 		}
 		return replies;

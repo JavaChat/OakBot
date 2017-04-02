@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
@@ -54,7 +54,7 @@ public class UrbanCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			//@formatter:off

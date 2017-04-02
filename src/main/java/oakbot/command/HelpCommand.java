@@ -10,7 +10,7 @@ import java.util.Map;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
@@ -58,9 +58,9 @@ public class HelpCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		if (!chatCommand.getContent().isEmpty()) {
-			return showHelpText(chatCommand, bot.getTrigger());
+			return showHelpText(chatCommand, context.getTrigger());
 		}
 
 		Multimap<String, String> commandDescriptions = getCommandDescriptions();
@@ -82,7 +82,7 @@ public class HelpCommand implements Command {
 				String name = entry.getKey();
 				String description = entry.getValue();
 
-				cb.fixed().append(bot.getTrigger()).append(name);
+				cb.fixed().append(context.getTrigger()).append(name);
 				cb.append(repeat(" ", longestNameLength - name.length() + 2));
 				cb.append(description).nl();
 			}
@@ -98,7 +98,7 @@ public class HelpCommand implements Command {
 				if (!first) {
 					cb.append(", ");
 				}
-				cb.append(bot.getTrigger()).append(name);
+				cb.append(context.getTrigger()).append(name);
 				first = false;
 			}
 			cb.nl().fixed().nl();

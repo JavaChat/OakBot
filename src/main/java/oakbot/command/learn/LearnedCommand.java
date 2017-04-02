@@ -1,6 +1,6 @@
 package oakbot.command.learn;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
@@ -42,7 +42,7 @@ public class LearnedCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		//@formatter:off
 		return new ChatResponse(new ChatBuilder()
 			.append(output)

@@ -1,11 +1,10 @@
 package oakbot.command;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.util.ChatBuilder;
@@ -36,7 +35,7 @@ public class UnsummonCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 
 		int roomToLeave;
@@ -53,26 +52,22 @@ public class UnsummonCommand implements Command {
 			inRoomToLeave = roomToLeave == chatCommand.getMessage().getRoomId();
 		}
 
-		if (!bot.getRooms().contains(roomToLeave)) {
+		if (!context.getCurrentRooms().contains(roomToLeave)) {
 			return reply("I'm not in that room... -_-", chatCommand);
 		}
 
-		if (bot.getRooms().getHomeRooms().contains(roomToLeave)) {
+		if (context.getHomeRooms().contains(roomToLeave)) {
 			if (inRoomToLeave) {
 				return reply("This is one of my home rooms, I can't leave it.", chatCommand);
 			}
 			return reply("That's one of my home rooms, I can't leave it.", chatCommand);
 		}
 
-		try {
-			bot.leave(roomToLeave);
-		} catch (IOException e) {
-			return reply("Hmm, I couldn't leave that room.", chatCommand);
-		}
+		context.leaveRoom(roomToLeave);
 
 		String reply;
 		if (inRoomToLeave) {
-			reply = random("*poof*", "Hasta la vista, baby.", "Later haters.");
+			reply = random("*poof*", "Hasta la vista, baby.", "Bye.");
 		} else {
 			reply = random("They smelled funny anyway.", "Good riddance.", "Less for me to worry about.");
 		}

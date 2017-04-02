@@ -32,7 +32,7 @@ public class UrbanCommandTest {
 		ChatCommand message = chatCommandBuilder.build(1, "");
 
 		UrbanCommand urban = new UrbanCommand();
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertEquals(":1 You have to type a word to see its definition... -_-", response.getMessage());
 	}
 
@@ -47,7 +47,7 @@ public class UrbanCommandTest {
 			}
 		};
 
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertTrue(response.getMessage().startsWith(":1 Sorry"));
 	}
 
@@ -62,7 +62,7 @@ public class UrbanCommandTest {
 				return in("<html>not JSON</html>");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertTrue(response.getMessage().startsWith(":1 Sorry"));
 	}
 
@@ -77,7 +77,7 @@ public class UrbanCommandTest {
 				return in("{}");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertEquals(":1 No definition found.", response.getMessage());
 	}
 
@@ -92,7 +92,7 @@ public class UrbanCommandTest {
 				return getClass().getResourceAsStream("urbandictionary.cool.json");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", response.getMessage());
 	}
 
@@ -107,7 +107,7 @@ public class UrbanCommandTest {
 				return getClass().getResourceAsStream("urbandictionary.snafu.json");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		//@formatter:off
 		assertEquals(
 			":1 SNAFU (http://snafu.urbanup.com/449743):\n" +
@@ -131,7 +131,7 @@ public class UrbanCommandTest {
 				return in("");
 			}
 		};
-		urban.onMessage(message, false, null);
+		urban.onMessage(message, null);
 	}
 
 	@Test
@@ -145,7 +145,7 @@ public class UrbanCommandTest {
 				return getClass().getResourceAsStream("urbandictionary.cool.json");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/1030338): A word to use when you don't know what else to say, or when you are not that interested in the conversation. Sometimes, it can be used when you do not have any knowledge of the subject, yet you want to act as if you know-it-all.", response.getMessage());
 	}
 
@@ -160,7 +160,7 @@ public class UrbanCommandTest {
 				return getClass().getResourceAsStream("urbandictionary.cool.json");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", response.getMessage());
 	}
 
@@ -175,7 +175,7 @@ public class UrbanCommandTest {
 				return getClass().getResourceAsStream("urbandictionary.cool.json");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/1096252): a simplified way of telling someone to shut the fuck up because you don't give a shit.", response.getMessage());
 	}
 
@@ -190,7 +190,7 @@ public class UrbanCommandTest {
 				return in("{\"list\":[{\"word\":\"fucked up\", \"definition\":\"Definition\", \"permalink\":\"Permalink\"}]}");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertEquals(":1 [**`fucked up`**](Permalink): Definition", response.getMessage());
 	}
 

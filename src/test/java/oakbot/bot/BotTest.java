@@ -2,8 +2,6 @@ package oakbot.bot;
 
 import static org.junit.Assert.assertSame;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -79,7 +77,7 @@ public class BotTest {
 		ChatResponse response = new ChatResponse("");
 		UnknownCommandHandler handler = spy(new UnknownCommandHandler() {
 			@Override
-			public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+			public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 				assertSame(message, chatCommand.getMessage());
 				return response;
 			}
@@ -97,6 +95,6 @@ public class BotTest {
 
 		bot.connect(false);
 
-		verify(handler).onMessage(any(ChatCommand.class), eq(false), same(bot));
+		verify(handler).onMessage(any(ChatCommand.class), any(BotContext.class));
 	}
 }

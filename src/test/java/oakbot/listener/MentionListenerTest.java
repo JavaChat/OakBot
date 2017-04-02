@@ -27,7 +27,7 @@ public class MentionListenerTest {
 		//@formatter:on
 
 		MentionListener listener = new MentionListener("OakBot", "/");
-		ChatResponse response = listener.onMessage(chatMessage, false);
+		ChatResponse response = listener.onMessage(chatMessage, null);
 		assertEquals(mentioned, response != null);
 	}
 }

@@ -6,7 +6,7 @@ import java.util.Date;
 
 import oakbot.Main;
 import oakbot.Statistics;
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
@@ -43,7 +43,7 @@ public class AboutCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		RelativeDateFormat relativeDf = new RelativeDateFormat();
 
 		//@formatter:off

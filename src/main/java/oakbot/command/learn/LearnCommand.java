@@ -2,7 +2,7 @@ package oakbot.command.learn;
 
 import java.util.List;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
@@ -37,13 +37,13 @@ public class LearnCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String split[] = chatCommand.getContent().split("\\s+", 2);
 		if (split.length < 2) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
-				.append("Syntax: ").code(bot.getTrigger() + name() + " commandName output")
+				.append("Syntax: ").code(context.getTrigger() + name() + " commandName output")
 			);
 			//@formatter:on
 		}

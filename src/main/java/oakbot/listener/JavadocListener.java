@@ -1,5 +1,6 @@
 package oakbot.listener;
 
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.command.javadoc.JavadocCommand;
@@ -32,7 +33,7 @@ public class JavadocListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
+	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		String content = message.getContent();
 		try {
 			int num = Integer.parseInt(content);

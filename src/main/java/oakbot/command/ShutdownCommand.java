@@ -1,9 +1,8 @@
 package oakbot.command;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.bot.ShutdownException;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -28,9 +27,10 @@ public class ShutdownCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
-		if (isAdmin) {
-			throw new ShutdownException("Shutting down.  See you later.");
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+		if (context.isAuthorAdmin()) {
+			context.shutdownBot("Shutting down.  See you later.");
+			return null;
 		}
 
 		//@formatter:off

@@ -3,6 +3,7 @@ package oakbot.listener;
 import java.util.ArrayList;
 import java.util.List;
 
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.command.AfkCommand;
@@ -41,7 +42,7 @@ public class AfkListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
+	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		if (isUserAwayAndTypedAfkCommandAgain(message)) {
 			return null;
 		}

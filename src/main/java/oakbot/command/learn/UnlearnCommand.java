@@ -3,7 +3,7 @@ package oakbot.command.learn;
 import java.util.Arrays;
 import java.util.List;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
@@ -43,13 +43,13 @@ public class UnlearnCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String commandName = chatCommand.getContent().trim();
 		if (commandName.isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
-				.append("Syntax: ").code(bot.getTrigger() + name() + " commandName")
+				.append("Syntax: ").code(context.getTrigger() + name() + " commandName")
 			);
 			//@formatter:on
 		}

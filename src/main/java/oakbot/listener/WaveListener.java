@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 
@@ -39,7 +40,7 @@ public class WaveListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
+	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		boolean mentioned = message.isMentioned(botUsername);
 
 		/*

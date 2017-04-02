@@ -2,7 +2,7 @@ package oakbot.command;
 
 import com.google.common.net.UrlEscapers;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.util.ChatBuilder;
@@ -34,7 +34,7 @@ public class WikiCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			//@formatter:off

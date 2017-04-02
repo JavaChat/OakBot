@@ -28,7 +28,7 @@ public class DefineCommandTest {
 	public void no_word() {
 		ChatCommand message = chatCommandBuilder.build(1, "");
 		DefineCommand urban = new DefineCommand("theKey");
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertEquals(":1 You have to type a word to see its definition... -_-", response.getMessage());
 	}
 
@@ -42,7 +42,7 @@ public class DefineCommandTest {
 			}
 		};
 
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertTrue(response.getMessage().startsWith(":1 Sorry"));
 	}
 
@@ -56,7 +56,7 @@ public class DefineCommandTest {
 				return new ByteArrayInputStream("not XML".getBytes());
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertTrue(response.getMessage().startsWith(":1 Sorry"));
 	}
 
@@ -70,7 +70,7 @@ public class DefineCommandTest {
 				return new ByteArrayInputStream("<entry_list/>".getBytes());
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		assertEquals(":1 No definitions found.", response.getMessage());
 	}
 
@@ -84,7 +84,7 @@ public class DefineCommandTest {
 				return getClass().getResourceAsStream("cool.xml");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, false, null);
+		ChatResponse response = urban.onMessage(message, null);
 		//@formatter:off
 		assertEquals(
 			":1 cool (adjective):\n" +
@@ -158,6 +158,6 @@ public class DefineCommandTest {
 				return new ByteArrayInputStream("<entry_list/>".getBytes());
 			}
 		};
-		urban.onMessage(message, false, null);
+		urban.onMessage(message, null);
 	}
 }

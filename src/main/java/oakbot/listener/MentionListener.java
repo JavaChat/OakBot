@@ -1,5 +1,6 @@
 package oakbot.listener;
 
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.util.ChatBuilder;
@@ -33,7 +34,7 @@ public class MentionListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, boolean isAdmin) {
+	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		if (ignore) {
 			ignore = false;
 			return null;

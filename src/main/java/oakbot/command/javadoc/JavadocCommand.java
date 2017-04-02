@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
@@ -125,7 +125,7 @@ public class JavadocCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot) {
+	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent();
 		if (content.isEmpty()) {
 			//@formatter:off
@@ -309,7 +309,7 @@ public class JavadocCommand implements Command {
 
 		//valid choice entered, print the info
 		ChatCommand newCommand = new ChatCommand(message, name(), prevChoices.get(index));
-		return onMessage(newCommand, false, null);
+		return onMessage(newCommand, null);
 	}
 
 	/**

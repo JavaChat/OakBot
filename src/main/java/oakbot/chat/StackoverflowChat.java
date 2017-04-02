@@ -113,7 +113,7 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	@Override
-	public void joinRoom(int roomId) throws IOException {
+	public void joinRoom(int roomId) throws RoomNotFoundException, RoomPermissionException, IOException {
 		/*
 		 * Checks if the room exists and if the bot user can post messages to
 		 * it. Then primes the "previous message ID" counter
@@ -134,7 +134,8 @@ public class StackoverflowChat implements ChatConnection {
 
 	@Override
 	public void sendMessage(int roomId, String message, SplitStrategy splitStrategy) throws IOException {
-		sender.send(roomId, message, splitStrategy);
+		String fkey = getFKey(roomId);
+		sender.send(roomId, fkey, message, splitStrategy);
 	}
 
 	@Override
@@ -474,7 +475,7 @@ public class StackoverflowChat implements ChatConnection {
 
 	@Override
 	public void flush() {
-		sender.finish();
+		sender.flush();
 	}
 
 	/**
@@ -527,21 +528,20 @@ public class StackoverflowChat implements ChatConnection {
 
 	private class MessageSenderThread extends Thread {
 		private final int MAX_MESSAGE_LENGTH = 500;
-		private volatile boolean finish = false;
 		private final BlockingQueue<ChatPost> messageQueue = new LinkedBlockingQueue<>();
+		private final ChatPost LAST = new ChatPost(0, null, null, null);
 
 		public MessageSenderThread() {
 			setName(getClass().getSimpleName());
 			setDaemon(true);
 		}
 
-		public void send(int room, String message, SplitStrategy splitStrategy) throws IOException {
-			messageQueue.add(new ChatPost(room, message, splitStrategy));
+		public void send(int room, String fkey, String message, SplitStrategy splitStrategy) throws IOException {
+			messageQueue.add(new ChatPost(room, fkey, message, splitStrategy));
 		}
 
-		public void finish() {
-			finish = true;
-			interrupt();
+		public void flush() {
+			messageQueue.add(LAST);
 
 			try {
 				join();
@@ -553,26 +553,23 @@ public class StackoverflowChat implements ChatConnection {
 		@Override
 		public void run() {
 			while (true) {
-				if (finish && messageQueue.isEmpty()) {
-					return;
-				}
-
 				ChatPost chatPost;
 				try {
 					chatPost = messageQueue.take();
 				} catch (InterruptedException e) {
-					if (finish && !messageQueue.isEmpty()) {
-						continue;
-					}
 					return;
 				}
 
-				int room = chatPost.room;
-				String message = chatPost.post;
+				if (chatPost == LAST) {
+					return;
+				}
+
+				int room = chatPost.roomId;
+				String fkey = chatPost.fkey;
+				String message = chatPost.message;
 				SplitStrategy splitStrategy = chatPost.splitStrategy;
 
 				try {
-					String fkey = getFKey(room);
 					String url = "https://chat.stackoverflow.com/chats/" + room + "/messages/new";
 
 					List<String> posts;
@@ -615,13 +612,21 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	private static class ChatPost {
-		private final int room;
-		private final String post;
+		private final int roomId;
+
+		/**
+		 * The room's fkey is stored here incase the bot leaves a room while the
+		 * message queue still has messages waiting to be sent to that room.
+		 */
+		private final String fkey;
+
+		private final String message;
 		private final SplitStrategy splitStrategy;
 
-		public ChatPost(int room, String post, SplitStrategy splitStrategy) {
-			this.room = room;
-			this.post = post;
+		public ChatPost(int roomId, String fkey, String message, SplitStrategy splitStrategy) {
+			this.roomId = roomId;
+			this.fkey = fkey;
+			this.message = message;
 			this.splitStrategy = splitStrategy;
 		}
 	}

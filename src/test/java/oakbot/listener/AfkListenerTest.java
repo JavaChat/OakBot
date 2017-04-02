@@ -31,7 +31,7 @@ public class AfkListenerTest {
 		//@formatter:on
 
 		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, false);
+		ChatResponse response = listener.onMessage(message, null);
 		assertEquals(":1 Frank is away", response.getMessage());
 	}
 
@@ -53,7 +53,7 @@ public class AfkListenerTest {
 		//@formatter:on
 
 		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, false);
+		ChatResponse response = listener.onMessage(message, null);
 		assertEquals(":1 Frank is away\nFranny is away: brb\nfra Niegel is away", response.getMessage());
 	}
 
@@ -75,7 +75,7 @@ public class AfkListenerTest {
 		//@formatter:on
 
 		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, false);
+		ChatResponse response = listener.onMessage(message, null);
 		assertNull(response);
 	}
 
@@ -94,10 +94,10 @@ public class AfkListenerTest {
 		//@formatter:on
 
 		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, false);
+		ChatResponse response = listener.onMessage(message, null);
 		assertEquals(":1 Welcome back!", response.getMessage());
 
-		response = listener.onMessage(message, false);
+		response = listener.onMessage(message, null);
 		assertNull(response);
 	}
 
@@ -116,7 +116,7 @@ public class AfkListenerTest {
 		//@formatter:on
 
 		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, false);
+		ChatResponse response = listener.onMessage(message, null);
 		assertNull(response);
 	}
 }

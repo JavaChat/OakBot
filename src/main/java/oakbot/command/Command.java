@@ -3,12 +3,12 @@ package oakbot.command;
 import java.util.Collection;
 import java.util.Collections;
 
-import oakbot.bot.Bot;
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 
 /**
- * A chat bot command
+ * A chat bot command.
  * @author Michael Angstadt
  */
 public interface Command {
@@ -45,9 +45,8 @@ public interface Command {
 	/**
 	 * Called when a user invokes this command.
 	 * @param chatCommand the command that the user has sent
-	 * @param isAdmin true if the message sender is an admin, false if not
-	 * @param bot a reference to the bot
+	 * @param context the bot context
 	 * @return the response or null not to send a response
 	 */
-	ChatResponse onMessage(ChatCommand chatCommand, boolean isAdmin, Bot bot);
+	ChatResponse onMessage(ChatCommand chatCommand, BotContext context);
 }

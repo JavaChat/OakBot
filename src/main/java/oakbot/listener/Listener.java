@@ -1,5 +1,6 @@
 package oakbot.listener;
 
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 
@@ -31,8 +32,7 @@ public interface Listener {
 	/**
 	 * Called whenever a new message is received.
 	 * @param message the message
-	 * @param isAdmin true if the message sender is an admin, false if not
-	 * @return the response or null not to send a response
+	 * @param context the bot context
 	 */
-	ChatResponse onMessage(ChatMessage message, boolean isAdmin);
+	ChatResponse onMessage(ChatMessage message, BotContext context);
 }
