@@ -5,40 +5,88 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a chat message.
+ * Represents a chat message. Use its {@link Builder} class to construct new
+ * instances.
  * @author Michael Angstadt
  */
 public class ChatMessage {
-	private final LocalDateTime timestamp;
-	private final String username, content;
-	private final int userId, roomId, edits;
 	private final long messageId;
+	private final LocalDateTime timestamp;
+	private final int userId;
+	private final String username;
+	private final int roomId;
+	private final int edits;
+	private final String content;
 
 	private ChatMessage(Builder builder) {
+		messageId = builder.messageId;
 		timestamp = builder.timestamp;
-		username = builder.username;
-		content = builder.content;
 		userId = builder.userId;
+		username = builder.username;
 		roomId = builder.roomId;
 		edits = builder.edits;
-		messageId = builder.messageId;
+		content = builder.content;
 	}
 
+	/**
+	 * Gets the ID of the message. This ID is unique across all chat rooms.
+	 * @return the ID
+	 */
+	public long getMessageId() {
+		return messageId;
+	}
+
+	/**
+	 * Gets the timestamp the message was posted.
+	 * @return the timestamp
+	 */
 	public LocalDateTime getTimestamp() {
 		return timestamp;
 	}
 
+	/**
+	 * Gets the user ID of the message author.
+	 * @return the user ID
+	 */
+	public int getUserId() {
+		return userId;
+	}
+
+	/**
+	 * Gets the username of the message author.
+	 * @return the username
+	 */
 	public String getUsername() {
 		return username;
 	}
 
+	/**
+	 * Gets the room the message was posted in.
+	 * @return the room ID
+	 */
+	public int getRoomId() {
+		return roomId;
+	}
+
+	/**
+	 * Gets the number of edits the message has undergone.
+	 * @return the number of edits or 0 if there were no edits
+	 */
+	public int getEdits() {
+		return edits;
+	}
+
+	/**
+	 * Gets the content of the message.
+	 * @return the content or null if the author deleted the message
+	 */
 	public String getContent() {
 		return content;
 	}
 
 	/**
 	 * <p>
-	 * Parses the mentions out of the chat message.
+	 * Parses any mentions out of the message.
 	 * </p>
 	 * <p>
 	 * "Mentioning" someone in chat will make a "ping" sound on the mentioned
@@ -108,7 +156,7 @@ public class ChatMessage {
 	}
 
 	/**
-	 * Determines if a user is mentioned in the chat message.
+	 * Determines if a user is mentioned in the message.
 	 * @param username the username to look for
 	 * @return true if the user is mentioned, false if not
 	 */
@@ -128,77 +176,114 @@ public class ChatMessage {
 		return false;
 	}
 
-	public int getUserId() {
-		return userId;
-	}
-
-	public long getMessageId() {
-		return messageId;
-	}
-
-	public int getRoomId() {
-		return roomId;
-	}
-
-	public int getEdits() {
-		return edits;
-	}
-
+	/**
+	 * Used for constructing {@link ChatMessage} instances.
+	 * @author Michael Angstadt
+	 */
 	public static class Builder {
-		private LocalDateTime timestamp = LocalDateTime.now();
-		private String username, content;
-		private int userId, roomId, edits;
 		private long messageId;
+		private LocalDateTime timestamp;
+		private int userId;
+		private String username;
+		private int roomId;
+		private int edits;
+		private String content;
 
+		/**
+		 * Creates an empty builder.
+		 */
 		public Builder() {
 			//empty
 		}
 
+		/**
+		 * Initializes the builder from an existing chat message.
+		 * @param original the original object
+		 */
 		public Builder(ChatMessage original) {
+			messageId = original.messageId;
 			timestamp = original.timestamp;
-			username = original.username;
-			content = original.content;
 			userId = original.userId;
+			username = original.username;
 			roomId = original.roomId;
 			edits = original.edits;
-			messageId = original.messageId;
+			content = original.content;
 		}
 
-		public Builder timestamp(LocalDateTime timestamp) {
-			this.timestamp = timestamp;
-			return this;
-		}
-
-		public Builder username(String username) {
-			this.username = username;
-			return this;
-		}
-
-		public Builder content(String content) {
-			this.content = content;
-			return this;
-		}
-
-		public Builder userId(int userId) {
-			this.userId = userId;
-			return this;
-		}
-
-		public Builder roomId(int roomId) {
-			this.roomId = roomId;
-			return this;
-		}
-
-		public Builder edits(int edits) {
-			this.edits = edits;
-			return this;
-		}
-
+		/**
+		 * Sets the ID of the message. This ID is unique across all chat rooms.
+		 * @param messageId the message ID
+		 * @return this
+		 */
 		public Builder messageId(long messageId) {
 			this.messageId = messageId;
 			return this;
 		}
 
+		/**
+		 * Sets the timestamp the message was posted.
+		 * @param timestamp the timestamp
+		 * @return this
+		 */
+		public Builder timestamp(LocalDateTime timestamp) {
+			this.timestamp = timestamp;
+			return this;
+		}
+
+		/**
+		 * Sets the user ID of the message author.
+		 * @param userId the user ID
+		 * @return this
+		 */
+		public Builder userId(int userId) {
+			this.userId = userId;
+			return this;
+		}
+
+		/**
+		 * Sets the username of the message author.
+		 * @param username the username
+		 * @return this
+		 */
+		public Builder username(String username) {
+			this.username = username;
+			return this;
+		}
+
+		/**
+		 * Sets the room the message was posted in.
+		 * @param roomId the room ID
+		 * @return this
+		 */
+		public Builder roomId(int roomId) {
+			this.roomId = roomId;
+			return this;
+		}
+
+		/**
+		 * Sets the number of edits the message has undergone.
+		 * @param edits the number of edits or 0 if there were no edits
+		 * @return this
+		 */
+		public Builder edits(int edits) {
+			this.edits = edits;
+			return this;
+		}
+
+		/**
+		 * Sets the content of the message.
+		 * @param content the content or null if the author deleted the message
+		 * @return this
+		 */
+		public Builder content(String content) {
+			this.content = content;
+			return this;
+		}
+
+		/**
+		 * Builds the object.
+		 * @return the built object
+		 */
 		public ChatMessage build() {
 			return new ChatMessage(this);
 		}
