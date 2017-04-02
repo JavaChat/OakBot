@@ -73,15 +73,19 @@ public class FileChatConnection implements ChatConnection {
 
 		try (BufferedReader reader = Files.newBufferedReader(inputFile)) {
 			while (true) {
-				Thread.sleep(1000);
-
 				String line = reader.readLine();
 				if (line == null) {
 					//wait for more input
+					Thread.sleep(1000);
 					continue;
 				}
 
-				//read the next lien
+				/*
+				 * Read the next line.
+				 * 
+				 * Multi-line messages can be specified by ending each line with
+				 * a backslash.
+				 */
 				StringBuilder sb = new StringBuilder(line.length());
 				while (line != null) {
 					boolean multiline = line.endsWith("\\");
