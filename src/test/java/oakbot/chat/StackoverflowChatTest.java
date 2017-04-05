@@ -191,6 +191,19 @@ public class StackoverflowChatTest {
 					assertEquals(expected, actual);
 
 					return response(200, "{}");
+				case 6:
+					assertEquals("POST", method);
+					assertEquals("https://chat.stackoverflow.com/chats/leave/1", uri);
+					//@formatter:off
+					expected = new HashSet<>(Arrays.asList(
+						new BasicNameValuePair("fkey", "0123456789abcdef0123456789abcdef"),
+						new BasicNameValuePair("quiet", "true")
+					));
+					//@formatter:on
+					actual = params(body);
+					assertEquals(expected, actual);
+
+					return response(200, "\"ok\"");
 				}
 
 				return super.answer(method, uri, body);
@@ -220,7 +233,7 @@ public class StackoverflowChatTest {
 			chat.joinRoom(1);
 		}
 
-		verify(client, times(5)).execute(any(HttpUriRequest.class));
+		verify(client, times(6)).execute(any(HttpUriRequest.class));
 		verify(client).close();
 	}
 
@@ -253,10 +266,10 @@ public class StackoverflowChatTest {
 					}
 					if (uri.equals("https://chat.stackoverflow.com/chats/1/messages/new")) {
 						messages.put(1, body);
-						return response(200, "{}");
+						return response(200, "{\"id\":1,\"time\":" + (System.currentTimeMillis() / 1000) + "}");
 					} else if (uri.equals("https://chat.stackoverflow.com/chats/2/messages/new")) {
 						messages.put(2, body);
-						return response(200, "{}");
+						return response(200, "{\"id\":2,\"time\":" + (System.currentTimeMillis() / 1000) + "}");
 					}
 					break;
 				}
@@ -527,6 +540,19 @@ public class StackoverflowChatTest {
 						"{\"event_type\":1,\"time_stamp\":1417041460,\"content\":\"message 12\",\"user_id\":50,\"user_name\":\"User1\",\"room_id\":1,\"message_id\":20157256}" +
 					"]}");
 					//@formatter:on
+				case 7:
+					assertEquals("POST", method);
+					assertEquals("https://chat.stackoverflow.com/chats/leave/1", uri);
+					//@formatter:off
+					expected = new HashSet<>(Arrays.asList(
+						new BasicNameValuePair("fkey", "0123456789abcdef0123456789abcdef"),
+						new BasicNameValuePair("quiet", "true")
+					));
+					//@formatter:on
+					actual = params(body);
+					assertEquals(expected, actual);
+
+					return response(200, "\"ok\"");
 				}
 
 				return super.answer(method, uri, body);
@@ -547,7 +573,7 @@ public class StackoverflowChatTest {
 			}
 		});
 
-		verify(client, times(6)).execute(any(HttpUriRequest.class));
+		verify(client, times(7)).execute(any(HttpUriRequest.class));
 		verify(client).close();
 	}
 

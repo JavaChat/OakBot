@@ -1,15 +1,20 @@
 package oakbot.chat;
 
 /**
- * Thrown when an attempt is made to join a room that does not permit the bot to
- * post messages to it. This can either be because the room is inactive or
- * because the bot doesn't have permission to post.
+ * <p>
+ * Thrown when a request is sent to a room and it fails. It could fail for any
+ * of the following reasons:
+ * <p>
+ * <ul>
+ * <li>The room is inactive/frozen.</li>
+ * <li>The room is protected (the bot doesn't have permission to post).</li>
+ * <li>The bot was banned from the room (untested).</li>
+ * </ul>
  * @author Michael Angstadt
- * @see ChatConnection#joinRoom(int)
  */
 @SuppressWarnings("serial")
 public class RoomPermissionException extends RuntimeException {
 	public RoomPermissionException(int roomId) {
-		super("Cannot post messages to room " + roomId + ". It's either inactive or protected.");
+		super("Cannot post messages to room " + roomId + " because it's frozen or protected, or because the bot was banned from the room.");
 	}
 }

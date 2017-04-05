@@ -1,7 +1,6 @@
 package oakbot.chat;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -12,33 +11,27 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.net.ssl.SSLHandshakeException;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import oakbot.chat.RobustClient.JsonResponse;
 
 /**
  * A connection to Stackoverflow chat.
@@ -50,12 +43,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class StackoverflowChat implements ChatConnection {
 	private static final Logger logger = Logger.getLogger(StackoverflowChat.class.getName());
+	private static final String DOMAIN = "stackoverflow.com";
+	private static final String CHAT_DOMAIN = "https://chat." + DOMAIN;
+	private static final int MAX_MESSAGE_LENGTH = 500;
+	private static final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
 
 	private final CloseableHttpClient client;
-	private final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
 	private final Map<Integer, String> fkeyCache = new HashMap<>();
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
-	private final MessageSenderThread sender;
 	private final long retryPause, heartbeat;
 	private boolean closed;
 
@@ -70,8 +65,8 @@ public class StackoverflowChat implements ChatConnection {
 	/**
 	 * Creates a polling connection to Stackoverflow chat.
 	 * @param client the HTTP client
-	 * @param retryPause the base amount of time to wait in between request
-	 * retries (in milliseconds)
+	 * @param retryPause the base amount of time to wait in between retries when
+	 * a request fails due to network glitches (in milliseconds)
 	 * @param heartbeat how often to poll each chat room looking for new
 	 * messages (in milliseconds)
 	 */
@@ -79,36 +74,23 @@ public class StackoverflowChat implements ChatConnection {
 		this.client = client;
 		this.retryPause = retryPause;
 		this.heartbeat = heartbeat;
-
-		MessageSenderThread sender = new MessageSenderThread();
-		sender.start();
-		this.sender = sender;
 	}
 
 	@Override
-	public void login(String email, String password) throws IOException {
+	public void login(String email, String password) throws InvalidCredentialsException, IOException {
 		logger.info("Logging in as " + email + "...");
 
-		String fkey = parseFkeyFromUrl("https://stackoverflow.com/users/login");
+		String fkey = parseFkeyFromUrl("https://" + DOMAIN + "/users/login");
 		if (fkey == null) {
-			throw new IOException("\"fkey\" field not found on page, cannot login.");
+			throw new IOException("\"fkey\" field not found on login page, cannot login.");
 		}
 
-		HttpPost request = new HttpPost("https://stackoverflow.com/users/login");
-		//@formatter:off
-		List<NameValuePair> params = Arrays.asList(
-			new BasicNameValuePair("email", email),
-			new BasicNameValuePair("password", password),
-			new BasicNameValuePair("fkey", fkey)
-		);
-		//@formatter:on
-		request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
-
-		HttpResponse response = client.execute(request);
-		int statusCode = response.getStatusLine().getStatusCode();
-		EntityUtils.consumeQuietly(response.getEntity());
-		if (statusCode != 302) {
-			throw new InvalidCredentialsException();
+		LoginRequest request = new LoginRequest(email, password, fkey);
+		try (CloseableHttpResponse response = client.execute(request)) {
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode != 302) {
+				throw new InvalidCredentialsException();
+			}
 		}
 	}
 
@@ -116,100 +98,122 @@ public class StackoverflowChat implements ChatConnection {
 	public void joinRoom(int roomId) throws RoomNotFoundException, RoomPermissionException, IOException {
 		/*
 		 * Checks if the room exists and if the bot user can post messages to
-		 * it. Then primes the "previous message ID" counter
+		 * it. Then, primes the "previous message ID" counter
 		 */
 		getNewMessages(roomId);
 	}
 
 	@Override
-	public void leaveRoom(int roomId) throws IOException {
-		fkeyCache.remove(roomId);
+	public void leaveRoom(int roomId) {
+		Long id = prevMessageIds.get(roomId);
+		if (id == null) {
+			return;
+		}
+
+		/*
+		 * Send a leave request to the room. It's not crucial that this request
+		 * succeed because it doesn't really do much. All it does is make the
+		 * bot's user portrait disappear from the room list (however, it only
+		 * disappears if you refresh the web browser). You'd think it would play
+		 * that "fall & fade away" animation that you see when someone leaves,
+		 * but it doesn't.
+		 */
+		String fkey = fkeyCache.get(roomId);
+		LeaveRoomRequest request = new LeaveRoomRequest(roomId, fkey);
+		try {
+			send(request).attempts(1).asHttp();
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Problem leaving room " + roomId + ".", e);
+		}
+
+		/*
+		 * The fkey does not need to be removed from the fkey cache--fkeys stay
+		 * the same during the entire login session.
+		 */
+		//fkeyCache.remove(roomId);
 		prevMessageIds.remove(roomId);
 	}
 
 	@Override
-	public void sendMessage(int roomId, String message) throws IOException {
-		sendMessage(roomId, message, SplitStrategy.NONE);
+	public long sendMessage(int roomId, String message) throws IOException {
+		return sendMessage(roomId, message, SplitStrategy.NONE).get(0);
 	}
 
 	@Override
-	public void sendMessage(int roomId, String message, SplitStrategy splitStrategy) throws IOException {
+	public List<Long> sendMessage(int roomId, String message, SplitStrategy splitStrategy) throws IOException {
 		String fkey = getFKey(roomId);
-		sender.send(roomId, fkey, message, splitStrategy);
+
+		List<String> parts;
+		if (message.contains("\n")) {
+			//messages with newlines have no length limit
+			parts = Arrays.asList(message);
+		} else {
+			parts = splitStrategy.split(message, MAX_MESSAGE_LENGTH);
+		}
+
+		List<Long> messageIds = new ArrayList<>(parts.size());
+		for (String part : parts) {
+			NewMessageRequest request = new NewMessageRequest(roomId, part, fkey);
+			JsonResponse jsonResponse = send(request).statusCodes(200).asJson();
+			if (jsonResponse.isHttp404()) {
+				/*
+				 * If we got this far, it means the room has an fkey, which
+				 * means the room exists. So if a 404 response is returned when
+				 * trying to send a message, it more likely means that the bot's
+				 * permission to post messages has been revoked.
+				 * 
+				 * If a 404 response is returned from this request, the response
+				 * body reads:
+				 * "The room does not exist, or you do not have permission"
+				 */
+				throw new RoomNotFoundException(roomId);
+			}
+
+			NewMessageResponse response = NewMessageResponse.parse(jsonResponse);
+			messageIds.add(response.getId());
+		}
+
+		return messageIds;
 	}
 
 	@Override
 	public List<ChatMessage> getMessages(int roomId, int count) throws IOException {
 		String fkey = getFKey(roomId);
 
-		HttpPost request = new HttpPost("https://chat.stackoverflow.com/chats/" + roomId + "/events");
-		//@formatter:off
-		List<NameValuePair> params = Arrays.asList(
-			new BasicNameValuePair("mode", "messages"),
-			new BasicNameValuePair("msgCount", count + ""),
-			new BasicNameValuePair("fkey", fkey)
-		);
-		//@formatter:on
-		request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
-
-		JsonNode node = executeWithRetriesJson(request);
-		JsonNode events = node.get("events");
-		if (events == null) {
-			return Collections.emptyList();
+		GetMessagesRequest request = new GetMessagesRequest(roomId, count, fkey);
+		JsonResponse jsonResponse = send(request).attempts(5).statusCodes(200).asJson();
+		if (jsonResponse.isHttp404()) {
+			throw new RoomNotFoundException(roomId);
 		}
+		GetMessagesResponse response = GetMessagesResponse.parse(jsonResponse);
 
-		Iterator<JsonNode> it = events.elements();
-		List<ChatMessage> messages = new ArrayList<>();
-		while (it.hasNext()) {
-			JsonNode element = it.next();
-			ChatMessage chatMessage = parseChatMessage(element);
-			messages.add(chatMessage);
-		}
-
-		return messages;
+		return response.getMessages();
 	}
 
-	private List<ChatMessage> getNewMessages(int room) throws IOException {
-		Long prevMessageId = prevMessageIds.get(room);
-		if (prevMessageId == null) {
-			List<ChatMessage> messages = getMessages(room, 1);
+	@Override
+	public boolean deleteMessage(int roomId, long messageId) throws IOException {
+		String fkey = getFKey(roomId);
 
-			if (messages.isEmpty()) {
-				prevMessageId = 0L;
-			} else {
-				ChatMessage last = messages.get(messages.size() - 1);
-				prevMessageId = last.getMessageId();
-			}
-			prevMessageIds.put(room, prevMessageId);
-
-			return Collections.emptyList();
+		DeleteMessageRequest request = new DeleteMessageRequest(messageId, fkey);
+		DeleteMessageResponse response;
+		try (CloseableHttpResponse httpResponse = send(request).statusCodes(200, 302).asHttp()) {
+			response = DeleteMessageResponse.parse(httpResponse);
 		}
 
-		//keep retrieving more and more messages until we got all of the ones that came in since we last pinged
-		List<ChatMessage> messages;
-		for (int count = 5; true; count += 5) {
-			messages = getMessages(room, count);
-			if (messages.isEmpty() || messages.get(0).getMessageId() <= prevMessageId) {
-				break;
-			}
+		return response.isSuccess();
+	}
+
+	@Override
+	public boolean editMessage(int roomId, long messageId, String updatedMessage) throws IOException {
+		String fkey = getFKey(roomId);
+
+		EditMessageRequest request = new EditMessageRequest(messageId, fkey, updatedMessage);
+		EditMessageResponse response;
+		try (CloseableHttpResponse httpResponse = send(request).statusCodes(200).asHttp()) {
+			response = EditMessageResponse.parse(httpResponse);
 		}
 
-		//only return the new messages
-		int pos = -1;
-		for (int i = 0; i < messages.size(); i++) {
-			ChatMessage message = messages.get(i);
-			if (message.getMessageId() > prevMessageId) {
-				pos = i;
-				break;
-			}
-		}
-
-		if (pos < 0) {
-			return Collections.emptyList();
-		}
-
-		prevMessageIds.put(room, messages.get(messages.size() - 1).getMessageId());
-		return messages.subList(pos, messages.size());
+		return response.isSuccess();
 	}
 
 	@Override
@@ -221,28 +225,20 @@ public class StackoverflowChat implements ChatConnection {
 			 * Make a copy of the room list to prevent concurrent modification
 			 * exceptions.
 			 */
-			List<Integer> rooms = new ArrayList<>(fkeyCache.keySet());
+			List<Integer> rooms = new ArrayList<>(prevMessageIds.keySet());
 
 			for (Integer room : rooms) {
-				logger.fine("Pinging room " + room);
-
-				//get new messages since last ping
+				logger.fine("Pinging room " + room + ".");
 				List<ChatMessage> newMessages = getNewMessages(room);
 				logger.fine(newMessages.size() + " new messages found.");
-				if (newMessages.isEmpty()) {
-					//no new messages
-					continue;
-				}
 
 				for (ChatMessage message : newMessages) {
 					handler.handle(message);
-					if (closed) {
-						return;
-					}
 				}
 
-				ChatMessage latestMessage = newMessages.get(newMessages.size() - 1);
-				prevMessageIds.put(room, latestMessage.getMessageId());
+				if (closed) {
+					return;
+				}
 			}
 
 			//sleep before pinging again
@@ -258,6 +254,68 @@ public class StackoverflowChat implements ChatConnection {
 		}
 	}
 
+	private List<ChatMessage> getNewMessages(int room) throws IOException {
+		Long prevMessageId = prevMessageIds.get(room);
+
+		/*
+		 * If the bot just joined the room, get the ID of the latest message so
+		 * we know which messages are new.
+		 */
+		if (prevMessageId == null) {
+			List<ChatMessage> messages = getMessages(room, 1);
+
+			if (messages.isEmpty()) {
+				prevMessageId = 0L;
+			} else {
+				ChatMessage last = messages.get(messages.size() - 1);
+				prevMessageId = last.getMessageId();
+			}
+			prevMessageIds.put(room, prevMessageId);
+
+			return Collections.emptyList();
+		}
+
+		/*
+		 * Keep retrieving more and more messages until we get all of the
+		 * messages that came in since we last polled.
+		 */
+		List<ChatMessage> messages;
+		int count = 5;
+		while (true) {
+			messages = getMessages(room, count);
+			if (messages.isEmpty() || messages.get(0).getMessageId() <= prevMessageId) {
+				break;
+			}
+			count *= 2;
+		}
+
+		/*
+		 * Determine which messages in the list are new. Only new messages
+		 * should be returned.
+		 */
+		List<ChatMessage> newMessages;
+		{
+			int firstNewMessage = -1;
+			for (int i = 0; i < messages.size(); i++) {
+				ChatMessage message = messages.get(i);
+				if (message.getMessageId() > prevMessageId) {
+					firstNewMessage = i;
+					break;
+				}
+			}
+			if (firstNewMessage < 0) {
+				//all the messages are old
+				return Collections.emptyList();
+			}
+			newMessages = messages.subList(firstNewMessage, messages.size());
+		}
+
+		ChatMessage latest = newMessages.get(newMessages.size() - 1);
+		prevMessageIds.put(room, latest.getMessageId());
+
+		return newMessages;
+	}
+
 	/**
 	 * Parses the "fkey" parameter from a webpage.
 	 * @param url the URL of the webpage
@@ -266,205 +324,68 @@ public class StackoverflowChat implements ChatConnection {
 	 */
 	private String parseFkeyFromUrl(String url) throws IOException {
 		HttpGet request = new HttpGet(url);
-		HttpResponse response = executeWithRetries(request);
-		if (response == null) {
-			throw new IOException("Couldn't load page.");
+		String html;
+		try (CloseableHttpResponse response = send(request).asHttp()) {
+			html = EntityUtils.toString(response.getEntity());
 		}
-
-		String html = EntityUtils.toString(response.getEntity());
 		return parseFkey(html);
 	}
 
 	/**
-	 * Parses the "fkey" parameter from a given HTML page.
+	 * Parses the "fkey" parameter from an HTML page.
 	 * @param html the HTML page
 	 * @return the fkey or null if not found
 	 */
-	private String parseFkey(String html) {
+	private static String parseFkey(String html) {
 		Matcher m = fkeyRegex.matcher(html);
 		return m.find() ? m.group(1) : null;
 	}
 
 	/**
 	 * Gets the "fkey" parameter for a room.
-	 * @param room the room ID
+	 * @param roomId the room ID
 	 * @return the fkey
 	 * @throws RoomNotFoundException if the room does not exist
 	 * @throws RoomPermissionException if messages cannot be posted to this room
-	 * @throws IOException if there's a problem connecting to the room
+	 * @throws IOException if there's a network problem
 	 */
-	private String getFKey(int room) throws IOException {
-		String fkey = fkeyCache.get(room);
+	private String getFKey(int roomId) throws IOException {
+		String fkey = fkeyCache.get(roomId);
 		if (fkey != null) {
 			return fkey;
 		}
 
-		String roomUrl = "https://chat.stackoverflow.com/rooms/" + room;
-		HttpGet request = new HttpGet(roomUrl);
-		HttpResponse response = executeWithRetries(request);
-		if (response == null) {
-			throw new RoomNotFoundException(room);
+		ChatRoomLobbyRequest request = new ChatRoomLobbyRequest(roomId);
+		ChatRoomLobbyResponse response;
+		try (CloseableHttpResponse httpResponse = send(request).statusCodes(200).asHttp()) {
+			response = ChatRoomLobbyResponse.parse(httpResponse);
 		}
 
-		String html = EntityUtils.toString(response.getEntity());
-		fkey = parseFkey(html);
+		if (response.isNonExistant()) {
+			throw new RoomNotFoundException(roomId);
+		}
+
+		fkey = response.getFkey();
 		if (fkey == null) {
-			throw new IOException("Cannot get room's fkey.");
+			throw new IOException("Could not get fkey of room " + roomId + ".");
 		}
 
-		if (!canPostToRoom(html)) {
-			throw new RoomPermissionException(room);
+		if (!response.isAllowedToPost()) {
+			throw new RoomPermissionException(roomId);
 		}
 
-		fkeyCache.put(room, fkey);
+		fkeyCache.put(roomId, fkey);
 		return fkey;
-	}
-
-	/**
-	 * Determines if messages can be posted to a room. A room can be inactive,
-	 * which means it does not accept new messages. A room can also be
-	 * protected, which means only approved users can post.
-	 * @param html the HTML of the room
-	 * @return true if messages can be posted, false if not
-	 */
-	private boolean canPostToRoom(String html) {
-		/*
-		 * The textbox for sending messages won't be there if the bot user can't
-		 * post to the room.
-		 */
-		return html.contains("<textarea id=\"input\">");
-	}
-
-	/**
-	 * Executes an HTTP request whose response is expected to be JSON. The
-	 * request is retried if it fails.
-	 * @param request the request to send
-	 * @return the parsed JSON response
-	 * @throws IOException if there was an I/O error
-	 */
-	private JsonNode executeWithRetriesJson(HttpUriRequest request) throws IOException {
-		ObjectMapper mapper = new ObjectMapper();
-
-		while (true) {
-			HttpResponse response = executeWithRetries(request);
-			try {
-				return mapper.readTree(response.getEntity().getContent());
-			} catch (JsonParseException e) {
-				//make the request again if a non-JSON response is returned
-				logger.log(Level.SEVERE, "Could not parse the response as a JSON object.  Retrying the request in " + retryPause + "ms.", e);
-				try {
-					Thread.sleep(retryPause);
-				} catch (InterruptedException e2) {
-					throw new IOException(e2);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Executes an HTTP request, retrying after a short pause if the request
-	 * fails.
-	 * @param request the request to send
-	 * @return the HTTP response, or null if it was a 404 response, or null if
-	 * the request couldn't be executed
-	 * @throws IOException if there was an I/O error
-	 */
-	private HttpResponse executeWithRetries(HttpUriRequest request) throws IOException {
-		return executeWithRetries(request, null, null);
-	}
-
-	/**
-	 * Executes an HTTP request, retrying after a short pause if the request
-	 * fails.
-	 * @param request the request to send
-	 * @param numRetries the number of times to retry the request if it fails,
-	 * or null to retry forever
-	 * @param expectedStatusCode the expected HTTP response status code. If the
-	 * response does not have this status code, the request will be retried
-	 * @return the HTTP response, or null if it was a 404 response, or null if
-	 * the request couldn't be executed
-	 * @throws IOException if there was an I/O error
-	 */
-	private HttpResponse executeWithRetries(HttpUriRequest request, Integer numRetries, Integer expectedStatusCode) throws IOException {
-		int attempts = 0;
-		long sleep = 0;
-		final long maxSleep = TimeUnit.SECONDS.toMillis(60);
-		while (numRetries == null || attempts <= numRetries) {
-			attempts++;
-			if (sleep > 0) {
-				try {
-					logger.info("Sleeping for " + sleep + " ms before resending the request...");
-					Thread.sleep(sleep);
-				} catch (InterruptedException e) {
-					logger.log(Level.INFO, "Sleep interrupted.", e);
-					throw new IOException("Sleep interrupted.", e);
-				}
-			}
-
-			sleep = (attempts + 1) * retryPause;
-			if (sleep > maxSleep) {
-				sleep = maxSleep;
-			}
-
-			HttpResponse response;
-			try {
-				response = client.execute(request);
-			} catch (NoHttpResponseException | SocketException | ConnectTimeoutException | SSLHandshakeException e) {
-				logger.log(Level.SEVERE, e.getClass().getSimpleName() + " thrown from request " + request.getURI() + ".", e);
-				continue;
-			}
-
-			int actualStatusCode = response.getStatusLine().getStatusCode();
-			if (actualStatusCode == 409) {
-				//"You can perform this action again in 2 seconds"
-				Long sleepValue = parse409Response(response);
-				sleep = (sleepValue == null) ? 5000 : sleepValue;
-				continue;
-			}
-
-			if (actualStatusCode == 404) {
-				//chat room does not exist or cannot be posted to
-				logger.severe("404 response received from request URI " + request.getURI() + ".");
-				return null;
-			}
-
-			if (expectedStatusCode != null && expectedStatusCode != actualStatusCode) {
-				logger.severe("Expected status code " + expectedStatusCode + ", but was " + actualStatusCode + ".");
-				continue;
-			}
-
-			return response;
-		}
-		return null;
-	}
-
-	/**
-	 * Parses an HTTP 409 response, which indicates that the bot is sending
-	 * messages too quickly.
-	 * @param response the HTTP 409 response
-	 * @return the amount of time (in milliseconds) the bot must wait before SO
-	 * Chat will continue to accept chat messages, or null if this value could
-	 * not be parsed from the response
-	 * @throws IOException if there's a problem getting the response body
-	 */
-	private Long parse409Response(HttpResponse response) throws IOException {
-		//"You can perform this action again in 2 seconds"
-		String body = EntityUtils.toString(response.getEntity());
-		logger.fine("409 response received: " + body);
-
-		Pattern p = Pattern.compile("\\d+");
-		Matcher m = p.matcher(body);
-		if (!m.find()) {
-			return null;
-		}
-
-		int seconds = Integer.parseInt(m.group(0));
-		return TimeUnit.SECONDS.toMillis(seconds);
 	}
 
 	@Override
 	public void close() throws IOException {
 		flush();
+
+		List<Integer> watchedRooms = new ArrayList<>(prevMessageIds.keySet());
+		for (Integer roomId : watchedRooms) {
+			leaveRoom(roomId);
+		}
 
 		try {
 			client.close();
@@ -475,159 +396,351 @@ public class StackoverflowChat implements ChatConnection {
 
 	@Override
 	public void flush() {
-		sender.flush();
+		//empty
 	}
 
-	/**
-	 * Unmarshals a chat message from its JSON representation.
-	 * @param element the JSON element
-	 * @return the parsed chat message
-	 */
-	private static ChatMessage parseChatMessage(JsonNode element) {
-		ChatMessage.Builder builder = new ChatMessage.Builder();
+	private static class LoginRequest extends HttpPost {
+		public LoginRequest(String email, String password, String fkey) {
+			super("https://" + DOMAIN + "/users/login");
 
-		JsonNode value = element.get("content");
-		if (value != null) {
-			String content = StringEscapeUtils.unescapeHtml4(value.asText());
-			builder.content(content);
+			//@formatter:off
+			List<NameValuePair> params = Arrays.asList(
+				new BasicNameValuePair("email", email),
+				new BasicNameValuePair("password", password),
+				new BasicNameValuePair("fkey", fkey)
+			);
+			//@formatter:on
+			setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
 		}
-
-		value = element.get("edits");
-		if (value != null) {
-			builder.edits(value.asInt());
-		}
-
-		value = element.get("message_id");
-		if (value != null) {
-			builder.messageId(value.asLong());
-		}
-
-		value = element.get("room_id");
-		if (value != null) {
-			builder.roomId(value.asInt());
-		}
-
-		value = element.get("time_stamp");
-		if (value != null) {
-			LocalDateTime ts = LocalDateTime.ofInstant(Instant.ofEpochMilli(value.asLong() * 1000), ZoneId.systemDefault());
-			builder.timestamp(ts);
-		}
-
-		value = element.get("user_id");
-		if (value != null) {
-			builder.userId(value.asInt());
-		}
-
-		value = element.get("user_name");
-		if (value != null) {
-			builder.username(value.asText());
-		}
-
-		return builder.build();
 	}
 
-	private class MessageSenderThread extends Thread {
-		private final int MAX_MESSAGE_LENGTH = 500;
-		private final BlockingQueue<ChatPost> messageQueue = new LinkedBlockingQueue<>();
-		private final ChatPost LAST = new ChatPost(0, null, null, null);
+	private static class ChatRoomLobbyRequest extends HttpGet {
+		public ChatRoomLobbyRequest(int roomId) {
+			super(CHAT_DOMAIN + "/rooms/" + roomId);
+		}
+	}
 
-		public MessageSenderThread() {
-			setName(getClass().getSimpleName());
-			setDaemon(true);
+	private static class ChatRoomLobbyResponse {
+		private final String fkey;
+		private final boolean nonExistant, canPostToRoom;
+
+		public ChatRoomLobbyResponse(boolean nonExistant, String fkey, boolean canPostToRoom) {
+			this.nonExistant = nonExistant;
+			this.fkey = fkey;
+			this.canPostToRoom = canPostToRoom;
 		}
 
-		public void send(int room, String fkey, String message, SplitStrategy splitStrategy) throws IOException {
-			messageQueue.add(new ChatPost(room, fkey, message, splitStrategy));
+		public static ChatRoomLobbyResponse parse(HttpResponse response) throws IOException {
+			/*
+			 * A 404 response is returned if the room doesn't exist.
+			 * 
+			 * A 404 also seems to be returned if the room is inactive, but the
+			 * bot does not have enough reputation/privileges to see inactive
+			 * rooms. If I view the same room in a web browser under my personal
+			 * account (which has over 20k rep and is a room owner), I can see
+			 * the room. And when I make the bot login under my own account and
+			 * then view an inactive room, the bot does not get a 404.
+			 */
+			boolean nonExistant = response.getStatusLine().getStatusCode() == 404;
+
+			String html = EntityUtils.toString(response.getEntity());
+
+			String fkey = parseFkey(html);
+
+			/*
+			 * The textbox for sending messages won't be there if the bot can't
+			 * post to the room.
+			 */
+			boolean canPostToRoom = html.contains("<textarea id=\"input\">");
+
+			return new ChatRoomLobbyResponse(nonExistant, fkey, canPostToRoom);
 		}
 
-		public void flush() {
-			messageQueue.add(LAST);
-
-			try {
-				join();
-			} catch (InterruptedException e) {
-				//do nothing
-			}
+		public String getFkey() {
+			return fkey;
 		}
 
-		@Override
-		public void run() {
-			while (true) {
-				ChatPost chatPost;
-				try {
-					chatPost = messageQueue.take();
-				} catch (InterruptedException e) {
-					return;
-				}
-
-				if (chatPost == LAST) {
-					return;
-				}
-
-				int room = chatPost.roomId;
-				String fkey = chatPost.fkey;
-				String message = chatPost.message;
-				SplitStrategy splitStrategy = chatPost.splitStrategy;
-
-				try {
-					String url = "https://chat.stackoverflow.com/chats/" + room + "/messages/new";
-
-					List<String> posts;
-					if (message.contains("\n")) {
-						//messages with newlines have no length limit
-						posts = Arrays.asList(message);
-					} else {
-						posts = splitStrategy.split(message, MAX_MESSAGE_LENGTH);
-					}
-
-					for (String post : posts) {
-						send(room, url, fkey, post);
-					}
-				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem sending message.  Skipping to next message in queue.", e);
-				}
-			}
+		public boolean isAllowedToPost() {
+			return canPostToRoom;
 		}
 
-		private void send(int room, String url, String fkey, String message) throws IOException {
-			logger.info("Posting message to room " + room + ": " + message);
+		public boolean isNonExistant() {
+			return nonExistant;
+		}
+	}
 
-			HttpPost request = new HttpPost(url);
+	private static class NewMessageRequest extends HttpPost {
+		public NewMessageRequest(int roomId, String message, String fkey) {
+			super(CHAT_DOMAIN + "/chats/" + roomId + "/messages/new");
+
 			//@formatter:off
 			List<NameValuePair> params = Arrays.asList(
 				new BasicNameValuePair("text", message),
 				new BasicNameValuePair("fkey", fkey)
 			);
 			//@formatter:on
-			request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
-
-			HttpResponse response = executeWithRetries(request, null, 200);
-			if (response == null) {
-				return;
-			}
-
-			EntityUtils.consumeQuietly(response.getEntity());
-			logger.info("Message received.");
+			setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
 		}
 	}
 
-	private static class ChatPost {
-		private final int roomId;
+	private static class NewMessageResponse {
+		private final long id;
+		private final LocalDateTime time;
+
+		public NewMessageResponse(long id, LocalDateTime time) {
+			this.id = id;
+			this.time = time;
+		}
+
+		//{"id":36436674,"time":1491157087}
+		public static NewMessageResponse parse(JsonResponse response) {
+			JsonNode body = response.getBody();
+			long id = body.get("id").asLong();
+			LocalDateTime time = LocalDateTime.ofInstant(Instant.ofEpochSecond(body.get("time").asLong()), ZoneId.systemDefault());
+
+			return new NewMessageResponse(id, time);
+		}
+
+		public long getId() {
+			return id;
+		}
+
+		@SuppressWarnings("unused")
+		public LocalDateTime getTime() {
+			return time;
+		}
+	}
+
+	private static class LeaveRoomRequest extends HttpPost {
+		public LeaveRoomRequest(int roomId, String fkey) {
+			super(CHAT_DOMAIN + "/chats/leave/" + roomId);
+
+			//@formatter:off
+			List<NameValuePair> params = Arrays.asList(
+				new BasicNameValuePair("quiet", "true"), //setting this parameter to "false" results in an error
+				new BasicNameValuePair("fkey", fkey)
+			);
+			//@formatter:on
+			setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+		}
+	}
+
+	private static class GetMessagesRequest extends HttpPost {
+		public GetMessagesRequest(int roomId, int count, String fkey) {
+			super(CHAT_DOMAIN + "/chats/" + roomId + "/events");
+
+			//@formatter:off
+			List<NameValuePair> params = Arrays.asList(
+				new BasicNameValuePair("mode", "messages"),
+				new BasicNameValuePair("msgCount", Integer.toString(count)),
+				new BasicNameValuePair("fkey", fkey)
+			);
+			//@formatter:on
+			setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+		}
+	}
+
+	private static class GetMessagesResponse {
+		private final List<ChatMessage> messages;
+
+		public GetMessagesResponse(List<ChatMessage> messages) {
+			this.messages = messages;
+		}
+
+		public static GetMessagesResponse parse(JsonResponse response) {
+			JsonNode body = response.getBody();
+			JsonNode events = body.get("events");
+
+			List<ChatMessage> messages;
+			if (events == null) {
+				messages = new ArrayList<>(0);
+			} else {
+				messages = new ArrayList<>();
+				Iterator<JsonNode> it = events.elements();
+				while (it.hasNext()) {
+					JsonNode element = it.next();
+					ChatMessage chatMessage = parseChatMessage(element);
+					messages.add(chatMessage);
+				}
+			}
+
+			return new GetMessagesResponse(messages);
+		}
+
+		public List<ChatMessage> getMessages() {
+			return messages;
+		}
 
 		/**
-		 * The room's fkey is stored here incase the bot leaves a room while the
-		 * message queue still has messages waiting to be sent to that room.
+		 * Unmarshals a chat message from its JSON representation.
+		 * @param element the JSON element
+		 * @return the parsed chat message
 		 */
-		private final String fkey;
+		private static ChatMessage parseChatMessage(JsonNode element) {
+			ChatMessage.Builder builder = new ChatMessage.Builder();
 
-		private final String message;
-		private final SplitStrategy splitStrategy;
+			JsonNode value = element.get("content");
+			if (value != null) {
+				//TODO convert HTML to SO Chat markdown?
+				String content = StringEscapeUtils.unescapeHtml4(value.asText());
+				builder.content(content);
+			}
 
-		public ChatPost(int roomId, String fkey, String message, SplitStrategy splitStrategy) {
-			this.roomId = roomId;
-			this.fkey = fkey;
-			this.message = message;
-			this.splitStrategy = splitStrategy;
+			value = element.get("edits");
+			if (value != null) {
+				builder.edits(value.asInt());
+			}
+
+			value = element.get("message_id");
+			if (value != null) {
+				builder.messageId(value.asLong());
+			}
+
+			value = element.get("room_id");
+			if (value != null) {
+				builder.roomId(value.asInt());
+			}
+
+			value = element.get("time_stamp");
+			if (value != null) {
+				LocalDateTime ts = LocalDateTime.ofInstant(Instant.ofEpochSecond(value.asLong()), ZoneId.systemDefault());
+				builder.timestamp(ts);
+			}
+
+			value = element.get("user_id");
+			if (value != null) {
+				builder.userId(value.asInt());
+			}
+
+			value = element.get("user_name");
+			if (value != null) {
+				builder.username(value.asText());
+			}
+
+			return builder.build();
 		}
+	}
+
+	private static class EditMessageRequest extends HttpPost {
+		public EditMessageRequest(long messageId, String fkey, String updatedMessage) {
+			super(CHAT_DOMAIN + "/messages/" + messageId);
+
+			//@formatter:off
+			List<NameValuePair> params = Arrays.asList(
+				new BasicNameValuePair("text", updatedMessage),
+				new BasicNameValuePair("fkey", fkey)
+			);
+			//@formatter:on
+			setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+		}
+	}
+
+	private static class EditMessageResponse {
+		private final boolean success, alreadyDeleted, tooLate, notYourMessage;
+
+		public EditMessageResponse(boolean success, boolean alreadyDeleted, boolean tooLate, boolean notYourMessage) {
+			this.success = success;
+			this.alreadyDeleted = alreadyDeleted;
+			this.tooLate = tooLate;
+			this.notYourMessage = notYourMessage;
+		}
+
+		public static EditMessageResponse parse(HttpResponse response) throws IOException {
+			String message = EntityUtils.toString(response.getEntity());
+			boolean success = message.equals("\"ok\"");
+			boolean alreadyDeleted = message.equals("\"This message has already been deleted and cannot be edited\"");
+			boolean tooLate = message.equals("\"It is too late to edit this message\"");
+			boolean notYourMessage = message.equals("\"You can only edit your own messages\"");
+
+			return new EditMessageResponse(success, alreadyDeleted, tooLate, notYourMessage);
+		}
+
+		public boolean isSuccess() {
+			return success;
+		}
+
+		@SuppressWarnings("unused")
+		public boolean isAlreadyDeleted() {
+			return alreadyDeleted;
+		}
+
+		@SuppressWarnings("unused")
+		public boolean isTooLate() {
+			return tooLate;
+		}
+
+		@SuppressWarnings("unused")
+		public boolean isNotYourMessage() {
+			return notYourMessage;
+		}
+	}
+
+	private static class DeleteMessageRequest extends HttpPost {
+		public DeleteMessageRequest(long messageId, String fkey) {
+			super(CHAT_DOMAIN + "/messages/" + messageId + "/delete");
+
+			//@formatter:off
+			List<NameValuePair> params = Arrays.asList(
+				new BasicNameValuePair("fkey", fkey)
+			);
+			//@formatter:on
+			setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+		}
+	}
+
+	private static class DeleteMessageResponse {
+		private final boolean success, alreadyDeleted, tooLate, notYourMessage, nonExistantMessage;
+
+		public DeleteMessageResponse(boolean success, boolean alreadyDeleted, boolean tooLate, boolean notYourMessage, boolean nonExistantMessage) {
+			this.success = success;
+			this.alreadyDeleted = alreadyDeleted;
+			this.tooLate = tooLate;
+			this.notYourMessage = notYourMessage;
+			this.nonExistantMessage = nonExistantMessage;
+		}
+
+		public static DeleteMessageResponse parse(HttpResponse response) throws IOException {
+			/*
+			 * 302 response is returned if the message ID does not reference a
+			 * message that has ever existed before.
+			 */
+			boolean nonExistantMessage = (response.getStatusLine().getStatusCode() == 302);
+
+			String message = EntityUtils.toString(response.getEntity());
+			boolean success = message.equals("\"ok\"");
+			boolean alreadyDeleted = message.equals("\"This message has already been deleted.\"");
+			boolean tooLate = message.equals("\"It is too late to delete this message\"");
+			boolean notYourMessage = message.equals("\"You can only delete your own messages\"");
+
+			return new DeleteMessageResponse(success, alreadyDeleted, tooLate, notYourMessage, nonExistantMessage);
+		}
+
+		public boolean isSuccess() {
+			return success;
+		}
+
+		@SuppressWarnings("unused")
+		public boolean isAlreadyDeleted() {
+			return alreadyDeleted;
+		}
+
+		@SuppressWarnings("unused")
+		public boolean isTooLate() {
+			return tooLate;
+		}
+
+		@SuppressWarnings("unused")
+		public boolean isNotYourMessage() {
+			return notYourMessage;
+		}
+
+		@SuppressWarnings("unused")
+		public boolean isNonExistantMessage() {
+			return nonExistantMessage;
+		}
+	}
+
+	private RobustClient send(HttpUriRequest request) {
+		return new RobustClient(client, request).retryPause(retryPause);
 	}
 }

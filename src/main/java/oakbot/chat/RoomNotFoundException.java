@@ -1,9 +1,8 @@
 package oakbot.chat;
 
 /**
- * Thrown when an attempt is made to join a non-existent chat room.
+ * Thrown when a request is sent to a room that doesn't exist.
  * @author Michael Angstadt
- * @see ChatConnection#joinRoom(int)
  */
 @SuppressWarnings("serial")
 public class RoomNotFoundException extends RuntimeException {

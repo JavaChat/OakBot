@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,8 @@ import java.util.Map;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.ChatMessageHandler;
+import oakbot.chat.RoomNotFoundException;
+import oakbot.chat.RoomPermissionException;
 import oakbot.chat.SplitStrategy;
 
 /**
@@ -113,13 +116,14 @@ public class FileChatConnection implements ChatConnection {
 	}
 
 	@Override
-	public void sendMessage(int room, String message) {
-		sendMessage(room, message, null);
+	public long sendMessage(int room, String message) {
+		return sendMessage(room, message, null).get(0);
 	}
 
 	@Override
-	public void sendMessage(int room, String message, SplitStrategy splitStragey) {
-		postMessage(room, botUserId, botUsername, message);
+	public List<Long> sendMessage(int room, String message, SplitStrategy splitStragey) {
+		long id = postMessage(room, botUserId, botUsername, message);
+		return Arrays.asList(id);
 	}
 
 	/**
@@ -128,15 +132,18 @@ public class FileChatConnection implements ChatConnection {
 	 * @param userId the user ID of the message author
 	 * @param username the username of the message author
 	 * @param content the message content
+	 * @return the message ID
 	 */
-	public void postMessage(int roomId, int userId, String username, String content) {
+	public long postMessage(int roomId, int userId, String username, String content) {
+		long id = messageIdCounter++;
+
 		//@formatter:off
 		ChatMessage message = new ChatMessage.Builder()
 			.roomId(roomId)
 			.userId(userId)
 			.username(username)
 			.content(content)
-			.messageId(messageIdCounter++)
+			.messageId(id)
 			.timestamp(LocalDateTime.now())
 		.build();
 		//@formatter:on
@@ -157,6 +164,18 @@ public class FileChatConnection implements ChatConnection {
 		if (handler != null) {
 			handler.handle(message);
 		}
+
+		return id;
+	}
+
+	@Override
+	public boolean deleteMessage(int roomId, long messageId) throws RoomNotFoundException, RoomPermissionException, IOException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean editMessage(int roomId, long messageId, String updatedMessage) throws RoomNotFoundException, RoomPermissionException, IOException {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

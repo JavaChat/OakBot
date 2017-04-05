@@ -25,7 +25,7 @@ public interface ChatConnection extends Closeable, Flushable {
 	 * @param roomId the room ID
 	 * @throws RoomNotFoundException if the room does not exist
 	 * @throws RoomPermissionException if messages cannot be posted to this room
-	 * @throws IOException if there's a problem connecting to the room
+	 * @throws IOException if there's a network problem
 	 */
 	void joinRoom(int roomId) throws RoomNotFoundException, RoomPermissionException, IOException;
 
@@ -33,7 +33,7 @@ public interface ChatConnection extends Closeable, Flushable {
 	 * Leaves a chat room. This method does nothing if the room was never
 	 * joined.
 	 * @param roomId the room ID
-	 * @throws IOException if there's network problem
+	 * @throws IOException if there's a network problem
 	 */
 	void leaveRoom(int roomId) throws IOException;
 
@@ -42,38 +42,68 @@ public interface ChatConnection extends Closeable, Flushable {
 	 * size, it will be truncated.
 	 * @param roomId the ID of the chat room
 	 * @param message the message to post
-	 * @throws IOException if there's network problem
+	 * @return the ID of the new message
+	 * @throws RoomNotFoundException if the room does not exist
+	 * @throws RoomPermissionException if the message can't be posted to the
+	 * room because it doesn't exist or the bot doesn't have permission
+	 * @throws IOException if there's a network problem
 	 */
-	void sendMessage(int roomId, String message) throws IOException;
+	long sendMessage(int roomId, String message) throws RoomNotFoundException, RoomPermissionException, IOException;
 
 	/**
 	 * Posts a message to a chat room.
 	 * @param roomId the ID of the chat room
 	 * @param message the message to post
-	 * @param splitStragey defines how the message should be split up if the
-	 * chat connect has a max message size
-	 * @throws IOException if there's network problem
+	 * @param splitStrategy defines how the message should be split up if the
+	 * message exceeds the chat connection's a max message size
+	 * @return the ID(s) of the new message(s). This list will contain multiple
+	 * IDs if the message was split up into multiple messages
+	 * @throws RoomNotFoundException if the room does not exist
+	 * @throws RoomPermissionException if the message can't be posted to the
+	 * room because it doesn't exist or the bot doesn't have permission
+	 * @throws IOException if there's a network problem
 	 */
-	void sendMessage(int roomId, String message, SplitStrategy splitStragey) throws IOException;
+	List<Long> sendMessage(int roomId, String message, SplitStrategy splitStrategy) throws RoomNotFoundException, RoomPermissionException, IOException;
+
+	/**
+	 * Deletes a message.
+	 * @param roomId the ID of the room that the message was posted to
+	 * @param messageId the ID of the message to delete
+	 * @return true if it was successfully deleted, false if not
+	 * @throws RoomNotFoundException if the room does not exist
+	 * @throws RoomPermissionException if the room because it doesn't exist or
+	 * the bot doesn't have permission to post in that room anymore
+	 * @throws IOException if there's a network problem
+	 */
+	boolean deleteMessage(int roomId, long messageId) throws RoomNotFoundException, RoomPermissionException, IOException;
+
+	/**
+	 * Edits a message that was already posted
+	 * @param roomId the ID of the room that the message was posted to
+	 * @param messageId the ID of the message to edit
+	 * @param updatedMessage the updated message
+	 * @return boolean if the edit was successful, false if not
+	 * @throws RoomNotFoundException if the room does not exist
+	 * @throws RoomPermissionException if the room because it doesn't exist or
+	 * the bot doesn't have permission to post in that room anymore
+	 * @throws IOException if there's a network problem
+	 */
+	boolean editMessage(int roomId, long messageId, String updatedMessage) throws RoomNotFoundException, RoomPermissionException, IOException;
 
 	/**
 	 * Respond to new messages as they become available. This method blocks
-	 * until the chat connection is closed.
+	 * until the chat connection is closed. Use the {@link #joinRoom(int)}
+	 * method to listen for messages in a room.
 	 * @param handler handles the messages
 	 */
 	void listen(ChatMessageHandler handler) throws IOException;
-
-	/**
-	 * Handles a {@link ChatMessage}.
-	 * @author Michael Angstadt
-	 */
 
 	/**
 	 * Gets the most recent messages from a chat room.
 	 * @param roomId the chat room ID
 	 * @param count the number of messages to retrieve
 	 * @return the messages
-	 * @throws IOException if there's network problem
+	 * @throws IOException if there's a network problem
 	 */
 	List<ChatMessage> getMessages(int roomId, int count) throws IOException;
 }
