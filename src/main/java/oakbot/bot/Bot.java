@@ -88,7 +88,7 @@ public class Bot {
 			try {
 				join(room, quiet);
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Could not join room " + room + ".", e);
+				logger.log(Level.SEVERE, "Could not join room " + room + ". Removing from rooms list.", e);
 				this.rooms.remove(room);
 			}
 		}
