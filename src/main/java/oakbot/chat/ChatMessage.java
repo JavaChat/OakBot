@@ -176,6 +176,11 @@ public class ChatMessage {
 		return false;
 	}
 
+	@Override
+	public String toString() {
+		return "ChatMessage [messageId=" + messageId + ", timestamp=" + timestamp + ", userId=" + userId + ", username=" + username + ", roomId=" + roomId + ", edits=" + edits + ", content=" + content + "]";
+	}
+
 	/**
 	 * Used for constructing {@link ChatMessage} instances.
 	 * @author Michael Angstadt
