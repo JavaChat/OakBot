@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -39,6 +41,7 @@ public class Bot {
 	private final Integer userId;
 	private final ChatConnection connection;
 	private final List<Integer> admins, bannedUsers;
+	private final Integer hideImagesAfter;
 	private final Rooms rooms;
 	private final List<Command> commands;
 	private final LearnedCommands learnedCommands;
@@ -48,6 +51,8 @@ public class Bot {
 	private final Database database;
 	private final UnknownCommandHandler unknownCommandHandler;
 	private final Pattern commandRegex;
+	private final Timer timer = new Timer();
+	private final Pattern imageUrlRegex = Pattern.compile("^https?://.*?\\.(jpg|jpeg|png|gif)$", Pattern.CASE_INSENSITIVE);
 
 	private Bot(Builder builder) {
 		connection = builder.connection;
@@ -55,6 +60,7 @@ public class Bot {
 		password = builder.password;
 		userName = builder.userName;
 		userId = builder.userId;
+		hideImagesAfter = builder.hideImagesAfter;
 		trigger = builder.trigger;
 		greeting = builder.greeting;
 		rooms = builder.rooms;
@@ -189,18 +195,54 @@ public class Bot {
 	}
 
 	private void sendMessage(int roomId, ChatResponse reply) {
-		String messageText = reply.getMessage();
-		for (ChatResponseFilter filter : responseFilters) {
-			if (filter.isEnabled(roomId)) {
-				messageText = filter.filter(messageText);
+		final String filteredMessage;
+		{
+			String messageText = reply.getMessage();
+			for (ChatResponseFilter filter : responseFilters) {
+				if (filter.isEnabled(roomId)) {
+					messageText = filter.filter(messageText);
+				}
 			}
+			filteredMessage = messageText;
 		}
 
 		try {
-			connection.sendMessage(roomId, messageText, reply.getSplitStrategy());
+			List<Long> messageIds = connection.sendMessage(roomId, filteredMessage, reply.getSplitStrategy());
+
+			/*
+			 * If the message is a URL to an image, SO chat will display the
+			 * image in the chat room. This is nice, but gets annoying if the
+			 * image is large or if it's an animated GIF.
+			 * 
+			 * After giving people some time to see the image, edit these
+			 * messages so that the image no longer displays, but the URL is
+			 * still preserved.
+			 */
+			if (hideImagesAfter != null && isImageUrl(filteredMessage)) {
+				long messageId = messageIds.get(0);
+				timer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						try {
+							connection.editMessage(roomId, messageId, "> " + filteredMessage);
+						} catch (Exception e) {
+							logger.log(Level.SEVERE, "Problem editing chat message " + messageId + " in room " + roomId + ".", e);
+						}
+					}
+				}, hideImagesAfter);
+			}
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Problem sending chat message.", e);
 		}
+	}
+
+	/**
+	 * Determines if a chat message consists of a URL to an image.
+	 * @param message the chat message
+	 * @return true if it is a URL to an image, false if not
+	 */
+	private boolean isImageUrl(String message) {
+		return imageUrlRegex.matcher(message).find();
 	}
 
 	/**
@@ -362,7 +404,7 @@ public class Bot {
 	public static class Builder {
 		private ChatConnection connection;
 		private String email, password, userName, trigger = "=", greeting;
-		private Integer userId;
+		private Integer userId, hideImagesAfter;
 		private Rooms rooms = new Rooms(Arrays.asList(1));
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
@@ -388,6 +430,11 @@ public class Bot {
 		public Builder user(String userName, Integer userId) {
 			this.userName = (userName == null || userName.isEmpty()) ? null : userName;
 			this.userId = userId;
+			return this;
+		}
+
+		public Builder hideImagesAfter(Integer hideImagesAfter) {
+			this.hideImagesAfter = hideImagesAfter;
 			return this;
 		}
 

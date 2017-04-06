@@ -16,6 +16,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey;
 	private final List<Integer> homeRooms, admins, bannedUsers;
 	private final int heartbeat, botUserId;
+	private final Integer hideImagesAfter;
 	private final Path javadocPath;
 
 	/**
@@ -41,6 +42,7 @@ public class BotProperties extends PropertiesWrapper {
 		dictionaryKey = get("dictionary.key");
 		aboutHost = get("about.host");
 		catKey = get("cat.key");
+		hideImagesAfter = getInteger("hideImagesAfter");
 	}
 
 	/**
@@ -155,5 +157,13 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public String getCatKey() {
 		return catKey;
+	}
+
+	/**
+	 * Gets the amount of time to wait before hiding an images the bot posts.
+	 * @return the amount of time (in milliseconds) or null not to hide images
+	 */
+	public Integer getHideImagesAfter() {
+		return hideImagesAfter;
 	}
 }

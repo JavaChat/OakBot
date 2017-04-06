@@ -45,6 +45,7 @@ dictionary.key | (optional) This is used by the "define" command to lookup dicti
 greeting | (optional) The message OakBot will post when it joins a room. If this property is not defined, OakBot will not say anything when it joins a room.
 about.host | (optional) The name of the server that is hosting this bot.  Displayed in the "about" command.
 cat.key | (optional) API key for [thecatapi.com](http://thecatapi.com/docs.html), which is used with the "cat" command. A key is not required in order to query the API.
+hideImagesAfter | (optional) Any images that the bot posts will be automatically hidden after the specified amount of time (in milliseconds). The image will be replaced by the image's URL. Note that this value cannot exceed about 1 minute, which is the maximum amount of time SO Chat gives you to edit/delete your posts.
 
 # Adding/Removing Commands
 
