@@ -34,7 +34,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import oakbot.chat.RobustClient.JsonResponse;
 
 /**
- * A connection to Stackoverflow chat.
+ * A connection to Stackoverflow chat. This class is thread-safe (fingers
+ * crossed).
  * @author Michael Angstadt
  * @see <a href="http://chat.stackoverflow.com">chat.stackoverflow.com</a>
  * @see <a href=
@@ -105,9 +106,24 @@ public class StackoverflowChat implements ChatConnection {
 
 	@Override
 	public void leaveRoom(int roomId) {
-		Long id = prevMessageIds.get(roomId);
-		if (id == null) {
-			return;
+		String fkey;
+		synchronized (this) {
+			/*
+			 * If the room has no entry in the prevMessageIds map, then it means
+			 * the room was never joined.
+			 */
+			if (!prevMessageIds.containsKey(roomId)) {
+				return;
+			}
+
+			/*
+			 * If it has a prevMessageId entry, then it should always have an
+			 * fkey, but check to be sure.
+			 */
+			fkey = fkeyCache.get(roomId);
+			if (fkey == null) {
+				return;
+			}
 		}
 
 		/*
@@ -118,7 +134,6 @@ public class StackoverflowChat implements ChatConnection {
 		 * that "fall & fade away" animation that you see when someone leaves,
 		 * but it doesn't.
 		 */
-		String fkey = fkeyCache.get(roomId);
 		LeaveRoomRequest request = new LeaveRoomRequest(roomId, fkey);
 		try {
 			send(request).attempts(1).asHttp();
@@ -131,7 +146,10 @@ public class StackoverflowChat implements ChatConnection {
 		 * the same during the entire login session.
 		 */
 		//fkeyCache.remove(roomId);
-		prevMessageIds.remove(roomId);
+
+		synchronized (this) {
+			prevMessageIds.remove(roomId);
+		}
 	}
 
 	@Override
@@ -255,24 +273,27 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	private List<ChatMessage> getNewMessages(int room) throws IOException {
-		Long prevMessageId = prevMessageIds.get(room);
+		Long prevMessageId;
+		synchronized (this) {
+			prevMessageId = prevMessageIds.get(room);
 
-		/*
-		 * If the bot just joined the room, get the ID of the latest message so
-		 * we know which messages are new.
-		 */
-		if (prevMessageId == null) {
-			List<ChatMessage> messages = getMessages(room, 1);
+			/*
+			 * If the bot just joined the room, get the ID of the latest message
+			 * so we know which messages are new.
+			 */
+			if (prevMessageId == null) {
+				List<ChatMessage> messages = getMessages(room, 1);
 
-			if (messages.isEmpty()) {
-				prevMessageId = 0L;
-			} else {
-				ChatMessage last = messages.get(messages.size() - 1);
-				prevMessageId = last.getMessageId();
+				if (messages.isEmpty()) {
+					prevMessageId = 0L;
+				} else {
+					ChatMessage last = messages.get(messages.size() - 1);
+					prevMessageId = last.getMessageId();
+				}
+				prevMessageIds.put(room, prevMessageId);
+
+				return Collections.emptyList();
 			}
-			prevMessageIds.put(room, prevMessageId);
-
-			return Collections.emptyList();
 		}
 
 		/*
@@ -311,7 +332,10 @@ public class StackoverflowChat implements ChatConnection {
 		}
 
 		ChatMessage latest = newMessages.get(newMessages.size() - 1);
-		prevMessageIds.put(room, latest.getMessageId());
+
+		synchronized (this) {
+			prevMessageIds.put(room, latest.getMessageId());
+		}
 
 		return newMessages;
 	}
@@ -349,7 +373,7 @@ public class StackoverflowChat implements ChatConnection {
 	 * @throws RoomPermissionException if messages cannot be posted to this room
 	 * @throws IOException if there's a network problem
 	 */
-	private String getFKey(int roomId) throws IOException {
+	private synchronized String getFKey(int roomId) throws IOException {
 		String fkey = fkeyCache.get(roomId);
 		if (fkey != null) {
 			return fkey;
@@ -382,7 +406,11 @@ public class StackoverflowChat implements ChatConnection {
 	public void close() throws IOException {
 		flush();
 
-		List<Integer> watchedRooms = new ArrayList<>(prevMessageIds.keySet());
+		List<Integer> watchedRooms;
+		synchronized (this) {
+			watchedRooms = new ArrayList<>(prevMessageIds.keySet());
+		}
+
 		for (Integer roomId : watchedRooms) {
 			leaveRoom(roomId);
 		}
