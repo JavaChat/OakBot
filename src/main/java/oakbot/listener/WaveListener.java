@@ -79,6 +79,15 @@ public class WaveListener implements Listener {
 			lastWave = now;
 		}
 
+		/*
+		 * Wait for a moment to make it seem less robotic.
+		 */
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			//empty
+		}
+
 		String reply = wave.equals("o/") ? "\\o" : "o/";
 		return new ChatResponse(reply);
 	}
