@@ -5,9 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -51,7 +54,8 @@ public class Bot {
 	private final Database database;
 	private final UnknownCommandHandler unknownCommandHandler;
 	private final Pattern commandRegex;
-	private final Timer timer = new Timer();
+	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(TimeUnit.HOURS.toMillis(6));
+	private final Timer hideImagesTimer = new Timer();
 	private final Pattern imageUrlRegex = Pattern.compile("^https?://.*?\\.(jpg|jpeg|png|gif)$", Pattern.CASE_INSENSITIVE);
 
 	private Bot(Builder builder) {
@@ -99,99 +103,106 @@ public class Bot {
 			}
 		}
 
-		connection.listen((message) -> {
-			if (message.getContent() == null) {
-				//user deleted his/her message, ignore
-				return;
-			}
+		try {
+			connection.listen((message) -> {
+				if (message.getContent() == null) {
+					//user deleted his/her message, ignore
+					return;
+				}
 
-			if (message.getUserId() == userId) {
-				//message was posted by this bot, ignore
-				return;
-			}
+				if (message.getUserId() == userId) {
+					//message was posted by this bot, ignore
+					return;
+				}
 
-			if (bannedUsers.contains(message.getUserId())) {
-				//message was posted by a banned user, ignore
-				return;
-			}
+				if (bannedUsers.contains(message.getUserId())) {
+					//message was posted by a banned user, ignore
+					return;
+				}
 
-			List<ChatResponse> replies = new ArrayList<>();
-			boolean isUserAdmin = admins.contains(message.getUserId());
-			BotContext context = new BotContext(isUserAdmin, trigger, this.rooms.getRooms(), this.rooms.getHomeRooms());
+				inactiveRoomTasks.reset(message.getRoomId());
 
-			replies.addAll(handleListeners(message, context));
+				List<ChatResponse> replies = new ArrayList<>();
+				boolean isUserAdmin = admins.contains(message.getUserId());
+				BotContext context = new BotContext(isUserAdmin, trigger, this.rooms.getRooms(), this.rooms.getHomeRooms());
 
-			ChatCommand command = asCommand(message);
-			if (command != null) {
-				replies.addAll(handleCommands(command, context));
-			}
+				replies.addAll(handleListeners(message, context));
 
-			if (context.isShutdown()) {
-				String shutdownMessage = context.getShutdownMessage();
-				if (shutdownMessage != null) {
+				ChatCommand command = asCommand(message);
+				if (command != null) {
+					replies.addAll(handleCommands(command, context));
+				}
+
+				if (context.isShutdown()) {
+					String shutdownMessage = context.getShutdownMessage();
+					if (shutdownMessage != null) {
+						try {
+							broadcast(shutdownMessage);
+						} catch (IOException e) {
+							//ignore
+						}
+					}
 					try {
-						broadcast(shutdownMessage);
+						connection.close();
 					} catch (IOException e) {
 						//ignore
 					}
+
+					if (database != null) {
+						database.commit();
+					}
+
+					return;
 				}
-				try {
-					connection.close();
-				} catch (IOException e) {
-					//ignore
+
+				if (!replies.isEmpty()) {
+					if (logger.isLoggable(Level.INFO)) {
+						logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+					}
+
+					if (stats != null) {
+						stats.incMessagesRespondedTo(replies.size());
+					}
+
+					for (ChatResponse reply : replies) {
+						sendMessage(message.getRoomId(), reply);
+					}
+				}
+
+				for (JoinRoomEvent event : context.getRoomsToJoin()) {
+					ChatResponse response = null;
+					try {
+						join(event.getRoomId());
+						response = event.success();
+					} catch (RoomNotFoundException e) {
+						response = event.ifRoomDoesNotExist();
+					} catch (RoomPermissionException e) {
+						response = event.ifBotDoesNotHavePermission();
+					} catch (IOException e) {
+						response = event.ifOther(e);
+					}
+
+					if (response != null) {
+						sendMessage(message.getRoomId(), response);
+					}
+				}
+
+				for (Integer roomId : context.getRoomsToLeave()) {
+					try {
+						leave(roomId);
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
+					}
 				}
 
 				if (database != null) {
 					database.commit();
 				}
-
-				return;
-			}
-
-			if (!replies.isEmpty()) {
-				if (logger.isLoggable(Level.INFO)) {
-					logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
-				}
-
-				if (stats != null) {
-					stats.incMessagesRespondedTo(replies.size());
-				}
-
-				for (ChatResponse reply : replies) {
-					sendMessage(message.getRoomId(), reply);
-				}
-			}
-
-			for (JoinRoomEvent event : context.getRoomsToJoin()) {
-				ChatResponse response = null;
-				try {
-					join(event.getRoomId());
-					response = event.success();
-				} catch (RoomNotFoundException e) {
-					response = event.ifRoomDoesNotExist();
-				} catch (RoomPermissionException e) {
-					response = event.ifBotDoesNotHavePermission();
-				} catch (IOException e) {
-					response = event.ifOther(e);
-				}
-
-				if (response != null) {
-					sendMessage(message.getRoomId(), response);
-				}
-			}
-
-			for (Integer roomId : context.getRoomsToLeave()) {
-				try {
-					leave(roomId);
-				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
-				}
-			}
-
-			if (database != null) {
-				database.commit();
-			}
-		});
+			});
+		} finally {
+			hideImagesTimer.cancel();
+			inactiveRoomTasks.cancelAll();
+		}
 	}
 
 	private void sendMessage(int roomId, ChatResponse reply) {
@@ -220,7 +231,7 @@ public class Bot {
 			 */
 			if (hideImagesAfter != null && isImageUrl(filteredMessage)) {
 				long messageId = messageIds.get(0);
-				timer.schedule(new TimerTask() {
+				hideImagesTimer.schedule(new TimerTask() {
 					@Override
 					public void run() {
 						try {
@@ -295,6 +306,7 @@ public class Bot {
 			connection.sendMessage(roomId, greeting);
 		}
 		rooms.add(roomId);
+		inactiveRoomTasks.reset(roomId);
 	}
 
 	/**
@@ -305,6 +317,7 @@ public class Bot {
 	public void leave(int roomId) throws IOException {
 		connection.leaveRoom(roomId);
 		rooms.remove(roomId);
+		inactiveRoomTasks.cancel(roomId);
 	}
 
 	/**
@@ -394,6 +407,59 @@ public class Bot {
 		List<Integer> rooms = new ArrayList<>(this.rooms.getRooms());
 		for (Integer room : rooms) {
 			connection.sendMessage(room, message);
+		}
+	}
+
+	private class InactiveRoomTasks {
+		//@formatter:off
+		private final String[] messages = {
+			"*farts*",
+			"Dead chat. :(",
+			"*picks nose*",
+			"*reads a book*"
+		};
+		//@formatter:on
+
+		private final long waitTime;
+		private final Timer timer = new Timer();
+		private final Map<Integer, TimerTask> tasks = new HashMap<>();
+
+		public InactiveRoomTasks(long waitTime) {
+			this.waitTime = waitTime;
+		}
+
+		public void reset(int roomId) {
+			TimerTask task = tasks.get(roomId);
+			if (task != null) {
+				task.cancel();
+			}
+
+			task = new TimerTask() {
+				@Override
+				public void run() {
+					int rand = (int) (Math.random() * messages.length);
+					String message = messages[rand];
+					try {
+						connection.sendMessage(roomId, message);
+					} catch (Exception e) {
+						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
+					}
+				}
+			};
+
+			tasks.put(roomId, task);
+			timer.scheduleAtFixedRate(task, waitTime, waitTime);
+		}
+
+		public void cancel(int roomId) {
+			TimerTask task = tasks.remove(roomId);
+			if (task != null) {
+				task.cancel();
+			}
+		}
+
+		public void cancelAll() {
+			timer.cancel();
 		}
 	}
 
