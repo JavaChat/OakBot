@@ -20,11 +20,9 @@ import oakbot.util.ChatBuilder;
 public class AfkListener implements Listener {
 	private final long timeBetweenWarnings = TimeUnit.MINUTES.toMillis(15);
 	private final AfkCommand command;
-	private final String trigger;
 
-	public AfkListener(AfkCommand command, String trigger) {
+	public AfkListener(AfkCommand command) {
 		this.command = command;
-		this.trigger = trigger;
 	}
 
 	@Override
@@ -44,7 +42,7 @@ public class AfkListener implements Listener {
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
-		if (isUserAwayAndTypedAfkCommandAgain(message)) {
+		if (isUserAwayAndTypedAfkCommandAgain(message, context.getTrigger())) {
 			return null;
 		}
 
@@ -125,7 +123,7 @@ public class AfkListener implements Listener {
 	 * @param message the chat message
 	 * @return true or false
 	 */
-	private boolean isUserAwayAndTypedAfkCommandAgain(ChatMessage message) {
+	private boolean isUserAwayAndTypedAfkCommandAgain(ChatMessage message, String trigger) {
 		//@formatter:off
 		return
 		command.isAway(message.getUserId()) &&

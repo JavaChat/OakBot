@@ -107,7 +107,7 @@ public class Main {
 			if (javadocCommand != null) {
 				listeners.add(new JavadocListener(javadocCommand));
 			}
-			listeners.add(new AfkListener(afkCommand, props.getTrigger()));
+			listeners.add(new AfkListener(afkCommand));
 			listeners.add(new WaveListener(props.getBotUserName(), mentionListener));
 
 			/*

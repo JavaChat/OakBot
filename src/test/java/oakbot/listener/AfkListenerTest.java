@@ -3,8 +3,11 @@ package oakbot.listener;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.command.AfkCommand;
@@ -13,6 +16,8 @@ import oakbot.command.AfkCommand;
  * @author Michael Angstadt
  */
 public class AfkListenerTest {
+	private final BotContext context = new BotContext(false, "/", Collections.emptyList(), Collections.emptyList());
+
 	@Test
 	public void mention_full() {
 		AfkCommand command = new AfkCommand();
@@ -30,8 +35,8 @@ public class AfkListenerTest {
 		.build();
 		//@formatter:on
 
-		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, null);
+		AfkListener listener = new AfkListener(command);
+		ChatResponse response = listener.onMessage(message, context);
 		assertEquals(":1 Frank is away", response.getMessage());
 	}
 
@@ -52,8 +57,8 @@ public class AfkListenerTest {
 		.build();
 		//@formatter:on
 
-		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, null);
+		AfkListener listener = new AfkListener(command);
+		ChatResponse response = listener.onMessage(message, context);
 		assertEquals(":1 Frank is away\nFranny is away: brb\nfra Niegel is away", response.getMessage());
 	}
 
@@ -74,8 +79,8 @@ public class AfkListenerTest {
 		.build();
 		//@formatter:on
 
-		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, null);
+		AfkListener listener = new AfkListener(command);
+		ChatResponse response = listener.onMessage(message, context);
 		assertNull(response);
 	}
 
@@ -93,10 +98,10 @@ public class AfkListenerTest {
 		.build();
 		//@formatter:on
 
-		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, null);
+		AfkListener listener = new AfkListener(command);
+		ChatResponse response = listener.onMessage(message, context);
 		assertEquals(":1 Frank is away", response.getMessage());
-		response = listener.onMessage(message, null);
+		response = listener.onMessage(message, context);
 		assertNull(response);
 	}
 
@@ -114,11 +119,11 @@ public class AfkListenerTest {
 		.build();
 		//@formatter:on
 
-		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, null);
+		AfkListener listener = new AfkListener(command);
+		ChatResponse response = listener.onMessage(message, context);
 		assertEquals(":1 Welcome back!", response.getMessage());
 
-		response = listener.onMessage(message, null);
+		response = listener.onMessage(message, context);
 		assertNull(response);
 	}
 
@@ -136,8 +141,8 @@ public class AfkListenerTest {
 		.build();
 		//@formatter:on
 
-		AfkListener listener = new AfkListener(command, "/");
-		ChatResponse response = listener.onMessage(message, null);
+		AfkListener listener = new AfkListener(command);
+		ChatResponse response = listener.onMessage(message, context);
 		assertNull(response);
 	}
 }
