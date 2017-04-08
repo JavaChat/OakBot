@@ -54,8 +54,8 @@ public class Bot {
 	private final Database database;
 	private final UnknownCommandHandler unknownCommandHandler;
 	private final Pattern commandRegex;
+	private final Timer timer = new Timer();
 	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(TimeUnit.HOURS.toMillis(6));
-	private final Timer hideImagesTimer = new Timer();
 	private final Pattern imageUrlRegex = Pattern.compile("^https?://[^\\s]*?\\.(jpg|jpeg|png|gif)$", Pattern.CASE_INSENSITIVE);
 
 	private Bot(Builder builder) {
@@ -200,8 +200,7 @@ public class Bot {
 				}
 			});
 		} finally {
-			hideImagesTimer.cancel();
-			inactiveRoomTasks.cancelAll();
+			timer.cancel();
 		}
 	}
 
@@ -231,7 +230,7 @@ public class Bot {
 			 */
 			if (hideImagesAfter != null && isImageUrl(filteredMessage)) {
 				long messageId = messageIds.get(0);
-				hideImagesTimer.schedule(new TimerTask() {
+				timer.schedule(new TimerTask() {
 					@Override
 					public void run() {
 						try {
@@ -421,7 +420,6 @@ public class Bot {
 		//@formatter:on
 
 		private final long waitTime;
-		private final Timer timer = new Timer();
 		private final Map<Integer, TimerTask> tasks = new HashMap<>();
 
 		public InactiveRoomTasks(long waitTime) {
@@ -456,10 +454,6 @@ public class Bot {
 			if (task != null) {
 				task.cancel();
 			}
-		}
-
-		public void cancelAll() {
-			timer.cancel();
 		}
 	}
 
