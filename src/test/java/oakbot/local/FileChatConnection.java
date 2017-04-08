@@ -170,11 +170,13 @@ public class FileChatConnection implements ChatConnection {
 
 	@Override
 	public boolean deleteMessage(int roomId, long messageId) throws RoomNotFoundException, RoomPermissionException, IOException {
+		System.out.println(roomId + "> " + botUsername + " > (delete message " + messageId);
 		return true;
 	}
 
 	@Override
 	public boolean editMessage(int roomId, long messageId, String updatedMessage) throws RoomNotFoundException, RoomPermissionException, IOException {
+		System.out.println(roomId + "> " + botUsername + " > EDIT " + messageId + ": " + updatedMessage);
 		return true;
 	}
 
