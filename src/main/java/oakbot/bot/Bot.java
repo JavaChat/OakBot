@@ -1,10 +1,13 @@
 package oakbot.bot;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +19,13 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 
 import oakbot.Database;
@@ -27,11 +37,13 @@ import oakbot.chat.ChatMessage;
 import oakbot.chat.InvalidCredentialsException;
 import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.RoomPermissionException;
+import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommands;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.Listener;
+import oakbot.util.ChatBuilder;
 
 /**
  * A Stackoverflow chat bot.
@@ -102,6 +114,8 @@ public class Bot {
 				this.rooms.remove(room);
 			}
 		}
+
+		startQuoteOfTheDay();
 
 		try {
 			connection.listen((message) -> {
@@ -405,8 +419,69 @@ public class Bot {
 		 */
 		List<Integer> rooms = new ArrayList<>(this.rooms.getRooms());
 		for (Integer room : rooms) {
-			connection.sendMessage(room, message);
+			connection.sendMessage(room, message, SplitStrategy.WORD);
 		}
+	}
+
+	private void startQuoteOfTheDay() {
+		Calendar c = Calendar.getInstance();
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		c.add(Calendar.DAY_OF_MONTH, 1);
+		Date firstQuote = c.getTime();
+
+		timer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				String quote, author, permalink;
+				try {
+					JsonNode response = getResponse();
+					JsonNode quoteNode = response.get("contents").get("quotes").get(0);
+
+					quote = quoteNode.get("quote").asText();
+					author = quoteNode.get("author").asText();
+					permalink = quoteNode.get("permalink").asText();
+				} catch (Exception e) {
+					logger.log(Level.SEVERE, "Error querying quote API.", e);
+					return;
+				}
+
+				ChatBuilder cb = new ChatBuilder();
+				cb.italic().append('"').append(quote).append('"').italic();
+				cb.append(" -").append(author);
+				cb.append(' ').link("(source)", permalink);
+
+				try {
+					broadcast(cb.toString());
+				} catch (Exception e) {
+					logger.log(Level.SEVERE, "Error broadcasting quote.", e);
+				}
+			}
+
+			private JsonNode getResponse() throws IOException {
+				ObjectMapper mapper = new ObjectMapper();
+				HttpGet request = new HttpGet("http://quotes.rest/qod.json");
+				try (CloseableHttpClient client = HttpClients.createDefault()) {
+					try (CloseableHttpResponse response = client.execute(request)) {
+						try (InputStream in = response.getEntity().getContent()) {
+							return mapper.readTree(in);
+						}
+					}
+				}
+			}
+
+			//@formatter:off
+			/*
+			private JsonNode getResponse() throws IOException {
+				byte[] b = Files.readAllBytes(Paths.get("quotes.rest-example.json"));
+				ObjectMapper mapper = new ObjectMapper();
+				return mapper.readTree(b);
+			}
+			*/
+			//@formatter:on
+		}, firstQuote, TimeUnit.DAYS.toMillis(1));
 	}
 
 	private class InactiveRoomTasks {
