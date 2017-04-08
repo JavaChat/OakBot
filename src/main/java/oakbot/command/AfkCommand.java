@@ -124,6 +124,7 @@ public class AfkCommand implements Command {
 	 * @author Michael Angstadt
 	 */
 	public static class AfkUser {
+		private final Map<Integer, Long> lastWarnedUser = new HashMap<>();
 		private final String username, awayMessage;
 		private final int userId;
 
@@ -143,6 +144,27 @@ public class AfkCommand implements Command {
 
 		public int getUserId() {
 			return userId;
+		}
+
+		/**
+		 * Gets the time that a user was last notified by the bot that the AFK
+		 * user is away.
+		 * @param userId the user ID
+		 * @return the time or zero if the user never received a notification
+		 */
+		public long getTimeLastWarnedUser(int userId) {
+			Long time = lastWarnedUser.get(userId);
+			return (time == null) ? 0 : time;
+		}
+
+		/**
+		 * Resets the time that a user was last notified by the bot that the AFK
+		 * user is away.
+		 * @param userId
+		 */
+		public void setTimeLastWarnedUser(int userId) {
+			long time = System.currentTimeMillis();
+			lastWarnedUser.put(userId, time);
 		}
 	}
 }

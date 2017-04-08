@@ -2,6 +2,7 @@ package oakbot.listener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
@@ -17,7 +18,7 @@ import oakbot.util.ChatBuilder;
  * @see AfkCommand
  */
 public class AfkListener implements Listener {
-
+	private final long timeBetweenWarnings = TimeUnit.MINUTES.toMillis(15);
 	private final AfkCommand command;
 	private final String trigger;
 
@@ -51,11 +52,14 @@ public class AfkListener implements Listener {
 
 		List<String> mentions = message.getMentions();
 		List<AfkUser> mentionedAfkUsers = getAfkUsers(mentions);
-		if (!mentionedAfkUsers.isEmpty()) {
+		List<AfkUser> usersNotWarnedAbout = filterUsersNotWarnedAbout(mentionedAfkUsers, message.getUserId());
+		if (!usersNotWarnedAbout.isEmpty()) {
 			ChatBuilder cb = new ChatBuilder();
 			cb.reply(message);
 			boolean first = true;
-			for (AfkUser afkUser : mentionedAfkUsers) {
+			for (AfkUser afkUser : usersNotWarnedAbout) {
+				afkUser.setTimeLastWarnedUser(message.getUserId());
+
 				if (!first) {
 					cb.nl();
 				}
@@ -83,12 +87,36 @@ public class AfkListener implements Listener {
 		return null;
 	}
 
-	private List<AfkUser> getAfkUsers(List<String> mentions) {
-		List<AfkUser> awayInfo = new ArrayList<>();
-		for (String mention : mentions) {
-			awayInfo.addAll(command.getAfkUsers(mention));
+	/**
+	 * Determines if the bot recently warned this user about the AFK user(s)
+	 * being away.
+	 * @param afkUsers all AFK users that the person mentioned
+	 * @param userId the user ID of the person that mentioned the AFK users
+	 * @return the AFK users the user hasn't been warned about recently
+	 */
+	private List<AfkUser> filterUsersNotWarnedAbout(List<AfkUser> afkUsers, int userId) {
+		List<AfkUser> usersNotWarnedAbout = new ArrayList<>(afkUsers.size());
+		for (AfkUser afkUser : afkUsers) {
+			long lastWarnedUser = afkUser.getTimeLastWarnedUser(userId);
+			long sinceLastWarning = System.currentTimeMillis() - lastWarnedUser;
+			if (sinceLastWarning > timeBetweenWarnings) {
+				usersNotWarnedAbout.add(afkUser);
+			}
 		}
-		return awayInfo;
+		return usersNotWarnedAbout;
+	}
+
+	/**
+	 * Gets the users that are currently AFK.
+	 * @param mentions the mentions that were in the chat message
+	 * @return the users that are AFK
+	 */
+	private List<AfkUser> getAfkUsers(List<String> mentions) {
+		List<AfkUser> afkUsers = new ArrayList<>();
+		for (String mention : mentions) {
+			afkUsers.addAll(command.getAfkUsers(mention));
+		}
+		return afkUsers;
 	}
 
 	/**

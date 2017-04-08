@@ -80,6 +80,27 @@ public class AfkListenerTest {
 	}
 
 	@Test
+	public void mention_prevent_spam() {
+		AfkCommand command = new AfkCommand();
+		command.setAway(21, "Frank", "");
+
+		//@formatter:off
+		ChatMessage message = new ChatMessage.Builder()
+			.messageId(1)
+			.userId(65)
+			.username("Kyle")
+			.content("Where are you, @Frank?")
+		.build();
+		//@formatter:on
+
+		AfkListener listener = new AfkListener(command, "/");
+		ChatResponse response = listener.onMessage(message, null);
+		assertEquals(":1 Frank is away", response.getMessage());
+		response = listener.onMessage(message, null);
+		assertNull(response);
+	}
+
+	@Test
 	public void back() {
 		AfkCommand command = new AfkCommand();
 		command.setAway(21, "Frank", "");
