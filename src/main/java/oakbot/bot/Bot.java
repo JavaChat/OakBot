@@ -56,7 +56,7 @@ public class Bot {
 	private final Pattern commandRegex;
 	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(TimeUnit.HOURS.toMillis(6));
 	private final Timer hideImagesTimer = new Timer();
-	private final Pattern imageUrlRegex = Pattern.compile("^https?://.*?\\.(jpg|jpeg|png|gif)$", Pattern.CASE_INSENSITIVE);
+	private final Pattern imageUrlRegex = Pattern.compile("^https?://[^\\s]*?\\.(jpg|jpeg|png|gif)$", Pattern.CASE_INSENSITIVE);
 
 	private Bot(Builder builder) {
 		connection = builder.connection;
