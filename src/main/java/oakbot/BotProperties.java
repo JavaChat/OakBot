@@ -3,8 +3,12 @@ package oakbot;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import oakbot.util.PropertiesWrapper;
 
@@ -18,6 +22,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final int heartbeat, botUserId;
 	private final Integer hideImagesAfter;
 	private final Path javadocPath;
+	private final Map<Integer, String> welcomeMessages;
 
 	/**
 	 * @param properties the properties file to pull the settings from
@@ -43,6 +48,17 @@ public class BotProperties extends PropertiesWrapper {
 		aboutHost = get("about.host");
 		catKey = get("cat.key");
 		hideImagesAfter = getInteger("hideImagesAfter");
+
+		welcomeMessages = new HashMap<>();
+		Pattern p = Pattern.compile("welcome\\.(\\d+)\\.message");
+		for (String key : keySet()) {
+			Matcher m = p.matcher(key);
+			if (m.find()) {
+				Integer roomId = Integer.valueOf(m.group(1));
+				String message = get(key);
+				welcomeMessages.put(roomId, message);
+			}
+		}
 	}
 
 	/**
@@ -165,5 +181,13 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public Integer getHideImagesAfter() {
 		return hideImagesAfter;
+	}
+
+	/**
+	 * Gets the messages to post when a new user joins a room.
+	 * @return the messages (key = roomId, value = message)
+	 */
+	public Map<Integer, String> getWelcomeMessages() {
+		return welcomeMessages;
 	}
 }

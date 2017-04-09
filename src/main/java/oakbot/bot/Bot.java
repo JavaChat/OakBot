@@ -138,7 +138,7 @@ public class Bot {
 
 				List<ChatResponse> replies = new ArrayList<>();
 				boolean isUserAdmin = admins.contains(message.getUserId());
-				BotContext context = new BotContext(isUserAdmin, trigger, this.rooms.getRooms(), this.rooms.getHomeRooms());
+				BotContext context = new BotContext(isUserAdmin, trigger, connection, this.rooms.getRooms(), this.rooms.getHomeRooms());
 
 				replies.addAll(handleListeners(message, context));
 

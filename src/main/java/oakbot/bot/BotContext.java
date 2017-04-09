@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import oakbot.chat.ChatConnection;
 import oakbot.command.Command;
 import oakbot.listener.Listener;
 
@@ -16,6 +17,7 @@ import oakbot.listener.Listener;
 public class BotContext {
 	private final boolean authorAdmin;
 	private final String trigger;
+	private final ChatConnection connection;
 
 	private boolean shutdown = false;
 	private String shutdownMessage;
@@ -28,12 +30,14 @@ public class BotContext {
 	 * @param authorAdmin true if the incoming message author is an admin, false
 	 * if not
 	 * @param trigger the bot's command trigger
+	 * @param connection the connection to the chat system
 	 * @param currentRooms the rooms the bot is currently in
 	 * @param homeRooms the bot's home rooms
 	 */
-	public BotContext(boolean authorAdmin, String trigger, List<Integer> currentRooms, List<Integer> homeRooms) {
+	public BotContext(boolean authorAdmin, String trigger, ChatConnection connection, List<Integer> currentRooms, List<Integer> homeRooms) {
 		this.authorAdmin = authorAdmin;
 		this.trigger = trigger;
+		this.connection = connection;
 		this.currentRooms = Collections.unmodifiableList(currentRooms);
 		this.homeRooms = Collections.unmodifiableList(homeRooms);
 	}
@@ -131,6 +135,14 @@ public class BotContext {
 	 */
 	public String getShutdownMessage() {
 		return shutdownMessage;
+	}
+
+	/**
+	 * Gets the connection to the chat system.
+	 * @return the chat connection
+	 */
+	public ChatConnection getConnection() {
+		return connection;
 	}
 
 	/**

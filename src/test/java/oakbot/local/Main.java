@@ -48,6 +48,7 @@ import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
 import oakbot.listener.WaveListener;
+import oakbot.listener.WelcomeListener;
 
 /**
  * <p>
@@ -109,6 +110,7 @@ public class Main {
 			}
 			listeners.add(new AfkListener(afkCommand));
 			listeners.add(new WaveListener(props.getBotUserName(), mentionListener));
+			listeners.add(new WelcomeListener(database, props.getWelcomeMessages()));
 
 			/*
 			 * Put mention listener at the bottom so the other listeners have a

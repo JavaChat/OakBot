@@ -106,4 +106,13 @@ public interface ChatConnection extends Closeable, Flushable {
 	 * @throws IOException if there's a network problem
 	 */
 	List<ChatMessage> getMessages(int roomId, int count) throws IOException;
+
+	/**
+	 * Gets additional information about a chat user.
+	 * @param userId the user ID
+	 * @param roomId the ID of the room the user is in
+	 * @return the user information or null if the user can't be found
+	 * @throws IOException if there's a network problem
+	 */
+	UserInfo getUserInfo(int userId, int roomId) throws IOException;
 }

@@ -18,6 +18,7 @@ import oakbot.chat.ChatMessageHandler;
 import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.RoomPermissionException;
 import oakbot.chat.SplitStrategy;
+import oakbot.chat.UserInfo;
 
 /**
  * A mock chat connection that reads its chat messages from a text file.
@@ -204,5 +205,17 @@ public class FileChatConnection implements ChatConnection {
 		}
 
 		return sb.toString();
+	}
+
+	@Override
+	public UserInfo getUserInfo(int userId, int roomId) throws IOException {
+		//@formatter:off
+		return new UserInfo.Builder()
+			.userId(userId)
+			.roomId(roomId)
+			.username(humanUsername)
+			.reputation(500)
+		.build();
+		//@formatter:on
 	}
 }

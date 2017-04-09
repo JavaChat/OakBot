@@ -50,7 +50,7 @@ public class StackoverflowChat implements ChatConnection {
 	private static final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
 
 	private final CloseableHttpClient client;
-	private final Map<Integer, String> fkeyCache = new HashMap<>();
+	public final Map<Integer, String> fkeyCache = new HashMap<>();
 	private final Map<Integer, Long> prevMessageIds = new HashMap<>();
 	private final long retryPause, heartbeat;
 	private boolean closed;
@@ -232,6 +232,18 @@ public class StackoverflowChat implements ChatConnection {
 		}
 
 		return response.isSuccess();
+	}
+
+	@Override
+	public UserInfo getUserInfo(int userId, int roomId) throws IOException {
+		GetUserInfoRequest request = new GetUserInfoRequest(userId, roomId);
+		JsonResponse jsonResponse = send(request).statusCodes(200).asJson();
+		if (jsonResponse.isHttp404()) {
+			return null;
+		}
+
+		GetUserInfoResponse response = GetUserInfoResponse.parse(jsonResponse, roomId);
+		return (response == null) ? null : response.getUserInfo();
 	}
 
 	@Override
@@ -631,7 +643,7 @@ public class StackoverflowChat implements ChatConnection {
 
 			value = element.get("time_stamp");
 			if (value != null) {
-				LocalDateTime ts = LocalDateTime.ofInstant(Instant.ofEpochSecond(value.asLong()), ZoneId.systemDefault());
+				LocalDateTime ts = timestamp(value.asLong());
 				builder.timestamp(ts);
 			}
 
@@ -766,6 +778,66 @@ public class StackoverflowChat implements ChatConnection {
 		public boolean isNonExistantMessage() {
 			return nonExistantMessage;
 		}
+	}
+
+	private static class GetUserInfoRequest extends HttpPost {
+		public GetUserInfoRequest(int userId, int roomId) {
+			super(CHAT_DOMAIN + "/user/info");
+
+			//@formatter:off
+			List<NameValuePair> params = Arrays.asList(
+				new BasicNameValuePair("ids", Integer.toString(userId)),
+				new BasicNameValuePair("roomId", Integer.toString(roomId))
+			);
+			//@formatter:on
+			setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+		}
+	}
+
+	private static class GetUserInfoResponse {
+		private final UserInfo userInfo;
+
+		public GetUserInfoResponse(UserInfo userInfo) {
+			this.userInfo = userInfo;
+		}
+
+		public UserInfo getUserInfo() {
+			return userInfo;
+		}
+
+		public static GetUserInfoResponse parse(JsonResponse response, int roomId) throws IOException {
+			JsonNode userNode = response.getBody().get("users").get(0);
+			if (userNode == null) {
+				return null;
+			}
+
+			UserInfo.Builder builder = new UserInfo.Builder();
+			builder.userId(userNode.get("id").asInt());
+			builder.roomId(roomId);
+			builder.username(userNode.get("name").asText());
+
+			String profilePicture;
+			String emailHash = userNode.get("email_hash").asText();
+			if (emailHash.startsWith("!")) {
+				profilePicture = emailHash.substring(1);
+			} else {
+				profilePicture = "https://www.gravatar.com/avatar/" + emailHash + "?d=identicon&s=128";
+			}
+			builder.profilePicture(profilePicture);
+
+			builder.reputation(userNode.get("reputation").asInt());
+			builder.moderator(userNode.get("is_moderator").asBoolean());
+			builder.owner(userNode.get("is_owner").asBoolean());
+			builder.lastPost(timestamp(userNode.get("last_post").asLong()));
+			builder.lastSeen(timestamp(userNode.get("last_seen").asLong()));
+
+			return new GetUserInfoResponse(builder.build());
+		}
+	}
+
+	private static LocalDateTime timestamp(long ts) {
+		Instant instant = Instant.ofEpochSecond(ts);
+		return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
 	}
 
 	private RobustClient send(HttpUriRequest request) {
