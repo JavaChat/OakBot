@@ -67,7 +67,7 @@ public class Bot {
 	private final UnknownCommandHandler unknownCommandHandler;
 	private final Pattern commandRegex;
 	private final Timer timer = new Timer();
-	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(TimeUnit.HOURS.toMillis(6));
+	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(TimeUnit.HOURS.toMillis(6), TimeUnit.DAYS.toMillis(3));
 	private final Pattern imageUrlRegex = Pattern.compile("^https?://[^\\s]*?\\.(jpg|jpeg|png|gif)$", Pattern.CASE_INSENSITIVE);
 
 	private Bot(Builder builder) {
@@ -459,7 +459,7 @@ public class Bot {
 					logger.log(Level.SEVERE, "Error broadcasting quote.", e);
 				}
 
-				inactiveRoomTasks.resetAll();
+				inactiveRoomTasks.resetAfterQotd();
 			}
 
 			private JsonNode getResponse() throws IOException {
@@ -492,18 +492,31 @@ public class Bot {
 			"*farts*",
 			"Dead chat. :(",
 			"*picks nose*",
-			"*reads a book*"
+			"*reads a book*",
+			"*computes 10 trillionth digit of pi*"
 		};
 		//@formatter:on
 
-		private final long waitTime;
+		private final long waitTime, leaveRoomAfter;
 		private final Map<Integer, TimerTask> tasks = new HashMap<>();
+		private final Map<Integer, Long> resetTimes = new HashMap<>();
 
-		public InactiveRoomTasks(long waitTime) {
+		/**
+		 * @param waitTime how long to wait in between messages (in
+		 * milliseconds)
+		 * @param leaveRoomAfter how long to wait before the bot leaves the room
+		 * (in milliseconds)
+		 */
+		public InactiveRoomTasks(long waitTime, long leaveRoomAfter) {
 			this.waitTime = waitTime;
+			this.leaveRoomAfter = leaveRoomAfter;
 		}
 
 		public void reset(int roomId) {
+			reset(roomId, true);
+		}
+
+		public void reset(int roomId, boolean userPostedMessage) {
 			TimerTask task = tasks.get(roomId);
 			if (task != null) {
 				task.cancel();
@@ -512,6 +525,13 @@ public class Bot {
 			task = new TimerTask() {
 				@Override
 				public void run() {
+					long lastReset = resetTimes.get(roomId);
+					long elapsed = System.currentTimeMillis() - lastReset;
+					if (elapsed > leaveRoomAfter) {
+						leaveRoom();
+						return;
+					}
+
 					int rand = (int) (Math.random() * messages.length);
 					String message = messages[rand];
 					try {
@@ -520,15 +540,32 @@ public class Bot {
 						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
 					}
 				}
+
+				private void leaveRoom() {
+					try {
+						connection.sendMessage(roomId, "*quietly closes door behind him*");
+					} catch (Exception e) {
+						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
+					}
+
+					try {
+						Bot.this.leave(roomId);
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "Could not leave room " + roomId + ".", e);
+					}
+				}
 			};
 
+			if (userPostedMessage || !resetTimes.containsKey(roomId)) {
+				resetTimes.put(roomId, System.currentTimeMillis());
+			}
 			tasks.put(roomId, task);
 			timer.scheduleAtFixedRate(task, waitTime, waitTime);
 		}
 
-		public void resetAll() {
+		public void resetAfterQotd() {
 			for (Integer roomId : tasks.keySet()) {
-				reset(roomId);
+				reset(roomId, false);
 			}
 		}
 
@@ -537,6 +574,7 @@ public class Bot {
 			if (task != null) {
 				task.cancel();
 			}
+			resetTimes.remove(roomId);
 		}
 	}
 
