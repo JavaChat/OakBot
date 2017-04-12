@@ -458,6 +458,8 @@ public class Bot {
 				} catch (Exception e) {
 					logger.log(Level.SEVERE, "Error broadcasting quote.", e);
 				}
+
+				inactiveRoomTasks.resetAll();
 			}
 
 			private JsonNode getResponse() throws IOException {
@@ -522,6 +524,12 @@ public class Bot {
 
 			tasks.put(roomId, task);
 			timer.scheduleAtFixedRate(task, waitTime, waitTime);
+		}
+
+		public void resetAll() {
+			for (Integer roomId : tasks.keySet()) {
+				reset(roomId);
+			}
 		}
 
 		public void cancel(int roomId) {
