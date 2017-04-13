@@ -33,7 +33,7 @@ public class LearnedCommand implements Command {
 
 	@Override
 	public String description() {
-		return "A learned command.";
+		return "This command was created at runtime by chat room user. It does not have a help message.";
 	}
 
 	@Override
