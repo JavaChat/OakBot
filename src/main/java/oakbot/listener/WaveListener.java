@@ -17,12 +17,20 @@ import oakbot.chat.ChatMessage;
 public class WaveListener implements Listener {
 	private final Pattern waveRegex = Pattern.compile("(^|\\s)(o/|\\\\o)(\\s|$)");
 	private final long timeBetweenWaves = TimeUnit.MINUTES.toMillis(5);
+	private final long hesitation;
 	private final String botUsername;
 	private final MentionListener mentionListener;
 	private final Map<Integer, Long> lastWaves = new HashMap<>();
 
-	public WaveListener(String botUsername, MentionListener mentionListener) {
+	/**
+	 * @param botUsername the bot's username
+	 * @param hesitation the amount of time to wait before waving back (in
+	 * milliseconds)
+	 * @param mentionListener the mention listener
+	 */
+	public WaveListener(String botUsername, long hesitation, MentionListener mentionListener) {
 		this.botUsername = botUsername;
+		this.hesitation = hesitation;
 		this.mentionListener = mentionListener;
 	}
 
@@ -91,7 +99,7 @@ public class WaveListener implements Listener {
 		 * Wait for a moment to make it seem less robotic.
 		 */
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(hesitation);
 		} catch (InterruptedException e) {
 			//empty
 		}

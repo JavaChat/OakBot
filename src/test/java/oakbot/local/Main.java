@@ -109,7 +109,7 @@ public class Main {
 				listeners.add(new JavadocListener(javadocCommand));
 			}
 			listeners.add(new AfkListener(afkCommand));
-			listeners.add(new WaveListener(props.getBotUserName(), mentionListener));
+			listeners.add(new WaveListener(props.getBotUserName(), 1000, mentionListener));
 			listeners.add(new WelcomeListener(database, props.getWelcomeMessages()));
 
 			/*
