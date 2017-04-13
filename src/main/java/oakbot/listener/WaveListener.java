@@ -1,5 +1,7 @@
 package oakbot.listener;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,7 +19,7 @@ public class WaveListener implements Listener {
 	private final long timeBetweenWaves = TimeUnit.MINUTES.toMillis(5);
 	private final String botUsername;
 	private final MentionListener mentionListener;
-	private long lastWave = 0;
+	private final Map<Integer, Long> lastWaves = new HashMap<>();
 
 	public WaveListener(String botUsername, MentionListener mentionListener) {
 		this.botUsername = botUsername;
@@ -41,18 +43,9 @@ public class WaveListener implements Listener {
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
+		String content = message.getContent();
 		boolean mentioned = message.isMentioned(botUsername);
 
-		/*
-		 * Do not respond if the bot was not mentioned and it responded
-		 * recently.
-		 */
-		long now = System.currentTimeMillis();
-		if (!mentioned && now - lastWave < timeBetweenWaves) {
-			return null;
-		}
-
-		String content = message.getContent();
 		String wave;
 		if (mentioned) {
 			/*
@@ -64,8 +57,8 @@ public class WaveListener implements Listener {
 				return null;
 			}
 
-			wave = m.group(2);
 			mentionListener.ignoreNextMessage();
+			wave = m.group(2);
 		} else {
 			/*
 			 * If not mentioned, only respond if the message consists of just
@@ -75,8 +68,23 @@ public class WaveListener implements Listener {
 				return null;
 			}
 
+			int roomId = message.getRoomId();
+			Long lastWave = lastWaves.get(roomId);
+			if (lastWave == null) {
+				lastWave = 0L;
+			}
+
+			/*
+			 * Do not respond if the bot was not mentioned and it responded
+			 * recently.
+			 */
+			long now = System.currentTimeMillis();
+			if (now - lastWave < timeBetweenWaves) {
+				return null;
+			}
+
+			lastWaves.put(roomId, now);
 			wave = content;
-			lastWave = now;
 		}
 
 		/*
@@ -88,7 +96,11 @@ public class WaveListener implements Listener {
 			//empty
 		}
 
-		String reply = wave.equals("o/") ? "\\o" : "o/";
+		String reply = reverse(wave);
 		return new ChatResponse(reply);
+	}
+
+	private String reverse(String wave) {
+		return wave.equals("o/") ? "\\o" : "o/";
 	}
 }
