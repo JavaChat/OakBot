@@ -61,7 +61,25 @@ public class RollCommand implements Command {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
-				.append("I'm sorry, I can't do that, Dave.")
+				.append("Sorry, they don't pay me enough for that.")
+			);
+			//@formatter:on
+		}
+
+		if (parameters.times <= 0) {
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(chatCommand)
+				.italic("rolls nothing...")
+			);
+			//@formatter:on
+		}
+
+		if (parameters.sides <= 0) {
+			//@formatter:off
+			return new ChatResponse(new ChatBuilder()
+				.reply(chatCommand)
+				.append("I can't roll a zero sided die...")
 			);
 			//@formatter:on
 		}
