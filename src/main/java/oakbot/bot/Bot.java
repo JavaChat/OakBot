@@ -34,6 +34,7 @@ import oakbot.Statistics;
 import oakbot.bot.BotContext.JoinRoomEvent;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
+import oakbot.chat.ChatMessageHandler;
 import oakbot.chat.InvalidCredentialsException;
 import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.RoomPermissionException;
@@ -118,99 +119,107 @@ public class Bot {
 		startQuoteOfTheDay();
 
 		try {
-			connection.listen((message) -> {
-				if (message.getContent() == null) {
-					//user deleted his/her message, ignore
-					return;
-				}
+			connection.listen(new ChatMessageHandler() {
+				@Override
+				public void onMessage(ChatMessage message) {
+					if (message.getContent() == null) {
+						//user deleted his/her message, ignore
+						return;
+					}
 
-				if (message.getUserId() == userId) {
-					//message was posted by this bot, ignore
-					return;
-				}
+					if (message.getUserId() == userId) {
+						//message was posted by this bot, ignore
+						return;
+					}
 
-				if (bannedUsers.contains(message.getUserId())) {
-					//message was posted by a banned user, ignore
-					return;
-				}
+					if (bannedUsers.contains(message.getUserId())) {
+						//message was posted by a banned user, ignore
+						return;
+					}
 
-				inactiveRoomTasks.reset(message.getRoomId());
+					inactiveRoomTasks.reset(message.getRoomId());
 
-				List<ChatResponse> replies = new ArrayList<>();
-				boolean isUserAdmin = admins.contains(message.getUserId());
-				BotContext context = new BotContext(isUserAdmin, trigger, connection, this.rooms.getRooms(), this.rooms.getHomeRooms());
+					List<ChatResponse> replies = new ArrayList<>();
+					boolean isUserAdmin = admins.contains(message.getUserId());
+					BotContext context = new BotContext(isUserAdmin, trigger, connection, Bot.this.rooms.getRooms(), Bot.this.rooms.getHomeRooms());
 
-				replies.addAll(handleListeners(message, context));
+					replies.addAll(handleListeners(message, context));
 
-				ChatCommand command = asCommand(message);
-				if (command != null) {
-					replies.addAll(handleCommands(command, context));
-				}
+					ChatCommand command = asCommand(message);
+					if (command != null) {
+						replies.addAll(handleCommands(command, context));
+					}
 
-				if (context.isShutdown()) {
-					String shutdownMessage = context.getShutdownMessage();
-					if (shutdownMessage != null) {
+					if (context.isShutdown()) {
+						String shutdownMessage = context.getShutdownMessage();
+						if (shutdownMessage != null) {
+							try {
+								broadcast(shutdownMessage);
+							} catch (IOException e) {
+								//ignore
+							}
+						}
 						try {
-							broadcast(shutdownMessage);
+							connection.close();
 						} catch (IOException e) {
 							//ignore
 						}
+
+						if (database != null) {
+							database.commit();
+						}
+
+						return;
 					}
-					try {
-						connection.close();
-					} catch (IOException e) {
-						//ignore
+
+					if (!replies.isEmpty()) {
+						if (logger.isLoggable(Level.INFO)) {
+							logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+						}
+
+						if (stats != null) {
+							stats.incMessagesRespondedTo(replies.size());
+						}
+
+						for (ChatResponse reply : replies) {
+							sendMessage(message.getRoomId(), reply);
+						}
+					}
+
+					for (JoinRoomEvent event : context.getRoomsToJoin()) {
+						ChatResponse response = null;
+						try {
+							join(event.getRoomId());
+							response = event.success();
+						} catch (RoomNotFoundException e) {
+							response = event.ifRoomDoesNotExist();
+						} catch (RoomPermissionException e) {
+							response = event.ifBotDoesNotHavePermission();
+						} catch (IOException e) {
+							response = event.ifOther(e);
+						}
+
+						if (response != null) {
+							sendMessage(message.getRoomId(), response);
+						}
+					}
+
+					for (Integer roomId : context.getRoomsToLeave()) {
+						try {
+							leave(roomId);
+						} catch (IOException e) {
+							logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
+						}
 					}
 
 					if (database != null) {
 						database.commit();
 					}
-
-					return;
 				}
 
-				if (!replies.isEmpty()) {
-					if (logger.isLoggable(Level.INFO)) {
-						logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
-					}
-
-					if (stats != null) {
-						stats.incMessagesRespondedTo(replies.size());
-					}
-
-					for (ChatResponse reply : replies) {
-						sendMessage(message.getRoomId(), reply);
-					}
-				}
-
-				for (JoinRoomEvent event : context.getRoomsToJoin()) {
-					ChatResponse response = null;
-					try {
-						join(event.getRoomId());
-						response = event.success();
-					} catch (RoomNotFoundException e) {
-						response = event.ifRoomDoesNotExist();
-					} catch (RoomPermissionException e) {
-						response = event.ifBotDoesNotHavePermission();
-					} catch (IOException e) {
-						response = event.ifOther(e);
-					}
-
-					if (response != null) {
-						sendMessage(message.getRoomId(), response);
-					}
-				}
-
-				for (Integer roomId : context.getRoomsToLeave()) {
-					try {
-						leave(roomId);
-					} catch (IOException e) {
-						logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
-					}
-				}
-
-				if (database != null) {
-					database.commit();
+				@Override
+				public void onMessageEdited(ChatMessage message) {
+					onMessage(message);
 				}
 			});
 		} finally {

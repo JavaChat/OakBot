@@ -69,7 +69,7 @@ public class BotTest {
 			@Override
 			public Void answer(InvocationOnMock invocation) {
 				ChatMessageHandler handler = (ChatMessageHandler) invocation.getArguments()[0];
-				handler.handle(message);
+				handler.onMessage(message);
 				return null;
 			}
 		}).when(connection).listen(any(ChatMessageHandler.class));

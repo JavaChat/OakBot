@@ -163,7 +163,7 @@ public class FileChatConnection implements ChatConnection {
 		messages.add(message);
 
 		if (handler != null) {
-			handler.handle(message);
+			handler.onMessage(message);
 		}
 
 		return id;
