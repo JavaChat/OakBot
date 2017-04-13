@@ -88,19 +88,20 @@ public class AfkListenerTest {
 	public void mention_prevent_spam() {
 		AfkCommand command = new AfkCommand();
 		command.setAway(21, "Frank", "");
+		command.setAway(22, "Franny", "");
 
 		//@formatter:off
 		ChatMessage message = new ChatMessage.Builder()
 			.messageId(1)
 			.userId(65)
 			.username("Kyle")
-			.content("Where are you, @Frank?")
+			.content("Where are you, @Frank @Frank @Fran @Franny?")
 		.build();
 		//@formatter:on
 
 		AfkListener listener = new AfkListener(command);
 		ChatResponse response = listener.onMessage(message, context);
-		assertEquals(":1 Frank is away", response.getMessage());
+		assertEquals(":1 Frank is away\nFranny is away", response.getMessage());
 		response = listener.onMessage(message, context);
 		assertNull(response);
 	}

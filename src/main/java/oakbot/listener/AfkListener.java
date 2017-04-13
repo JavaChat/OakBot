@@ -1,7 +1,10 @@
 package oakbot.listener;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
@@ -48,8 +51,8 @@ public class AfkListener implements Listener {
 
 		boolean returned = command.setBack(message.getUserId());
 
-		List<String> mentions = message.getMentions();
-		List<AfkUser> mentionedAfkUsers = getAfkUsers(mentions);
+		Collection<String> mentions = new HashSet<>(message.getMentions()); //remove duplicates
+		Collection<AfkUser> mentionedAfkUsers = getAfkUsers(mentions);
 		List<AfkUser> usersNotWarnedAbout = filterUsersNotWarnedAbout(mentionedAfkUsers, message.getUserId());
 		if (!usersNotWarnedAbout.isEmpty()) {
 			ChatBuilder cb = new ChatBuilder();
@@ -92,7 +95,7 @@ public class AfkListener implements Listener {
 	 * @param userId the user ID of the person that mentioned the AFK users
 	 * @return the AFK users the user hasn't been warned about recently
 	 */
-	private List<AfkUser> filterUsersNotWarnedAbout(List<AfkUser> afkUsers, int userId) {
+	private List<AfkUser> filterUsersNotWarnedAbout(Collection<AfkUser> afkUsers, int userId) {
 		List<AfkUser> usersNotWarnedAbout = new ArrayList<>(afkUsers.size());
 		for (AfkUser afkUser : afkUsers) {
 			long lastWarnedUser = afkUser.getTimeLastWarnedUser(userId);
@@ -109,8 +112,8 @@ public class AfkListener implements Listener {
 	 * @param mentions the mentions that were in the chat message
 	 * @return the users that are AFK
 	 */
-	private List<AfkUser> getAfkUsers(List<String> mentions) {
-		List<AfkUser> afkUsers = new ArrayList<>();
+	private Collection<AfkUser> getAfkUsers(Collection<String> mentions) {
+		Set<AfkUser> afkUsers = new HashSet<>();
 		for (String mention : mentions) {
 			afkUsers.addAll(command.getAfkUsers(mention));
 		}

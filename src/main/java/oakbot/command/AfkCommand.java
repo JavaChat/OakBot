@@ -129,19 +129,31 @@ public class AfkCommand implements Command {
 		private final int userId;
 
 		public AfkUser(int userId, String username, String awayMessage) {
-			this.username = username;
 			this.userId = userId;
+			this.username = username;
 			this.awayMessage = awayMessage;
 		}
 
+		/**
+		 * Gets the full username.
+		 * @return the username
+		 */
 		public String getUsername() {
 			return username;
 		}
 
+		/**
+		 * Gets the user's away message.
+		 * @return the away message or null if not set
+		 */
 		public String getAwayMessage() {
 			return awayMessage;
 		}
 
+		/**
+		 * Gets the user ID.
+		 * @return the user ID
+		 */
 		public int getUserId() {
 			return userId;
 		}
@@ -165,6 +177,22 @@ public class AfkCommand implements Command {
 		public void setTimeLastWarnedUser(int userId) {
 			long time = System.currentTimeMillis();
 			lastWarnedUser.put(userId, time);
+		}
+
+		@Override
+		public int hashCode() {
+			return userId;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			AfkUser other = (AfkUser) obj;
+			if (userId != other.userId) return false;
+			if (!username.equals(other.username)) return false;
+			return true;
 		}
 	}
 }
