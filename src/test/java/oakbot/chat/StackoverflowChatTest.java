@@ -185,7 +185,7 @@ public class StackoverflowChatTest {
 					Set<NameValuePair> expected = new HashSet<>(Arrays.asList(
 						new BasicNameValuePair("fkey", "0123456789abcdef0123456789abcdef"),
 						new BasicNameValuePair("mode", "messages"),
-						new BasicNameValuePair("msgCount", "1")
+						new BasicNameValuePair("msgCount", "10")
 					));
 					//@formatter:on
 					Set<NameValuePair> actual = params(body);
@@ -335,7 +335,6 @@ public class StackoverflowChatTest {
 
 			ChatMessage message = messages.next();
 			assertEquals("message 1", message.getContent());
-			assertEquals(0, message.getEdits());
 			assertEquals(20157245L, message.getMessageId());
 			assertEquals(1, message.getRoomId());
 			assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417041460000L), ZoneId.systemDefault()), message.getTimestamp());
@@ -376,7 +375,7 @@ public class StackoverflowChatTest {
 					return response(200,
 					"{\"events\":[" +
 						"{\"event_type\":1,\"time_stamp\":1417041460,\"content\":\"message 1\",\"user_id\":50,\"user_name\":\"User1\",\"room_id\":1,\"message_id\":20157245}," +
-						"{\"event_type\":1,\"time_stamp\":1417043460,\"user_id\":51,\"user_name\":\"User2\",\"room_id\":1,\"message_id\":20157246,\"edits\":2}," +
+						"{\"event_type\":1,\"time_stamp\":1417043460,\"user_id\":51,\"user_name\":\"User2\",\"room_id\":1,\"message_id\":20157246,\"edits\":0}," +
 						"{\"event_type\":1,\"time_stamp\":1417045460,\"content\":\"message 3\",\"user_id\":50,\"user_name\":\"User1\",\"room_id\":1,\"message_id\":20157247}" +
 					"]}");
 					//@formatter:on
@@ -391,7 +390,6 @@ public class StackoverflowChatTest {
 
 			ChatMessage message = messages.next();
 			assertEquals("message 1", message.getContent());
-			assertEquals(0, message.getEdits());
 			assertEquals(20157245L, message.getMessageId());
 			assertEquals(1, message.getRoomId());
 			assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417041460000L), ZoneId.systemDefault()), message.getTimestamp());
@@ -400,7 +398,6 @@ public class StackoverflowChatTest {
 
 			message = messages.next();
 			assertNull(message.getContent()); //deleted message
-			assertEquals(2, message.getEdits());
 			assertEquals(20157246L, message.getMessageId());
 			assertEquals(1, message.getRoomId());
 			assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417043460000L), ZoneId.systemDefault()), message.getTimestamp());
@@ -409,7 +406,6 @@ public class StackoverflowChatTest {
 
 			message = messages.next();
 			assertEquals("message 3", message.getContent());
-			assertEquals(0, message.getEdits());
 			assertEquals(20157247L, message.getMessageId());
 			assertEquals(1, message.getRoomId());
 			assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1417045460000L), ZoneId.systemDefault()), message.getTimestamp());

@@ -50,7 +50,7 @@ public class StackoverflowChat implements ChatConnection {
 	private static final String CHAT_DOMAIN = "https://chat." + DOMAIN;
 	private static final int MAX_MESSAGE_LENGTH = 500;
 	private static final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
-	private static final long editTimeLimit = TimeUnit.MINUTES.toMillis(2);
+	private static final Duration EDIT_TIME_LIMIT = Duration.ofMinutes(2);
 
 	private final CloseableHttpClient client;
 
@@ -62,7 +62,12 @@ public class StackoverflowChat implements ChatConnection {
 	/**
 	 * The messages that were retrieved the last time a room was pinged.
 	 */
-	private final Map<Integer, List<ChatMessage>> prevMessages = new HashMap<>();
+	private final Map<Integer, List<ChatMessage>> lastMessageBatch = new HashMap<>();
+
+	/**
+	 * The ID of the latest message that was retrieved from each chat room.
+	 */
+	private final Map<Integer, Long> lastMessageProcessed = new HashMap<>();
 
 	private final long retryPause, heartbeat;
 	private boolean closed;
@@ -108,18 +113,22 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	@Override
-	public synchronized void joinRoom(int roomId) throws RoomNotFoundException, RoomPermissionException, IOException {
-		if (prevMessages.containsKey(roomId)) {
-			//already joined
-			return;
+	public void joinRoom(int roomId) throws RoomNotFoundException, RoomPermissionException, IOException {
+		synchronized (this) {
+			if (lastMessageProcessed.containsKey(roomId)) {
+				//already joined
+				return;
+			}
 		}
 
-		/*
-		 * Try getting some messages to make sure the room exists.
-		 */
-		getMessages(roomId, 1);
+		//"prime the pump"
+		List<ChatMessage> messages = getNextMessageBatch(roomId, -1);
+		long messageId = messages.isEmpty() ? -1 : messages.get(0).getMessageId();
 
-		prevMessages.put(roomId, Collections.emptyList());
+		synchronized (this) {
+			lastMessageProcessed.put(roomId, messageId);
+			lastMessageBatch.put(roomId, messages);
+		}
 	}
 
 	@Override
@@ -130,7 +139,7 @@ public class StackoverflowChat implements ChatConnection {
 			 * If the room has no entry in the prevMessages map, then it means
 			 * the room was never joined.
 			 */
-			if (!prevMessages.containsKey(roomId)) {
+			if (!lastMessageProcessed.containsKey(roomId)) {
 				return;
 			}
 
@@ -166,7 +175,8 @@ public class StackoverflowChat implements ChatConnection {
 		//fkeyCache.remove(roomId);
 
 		synchronized (this) {
-			prevMessages.remove(roomId);
+			lastMessageProcessed.remove(roomId);
+			lastMessageBatch.remove(roomId);
 		}
 	}
 
@@ -275,68 +285,70 @@ public class StackoverflowChat implements ChatConnection {
 			 */
 			List<Integer> rooms;
 			synchronized (this) {
-				rooms = new ArrayList<>(prevMessages.keySet());
+				rooms = new ArrayList<>(lastMessageProcessed.keySet());
 			}
 
 			for (Integer room : rooms) {
 				logger.fine("Pinging room " + room + ".");
 
+				Long prevMessageId;
 				List<ChatMessage> prevMessages;
 				synchronized (this) {
-					prevMessages = this.prevMessages.get(room);
+					prevMessageId = lastMessageProcessed.get(room);
+					prevMessages = lastMessageBatch.get(room);
 				}
 
-				if (prevMessages == null) {
-					//room was left
+				if (prevMessageId == null) {
+					//another thread left the room
 					continue;
 				}
 
-				long prevMessageId;
-				if (prevMessages.isEmpty()) {
-					prevMessageId = 0L;
-				} else {
-					prevMessageId = prevMessages.get(prevMessages.size() - 1).getMessageId();
-				}
-
 				List<ChatMessage> messages = getNextMessageBatch(room, prevMessageId);
+				if (!messages.isEmpty()) {
+					List<ChatMessage> newMessages = new ArrayList<>();
+					for (int i = messages.size() - 1; i >= 0; i--) {
+						ChatMessage message = messages.get(i);
 
-				List<ChatMessage> newMessages = new ArrayList<>();
-				for (int i = messages.size() - 1; i >= 0; i--) {
-					ChatMessage message = messages.get(i);
+						long id = message.getMessageId();
+						if (id <= prevMessageId) {
+							break;
+						}
 
-					long id = message.getMessageId();
-					if (id <= prevMessageId) {
-						break;
+						newMessages.add(message);
 					}
 
-					newMessages.add(message);
-				}
-
-				List<ChatMessage> editedMessages = new ArrayList<>();
-				for (ChatMessage message : messages) {
-					long id = message.getMessageId();
-					int edits = message.getEdits();
-					for (ChatMessage prevMessage : prevMessages) {
-						if (prevMessage.getMessageId() == id) {
-							if (prevMessage.getEdits() > edits) {
-								editedMessages.add(message);
+					List<ChatMessage> editedMessages = new ArrayList<>();
+					for (ChatMessage message : messages) {
+						long id = message.getMessageId();
+						String content = message.getContent();
+						for (ChatMessage prevMessage : prevMessages) {
+							if (prevMessage.getMessageId() == id) {
+								if (!prevMessage.getContent().equals(content)) {
+									editedMessages.add(message);
+								}
+								break;
 							}
-							break;
+						}
+					}
+
+					if (!newMessages.isEmpty() || !editedMessages.isEmpty()) {
+						logger.fine(newMessages.size() + " new messages and " + editedMessages.size() + " edited messages found.");
+
+						for (ChatMessage message : newMessages) {
+							handler.onMessage(message);
+						}
+						for (ChatMessage message : editedMessages) {
+							handler.onMessageEdited(message);
 						}
 					}
 				}
 
-				logger.fine(newMessages.size() + " new messages and " + editedMessages.size() + " edited messages found.");
-
-				for (ChatMessage message : editedMessages) {
-					handler.onMessageEdited(message);
-				}
-				for (ChatMessage message : newMessages) {
-					handler.onMessage(message);
-				}
-
 				synchronized (this) {
-					this.prevMessages.put(room, messages);
+					if (!messages.isEmpty()) {
+						ChatMessage last = messages.get(messages.size() - 1);
+						lastMessageProcessed.put(room, last.getMessageId());
+					}
+					lastMessageBatch.put(room, messages);
 				}
 
 				if (closed) {
@@ -363,22 +375,21 @@ public class StackoverflowChat implements ChatConnection {
 	 * are older messages which haven't been retrieved yet, those will be
 	 * returned as well.
 	 * @param room the room ID
-	 * @param prevMessageId the ID of the latest message that was previous
-	 * retrieved
-	 * @return the messages
+	 * @param prevMessageId the ID of the latest message that was previously
+	 * retrieved or -1 to simply retrieve the last two minutes worth of messages
+	 * @return the messages (in chronological order)
 	 * @throws IOException if there's a network problem
 	 */
 	private List<ChatMessage> getNextMessageBatch(int room, long prevMessageId) throws IOException {
 		/*
-		 * Keep retrieving more and more messages until we get all of the
-		 * messages that are newer than or equal to maxAge.
+		 * Keep retrieving more and more messages until we get all new messages,
+		 * as well as all messages that were posted in the last 2 minutes.
 		 */
-		Duration duration = Duration.ofMillis(editTimeLimit);
-		LocalDateTime timeBoundary = LocalDateTime.now().minus(duration);
+		LocalDateTime twoMinuteMark = LocalDateTime.now().minus(EDIT_TIME_LIMIT);
 		List<ChatMessage> messages;
 		boolean timeBoundaryReached = false;
-		boolean idBoundaryReached = false;
-		int count = 5;
+		boolean idBoundaryReached = (prevMessageId == -1);
+		int count = 10;
 		while (true) {
 			messages = getMessages(room, count);
 			if (messages.size() < count) {
@@ -391,7 +402,7 @@ public class StackoverflowChat implements ChatConnection {
 			ChatMessage first = messages.get(0);
 
 			LocalDateTime timestamp = first.getTimestamp();
-			if (timestamp.isBefore(timeBoundary)) {
+			if (timestamp.isBefore(twoMinuteMark)) {
 				timeBoundaryReached = true;
 			}
 
@@ -407,17 +418,22 @@ public class StackoverflowChat implements ChatConnection {
 			count *= 2;
 		}
 
+		/*
+		 * Trim off the messages that are older than 2 minutes, unless they
+		 * haven't been retrieved yet.
+		 */
 		int start = -1;
 		for (int i = 0; i < messages.size(); i++) {
 			ChatMessage message = messages.get(i);
 
-			long messageId = message.getMessageId();
-			boolean beforeIdBoundary = (messageId <= prevMessageId);
-
 			LocalDateTime timestamp = message.getTimestamp();
-			boolean beforeTimeBoundary = timestamp.isBefore(timeBoundary);
-
-			if (!beforeIdBoundary || !beforeTimeBoundary) {
+			if (timestamp.isBefore(twoMinuteMark)) {
+				long messageId = message.getMessageId();
+				if (prevMessageId != -1 && messageId > prevMessageId) {
+					start = i;
+					break;
+				}
+			} else {
 				start = i;
 				break;
 			}
@@ -498,7 +514,7 @@ public class StackoverflowChat implements ChatConnection {
 
 		List<Integer> watchedRooms;
 		synchronized (this) {
-			watchedRooms = new ArrayList<>(prevMessages.keySet());
+			watchedRooms = new ArrayList<>(lastMessageProcessed.keySet());
 		}
 
 		for (Integer roomId : watchedRooms) {
@@ -704,10 +720,11 @@ public class StackoverflowChat implements ChatConnection {
 				builder.content(content);
 			}
 
-			value = element.get("edits");
-			if (value != null) {
-				builder.edits(value.asInt());
-			}
+			/*
+			 * This field is always zero, no matter how many edits a message
+			 * gets.
+			 */
+			//value = element.get("edits");
 
 			value = element.get("message_id");
 			if (value != null) {

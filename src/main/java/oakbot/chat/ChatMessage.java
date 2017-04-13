@@ -15,7 +15,6 @@ public class ChatMessage {
 	private final int userId;
 	private final String username;
 	private final int roomId;
-	private final int edits;
 	private final String content;
 
 	private ChatMessage(Builder builder) {
@@ -24,7 +23,6 @@ public class ChatMessage {
 		userId = builder.userId;
 		username = builder.username;
 		roomId = builder.roomId;
-		edits = builder.edits;
 		content = builder.content;
 	}
 
@@ -66,14 +64,6 @@ public class ChatMessage {
 	 */
 	public int getRoomId() {
 		return roomId;
-	}
-
-	/**
-	 * Gets the number of edits the message has undergone.
-	 * @return the number of edits or 0 if there were no edits
-	 */
-	public int getEdits() {
-		return edits;
 	}
 
 	/**
@@ -178,7 +168,7 @@ public class ChatMessage {
 
 	@Override
 	public String toString() {
-		return "ChatMessage [messageId=" + messageId + ", timestamp=" + timestamp + ", userId=" + userId + ", username=" + username + ", roomId=" + roomId + ", edits=" + edits + ", content=" + content + "]";
+		return "ChatMessage [messageId=" + messageId + ", timestamp=" + timestamp + ", userId=" + userId + ", username=" + username + ", roomId=" + roomId + ", content=" + content + "]";
 	}
 
 	/**
@@ -191,7 +181,6 @@ public class ChatMessage {
 		private int userId;
 		private String username;
 		private int roomId;
-		private int edits;
 		private String content;
 
 		/**
@@ -211,7 +200,6 @@ public class ChatMessage {
 			userId = original.userId;
 			username = original.username;
 			roomId = original.roomId;
-			edits = original.edits;
 			content = original.content;
 		}
 
@@ -262,16 +250,6 @@ public class ChatMessage {
 		 */
 		public Builder roomId(int roomId) {
 			this.roomId = roomId;
-			return this;
-		}
-
-		/**
-		 * Sets the number of edits the message has undergone.
-		 * @param edits the number of edits or 0 if there were no edits
-		 * @return this
-		 */
-		public Builder edits(int edits) {
-			this.edits = edits;
 			return this;
 		}
 
