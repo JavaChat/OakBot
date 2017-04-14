@@ -56,23 +56,30 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	}
 
 	/**
-	 * Gets a property value.
+	 * Gets a property value. This method trims the property value and returns
+	 * null if the trimmed value is empty.
 	 * @param key the key
-	 * @return the value or null if not found
+	 * @return the value or null if not found or empty
 	 */
 	public String get(String key) {
 		return get(key, null);
 	}
 
 	/**
-	 * Gets a property value.
+	 * Gets a property value. This method trims the property value and returns
+	 * the default value if the trimmed value is empty.
 	 * @param key the key
-	 * @param defaultValue the value to return if the property does not exist
+	 * @param defaultValue the value to return if the property does not exist or
+	 * the property value is empty
 	 * @return the value
 	 */
 	public String get(String key, String defaultValue) {
 		String value = properties.getProperty(key);
-		return (value == null) ? defaultValue : value;
+		if (value != null) {
+			value = value.trim();
+		}
+
+		return (value == null || value.isEmpty()) ? defaultValue : value;
 	}
 
 	/**
@@ -137,7 +144,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * Parses a comma-delimited list of integers. If any non-integer values are
 	 * encountered, they will be skipped.
 	 * @param key the key
-	 * @return the list or empty list of not found
+	 * @return the list or empty list if not found
 	 */
 	public List<Integer> getIntegerList(String key) {
 		return getIntegerList(key, new ArrayList<>(0));

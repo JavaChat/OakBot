@@ -56,7 +56,9 @@ public class BotProperties extends PropertiesWrapper {
 			if (m.find()) {
 				Integer roomId = Integer.valueOf(m.group(1));
 				String message = get(key);
-				welcomeMessages.put(roomId, message);
+				if (message != null) {
+					welcomeMessages.put(roomId, message);
+				}
 			}
 		}
 	}

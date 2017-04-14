@@ -30,10 +30,16 @@ public class PropertiesWrapperTest {
 	@Test
 	public void get() {
 		Properties props = new Properties();
-		props.setProperty("key", "value");
+		props.setProperty("key1", "value1");
+		props.setProperty("key2", " value2 ");
+		props.setProperty("key3", "");
+		props.setProperty("key4", " ");
 
 		PropertiesWrapper wrapper = new PropertiesWrapper(props);
-		assertEquals("value", wrapper.get("key"));
+		assertEquals("value1", wrapper.get("key1"));
+		assertEquals("value2", wrapper.get("key2"));
+		assertNull(wrapper.get("key3"));
+		assertNull(wrapper.get("key4"));
 		assertNull(wrapper.get("does-not-exist"));
 	}
 
