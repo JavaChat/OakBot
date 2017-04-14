@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -323,7 +322,13 @@ public class StackoverflowChat implements ChatConnection {
 						String content = message.getContent();
 						for (ChatMessage prevMessage : prevMessages) {
 							if (prevMessage.getMessageId() == id) {
-								if (!prevMessage.getContent().equals(content)) {
+								String prevContent = prevMessage.getContent();
+								//@formatter:off
+								if (
+									(prevContent == null && content != null) ||
+									(prevContent != null && !prevContent.equals(content))
+								) {
+								//@formatter:on
 									editedMessages.add(message);
 								}
 								break;
