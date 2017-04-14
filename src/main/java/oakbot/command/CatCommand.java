@@ -28,7 +28,6 @@ import com.google.common.net.UrlEscapers;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.command.define.DefineCommand;
 import oakbot.util.ChatBuilder;
 import oakbot.util.XPathWrapper;
 
@@ -39,7 +38,7 @@ import oakbot.util.XPathWrapper;
  * "http://thecatapi.com/docs.html">http://thecatapi.com/docs.html</a>
  */
 public class CatCommand implements Command {
-	private static final Logger logger = Logger.getLogger(DefineCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(CatCommand.class.getName());
 
 	private final DocumentBuilder docBuilder;
 	{
