@@ -30,6 +30,7 @@ import oakbot.command.CatCommand;
 import oakbot.command.Command;
 import oakbot.command.EightBallCommand;
 import oakbot.command.HelpCommand;
+import oakbot.command.ReactCommand;
 import oakbot.command.RollCommand;
 import oakbot.command.RolloverCommand;
 import oakbot.command.ShrugCommand;
@@ -175,6 +176,7 @@ public class Main {
 			commands.add(afkCommand);
 			commands.add(new RolloverCommand(upsidedownTextFilter));
 			commands.add(new CatCommand(props.getCatKey()));
+			commands.add(new ReactCommand(props.getReactKey()));
 		}
 
 		List<ChatResponseFilter> filters = new ArrayList<>();

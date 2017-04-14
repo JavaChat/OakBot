@@ -17,7 +17,7 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
-	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey;
+	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey;
 	private final List<Integer> homeRooms, admins, bannedUsers;
 	private final int heartbeat, botUserId;
 	private final Integer hideImagesAfter;
@@ -47,6 +47,7 @@ public class BotProperties extends PropertiesWrapper {
 		dictionaryKey = get("dictionary.key");
 		aboutHost = get("about.host");
 		catKey = get("cat.key");
+		reactKey = get("react.key");
 		hideImagesAfter = getInteger("hideImagesAfter");
 
 		welcomeMessages = new HashMap<>();
@@ -175,6 +176,14 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public String getCatKey() {
 		return catKey;
+	}
+
+	/**
+	 * Gets the API key for <a href="http://replygif.net">replygif.net</a>.
+	 * @return the key or null if not set
+	 */
+	public String getReactKey() {
+		return reactKey;
 	}
 
 	/**
