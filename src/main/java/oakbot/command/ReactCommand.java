@@ -1,5 +1,17 @@
 package oakbot.command;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import oakbot.bot.BotContext;
+import oakbot.bot.ChatCommand;
+import oakbot.bot.ChatResponse;
+import oakbot.util.ChatBuilder;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -7,20 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import oakbot.bot.BotContext;
-import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
-import oakbot.util.ChatBuilder;
 
 /**
  * Displays reaction gifs of human emotions.
@@ -80,7 +78,7 @@ public class ReactCommand implements Command {
 				//@formatter:off
 				return new ChatResponse(new ChatBuilder()
 					.reply(chatCommand)
-					.append("Unknown human emotion. Try again.")
+					.append("Unknown human emotion. Please visit http://replygif.net/t for a list of emotions.")
 				);
 				//@formatter:on
 			}
