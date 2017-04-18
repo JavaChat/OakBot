@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class RobustClient {
 	private static final Logger logger = Logger.getLogger(RobustClient.class.getName());
+	private static final Pattern response409Regex = Pattern.compile("\\d+");
 
 	private final CloseableHttpClient client;
 	private final HttpUriRequest request;
@@ -52,7 +53,7 @@ public class RobustClient {
 	}
 
 	/**
-	 * Sets the amount of time to wait between retries (default to 5 seconds).
+	 * Sets the amount of time to wait between retries (defaults to 5 seconds).
 	 * @param retryPause the amount of time in milliseconds
 	 * @return this
 	 */
@@ -234,8 +235,7 @@ public class RobustClient {
 		String body = EntityUtils.toString(response.getEntity());
 		logger.fine("409 response received: " + body);
 
-		Pattern p = Pattern.compile("\\d+");
-		Matcher m = p.matcher(body);
+		Matcher m = response409Regex.matcher(body);
 		if (!m.find()) {
 			return null;
 		}
