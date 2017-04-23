@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -113,11 +114,9 @@ public class StackoverflowChat implements ChatConnection {
 
 	@Override
 	public void joinRoom(int roomId) throws RoomNotFoundException, RoomPermissionException, IOException {
-		synchronized (this) {
-			if (lastMessageProcessed.containsKey(roomId)) {
-				//already joined
-				return;
-			}
+		if (isInRoom(roomId)) {
+			//already joined
+			return;
 		}
 
 		//"prime the pump"
@@ -134,22 +133,19 @@ public class StackoverflowChat implements ChatConnection {
 	public void leaveRoom(int roomId) {
 		String fkey;
 		synchronized (this) {
-			/*
-			 * If the room has no entry in the prevMessages map, then it means
-			 * the room was never joined.
-			 */
-			if (!lastMessageProcessed.containsKey(roomId)) {
+			if (!isInRoom(roomId)) {
 				return;
 			}
 
-			/*
-			 * If it has a prevMessages entry, then it should always have an
-			 * fkey, but check to be sure.
-			 */
 			fkey = fkeyCache.get(roomId);
-			if (fkey == null) {
-				return;
-			}
+		}
+
+		/*
+		 * If we get this far, then it should always have an fkey, but check to
+		 * be sure.
+		 */
+		if (fkey == null) {
+			return;
 		}
 
 		/*
@@ -278,23 +274,14 @@ public class StackoverflowChat implements ChatConnection {
 		while (true) {
 			long start = System.currentTimeMillis();
 
-			/*
-			 * Make a copy of the room list to prevent concurrent modification
-			 * exceptions.
-			 */
-			List<Integer> rooms;
-			synchronized (this) {
-				rooms = new ArrayList<>(lastMessageProcessed.keySet());
-			}
-
-			for (Integer room : rooms) {
-				logger.fine("Pinging room " + room + ".");
+			for (Integer roomId : getRooms()) {
+				logger.fine("Pinging room " + roomId + ".");
 
 				Long prevMessageId;
 				List<ChatMessage> prevMessages;
 				synchronized (this) {
-					prevMessageId = lastMessageProcessed.get(room);
-					prevMessages = lastMessageBatch.get(room);
+					prevMessageId = lastMessageProcessed.get(roomId);
+					prevMessages = lastMessageBatch.get(roomId);
 				}
 
 				if (prevMessageId == null) {
@@ -304,63 +291,61 @@ public class StackoverflowChat implements ChatConnection {
 
 				List<ChatMessage> messages;
 				try {
-					messages = getNextMessageBatch(room, prevMessageId);
+					messages = getNextMessageBatch(roomId, prevMessageId);
 				} catch (Exception e) {
-					handler.onError(room, e);
+					handler.onError(roomId, e);
 					continue;
 				}
 
-				if (!messages.isEmpty()) {
-					List<ChatMessage> newMessages = new ArrayList<>();
-					for (int i = messages.size() - 1; i >= 0; i--) {
-						ChatMessage message = messages.get(i);
-
-						long id = message.getMessageId();
-						if (id <= prevMessageId) {
+				for (ChatMessage message : messages) {
+					/*
+					 * Is it a new message?
+					 */
+					long id = message.getMessageId();
+					if (id > prevMessageId) {
+						handler.onMessage(message);
+						if (!isInRoom(roomId)) {
+							/*
+							 * Message caused the bot to leave the room, so
+							 * ignore the rest of the messages.
+							 */
 							break;
 						}
-
-						newMessages.add(message);
+						continue;
 					}
 
-					List<ChatMessage> editedMessages = new ArrayList<>();
-					for (ChatMessage message : messages) {
-						long id = message.getMessageId();
+					/*
+					 * Was the message edited?
+					 */
+					ChatMessage prevMessage = getMessageById(id, prevMessages);
+					if (prevMessage != null) {
 						String content = message.getContent();
-						for (ChatMessage prevMessage : prevMessages) {
-							if (prevMessage.getMessageId() == id) {
-								String prevContent = prevMessage.getContent();
-								//@formatter:off
-								if (
-									(prevContent == null && content != null) ||
-									(prevContent != null && !prevContent.equals(content))
-								) {
-								//@formatter:on
-									editedMessages.add(message);
-								}
+						String prevContent = prevMessage.getContent();
+						//@formatter:off
+						if (
+							(prevContent == null && content != null) ||
+							(prevContent != null && !prevContent.equals(content))
+						) {
+						//@formatter:on
+							handler.onMessageEdited(message);
+							if (!isInRoom(roomId)) {
+								/*
+								 * Message caused the bot to leave the room, so
+								 * ignore the rest of the messages.
+								 */
 								break;
 							}
 						}
-					}
-
-					if (!newMessages.isEmpty() || !editedMessages.isEmpty()) {
-						logger.fine(newMessages.size() + " new messages and " + editedMessages.size() + " edited messages found.");
-
-						for (ChatMessage message : newMessages) {
-							handler.onMessage(message);
-						}
-						for (ChatMessage message : editedMessages) {
-							handler.onMessageEdited(message);
-						}
+						break;
 					}
 				}
 
+				ChatMessage last = messages.isEmpty() ? null : messages.get(messages.size() - 1);
 				synchronized (this) {
-					if (!messages.isEmpty()) {
-						ChatMessage last = messages.get(messages.size() - 1);
-						lastMessageProcessed.put(room, last.getMessageId());
+					if (last != null) {
+						lastMessageProcessed.put(roomId, last.getMessageId());
 					}
-					lastMessageBatch.put(room, messages);
+					lastMessageBatch.put(roomId, messages);
 				}
 
 				if (closed) {
@@ -379,6 +364,15 @@ public class StackoverflowChat implements ChatConnection {
 				}
 			}
 		}
+	}
+
+	private ChatMessage getMessageById(long id, List<ChatMessage> messages) {
+		for (ChatMessage message : messages) {
+			if (message.getMessageId() == id) {
+				return message;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -524,12 +518,7 @@ public class StackoverflowChat implements ChatConnection {
 	public void close() throws IOException {
 		flush();
 
-		List<Integer> watchedRooms;
-		synchronized (this) {
-			watchedRooms = new ArrayList<>(lastMessageProcessed.keySet());
-		}
-
-		for (Integer roomId : watchedRooms) {
+		for (Integer roomId : getRooms()) {
 			leaveRoom(roomId);
 		}
 
@@ -543,6 +532,27 @@ public class StackoverflowChat implements ChatConnection {
 	@Override
 	public void flush() {
 		//empty
+	}
+
+	/**
+	 * Gets the list of rooms the chat connection is currently watching.
+	 * @return the room IDs
+	 */
+	private synchronized Collection<Integer> getRooms() {
+		/*
+		 * Make a copy of the room list to prevent concurrent modification
+		 * exceptions.
+		 */
+		return new ArrayList<>(lastMessageProcessed.keySet());
+	}
+
+	/**
+	 * Determines if the chat connection is currently watching a room.
+	 * @param roomId the room ID
+	 * @return true if it's watching the room, false if not
+	 */
+	private synchronized boolean isInRoom(int roomId) {
+		return lastMessageProcessed.containsKey(roomId);
 	}
 
 	private static class LoginRequest extends HttpPost {
