@@ -21,7 +21,6 @@ public interface ChatConnection extends Closeable, Flushable {
 
 	/**
 	 * Joins a chat room. A room should be joined before it is interacted with.
-	 * A room should be joined only once.
 	 * @param roomId the room ID
 	 * @throws RoomNotFoundException if the room does not exist
 	 * @throws RoomPermissionException if messages cannot be posted to this room
