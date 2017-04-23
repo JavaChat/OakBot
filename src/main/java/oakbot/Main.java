@@ -167,7 +167,7 @@ public class Main {
 
 			commands.add(new RollCommand());
 			commands.add(new EightBallCommand());
-			commands.add(new SummonCommand());
+			commands.add(new SummonCommand(2));
 			commands.add(new UnsummonCommand());
 			commands.add(new ShutdownCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));
