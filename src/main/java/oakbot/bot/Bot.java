@@ -264,7 +264,7 @@ public class Bot {
 					}
 				}, hideImagesAfter);
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Problem sending chat message.", e);
 		}
 	}
