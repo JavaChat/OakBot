@@ -119,7 +119,7 @@ public class CatCommand implements Command {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
-				.append("Error getting cat!! " + e.getMessage())
+				.append("Error getting cat: ").code(e.getMessage())
 			);
 			//@formatter:on
 		}
@@ -153,17 +153,18 @@ public class CatCommand implements Command {
 	}
 
 	/**
-	 * Checks to see if the given image exists. Some image URLs that the API
-	 * returns are 404s.
+	 * Checks to see if the given image exists. Some of the URLs that the API
+	 * returns don't work anymore.
 	 * @param client the HTTP client
 	 * @param url the URL to the image
-	 * @return true if it exists, false if it returns anything other than a 200
-	 * @throws IOException if there's a network error
+	 * @return true if the image exists, false if not
 	 */
-	private boolean isCatThere(CloseableHttpClient client, String url) throws IOException {
+	private boolean isCatThere(CloseableHttpClient client, String url) {
 		HttpHead request = new HttpHead(url);
 		try (CloseableHttpResponse response = client.execute(request)) {
 			return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+		} catch (IOException e) {
+			return false;
 		}
 	}
 
