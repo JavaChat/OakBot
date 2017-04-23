@@ -52,7 +52,7 @@ public class BotProperties extends PropertiesWrapper {
 		hideImagesAfter = getInteger("hideImagesAfter");
 
 		welcomeMessages = new HashMap<>();
-		Pattern p = Pattern.compile("welcome\\.(\\d+)\\.message");
+		Pattern p = Pattern.compile("^welcome\\.(\\d+)\\.message$");
 		for (String key : keySet()) {
 			Matcher m = p.matcher(key);
 			if (m.find()) {
