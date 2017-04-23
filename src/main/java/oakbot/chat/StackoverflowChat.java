@@ -336,7 +336,6 @@ public class StackoverflowChat implements ChatConnection {
 								break;
 							}
 						}
-						break;
 					}
 				}
 
