@@ -1,6 +1,6 @@
 # OakBot
 
-OakBot is a chat bot for [Stackoverflow Chat](http://chat.stackoverflow.com) that's written in Java.  It is named after the first name given to the Java programming language before it became "Java".
+OakBot is a chat bot for [Stack Overflow Chat](http://chat.stackoverflow.com) that's written in Java.  It is named after the first name given to the Java programming language before it became "Java".
 
 # Build Instructions
 
@@ -27,26 +27,9 @@ This is the file OakBot uses to persist information, such as how many commands i
 
 # bot.properties
 
-Note that OakBot must be restarted in order to pick up any changes you make to these settings.
+Contains various configuration settings for the bot. Open the sample "bot.properties" file at the root of this project for a description of each setting.
 
-Property | Description
--------- | -----------
-login.email | The email address of the StackOverflow user that the bot will login as. It must be a StackExchange login.  It cannot be a login from another provider, like Google or Facebook.
-login.password | The password of the StackOverflow user (yes, it's in plain text, so sue me).
-bot.userName | The username associated with the StackOverflow user.
-bot.userId | The user ID of the bot's StackOverflow account. You can get this from the URL of your profile page.
-trigger | The character that prefixes all commands.  For example, if the trigger was "/", then posting "/about" in the chat room will cause the bot to display information about itself.
-homeRooms | A comma-separated list of room IDs that OakBot will join and which OakBot cannot be unsummoned from.  A chat room's room ID can be found in its URL.
-quietRooms | (optional) Do not post awkward silence messages to these rooms. By default, the bot will post a message to the room if no user has posted a message in six hours. 
-heartbeat | How often OakBot will poll each chat room to look for new messages (in milliseconds).  Unfortunately, OakBot does not use websockets, like your browser does.
-admins | (optional) Users that can run admin-level commands against the bot (notably, the "shutdown" command). Comma-separated list of user IDs.
-bannedUsers | (optional) Users that have been banned from using the bot. The bot will ignore all messages from these users. Comma-separated list of user IDs.
-javadoc.folder | (optional) The folder that contains the Javadoc information used with the "javadoc" command.  The Javadoc info for various libraries (including the Java 8 API) are stored on a [public Dropbox folder](https://www.dropbox.com/sh/xkf7kua3hzd8xvo/AAC1sOkVTNUE2MKPAXTm28bna?dl=0) (they are ZIP files).  You can also build these ZIP files yourself using the [oakbot-doclet](https://github.com/mangstadt/oakbot-doclet) tool. If this property is not defined, the "javadoc" command will not be activated.
-dictionary.key | (optional) This is used by the "define" command to lookup dictionary definitions from the [dictionaryapi.com](http://www.dictionaryapi.com/) website. If this property is not defined, the "define" command will not be activated.
-greeting | (optional) The message OakBot will post when it joins a room. If this property is not defined, OakBot will not say anything when it joins a room.
-about.host | (optional) The name of the server that is hosting this bot.  Displayed in the "about" command.
-cat.key | (optional) API key for [thecatapi.com](http://thecatapi.com/docs.html), which is used with the "cat" command. A key is not required in order to query the API.
-hideImagesAfter | (optional) Any images that the bot posts will be automatically hidden after the specified amount of time (in milliseconds). The image will be replaced by the image's URL. Note that this value cannot exceed about 1 minute, which is the maximum amount of time SO Chat gives you to edit/delete your posts.
+OakBot must be restarted if any of these settings are changed while OakBot is running.
 
 # Adding/Removing Commands
 

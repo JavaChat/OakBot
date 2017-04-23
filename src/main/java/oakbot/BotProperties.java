@@ -66,7 +66,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the SO login email address.
+	 * Gets the Stack Overflow login email address.
 	 * @return the login email address or null if not set
 	 */
 	public String getLoginEmail() {
@@ -74,7 +74,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the SO login password.
+	 * Gets the Stack Overflow login password.
 	 * @return the login password or null if not set
 	 */
 	public String getLoginPassword() {
@@ -82,7 +82,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the user name associated with the bot's SO account.
+	 * Gets the user name associated with the bot's Stack Overflow account.
 	 * @return the bot's name
 	 */
 	public String getBotUserName() {
@@ -90,7 +90,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the user ID of the SO account.
+	 * Gets the user ID of the Stack Overflow account.
 	 * @return the user ID
 	 */
 	public Integer getBotUserId() {
@@ -98,8 +98,8 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the string sequence that triggers a bot command.
-	 * @return the trigger (defaults to "=")
+	 * Gets the string sequence that triggers a bot command (defaults to "=").
+	 * @return the trigger
 	 */
 	public String getTrigger() {
 		return trigger;
@@ -138,8 +138,9 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the amount of time to wait in between checks for new messages.
-	 * @return the pause time in milliseconds
+	 * Gets how often the bot will poll each chat room looking for new messages
+	 * (defaults to 3 seconds).
+	 * @return the polling interval (in milliseconds)
 	 */
 	public int getHeartbeat() {
 		return heartbeat;
@@ -147,8 +148,7 @@ public class BotProperties extends PropertiesWrapper {
 
 	/**
 	 * Gets the path to the folder where the javadoc ZIP files are held.
-	 * @return the path to the javadoc folder (defaults to "javadocs" if not
-	 * specified)
+	 * @return the path to the javadoc folder or null if not defined
 	 */
 	public Path getJavadocPath() {
 		return javadocPath;
@@ -164,7 +164,7 @@ public class BotProperties extends PropertiesWrapper {
 
 	/**
 	 * Gets the API key for the define command.
-	 * @return the API key or null if not found
+	 * @return the API key or null if not defined
 	 */
 	public String getDictionaryKey() {
 		return dictionaryKey;
@@ -181,7 +181,7 @@ public class BotProperties extends PropertiesWrapper {
 	/**
 	 * Gets the API key for <a href="http://thecatapi.com">thecatapi.com</a>.
 	 * Requests to the API can still be made without a key.
-	 * @return the key or null if not set
+	 * @return the API key or null if not defined
 	 */
 	public String getCatKey() {
 		return catKey;
@@ -189,7 +189,7 @@ public class BotProperties extends PropertiesWrapper {
 
 	/**
 	 * Gets the API key for <a href="http://replygif.net">replygif.net</a>.
-	 * @return the key or null if not set
+	 * @return the key or null if not defined
 	 */
 	public String getReactKey() {
 		return reactKey;
