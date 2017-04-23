@@ -297,6 +297,7 @@ public class StackoverflowChat implements ChatConnection {
 					continue;
 				}
 
+				boolean leftTheRoom = false;
 				for (ChatMessage message : messages) {
 					/*
 					 * Is it a new message?
@@ -309,6 +310,7 @@ public class StackoverflowChat implements ChatConnection {
 							 * Message caused the bot to leave the room, so
 							 * ignore the rest of the messages.
 							 */
+							leftTheRoom = true;
 							break;
 						}
 						continue;
@@ -333,18 +335,21 @@ public class StackoverflowChat implements ChatConnection {
 								 * Message caused the bot to leave the room, so
 								 * ignore the rest of the messages.
 								 */
+								leftTheRoom = true;
 								break;
 							}
 						}
 					}
 				}
 
-				ChatMessage last = messages.isEmpty() ? null : messages.get(messages.size() - 1);
-				synchronized (this) {
-					if (last != null) {
-						lastMessageProcessed.put(roomId, last.getMessageId());
+				if (!leftTheRoom) {
+					ChatMessage last = messages.isEmpty() ? null : messages.get(messages.size() - 1);
+					synchronized (this) {
+						if (last != null) {
+							lastMessageProcessed.put(roomId, last.getMessageId());
+						}
+						lastMessageBatch.put(roomId, messages);
 					}
-					lastMessageBatch.put(roomId, messages);
 				}
 
 				if (closed) {
