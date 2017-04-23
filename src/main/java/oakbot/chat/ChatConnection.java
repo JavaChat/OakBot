@@ -96,7 +96,7 @@ public interface ChatConnection extends Closeable, Flushable {
 	 * method to listen for messages in a room.
 	 * @param handler handles the messages
 	 */
-	void listen(ChatMessageHandler handler) throws IOException;
+	void listen(ChatMessageHandler handler);
 
 	/**
 	 * Gets the most recent messages from a chat room.

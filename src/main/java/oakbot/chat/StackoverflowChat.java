@@ -274,7 +274,7 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	@Override
-	public void listen(ChatMessageHandler handler) throws IOException {
+	public void listen(ChatMessageHandler handler) {
 		while (true) {
 			long start = System.currentTimeMillis();
 
@@ -302,7 +302,14 @@ public class StackoverflowChat implements ChatConnection {
 					continue;
 				}
 
-				List<ChatMessage> messages = getNextMessageBatch(room, prevMessageId);
+				List<ChatMessage> messages;
+				try {
+					messages = getNextMessageBatch(room, prevMessageId);
+				} catch (Exception e) {
+					handler.onError(room, e);
+					continue;
+				}
+
 				if (!messages.isEmpty()) {
 					List<ChatMessage> newMessages = new ArrayList<>();
 					for (int i = messages.size() - 1; i >= 0; i--) {

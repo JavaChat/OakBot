@@ -72,7 +72,7 @@ public class FileChatConnection implements ChatConnection {
 	}
 
 	@Override
-	public void listen(ChatMessageHandler handler) throws IOException {
+	public void listen(ChatMessageHandler handler) {
 		this.handler = handler;
 
 		try (BufferedReader reader = Files.newBufferedReader(inputFile)) {

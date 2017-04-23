@@ -221,6 +221,17 @@ public class Bot {
 				public void onMessageEdited(ChatMessage message) {
 					onMessage(message);
 				}
+
+				@Override
+				public void onError(int roomId, Exception thrown) {
+					logger.log(Level.SEVERE, "An error occurred getting messages from room " + roomId + ". Leaving room.", thrown);
+
+					try {
+						leave(roomId);
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
+					}
+				}
 			});
 		} finally {
 			timer.cancel();

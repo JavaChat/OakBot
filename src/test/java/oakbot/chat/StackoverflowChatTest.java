@@ -589,6 +589,11 @@ public class StackoverflowChatTest {
 			public void onMessageEdited(ChatMessage message) {
 				//empty
 			}
+
+			@Override
+			public void onError(int roomId, Exception thrown) {
+				//empty
+			}
 		});
 
 		verify(client, times(7)).execute(any(HttpUriRequest.class));
