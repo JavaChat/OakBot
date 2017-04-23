@@ -150,7 +150,11 @@ public class Main {
 			commands.add(afkCommand);
 			commands.add(new RolloverCommand(upsidedownTextFilter));
 			commands.add(new CatCommand(props.getCatKey()));
-			commands.add(new ReactCommand(props.getReactKey()));
+
+			String reactKey = props.getReactKey();
+			if (reactKey != null) {
+				commands.add(new ReactCommand(reactKey));
+			}
 		}
 
 		List<ChatResponseFilter> filters = new ArrayList<>();
