@@ -1,0 +1,239 @@
+<!--
+Page source of https://chat.stackoverflow.com/rooms/1 while logged into OakBot account.
+The bot has permission to post to this room.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+    <head>
+        <title>Sandbox | chat.stackoverflow.com</title>
+        <link rel="shortcut icon" href="https://cdn.sstatic.net/Sites/stackoverflow/img/favicon.ico?v=da"><link rel="apple-touch-icon" href="https://cdn.sstatic.net/Sites/stackoverflow/img/apple-touch-icon.png?v=da"><link rel="search" type="application/opensearchdescription+xml" title="Chat for chat.stackoverflow.com" href="/opensearch.xml">
+
+                            <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+
+        <script type="text/javascript" src="//cdn-chat.sstatic.net/chat/Js/master-chat.js?v=cc6a502daa8f"></script>
+
+        <link rel="stylesheet" href="//cdn-chat.sstatic.net/chat/css/chat.stackoverflow.com.css?v=020cee8051cc"> 
+        <base target="_blank">
+        
+<script type="text/javascript">
+    function IMAGE(f) { return ("//cdn-chat.sstatic.net/chat/img/" + f); }
+</script>
+        
+    </head>
+        <body id="chat-body">
+        <div id="jplayer"></div>
+        <div id="loading"><div id="loading-message">
+            Loading Sandbox<br />
+            Just a second&hellip;
+        </div></div>
+        <div id="container">
+            <div id="feed-ticker" style="display: none;">
+                 <div id="feed-ticker-icon"><img src="//cdn-chat.sstatic.net/chat/Img/feed-icon128.png?v=7fa832f0199b" /></div>
+                 <div id="dismiss-ticker">dismiss</div>
+                <h2><a rel="noreferrer noopener" href="/rooms/info/1/sandbox?tab=feeds">New feed items</a></h2>
+                <div id="ticker-items"></div>
+            </div>
+            <span id="getmore" class="button" title="load a few more earlier chat messages">load older messages</span>
+                <span id="getmore-mine" class="button" title="load all chat messages up to the last time I talked in this room">load to my last message</span>
+            <a rel="noopener noreferrer" class="button" href="/transcript/1" title="view the complete archived chat history for this room">full transcript</a>
+                <a rel="noopener noreferrer" class="button" title="Only show starred messages, and messages to the current user" href="?highlights=true" target="_self">highlights</a>
+            <br /><br />
+            <div id="main">
+                <div id="chat"></div>
+                <div id="input-area">
+                    <div class="input-hint-container"><div class="input-hint"></div></div>
+                    <table width="100%" id="input-table"><tbody>
+                        <tr>
+                            <td rowspan="2" width="64">
+		                        <div id="active-user" class="user-container user-4258326">
+			                        <div class="avatar user-gravatar64">
+                                        <img height="64" width="64" title="OakBot" alt="OakBot"
+                                             src="https://i.stack.imgur.com/EaE7W.jpg?s=64&amp;g=1"
+                                             srcset="https://i.stack.imgur.com/EaE7W.jpg?s=128&amp;g=1 2x">
+                                    </div>
+		                        </div>
+                                <div title="You have a reply/mention" id="reply-count" style="visibility:hidden"></div>
+                                	                        </td>
+	                        <td class="chat-input" rowspan="2">
+		                        <div id="bubble">
+                                        <div id="tabcomplete-container">
+                                            <ul id="tabcomplete"></ul>
+                                        </div>                                        
+                                        <div id="inputerror"></div>
+				                        <textarea id="input"></textarea>
+                                </div>
+	                        </td>
+                            <td id="chat-buttons">
+                                    <button class="button" id="sayit-button">send</button>
+			                        <button class="button" id="cancel-editing-button" style="display: none;">cancel editing</button>
+                                    <button class="button" id="codify-button" title="Toggle fixed-width formatting (ctrl+k)">fixed font</button>
+	                        </td>
+                            <td id="footer-logo">
+                                <a rel="noreferrer noopener" href="http://stackoverflow.com" title="Stack Overflow"><img style="max-width:150px" src="https://cdn.sstatic.net/Sites/stackoverflow/img/logo.png?v=da" alt="Stack Overflow"/></a>
+    
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="footer-legal" colspan="2" style="vertical-align: bottom; padding-top: 0px;">
+                                <a rel="noopener noreferrer" id="mini-help" href="/faq#formatting">help</a> | <a rel="noopener noreferrer" href="/faq">faq</a> | <a rel="noopener noreferrer" href="http://stackexchange.com/legal">legal</a>
+                                | <a rel="noopener noreferrer" href="http://stackexchange.com/legal/privacy-policy">privacy policy</a> | <a href="#" class="mobile-on">mobile</a>
+                            </td>
+                        </tr>
+                    </tbody></table>   
+                </div>
+                <div id="bottom"></div>
+                <div id="sidebar"><div id="sidebar-content">
+                    <div id="info"> 
+                        <div id="sound" title="set audio notification level"></div>
+		                <div class="fl">
+                            <a rel="noopener noreferrer" id="allrooms" class="button" href="/">all rooms</a>
+                        </div>
+                        <form method="get" action="/search">
+                            <input type="text" id="searchbox" name="q"/>
+                            <input type="hidden" name="room" value="1" />
+                        </form>
+                        <div style="height:0" class="clear-both">&nbsp;</div>
+                        <h1 id="roomtitle">
+                            <span id="roomname">Sandbox</span>
+                                <span id="toggle-favorite" title="Toggle this as a favorite room" class="favorite-room-vote  favorite-room"> </span>
+                        </h1>
+                        <div id="roomdesc">Where you can play with regular chat features (except flagging) without upsetting anyone</div>
+                        <div id="room-tags"><a rel="noopener noreferrer" class="tag" href="http://stackoverflow.com/tags/sandbox/info">sandbox</a> <a rel="noopener noreferrer" class="tag" href="http://stackoverflow.com/tags/sandbox/info">sandbox</a></div>
+                        <div id="sidebar-menu">
+                                <a rel="noopener noreferrer" title="leave this room" target="_self" id="leave" href="/chats/leave/1">leave</a>
+                                (<a rel="noopener noreferrer" title="leave all rooms" id="leaveall" target="_self" href="/chats/leave/all">all</a>) |
+                                                        <a rel="noopener noreferrer" id="room-menu" title="more options for this room" href="/transcript/1/sandbox">room&#x25BC;</a> |
+                            <a rel="noopener noreferrer" id="about-room" title="about this room" href="/rooms/info/1/sandbox">info</a>
+                        </div>
+                    </div>
+                    <div id="widgets">
+                        <div class="sidebar-widget">
+                            <ul id="present-users" class="collapsible fixed-max clear-both"><li class="more"></li></ul>
+                        </div>
+                                                    <div class="sidebar-widget">
+                                <div class="fr msg-small">other rooms you're in <span class="more"></span></div>
+                                <br class="cboth" />
+                                <ul id="my-rooms" class="collapsible">
+                                        <li id="room-139">
+                                            <a rel="noreferrer noopener" href="/rooms/139/java" title="switch to Java" target="_self">Java</a>
+                                            <span class="quickleave" title="leave that room"></span>
+                                            <div class="room-info">
+                                                <div class="last-message">
+                                                    <span class="user-name">Michael</span>:
+                                                    <span class="text">I can&#39;t go either, I&#39;m at work. :(</span>
+                                                    <div class="time data">
+                                                        1492565917
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                </ul>
+                            </div>
+                        <div class="sidebar-widget">
+                            <div class="fr msg-small">
+                                    <a rel="noopener noreferrer" href="/feeds/rooms/starred/1"><span class="feed-icon"> </span></a>
+                                starred <span class="more"></span>
+                                <span id="show-all-starred"> / <a rel="noopener noreferrer" href="/rooms/info/1/sandbox/?tab=stars">show all</a></span>
+                            </div>
+                            <br class="cboth" />
+                            <div id="starred-posts">
+                                <div class="votesummary">
+                                    <ul class="collapsible"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div></div> 
+
+            </div>
+        </div>
+
+        
+        <script type="text/javascript">
+            SERVER_TIME_OFFSET = 1492566878 - (new Date()).getTime() / 1000;
+            $(function() {
+                if (!CHAT.RoomUsers) {
+                    $("#loading-message").empty().html("<span style='color:#a00000'>Cannot start chat</span> because your browser has loaded an outdated JavaScript file.<br/><br>Please <b>reload this page</b> to ensure you have up-to-date data.")
+                    return;
+                }
+                var chat = StartChat({
+                    sound: {
+                        file: "//cdn-chat.sstatic.net/chat/so.mp3",
+                        vol: 65,
+                        swfPath: "//cdn-chat.sstatic.net/chat"
+                    },
+                    may_bookmark: false,
+                    ws: true,
+                    egg: "Cthulu",
+                    
+                    desktopNotify: false
+                    },
+                    4258326,
+                    {
+                        id: 1,
+                        host: '',
+                        deleted: false,
+                        frozen: false
+                    },
+                    null,
+                    false,
+                    false,
+                    {});
+                
+
+CHAT.RoomUsers.initPresent([
+
+    
+        {id: 13379, name: ("Michael"), email_hash: ("!https://i.stack.imgur.com/awces.jpg?s=128&g=1"), reputation: 22134, last_post: 1492565139,is_owner:true }
+    
+    
+        ,{id: 1839506, name: ("Caprica Six"), email_hash: ("!https://i.stack.imgur.com/Sej2t.jpg?s=128&g=1"), reputation: 1500, last_post: 1492548492,is_owner:true }
+    
+    
+        ,{id: 829835, name: ("rlemon"), email_hash: ("!https://i.stack.imgur.com/6ay1r.jpg?s=128&g=1"), reputation: 12332, last_post: 1492535990,is_owner:true }
+    
+    
+        ,{id: 7007466, name: ("satibel"), email_hash: ("!https://i.stack.imgur.com/zQpTN.png?s=128&g=1"), reputation: 207, last_post: 1492527767}
+    
+    
+        ,{id: 4258326, name: ("OakBot"), email_hash: ("!https://i.stack.imgur.com/EaE7W.jpg?s=128&g=1"), reputation: 31, last_post: 1492516574}
+    
+    
+        ,{id: 5827958, name: ("zondo"), email_hash: ("!https://i.stack.imgur.com/V9KEl.png?s=128&g=1"), reputation: 13797, last_post: 1492391190}
+    
+    
+        ,{id: 6859980, name: ("Loquitor"), email_hash: ("!https://i.stack.imgur.com/Tgsvt.png?s=128&g=1"), reputation: 21, last_post: 1492329380}
+    
+    
+        ,{id: 7829893, name: ("Open Reports"), email_hash: ("e4a39826eb95106eca6a196d760d30b9"), reputation: 21, last_post: 1491817902}
+    
+    
+        ,{id: 4454744, name: ("MarkI"), email_hash: ("!https://i.stack.imgur.com/3FiT3.jpg?s=128&g=1"), reputation: 197, last_post: 1484884455}
+    
+    
+        ,{id: 6845426, name: ("dipper"), email_hash: ("!https://i.stack.imgur.com/xOw8W.png?s=128&g=1"), reputation: 128, last_post: 0}
+    
+    
+        ,{id: 6091685, name: ("jake"), email_hash: ("!https://i.stack.imgur.com/7IQ9v.png?s=128&g=1"), reputation: 135, last_post: 0}
+    
+]);
+
+
+            });
+        </script>
+        
+<script>
+</script>
+
+        <noscript>
+            <div class="notification">
+                Welcome to the chat! Unfortunately, you have JavaScript disabled, and thus this chat will not work.
+                If you would like to participate, please enable JavaScript in your browser and reload this page.
+            </div>
+        </noscript>
+        <input id="fkey" name="fkey" type="hidden" value="${fkey}" />
+    </body>
+</html>
