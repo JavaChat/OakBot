@@ -11,24 +11,27 @@ import java.util.List;
 public class Rooms {
 	private final Database db;
 	private final List<Integer> rooms = new ArrayList<>();
-	private final List<Integer> homeRooms;
+	private final List<Integer> homeRooms, quietRooms;
 
 	/**
 	 * This constructor will not persist any of the rooms the bot joins.
 	 * @param homeRooms the bot's home rooms
+	 * @param quietRooms the rooms the bot will not post inactivity messages to
 	 */
-	public Rooms(List<Integer> homeRooms) {
-		this(null, homeRooms);
+	public Rooms(List<Integer> homeRooms, List<Integer> quietRooms) {
+		this(null, homeRooms, quietRooms);
 	}
 
 	/**
 	 * This constructor will persist the rooms the bot joins.
 	 * @param db the database
 	 * @param homeRooms the bot's home rooms
+	 * @param quietRooms the rooms the bot will not post inactivity messages to
 	 */
-	public Rooms(Database db, List<Integer> homeRooms) {
+	public Rooms(Database db, List<Integer> homeRooms, List<Integer> quietRooms) {
 		this.db = db;
 		this.homeRooms = homeRooms;
+		this.quietRooms = quietRooms;
 
 		if (db != null) {
 			@SuppressWarnings("unchecked")
@@ -67,6 +70,14 @@ public class Rooms {
 	 */
 	public List<Integer> getHomeRooms() {
 		return Collections.unmodifiableList(homeRooms);
+	}
+
+	/**
+	 * Gets the rooms the bot will not post inactivity messages to.
+	 * @return the room IDs
+	 */
+	public List<Integer> getQuietRooms() {
+		return Collections.unmodifiableList(quietRooms);
 	}
 
 	/**

@@ -37,6 +37,7 @@ bot.userName | The username associated with the StackOverflow user.
 bot.userId | The user ID of the bot's StackOverflow account. You can get this from the URL of your profile page.
 trigger | The character that prefixes all commands.  For example, if the trigger was "/", then posting "/about" in the chat room will cause the bot to display information about itself.
 homeRooms | A comma-separated list of room IDs that OakBot will join and which OakBot cannot be unsummoned from.  A chat room's room ID can be found in its URL.
+quietRooms | (optional) Do not post awkward silence messages to these rooms. By default, the bot will post a message to the room if no user has posted a message in six hours. 
 heartbeat | How often OakBot will poll each chat room to look for new messages (in milliseconds).  Unfortunately, OakBot does not use websockets, like your browser does.
 admins | (optional) Users that can run admin-level commands against the bot (notably, the "shutdown" command). Comma-separated list of user IDs.
 bannedUsers | (optional) Users that have been banned from using the bot. The bot will ignore all messages from these users. Comma-separated list of user IDs.

@@ -92,7 +92,7 @@ public class Main {
 
 		Database database = new JsonDatabase(db);
 		Statistics stats = new Statistics(database);
-		Rooms rooms = new Rooms(database, props.getHomeRooms());
+		Rooms rooms = new Rooms(database, props.getHomeRooms(), props.getQuietRooms());
 		LearnedCommands learnedCommands = new LearnedCommands(database);
 
 		Path javadocPath = props.getJavadocPath();

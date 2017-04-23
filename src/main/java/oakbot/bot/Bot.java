@@ -537,6 +537,10 @@ public class Bot {
 		}
 
 		public void reset(int roomId, boolean userPostedMessage) {
+			if (rooms.getQuietRooms().contains(roomId)) {
+				return;
+			}
+
 			TimerTask task = tasks.get(roomId);
 			if (task != null) {
 				task.cancel();
@@ -606,7 +610,7 @@ public class Bot {
 		private ChatConnection connection;
 		private String email, password, userName, trigger = "=", greeting;
 		private Integer userId, hideImagesAfter;
-		private Rooms rooms = new Rooms(Arrays.asList(1));
+		private Rooms rooms = new Rooms(Arrays.asList(1), Collections.emptyList());
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
@@ -655,7 +659,7 @@ public class Bot {
 		}
 
 		public Builder rooms(Integer... roomIds) {
-			return rooms(new Rooms(Arrays.asList(roomIds)));
+			return rooms(new Rooms(Arrays.asList(roomIds), Collections.emptyList()));
 		}
 
 		public Builder admins(Integer... admins) {
