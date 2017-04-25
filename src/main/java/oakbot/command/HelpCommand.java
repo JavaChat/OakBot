@@ -1,6 +1,7 @@
 package oakbot.command;
 
 import static com.google.common.base.Strings.repeat;
+import static oakbot.command.Command.reply;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -200,12 +201,7 @@ public class HelpCommand implements Command {
 		}
 
 		if (helpTexts.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(message)
-				.append("No command or listener exists with that name.")
-			);
-			//@formatter:on
+			reply("No command or listener exists with that name.", message);
 		}
 
 		ChatBuilder cb = new ChatBuilder();
