@@ -1,5 +1,7 @@
 package oakbot.command.urban;
 
+import static oakbot.command.Command.reply;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -10,16 +12,16 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.http.client.utils.URIBuilder;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
-
-import org.apache.http.client.utils.URIBuilder;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Gets word definitions from urbandictionary.com
@@ -57,12 +59,7 @@ public class UrbanCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("You have to type a word to see its definition... -_-")
-			);
-			//@formatter:on
+			return reply("You have to type a word to see its definition... -_-", chatCommand);
 		}
 
 		//parse the user's input
@@ -101,21 +98,15 @@ public class UrbanCommand implements Command {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
-				.append("Sorry, an unexpected error occurred contacting ")
-				.link("urbandictionary.com", "http://www.ubrandictionary.com")
-				.append("... >.>")
+				.append("Sorry, an unexpected error occurred: ")
+				.code(e.getMessage())
 			);
 			//@formatter:on
 		}
 
 		List<UrbanDefinition> words = response.getDefinitions();
 		if (words == null || words.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("No definition found.")
-			);
-			//@formatter:on
+			return reply("No definition found.", chatCommand);
 		}
 
 		if (definitionToDisplay > words.size()) {
@@ -132,7 +123,7 @@ public class UrbanCommand implements Command {
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
 				.append(urbanWord.getWord())
-				.append(" (").append(urbanWord.getPermalink()).append("):\n")
+				.append(" (").append(urbanWord.getPermalink()).append("):").nl()
 				.append(definition)
 			, SplitStrategy.WORD);
 			//@formatter:on
@@ -190,6 +181,6 @@ public class UrbanCommand implements Command {
 	 */
 	InputStream get(String url) throws IOException {
 		URL urlObj = new URL(url);
-		return urlObj.openStream();	
+		return urlObj.openStream();
 	}
 }

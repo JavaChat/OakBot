@@ -1,5 +1,7 @@
 package oakbot.command;
 
+import static oakbot.command.Command.reply;
+
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,12 +58,7 @@ public class TagCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Please specify the tag name (e.g. \"java\").")
-			);
-			//@formatter:on
+			return reply("Please specify the tag name (e.g. \"java\").", chatCommand);
 		}
 
 		String tag = content.toLowerCase().replace(' ', '-');
@@ -78,7 +75,7 @@ public class TagCommand implements Command {
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
 				.append("An error occurred retrieving the tag description: ")
-				.append(e.getMessage())
+				.code(e.getMessage())
 			);
 			//@formatter:on
 		}
@@ -86,12 +83,7 @@ public class TagCommand implements Command {
 		Document document = Jsoup.parse(response);
 		Element element = document.getElementById("wiki-excerpt");
 		if (element == null) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Tag not found. :(")
-			);
-			//@formatter:on
+			return reply("Tag not found. :(", chatCommand);
 		}
 
 		String definition = element.text();

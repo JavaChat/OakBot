@@ -1,16 +1,6 @@
 package oakbot.command;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import oakbot.bot.BotContext;
-import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
-import oakbot.util.ChatBuilder;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import static oakbot.command.Command.reply;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +9,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import oakbot.bot.BotContext;
+import oakbot.bot.ChatCommand;
+import oakbot.bot.ChatResponse;
+import oakbot.util.ChatBuilder;
 
 /**
  * Displays reaction gifs of human emotions.
@@ -62,12 +66,7 @@ public class ReactCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Please specify a human emotion.")
-			);
-			//@formatter:on
+			return reply("Please specify a human emotion.", chatCommand);
 		}
 
 		uriBuilder.setParameter("tag", content);
@@ -75,12 +74,7 @@ public class ReactCommand implements Command {
 		try {
 			JsonNode node = get(uriBuilder.build());
 			if (node.size() == 0) {
-				//@formatter:off
-				return new ChatResponse(new ChatBuilder()
-					.reply(chatCommand)
-					.append("Unknown human emotion. Please visit http://replygif.net/t for a list of emotions.")
-				);
-				//@formatter:on
+				return reply("Unknown human emotion. Please visit http://replygif.net/t for a list of emotions.", chatCommand);
 			}
 
 			int random = (int) (Math.random() * node.size());

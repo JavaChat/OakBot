@@ -1,5 +1,7 @@
 package oakbot.command;
 
+import static oakbot.command.Command.reply;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -7,7 +9,6 @@ import java.util.Random;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.util.ChatBuilder;
 
 /**
  * Makes the bot leave a room.
@@ -73,15 +74,6 @@ public class UnsummonCommand implements Command {
 		}
 
 		return reply(reply, chatCommand);
-	}
-
-	private static ChatResponse reply(String content, ChatCommand message) {
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(message)
-			.append(content)
-		);
-		//@formatter:on
 	}
 
 	private static String random(String... choices) {

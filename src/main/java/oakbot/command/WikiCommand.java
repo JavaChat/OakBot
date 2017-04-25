@@ -1,5 +1,7 @@
 package oakbot.command;
 
+import static oakbot.command.Command.reply;
+
 import com.google.common.net.UrlEscapers;
 
 import oakbot.bot.BotContext;
@@ -37,21 +39,10 @@ public class WikiCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Please specify the term you'd like to display.")
-			);
-			//@formatter:on
+			return reply("Please specify the term you'd like to display.", chatCommand);
 		}
 
 		String url = "http://en.wikipedia.org/wiki/" + UrlEscapers.urlPathSegmentEscaper().escape(content);
-
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(chatCommand)
-			.append(url)
-		);
-		//@formatter:on
+		return reply(url, chatCommand);
 	}
 }

@@ -1,5 +1,6 @@
 package oakbot.command.define;
 
+import static oakbot.command.Command.reply;
 import static oakbot.util.XPathWrapper.children;
 
 import java.io.IOException;
@@ -104,12 +105,7 @@ public class DefineCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String word = chatCommand.getContent().trim();
 		if (word.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("You have to type a word to see its definition... -_-")
-			);
-			//@formatter:on
+			return reply("Please specify the word you'd like to define.", chatCommand);
 		}
 
 		List<Definition> definitions;
@@ -128,18 +124,14 @@ public class DefineCommand implements Command {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
-				.append("Sorry, an unexpected error occurred getting the definition. >.>")
+				.append("Sorry, an unexpected error occurred while getting the definition: ")
+				.code(e.getMessage())
 			);
 			//@formatter:on
 		}
 
 		if (definitions.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("No definitions found.")
-			);
-			//@formatter:on
+			return reply("No definitions found.", chatCommand);
 		}
 
 		ChatBuilder cb = new ChatBuilder();

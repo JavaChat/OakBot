@@ -1,5 +1,7 @@
 package oakbot.command;
 
+import static oakbot.command.Command.reply;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,7 +12,6 @@ import java.util.Map;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.util.ChatBuilder;
 
 /**
  * Marks users as being "afk".
@@ -47,12 +48,7 @@ public class AfkCommand implements Command {
 
 		setAway(userId, username, awayMessage);
 
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(chatCommand)
-			.append("Cya later.")
-		);
-		//@formatter:on
+		return reply("Cya later", chatCommand);
 	}
 
 	/**

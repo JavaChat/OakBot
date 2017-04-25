@@ -1,5 +1,7 @@
 package oakbot.listener;
 
+import static oakbot.listener.Listener.reply;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -77,12 +79,7 @@ public class AfkListener implements Listener {
 		}
 
 		if (returned) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(message)
-				.append("Welcome back!")
-			);
-			//@formatter:on
+			return reply("Welcome back!", message);
 		}
 
 		return null;

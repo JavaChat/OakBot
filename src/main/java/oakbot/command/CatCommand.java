@@ -1,5 +1,7 @@
 package oakbot.command;
 
+import static oakbot.command.Command.reply;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -119,17 +121,13 @@ public class CatCommand implements Command {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
-				.append("Error getting cat: ").code(e.getMessage())
+				.append("Error getting cat: ")
+				.code(e.getMessage())
 			);
 			//@formatter:on
 		}
 
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(chatCommand)
-			.append("No cats found. Try again. :(")
-		);
-		//@formatter:on
+		return reply("No cats found. Try again. :(", chatCommand);
 	}
 
 	/**

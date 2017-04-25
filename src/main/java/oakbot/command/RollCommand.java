@@ -1,5 +1,7 @@
 package oakbot.command;
 
+import static oakbot.command.Command.reply;
+
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,40 +50,24 @@ public class RollCommand implements Command {
 		if (parameters.choices != null) {
 			int index = random.nextInt(parameters.choices.length);
 			String choice = parameters.choices[index];
-
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append(choice)
-			);
-			//@formatter:on
+			return reply(choice, chatCommand);
 		}
 
 		if (parameters.times > 100) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Sorry, they don't pay me enough for that.")
-			);
-			//@formatter:on
+			return reply("Sorry, they don't pay me enough for that.", chatCommand);
 		}
 
 		if (parameters.times <= 0) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
-				.italic("rolls nothing...")
+				.italic("rolls nothing")
 			);
 			//@formatter:on
 		}
 
 		if (parameters.sides <= 0) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("I can't roll a zero sided die...")
-			);
-			//@formatter:on
+			return reply("I can't roll a zero sided die...", chatCommand);
 		}
 
 		int total = 0;

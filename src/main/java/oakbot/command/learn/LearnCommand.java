@@ -1,5 +1,7 @@
 package oakbot.command.learn;
 
+import static oakbot.command.Command.reply;
+
 import java.util.List;
 
 import oakbot.bot.BotContext;
@@ -50,23 +52,13 @@ public class LearnCommand implements Command {
 
 		String commandName = split[0];
 		if (commandExists(commandName)) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("A command with that name already exists.")
-			);
-			//@formatter:on
+			return reply("A command with that name already exists.", chatCommand);
 		}
 
 		String commandOutput = split[1];
 		learnedCommands.add(commandName, commandOutput);
 
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(chatCommand)
-			.append("Saved.")
-		);
-		//@formatter:on
+		return reply("Saved.", chatCommand);
 	}
 
 	/**

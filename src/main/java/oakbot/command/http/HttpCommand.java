@@ -1,5 +1,7 @@
 package oakbot.command.http;
 
+import static oakbot.command.Command.reply;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -9,6 +11,11 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.http.client.utils.URIBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
@@ -16,11 +23,6 @@ import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
 import oakbot.util.XPathWrapper;
-
-import org.apache.http.client.utils.URIBuilder;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 /**
  * Displays descriptions of HTTP response status codes.
@@ -68,12 +70,7 @@ public class HttpCommand implements Command {
 		String split[] = chatCommand.getContent().split("\\s+");
 		String code = split[0].toUpperCase();
 		if (code.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.")
-			);
-			//@formatter:on
+			return reply("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.", chatCommand);
 		}
 
 		boolean isStatusCode = true;
@@ -82,13 +79,8 @@ public class HttpCommand implements Command {
 			isStatusCode = false;
 			element = xpath.element("/http/method[@name='" + code + "']", document);
 			if (element == null) {
-				String reply = code.matches("[0-9]+") ? "Status code not recognized." : "Method not recognized.";
-				//@formatter:off
-				return new ChatResponse(new ChatBuilder()
-					.reply(chatCommand)
-					.append(reply)
-				);
-				//@formatter:on
+				String reply = code.matches("\\d+") ? "Status code not recognized." : "Method not recognized.";
+				return reply(reply, chatCommand);
 			}
 		}
 

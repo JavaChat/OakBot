@@ -29,7 +29,7 @@ public class DefineCommandTest {
 		ChatCommand message = chatCommandBuilder.build(1, "");
 		DefineCommand urban = new DefineCommand("theKey");
 		ChatResponse response = urban.onMessage(message, null);
-		assertEquals(":1 You have to type a word to see its definition... -_-", response.getMessage());
+		assertEquals(":1 Please specify the word you'd like to define.", response.getMessage());
 	}
 
 	@Test

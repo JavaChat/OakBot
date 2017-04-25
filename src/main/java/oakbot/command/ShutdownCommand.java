@@ -1,9 +1,10 @@
 package oakbot.command;
 
+import static oakbot.command.Command.reply;
+
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.util.ChatBuilder;
 
 /**
  * Shuts down the bot.
@@ -29,15 +30,10 @@ public class ShutdownCommand implements Command {
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		if (context.isAuthorAdmin()) {
-			context.shutdownBot("Shutting down.  See you later.");
+			context.shutdownBot("Shutting down. See you later.");
 			return null;
 		}
 
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(chatCommand)
-			.append("Only admins can shut me down. :P")
-		);
-		//@formatter:on
+		return reply("Only admins can shut me down. :P", chatCommand);
 	}
 }

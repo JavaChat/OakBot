@@ -1,5 +1,7 @@
 package oakbot.command.javadoc;
 
+import static oakbot.command.Command.reply;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,12 +130,7 @@ public class JavadocCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent();
 		if (content.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Type the name of a Java class (e.g. \"java.lang.String\") or a method (e.g. \"Integer#parseInt\").")
-			);
-			//@formatter:on
+			return reply("Type the name of a Java class (e.g. \"java.lang.String\") or a method (e.g. \"Integer#parseInt\").", chatCommand);
 		}
 
 		//parse the command
@@ -166,12 +163,7 @@ public class JavadocCommand implements Command {
 	}
 
 	private ChatResponse handleNoMatch(ChatCommand message) {
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(message)
-			.append("Sorry, I never heard of that class. :(")
-		);
-		//@formatter:on
+		return reply("Sorry, I never heard of that class. :(", message);
 	}
 
 	private ChatResponse handleSingleMatch(JavadocCommandArguments commandText, ClassInfo info, ChatCommand message) {
@@ -190,12 +182,7 @@ public class JavadocCommand implements Command {
 
 		if (matchingMethods.isEmpty()) {
 			//no matches found
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(message)
-				.append("Sorry, I can't find that method. :(")
-			);
-			//@formatter:on
+			return reply("Sorry, I can't find that method. :(", message);
 		}
 
 		if (matchingMethods.exactSignature != null) {
@@ -239,12 +226,7 @@ public class JavadocCommand implements Command {
 
 		if (exactMatches.isEmpty() && matchingNames.isEmpty()) {
 			//no matches found
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(message)
-				.append("Sorry, I can't find that method. :(")
-			);
-			//@formatter:on
+			return reply("Sorry, I can't find that method. :(", message);
 		}
 
 		if (exactMatches.size() == 1) {
