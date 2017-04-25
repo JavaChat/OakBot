@@ -2,6 +2,7 @@ package oakbot.command;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Random;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
@@ -64,5 +65,20 @@ public interface Command {
 			.append(content)
 		);
 		//@formatter:on
+	}
+
+	/**
+	 * Random number generator.
+	 */
+	static Random random = new Random();
+
+	/**
+	 * Chooses a random element from an array.
+	 * @param array the array
+	 * @return the random element
+	 */
+	static <T> T random(@SuppressWarnings("unchecked") T... array) {
+		int index = random.nextInt(array.length);
+		return array[index];
 	}
 }

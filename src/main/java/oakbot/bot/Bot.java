@@ -556,8 +556,7 @@ public class Bot {
 						return;
 					}
 
-					int rand = (int) (Math.random() * messages.length);
-					String message = messages[rand];
+					String message = Command.random(messages);
 					try {
 						connection.sendMessage(roomId, message);
 					} catch (Exception e) {

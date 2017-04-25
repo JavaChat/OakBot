@@ -77,8 +77,8 @@ public class ReactCommand implements Command {
 				return reply("Unknown human emotion. Please visit http://replygif.net/t for a list of emotions.", chatCommand);
 			}
 
-			int random = (int) (Math.random() * node.size());
-			String imageUrl = node.get(random).get("file").asText();
+			int index = random.nextInt(node.size());
+			String imageUrl = node.get(index).get("file").asText();
 			return new ChatResponse(imageUrl);
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Problem querying reaction API.", e);

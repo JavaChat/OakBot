@@ -1,8 +1,8 @@
 package oakbot.command;
 
+import static oakbot.command.Command.random;
 import static oakbot.command.Command.reply;
 
-import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +17,6 @@ import oakbot.util.ChatBuilder;
  */
 public class RollCommand implements Command {
 	private final Pattern diceRegex = Pattern.compile("^(\\d+)d(\\d+)$", Pattern.CASE_INSENSITIVE);
-	private final Random random = new Random();
 
 	@Override
 	public String name() {
@@ -48,8 +47,7 @@ public class RollCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		Parameters parameters = parseParameters(chatCommand);
 		if (parameters.choices != null) {
-			int index = random.nextInt(parameters.choices.length);
-			String choice = parameters.choices[index];
+			String choice = random(parameters.choices);
 			return reply(choice, chatCommand);
 		}
 

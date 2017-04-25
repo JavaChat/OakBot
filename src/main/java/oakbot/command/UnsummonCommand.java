@@ -1,10 +1,10 @@
 package oakbot.command;
 
+import static oakbot.command.Command.random;
 import static oakbot.command.Command.reply;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
@@ -70,15 +70,9 @@ public class UnsummonCommand implements Command {
 		if (inRoomToLeave) {
 			reply = random("*poof*", "Hasta la vista, baby.", "Bye.");
 		} else {
-			reply = random("They smelled funny anyway.", "Good riddance.", "Less for me to worry about.");
+			reply = random("They smelled funny anyway.", "Less for me to worry about.");
 		}
 
 		return reply(reply, chatCommand);
-	}
-
-	private static String random(String... choices) {
-		Random random = new Random();
-		int index = random.nextInt(choices.length);
-		return choices[index];
 	}
 }
