@@ -238,6 +238,10 @@ public class Bot {
 		}
 	}
 
+	private void sendMessage(int roomId, String message) {
+		sendMessage(roomId, new ChatResponse(message));
+	}
+
 	private void sendMessage(int roomId, ChatResponse reply) {
 		final String filteredMessage;
 		{
@@ -336,7 +340,7 @@ public class Bot {
 	private void join(int roomId, boolean quiet) throws RoomNotFoundException, RoomPermissionException, IOException {
 		connection.joinRoom(roomId);
 		if (!quiet && greeting != null) {
-			connection.sendMessage(roomId, greeting);
+			sendMessage(roomId, greeting);
 		}
 		rooms.add(roomId);
 		inactiveRoomTasks.reset(roomId);
@@ -437,9 +441,10 @@ public class Bot {
 		 * Commands can join rooms, so make a copy of the room list to prevent a
 		 * concurrent modification exception.
 		 */
-		List<Integer> rooms = new ArrayList<>(this.rooms.getRooms());
-		for (Integer room : rooms) {
-			connection.sendMessage(room, message, SplitStrategy.WORD);
+		List<Integer> roomIds = new ArrayList<>(this.rooms.getRooms());
+
+		for (Integer roomId : roomIds) {
+			sendMessage(roomId, new ChatResponse(message, SplitStrategy.WORD));
 		}
 	}
 
@@ -558,7 +563,7 @@ public class Bot {
 
 					String message = Command.random(messages);
 					try {
-						connection.sendMessage(roomId, message);
+						sendMessage(roomId, message);
 					} catch (Exception e) {
 						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
 					}
@@ -566,13 +571,13 @@ public class Bot {
 
 				private void leaveRoom() {
 					try {
-						connection.sendMessage(roomId, "*quietly closes door behind him*");
+						sendMessage(roomId, "*quietly closes door behind him*");
 					} catch (Exception e) {
 						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
 					}
 
 					try {
-						Bot.this.leave(roomId);
+						leave(roomId);
 					} catch (IOException e) {
 						logger.log(Level.SEVERE, "Could not leave room " + roomId + ".", e);
 					}
