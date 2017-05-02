@@ -174,7 +174,7 @@ public class Bot {
 
 					if (!replies.isEmpty()) {
 						if (logger.isLoggable(Level.INFO)) {
-							logger.info("Responding to: [#" + message.getMessageId() + "] [" + message.getTimestamp() + "] " + message.getContent());
+							logger.info("Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
 						}
 
 						if (stats != null) {
@@ -255,6 +255,10 @@ public class Bot {
 		}
 
 		try {
+			if (logger.isLoggable(Level.INFO)) {
+				logger.info("Sending message [room=" + roomId + "]: " + filteredMessage);
+			}
+
 			List<Long> messageIds = connection.sendMessage(roomId, filteredMessage, reply.getSplitStrategy());
 
 			/*
