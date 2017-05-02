@@ -103,6 +103,7 @@ public class Bot {
 	 */
 	public void connect(boolean quiet) throws InvalidCredentialsException, IOException {
 		//login
+		logger.info("Logging in as " + email + "...");
 		connection.login(email, password);
 
 		//connect to each room

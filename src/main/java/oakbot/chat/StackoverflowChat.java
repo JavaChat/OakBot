@@ -96,8 +96,6 @@ public class StackoverflowChat implements ChatConnection {
 
 	@Override
 	public void login(String email, String password) throws InvalidCredentialsException, IOException {
-		logger.info("Logging in as " + email + "...");
-
 		String fkey = parseFkeyFromUrl("https://" + DOMAIN + "/users/login");
 		if (fkey == null) {
 			throw new IOException("\"fkey\" field not found on login page, cannot login.");
