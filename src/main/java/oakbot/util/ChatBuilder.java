@@ -4,7 +4,8 @@ import oakbot.bot.ChatCommand;
 import oakbot.chat.ChatMessage;
 
 /**
- * Helper class for building chat messages that have SO Chat markdown.
+ * Helper class for building chat messages that are formatted in Stack Overflow
+ * Chat markdown.
  * @author Michael Angstadt
  * @see <a href="http://chat.stackoverflow.com/faq#formatting">Formatting
  * FAQ</a>
@@ -21,14 +22,15 @@ public class ChatBuilder implements CharSequence {
 
 	/**
 	 * Creates a new chat builder.
-	 * @param text the string to populate it with
+	 * @param text the text to initialize the builder with
 	 */
 	public ChatBuilder(String text) {
 		sb = new StringBuilder(text);
 	}
 
 	/**
-	 * Appends the character sequence for "fixed font".
+	 * Appends the character sequence for "fixed font". Every line must begin
+	 * with this sequence in order to obtain this formatting style.
 	 * @return this
 	 */
 	public ChatBuilder fixed() {
@@ -53,7 +55,7 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
-	 * Appends the character sequence for "code".
+	 * Appends the character sequence for "monospace".
 	 * @return this
 	 */
 	public ChatBuilder code() {
@@ -61,7 +63,7 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
-	 * Wraps text in "code" formatting.
+	 * Wraps text in "monospace" formatting.
 	 * @param text the text to wrap
 	 * @return this
 	 */
@@ -87,7 +89,24 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
-	 * Appends a clickable link.
+	 * Appends the character sequence for "strike through".
+	 * @return this
+	 */
+	public ChatBuilder strike() {
+		return append("---");
+	}
+
+	/**
+	 * Wraps text in "strike through" formatting.
+	 * @param text the text to wrap
+	 * @return this
+	 */
+	public ChatBuilder strike(String text) {
+		return strike().append(text).strike();
+	}
+
+	/**
+	 * Appends a hyperlink.
 	 * @param display the display text
 	 * @param url the URL
 	 * @return this
@@ -97,7 +116,7 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
-	 * Appends a clickable link.
+	 * Appends a hyperlink.
 	 * @param display the display text
 	 * @param url the URL
 	 * @param title the link title or null/empty for no title
@@ -120,7 +139,8 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
-	 * Appends the "reply to message" syntax.
+	 * Appends the "reply to message" syntax. This must go at the beginning of
+	 * the string.
 	 * @param message the message to reply to
 	 * @return this
 	 */
@@ -129,29 +149,13 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
-	 * Appends the "reply to message" syntax.
+	 * Appends the "reply to message" syntax. This must go at the beginning of
+	 * the string.
 	 * @param command the message to reply to
 	 * @return this
 	 */
 	public ChatBuilder reply(ChatCommand command) {
 		return reply(command.getMessage());
-	}
-
-	/**
-	 * Appends the character sequence for "strike through".
-	 * @return this
-	 */
-	public ChatBuilder strike() {
-		return append("---");
-	}
-
-	/**
-	 * Wraps text in "strike through" formatting.
-	 * @param text the text to wrap
-	 * @return this
-	 */
-	public ChatBuilder strike(String text) {
-		return strike().append(text).strike();
 	}
 
 	/**
