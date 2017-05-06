@@ -3,8 +3,11 @@ package oakbot.listener;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 
@@ -12,6 +15,8 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class WaveListenerTest {
+	private static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList());
+
 	@Test
 	public void onMessage() {
 		assertWave("o/", "\\o", false);
@@ -33,7 +38,7 @@ public class WaveListenerTest {
 		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
 		WaveListener listener = new WaveListener("OakBot", 0, mentionListener);
 
-		ChatResponse chatResponse = listener.onMessage(chatMessage, null);
+		ChatResponse chatResponse = listener.onMessage(chatMessage, context);
 		if (response == null) {
 			assertNull(chatResponse);
 		} else {
@@ -55,10 +60,29 @@ public class WaveListenerTest {
 		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
 		WaveListener listener = new WaveListener("OakBot", 0, mentionListener);
 
-		ChatResponse chatResponse = listener.onMessage(chatMessage, null);
+		ChatResponse chatResponse = listener.onMessage(chatMessage, context);
 		assertEquals("\\o", chatResponse.getMessage());
-		chatResponse = listener.onMessage(chatMessage, null);
+		chatResponse = listener.onMessage(chatMessage, context);
 		assertNull(chatResponse);
+	}
+
+	@Test
+	public void always_wave_to_admins() {
+		//@formatter:off
+		ChatMessage chatMessage = new ChatMessage.Builder()
+			.roomId(1)
+			.content("o/")
+		.build();
+		//@formatter:on
+
+		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
+		WaveListener listener = new WaveListener("OakBot", 0, mentionListener);
+
+		BotContext context = new BotContext(true, "/", null, Collections.emptyList(), Collections.emptyList());
+		ChatResponse chatResponse = listener.onMessage(chatMessage, context);
+		assertEquals("\\o", chatResponse.getMessage());
+		chatResponse = listener.onMessage(chatMessage, context);
+		assertEquals("\\o", chatResponse.getMessage());
 	}
 
 	@Test
@@ -77,16 +101,16 @@ public class WaveListenerTest {
 		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
 		WaveListener listener = new WaveListener("OakBot", 0, mentionListener);
 
-		ChatResponse chatResponse = listener.onMessage(chatMessage1, null);
+		ChatResponse chatResponse = listener.onMessage(chatMessage1, context);
 		assertEquals("\\o", chatResponse.getMessage());
 
-		chatResponse = listener.onMessage(chatMessage2, null);
+		chatResponse = listener.onMessage(chatMessage2, context);
 		assertEquals("\\o", chatResponse.getMessage());
 
-		chatResponse = listener.onMessage(chatMessage1, null);
+		chatResponse = listener.onMessage(chatMessage1, context);
 		assertNull(chatResponse);
 
-		chatResponse = listener.onMessage(chatMessage2, null);
+		chatResponse = listener.onMessage(chatMessage2, context);
 		assertNull(chatResponse);
 	}
 

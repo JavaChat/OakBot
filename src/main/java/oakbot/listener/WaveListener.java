@@ -84,10 +84,10 @@ public class WaveListener implements Listener {
 
 			/*
 			 * Do not respond if the bot was not mentioned and it responded
-			 * recently.
+			 * recently. Always wave back to admins.
 			 */
 			long now = System.currentTimeMillis();
-			if (now - lastWave < timeBetweenWaves) {
+			if (!context.isAuthorAdmin() && now - lastWave < timeBetweenWaves) {
 				return null;
 			}
 
