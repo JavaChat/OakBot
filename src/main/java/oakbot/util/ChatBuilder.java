@@ -38,6 +38,24 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
+	 * Appends the character sequence for "blockquote". This must go at the
+	 * beginning of the string.
+	 * @return this
+	 */
+	public ChatBuilder quote() {
+		return append('>');
+	}
+
+	/**
+	 * Wraps text in "blockquote" formatting.
+	 * @param text the text to wrap
+	 * @return this
+	 */
+	public ChatBuilder quote(String text) {
+		return quote().append(text);
+	}
+
+	/**
 	 * Appends the character sequence for "bold".
 	 * @return this
 	 */
