@@ -16,6 +16,7 @@ public class ChatBuilderTest {
 		assertToMarkdown("<code>value</code>", "`value`", false);
 		assertToMarkdown("<strike>value</strike>", "---value---", false);
 		assertToMarkdown("<a href=\"http://google.com\">value</a>", "[value](http://google.com)", false);
+		assertToMarkdown("<a href=\"//stackoverflow.com/questions/tagged/java\"><span class=\"ob-post-tag\" style=\"background-color: #E0EAF1; color: #3E6D8E; border-color: #3E6D8E; border-style: solid;\">java</span></a>", "[tag:java]", false);
 
 		//multi-line text
 		assertToMarkdown("one\ntwo\rthree\r\nfour", "one\ntwo\rthree\r\nfour", false);

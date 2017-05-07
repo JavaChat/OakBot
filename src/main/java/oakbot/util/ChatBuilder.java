@@ -295,6 +295,7 @@ public class ChatBuilder implements CharSequence {
 				.replaceAll("</?b>", "**")
 				.replaceAll("</?code>", "`")
 				.replaceAll("</?strike>", "---")
+				.replaceAll("<a.*?><span class=\"ob-post-tag\".*?>(.*?)</span></a>", "[tag:$1]")
 				.replaceAll("<a href=\"(.*?)\".*?>(.*?)</a>", "[$2]($1)");
 				//@formatter:on
 
