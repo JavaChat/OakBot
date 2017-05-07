@@ -1,5 +1,10 @@
 package oakbot.bot;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import oakbot.chat.ChatMessage;
 
 /**
@@ -52,11 +57,140 @@ public class ChatCommand {
 	 * <p>
 	 * For example, given the chat message "/define java", this method would
 	 * return "java". All whitespace after the command name are excluded from
-	 * this method's return value.
+	 * this method's return value. Any HTML formatting within the content is
+	 * preserved.
 	 * <p>
 	 * @return the text or empty string if there is no text after the command
 	 */
 	public String getContent() {
 		return content;
+	}
+
+	/**
+	 * Parses the components of a chat command out of a chat message.
+	 * @param message the chat message to parse
+	 * @param trigger the command trigger or null to treat the first word in the
+	 * message as the command name
+	 * @return the chat command or null if the chat message is not a chat
+	 * command
+	 */
+	public static ChatCommand fromMessage(ChatMessage message, String trigger) {
+		String content = message.getContent();
+		if (content == null) {
+			return null;
+		}
+
+		StringBuilder nameBuffer = new StringBuilder();
+		List<String[]> openTags = new ArrayList<>();
+		boolean inTag = false, inTagName = false, inClosingTag = false;
+		boolean nonWhitespaceCharEncountered = false;
+		int tagNameStart = -1;
+		int startOfText = -1;
+		String curTagName = null;
+		char prev = 0;
+		for (int i = 0; i < content.length(); i++) {
+			char c = content.charAt(i);
+
+			if (Character.isWhitespace(c)) {
+				if (!nonWhitespaceCharEncountered) {
+					/*
+					 * Ignore all whitespace at the beginning of the message.
+					 */
+					prev = c;
+					continue;
+				}
+
+				if (inTag) {
+					if (inTagName) {
+						curTagName = content.substring(tagNameStart, i);
+						openTags.add(new String[] { curTagName, null });
+						inTagName = false;
+					}
+					prev = c;
+					continue;
+				}
+
+				/*
+				 * The first whitespace character signals the end of the command
+				 * name.
+				 */
+				startOfText = i + 1;
+				break;
+			}
+
+			nonWhitespaceCharEncountered = true;
+
+			switch (c) {
+			case '<':
+				inTag = inTagName = true;
+				inClosingTag = false;
+				tagNameStart = i + 1;
+				curTagName = null;
+				break;
+			case '>':
+				if (curTagName == null) {
+					curTagName = content.substring(tagNameStart, i);
+					if (!inClosingTag) {
+						openTags.add(new String[] { curTagName, null });
+					}
+				}
+
+				if (inClosingTag) {
+					while (true) {
+						if (openTags.isEmpty()) {
+							break;
+						}
+
+						String tag[] = openTags.remove(openTags.size() - 1);
+						if (tag[0].equals(curTagName)) {
+							break;
+						}
+					}
+				} else {
+					openTags.get(openTags.size() - 1)[1] = content.substring(tagNameStart - 1, i + 1);
+				}
+
+				inTag = inTagName = inClosingTag = false;
+				break;
+			case '/':
+				if (prev == '<') {
+					inClosingTag = true;
+					tagNameStart = i + 1;
+					break;
+				}
+				//break; don't break, go to default
+			default:
+				if (!inTag) {
+					nameBuffer.append(c);
+				}
+				break;
+			}
+
+			prev = c;
+		}
+
+		String name = StringEscapeUtils.unescapeHtml4(nameBuffer.toString());
+		if (trigger != null) {
+			if (!name.startsWith(trigger)) {
+				return null;
+			}
+
+			//remove the trigger
+			name = name.substring(trigger.length());
+		}
+
+		if (name.isEmpty()) {
+			return null;
+		}
+
+		String text = (startOfText >= 0) ? content.substring(startOfText).trim() : "";
+
+		StringBuilder sb = new StringBuilder();
+		for (String[] tag : openTags) {
+			sb.append(tag[1]);
+		}
+		text = sb + text;
+
+		return new ChatCommand(message, name, text);
 	}
 }

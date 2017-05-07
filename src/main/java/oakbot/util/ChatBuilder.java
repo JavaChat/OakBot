@@ -1,5 +1,7 @@
 package oakbot.util;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import oakbot.bot.ChatCommand;
 import oakbot.chat.ChatMessage;
 
@@ -253,5 +255,59 @@ public class ChatBuilder implements CharSequence {
 	@Override
 	public String toString() {
 		return sb.toString();
+	}
+
+	/**
+	 * Converts HTML-formated content to Markdown syntax.
+	 * @param content the HTML content
+	 * @param fixedFont if the message is formatted with a fixed font
+	 * @return the content as formatted in Markdown
+	 */
+	public static String toMarkdown(String content, boolean fixedFont) {
+		if (content == null) {
+			return null;
+		}
+
+		String markdown;
+		if (fixedFont) {
+			/*
+			 * Any Markdown syntax in a fixed-font message is ignored and
+			 * treated as plain-text.
+			 */
+			markdown = "    " + content.replaceAll("(\r\n|\r|\n)", "$1    ");
+		} else {
+			boolean multiline = content.indexOf('\n') >= 0 || content.indexOf('\r') >= 0;
+			if (multiline) {
+				/*
+				 * Any Markdown syntax in a multi-line message is ignored and
+				 * treated as plain-text.
+				 */
+				markdown = content;
+			} else {
+				//@formatter:off
+				markdown = content
+				
+				//escape characters used in Markdown syntax
+				.replaceAll("[\\*_\\`()\\[\\]]", "\\\\$0")
+				
+				//replace formatting tags with Markdown
+				.replaceAll("</?i>", "*")
+				.replaceAll("</?b>", "**")
+				.replaceAll("</?code>", "`")
+				.replaceAll("</?strike>", "---")
+				.replaceAll("<a href=\"(.*?)\".*?>(.*?)</a>", "[$2]($1)");
+				//@formatter:on
+
+				/*
+				 * Note: Stack Overflow Chat does not convert "blockquote"
+				 * syntax (">" character) to an HTML tag.
+				 */
+			}
+		}
+
+		//decode HTML entities
+		markdown = StringEscapeUtils.unescapeHtml4(markdown);
+
+		return markdown;
 	}
 }

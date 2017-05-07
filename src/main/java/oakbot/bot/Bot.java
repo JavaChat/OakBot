@@ -16,7 +16,6 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -66,7 +65,6 @@ public class Bot {
 	private final Statistics stats;
 	private final Database database;
 	private final UnknownCommandHandler unknownCommandHandler;
-	private final Pattern commandRegex;
 	private final Timer timer = new Timer();
 	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(TimeUnit.HOURS.toMillis(6), TimeUnit.DAYS.toMillis(3));
 	private final Pattern imageUrlRegex = Pattern.compile("^https?://[^\\s]*?\\.(jpg|jpeg|png|gif)$", Pattern.CASE_INSENSITIVE);
@@ -90,7 +88,6 @@ public class Bot {
 		learnedCommands = builder.learnedCommands;
 		listeners = builder.listeners.build();
 		responseFilters = builder.responseFilters.build();
-		commandRegex = Pattern.compile("^" + Pattern.quote(trigger) + "\\s*(.*?)(\\s+(.*)|$)");
 	}
 
 	/**
@@ -146,7 +143,7 @@ public class Bot {
 
 					replies.addAll(handleListeners(message, context));
 
-					ChatCommand command = asCommand(message);
+					ChatCommand command = ChatCommand.fromMessage(message, trigger);
 					if (command != null) {
 						replies.addAll(handleCommands(command, context));
 					}
@@ -296,27 +293,6 @@ public class Bot {
 	 */
 	private boolean isImageUrl(String message) {
 		return imageUrlRegex.matcher(message).find();
-	}
-
-	/**
-	 * Tests to see if a chat message is in the format of a command, and if it
-	 * is, parses it as such.
-	 * @param message the chat message
-	 * @return the chat command if null if the message is not a command
-	 */
-	private ChatCommand asCommand(ChatMessage message) {
-		String content = message.getContent();
-		Matcher matcher = commandRegex.matcher(content);
-		if (!matcher.find()) {
-			return null;
-		}
-
-		String name = matcher.group(1);
-		String text = matcher.group(3);
-		if (text == null) {
-			text = "";
-		}
-		return new ChatCommand(message, name, text);
 	}
 
 	/**

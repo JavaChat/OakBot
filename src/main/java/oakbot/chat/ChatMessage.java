@@ -16,6 +16,7 @@ public class ChatMessage {
 	private final String username;
 	private final int roomId;
 	private final String content;
+	private final boolean fixedFont;
 
 	private ChatMessage(Builder builder) {
 		messageId = builder.messageId;
@@ -24,6 +25,7 @@ public class ChatMessage {
 		username = builder.username;
 		roomId = builder.roomId;
 		content = builder.content;
+		fixedFont = builder.fixedFont;
 	}
 
 	/**
@@ -67,11 +69,42 @@ public class ChatMessage {
 	}
 
 	/**
-	 * Gets the content of the message.
+	 * <p>
+	 * Gets the message content.
+	 * </p>
+	 * <p>
+	 * Messages that consist of a single line of content may contain basic HTML
+	 * formatting (even though Stack Overflow Chat only accepts messages
+	 * formatted in Markdown syntax, when chat messages are retrieved from the
+	 * API, they are formatted in HTML).
+	 * </p>
+	 * <p>
+	 * Messages that contain multiple lines of text will not contain any
+	 * formatting because Stack Overflow Chat does not allow multi-lined
+	 * messages to contain formatting.
+	 * </p>
+	 * <p>
+	 * Messages that are formatted using a fixed font will not contain any
+	 * formatting either. Fixed font messages may contain multiple lines. If a
+	 * message is formatted in fixed font, the {@link #isFixedFont} method will
+	 * return true.
+	 * </p>
+	 * <p>
+	 * Messages that contain a onebox will contain significant HTML code.
+	 * </p>
+	 * 
 	 * @return the content or null if the author deleted the message
 	 */
 	public String getContent() {
 		return content;
+	}
+
+	/**
+	 * Gets whether the entire message is formatted in a monospace font.
+	 * @return true if it's formatted in a fixed font, false if not
+	 */
+	public boolean isFixedFont() {
+		return fixedFont;
 	}
 
 	/**
@@ -98,7 +131,7 @@ public class ChatMessage {
 	 * </p>
 	 * <p>
 	 * Because mentions can contain only part of a person's username, and
-	 * because usernames are not unique on Stackoverflow, it's possible for a
+	 * because usernames are not unique on Stack Overflow, it's possible for a
 	 * mention to refer to more than one user.
 	 * </p>
 	 * <p>
@@ -168,7 +201,7 @@ public class ChatMessage {
 
 	@Override
 	public String toString() {
-		return "ChatMessage [messageId=" + messageId + ", timestamp=" + timestamp + ", userId=" + userId + ", username=" + username + ", roomId=" + roomId + ", content=" + content + "]";
+		return "ChatMessage [messageId=" + messageId + ", timestamp=" + timestamp + ", userId=" + userId + ", username=" + username + ", roomId=" + roomId + ", content=" + content + ", fixedFont=" + fixedFont + "]";
 	}
 
 	/**
@@ -182,6 +215,7 @@ public class ChatMessage {
 		private String username;
 		private int roomId;
 		private String content;
+		private boolean fixedFont;
 
 		/**
 		 * Creates an empty builder.
@@ -201,6 +235,7 @@ public class ChatMessage {
 			username = original.username;
 			roomId = original.roomId;
 			content = original.content;
+			fixedFont = original.fixedFont;
 		}
 
 		/**
@@ -259,7 +294,19 @@ public class ChatMessage {
 		 * @return this
 		 */
 		public Builder content(String content) {
+			return content(content, false);
+		}
+
+		/**
+		 * Sets the content of the message.
+		 * @param content the content or null if the author deleted the message
+		 * @param fixedFont true if the content is formatted in a fixed font,
+		 * false if not
+		 * @return this
+		 */
+		public Builder content(String content, boolean fixedFont) {
 			this.content = content;
+			this.fixedFont = fixedFont;
 			return this;
 		}
 

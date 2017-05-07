@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -737,18 +736,25 @@ public class StackoverflowChat implements ChatConnection {
 		private static ChatMessage parseChatMessage(JsonNode element) {
 			ChatMessage.Builder builder = new ChatMessage.Builder();
 
+			/*
+			 * Note: The "edits" field is ignored because it is always zero, no
+			 * matter how many edits a message gets.
+			 */
+
 			JsonNode value = element.get("content");
 			if (value != null) {
-				//TODO convert HTML to SO Chat markdown?
-				String content = StringEscapeUtils.unescapeHtml4(value.asText());
-				builder.content(content);
-			}
+				String content = value.asText();
+				String inner = extractFixedFontContent(content);
+				boolean fixedFont = (inner != null);
+				if (!fixedFont) {
+					inner = extractMultiLineContent(content);
+					if (inner == null) {
+						inner = content;
+					}
+				}
 
-			/*
-			 * This field is always zero, no matter how many edits a message
-			 * gets.
-			 */
-			//value = element.get("edits");
+				builder.content(inner, fixedFont);
+			}
 
 			value = element.get("message_id");
 			if (value != null) {
@@ -777,6 +783,37 @@ public class StackoverflowChat implements ChatConnection {
 			}
 
 			return builder.build();
+		}
+
+		/**
+		 * Extracts the message content from a message that is formatted in
+		 * fixed font. Fixed font messages are enclosed in a &lt;pre&gt; tag.
+		 * @param content the complete chat message content
+		 * @return the extracted message content or null if the message is not
+		 * fixed-font
+		 */
+		private static String extractFixedFontContent(String content) {
+			Pattern p = Pattern.compile("^<pre class='(full|partial)'>(.*?)</pre>$", Pattern.DOTALL);
+			Matcher m = p.matcher(content);
+			return m.find() ? m.group(2) : null;
+		}
+
+		/**
+		 * Extracts the message content from a multi-line message. Multi-line
+		 * messages are enclosed in a &lt;div&gt; tag. Also converts &lt;br&gt;
+		 * tags to newlines.
+		 * @param content the complete chat message content
+		 * @return the extracted message content or null if the message is not
+		 * multi-line
+		 */
+		private static String extractMultiLineContent(String content) {
+			Pattern p = Pattern.compile("^<div class='(full|partial)'>(.*?)</div>$", Pattern.DOTALL);
+			Matcher m = p.matcher(content);
+			if (!m.find()) {
+				return null;
+			}
+
+			return m.group(2).replace(" <br> ", "\n");
 		}
 	}
 
