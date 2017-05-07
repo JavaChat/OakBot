@@ -3,6 +3,7 @@ package oakbot.listener;
 import static oakbot.listener.Listener.reply;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,15 +72,20 @@ public class WelcomeListener implements Listener {
 		userIds.add(userId);
 		saveData();
 
-		UserInfo userInfo;
+		List<UserInfo> userInfo;
 		try {
-			userInfo = context.getConnection().getUserInfo(userId, roomId);
+			userInfo = context.getConnection().getUserInfo(roomId, Arrays.asList(userId));
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Could not get user info for user " + userId, e);
 			return null;
 		}
 
-		if (!shouldUserBeWelcomed(userInfo)) {
+		if (userInfo.isEmpty()) {
+			return null;
+		}
+
+		UserInfo first = userInfo.get(0);
+		if (!shouldUserBeWelcomed(first)) {
 			return null;
 		}
 

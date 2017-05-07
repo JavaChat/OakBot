@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -255,15 +256,15 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	@Override
-	public UserInfo getUserInfo(int userId, int roomId) throws IOException {
-		GetUserInfoRequest request = new GetUserInfoRequest(userId, roomId);
+	public List<UserInfo> getUserInfo(int roomId, List<Integer> userIds) throws IOException {
+		GetUserInfoRequest request = new GetUserInfoRequest(roomId, userIds);
 		JsonResponse jsonResponse = send(request).statusCodes(200).asJson();
 		if (jsonResponse.isHttp404()) {
 			return null;
 		}
 
 		GetUserInfoResponse response = GetUserInfoResponse.parse(jsonResponse, roomId);
-		return (response == null) ? null : response.getUserInfo();
+		return response.getUserInfo();
 	}
 
 	@Override
@@ -945,12 +946,12 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	private static class GetUserInfoRequest extends HttpPost {
-		public GetUserInfoRequest(int userId, int roomId) {
+		public GetUserInfoRequest(int roomId, List<Integer> userIds) {
 			super(CHAT_DOMAIN + "/user/info");
 
 			//@formatter:off
 			List<NameValuePair> params = Arrays.asList(
-				new BasicNameValuePair("ids", Integer.toString(userId)),
+				new BasicNameValuePair("ids", StringUtils.join(userIds, ",")),
 				new BasicNameValuePair("roomId", Integer.toString(roomId))
 			);
 			//@formatter:on
@@ -959,43 +960,48 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	private static class GetUserInfoResponse {
-		private final UserInfo userInfo;
+		private final List<UserInfo> userInfo;
 
-		public GetUserInfoResponse(UserInfo userInfo) {
+		public GetUserInfoResponse(List<UserInfo> userInfo) {
 			this.userInfo = userInfo;
 		}
 
-		public UserInfo getUserInfo() {
+		public List<UserInfo> getUserInfo() {
 			return userInfo;
 		}
 
 		public static GetUserInfoResponse parse(JsonResponse response, int roomId) throws IOException {
-			JsonNode userNode = response.getBody().get("users").get(0);
-			if (userNode == null) {
+			JsonNode usersNode = response.getBody().get("users");
+			if (usersNode == null) {
 				return null;
 			}
 
-			UserInfo.Builder builder = new UserInfo.Builder();
-			builder.userId(userNode.get("id").asInt());
-			builder.roomId(roomId);
-			builder.username(userNode.get("name").asText());
+			List<UserInfo> users = new ArrayList<>(usersNode.size());
+			usersNode.forEach((userNode) -> {
+				UserInfo.Builder builder = new UserInfo.Builder();
+				builder.userId(userNode.get("id").asInt());
+				builder.roomId(roomId);
+				builder.username(userNode.get("name").asText());
 
-			String profilePicture;
-			String emailHash = userNode.get("email_hash").asText();
-			if (emailHash.startsWith("!")) {
-				profilePicture = emailHash.substring(1);
-			} else {
-				profilePicture = "https://www.gravatar.com/avatar/" + emailHash + "?d=identicon&s=128";
-			}
-			builder.profilePicture(profilePicture);
+				String profilePicture;
+				String emailHash = userNode.get("email_hash").asText();
+				if (emailHash.startsWith("!")) {
+					profilePicture = emailHash.substring(1);
+				} else {
+					profilePicture = "https://www.gravatar.com/avatar/" + emailHash + "?d=identicon&s=128";
+				}
+				builder.profilePicture(profilePicture);
 
-			builder.reputation(userNode.get("reputation").asInt());
-			builder.moderator(userNode.get("is_moderator").asBoolean());
-			builder.owner(userNode.get("is_owner").asBoolean());
-			builder.lastPost(timestamp(userNode.get("last_post").asLong()));
-			builder.lastSeen(timestamp(userNode.get("last_seen").asLong()));
+				builder.reputation(userNode.get("reputation").asInt());
+				builder.moderator(userNode.get("is_moderator").asBoolean());
+				builder.owner(userNode.get("is_owner").asBoolean());
+				builder.lastPost(timestamp(userNode.get("last_post").asLong()));
+				builder.lastSeen(timestamp(userNode.get("last_seen").asLong()));
 
-			return new GetUserInfoResponse(builder.build());
+				users.add(builder.build());
+			});
+
+			return new GetUserInfoResponse(users);
 		}
 	}
 
@@ -1017,9 +1023,10 @@ public class StackoverflowChat implements ChatConnection {
 		}
 
 		public static GetPingableUsersResponse parse(JsonResponse response, int roomId) throws IOException {
-			List<PingableUser> users = new ArrayList<>();
+			JsonNode root = response.getBody();
+			List<PingableUser> users = new ArrayList<>(root.size());
 
-			response.getBody().forEach((node) -> {
+			root.forEach((node) -> {
 				if (!node.isArray() || node.size() < 4) {
 					return;
 				}

@@ -209,14 +209,16 @@ public class FileChatConnection implements ChatConnection {
 	}
 
 	@Override
-	public UserInfo getUserInfo(int userId, int roomId) throws IOException {
+	public List<UserInfo> getUserInfo(int roomId, List<Integer> userIds) throws IOException {
 		//@formatter:off
-		return new UserInfo.Builder()
-			.userId(userId)
-			.roomId(roomId)
-			.username(humanUsername)
-			.reputation(500)
-		.build();
+		return Arrays.asList(
+			new UserInfo.Builder()
+				.userId(userIds.get(0))
+				.roomId(roomId)
+				.username(humanUsername)
+				.reputation(500)
+			.build()
+		);
 		//@formatter:on
 	}
 
