@@ -267,6 +267,14 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	@Override
+	public List<PingableUser> getPingableUsers(int roomId) throws IOException {
+		GetPingableUsersRequest request = new GetPingableUsersRequest(roomId);
+		JsonResponse jsonResponse = send(request).statusCodes(200).asJson();
+		GetPingableUsersResponse response = GetPingableUsersResponse.parse(jsonResponse, roomId);
+		return response.getPingableUsers();
+	}
+
+	@Override
 	public void listen(ChatMessageHandler handler) {
 		while (true) {
 			long start = System.currentTimeMillis();
@@ -991,6 +999,47 @@ public class StackoverflowChat implements ChatConnection {
 		}
 	}
 
+	private static class GetPingableUsersRequest extends HttpGet {
+		public GetPingableUsersRequest(int roomId) {
+			super(CHAT_DOMAIN + "/rooms/pingable/" + roomId);
+		}
+	}
+
+	private static class GetPingableUsersResponse {
+		private final List<PingableUser> users;
+
+		public GetPingableUsersResponse(List<PingableUser> users) {
+			this.users = users;
+		}
+
+		public List<PingableUser> getPingableUsers() {
+			return users;
+		}
+
+		public static GetPingableUsersResponse parse(JsonResponse response, int roomId) throws IOException {
+			List<PingableUser> users = new ArrayList<>();
+
+			response.getBody().forEach((node) -> {
+				if (!node.isArray() || node.size() < 4) {
+					return;
+				}
+
+				long userId = node.get(0).asLong();
+				String username = node.get(1).asText();
+				LocalDateTime lastPost = timestamp(node.get(3).asLong());
+
+				users.add(new PingableUser(roomId, userId, username, lastPost));
+			});
+
+			return new GetPingableUsersResponse(users);
+		}
+	}
+
+	/**
+	 * Converts a timestamp to a {@link LocalDateTime} instance.
+	 * @param ts the timestamp (seconds since epoch)
+	 * @return the {@link LocalDateTime} instance
+	 */
 	private static LocalDateTime timestamp(long ts) {
 		Instant instant = Instant.ofEpochSecond(ts);
 		return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());

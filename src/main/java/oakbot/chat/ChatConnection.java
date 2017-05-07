@@ -114,4 +114,15 @@ public interface ChatConnection extends Closeable, Flushable {
 	 * @throws IOException if there's a network problem
 	 */
 	UserInfo getUserInfo(int userId, int roomId) throws IOException;
+
+	/**
+	 * Gets the users that are "pingable" in a chat room. This means that they
+	 * will receive a notification if they are mentioned. It does not mean they
+	 * are currently in the room, although they could be.
+	 * @param roomId the chat room ID (you do not have to join the room for this
+	 * to work)
+	 * @return the pingable users
+	 * @throws IOException if there's a network problem
+	 */
+	List<PingableUser> getPingableUsers(int roomId) throws IOException;
 }

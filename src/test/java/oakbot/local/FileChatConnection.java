@@ -15,6 +15,7 @@ import java.util.Map;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.ChatMessageHandler;
+import oakbot.chat.PingableUser;
 import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.RoomPermissionException;
 import oakbot.chat.SplitStrategy;
@@ -216,6 +217,16 @@ public class FileChatConnection implements ChatConnection {
 			.username(humanUsername)
 			.reputation(500)
 		.build();
+		//@formatter:on
+	}
+
+	@Override
+	public List<PingableUser> getPingableUsers(int roomId) throws IOException {
+		//@formatter:off
+		return Arrays.asList(
+			new PingableUser(roomId, humanUserId, humanUsername, LocalDateTime.now()),
+			new PingableUser(roomId, botUserId, botUsername, LocalDateTime.now())
+		);
 		//@formatter:on
 	}
 }
