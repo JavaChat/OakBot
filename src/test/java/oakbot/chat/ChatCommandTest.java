@@ -19,8 +19,8 @@ public class ChatCommandTest {
 		assertFromMessage("/name one two", "name", "one two", "/");
 		assertFromMessage("/name", "name", "", "/");
 
-		//ignore excess whitespace
-		assertFromMessage("  /name   value", "name", "value", "/");
+		//ignore whitespace at the beginning of the message
+		assertFromMessage("  /name value", "name", "value", "/");
 
 		//no command name after the trigger
 		assertFromMessageNull("/ value", "/");
@@ -50,10 +50,14 @@ public class ChatCommandTest {
 		assertFromMessageNull(null, "/");
 
 		//multi-line message, treat newlines as whitespace delimiter between command name and value
-		assertFromMessage("/name\n\none\ntwo", "name", "one\ntwo", "/");
+		assertFromMessage("/name\n\none\ntwo", "name", "one\ntwo", "/", false);
 
 		//use the first word as the command when no trigger is specified
 		assertFromMessage("name value", "name", "value", null);
+
+		//fixed font messages should not be trimmed
+		assertFromMessage("/name\n one\n  two", "name", "one\n  two", "/", false);
+		assertFromMessage("/name\n one\n  two", "name", " one\n  two", "/", true);
 	}
 
 	private static void assertFromMessageNull(String content, String trigger) {
@@ -66,11 +70,15 @@ public class ChatCommandTest {
 
 	private static void assertFromMessage(String content, String name, String text, String trigger) {
 		for (boolean fixedFont : new boolean[] { false, true }) {
-			ChatMessage message = new ChatMessage.Builder().content(content, fixedFont).build();
-			ChatCommand command = ChatCommand.fromMessage(message, trigger);
-			assertEquals(name, command.getCommandName());
-			assertEquals(text, command.getContent());
-			assertSame(message, command.getMessage());
+			assertFromMessage(content, name, text, trigger, fixedFont);
 		}
+	}
+
+	private static void assertFromMessage(String content, String name, String text, String trigger, boolean fixedFont) {
+		ChatMessage message = new ChatMessage.Builder().content(content, fixedFont).build();
+		ChatCommand command = ChatCommand.fromMessage(message, trigger);
+		assertEquals(name, command.getCommandName());
+		assertEquals(text, command.getContent());
+		assertSame(message, command.getMessage());
 	}
 }

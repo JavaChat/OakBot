@@ -183,7 +183,15 @@ public class ChatCommand {
 			return null;
 		}
 
-		String text = (startOfText >= 0) ? content.substring(startOfText).trim() : "";
+		String text;
+		if (startOfText < 0) {
+			text = "";
+		} else {
+			text = content.substring(startOfText);
+			if (!message.isFixedFont()) {
+				text = text.trim();
+			}
+		}
 
 		StringBuilder sb = new StringBuilder();
 		for (String[] tag : openTags) {
