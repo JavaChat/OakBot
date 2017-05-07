@@ -20,7 +20,7 @@ public interface ChatConnection extends Closeable, Flushable {
 	void login(String email, String password) throws InvalidCredentialsException, IOException;
 
 	/**
-	 * Joins a chat room. A room should be joined before it is interacted with.
+	 * Joins a room. A room should be joined before it is interacted with.
 	 * @param roomId the room ID
 	 * @throws RoomNotFoundException if the room does not exist
 	 * @throws RoomPermissionException if messages cannot be posted to this room
@@ -29,17 +29,16 @@ public interface ChatConnection extends Closeable, Flushable {
 	void joinRoom(int roomId) throws RoomNotFoundException, RoomPermissionException, IOException;
 
 	/**
-	 * Leaves a chat room. This method does nothing if the room was never
-	 * joined.
+	 * Leaves a room. This method does nothing if the room was never joined.
 	 * @param roomId the room ID
 	 * @throws IOException if there's a network problem
 	 */
 	void leaveRoom(int roomId) throws IOException;
 
 	/**
-	 * Posts a message to a chat room. If the message exceeds the max message
-	 * size, it will be truncated.
-	 * @param roomId the ID of the chat room
+	 * Posts a message. If the message exceeds the max message size, it will be
+	 * truncated.
+	 * @param roomId the room ID
 	 * @param message the message to post
 	 * @return the ID of the new message
 	 * @throws RoomNotFoundException if the room does not exist
@@ -50,13 +49,13 @@ public interface ChatConnection extends Closeable, Flushable {
 	long sendMessage(int roomId, String message) throws RoomNotFoundException, RoomPermissionException, IOException;
 
 	/**
-	 * Posts a message to a chat room.
-	 * @param roomId the ID of the chat room
+	 * Posts a message.
+	 * @param roomId the room ID
 	 * @param message the message to post
 	 * @param splitStrategy defines how the message should be split up if the
-	 * message exceeds the chat connection's a max message size
+	 * message exceeds the chat connection's max message size
 	 * @return the ID(s) of the new message(s). This list will contain multiple
-	 * IDs if the message was split up into multiple messages
+	 * IDs if the message was split up into multiple messages.
 	 * @throws RoomNotFoundException if the room does not exist
 	 * @throws RoomPermissionException if the message can't be posted to the
 	 * room because it doesn't exist or the bot doesn't have permission
@@ -65,7 +64,8 @@ public interface ChatConnection extends Closeable, Flushable {
 	List<Long> sendMessage(int roomId, String message, SplitStrategy splitStrategy) throws RoomNotFoundException, RoomPermissionException, IOException;
 
 	/**
-	 * Deletes a message.
+	 * Deletes a message. You can only delete your own messages. Messages older
+	 * than two minutes cannot be deleted.
 	 * @param roomId the ID of the room that the message was posted to
 	 * @param messageId the ID of the message to delete
 	 * @return true if it was successfully deleted, false if not
@@ -77,7 +77,8 @@ public interface ChatConnection extends Closeable, Flushable {
 	boolean deleteMessage(int roomId, long messageId) throws RoomNotFoundException, RoomPermissionException, IOException;
 
 	/**
-	 * Edits a message that was already posted
+	 * Edits an existing message. You can only edit your own messages. Messages
+	 * older than two minutes cannot be edited.
 	 * @param roomId the ID of the room that the message was posted to
 	 * @param messageId the ID of the message to edit
 	 * @param updatedMessage the updated message
@@ -90,16 +91,16 @@ public interface ChatConnection extends Closeable, Flushable {
 	boolean editMessage(int roomId, long messageId, String updatedMessage) throws RoomNotFoundException, RoomPermissionException, IOException;
 
 	/**
-	 * Respond to new messages as they become available. This method blocks
-	 * until the chat connection is closed. Use the {@link #joinRoom(int)}
-	 * method to listen for messages in a room.
+	 * Listens for new messages that are posted to rooms that were joined with
+	 * the {@link joinRoom} method. This method blocks until the chat connection
+	 * is closed.
 	 * @param handler handles the messages
 	 */
 	void listen(ChatMessageHandler handler);
 
 	/**
-	 * Gets the most recent messages from a chat room.
-	 * @param roomId the chat room ID
+	 * Gets the most recent messages from a room.
+	 * @param roomId the room ID
 	 * @param count the number of messages to retrieve
 	 * @return the messages
 	 * @throws IOException if there's a network problem
@@ -107,10 +108,9 @@ public interface ChatConnection extends Closeable, Flushable {
 	List<ChatMessage> getMessages(int roomId, int count) throws IOException;
 
 	/**
-	 * Gets additional information about one or more users in relation to a
-	 * specific chat room.
-	 * @param roomId the ID of the chat room the user(s) are in (it is not
-	 * necessary to join this room before calling this method)
+	 * Gets information about room users, such as their reputation and username.
+	 * @param roomId the ID of the room the user(s) are in (it is not necessary
+	 * to join this room before calling this method)
 	 * @param userIds the user ID(s)
 	 * @return the user information
 	 * @throws IOException if there's a network problem
@@ -118,11 +118,11 @@ public interface ChatConnection extends Closeable, Flushable {
 	List<UserInfo> getUserInfo(int roomId, List<Integer> userIds) throws IOException;
 
 	/**
-	 * Gets the users that are "pingable" in a chat room. This means that they
-	 * will receive a notification if they are mentioned. It does not
+	 * Gets the users in a room that are "pingable". Pingable users receive
+	 * notifications if they are mentioned. If a user is pingable, it does not
 	 * necessarily mean they are currently in the room, although they could be.
-	 * @param roomId the chat room ID (it is not necessary to join this room
-	 * before calling this method)
+	 * @param roomId the room ID (it is not necessary to join this room before
+	 * calling this method)
 	 * @return the pingable users
 	 * @throws IOException if there's a network problem
 	 */
