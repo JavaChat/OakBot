@@ -127,4 +127,12 @@ public interface ChatConnection extends Closeable, Flushable {
 	 * @throws IOException if there's a network problem
 	 */
 	List<PingableUser> getPingableUsers(int roomId) throws IOException;
+
+	/**
+	 * Gets information about a room, such as its name and description.
+	 * @param roomId the room ID
+	 * @return the room info or null if the room doesn't exist
+	 * @throws IOException if there's a network problem
+	 */
+	RoomInfo getRoomInfo(int roomId) throws IOException;
 }

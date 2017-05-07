@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Consts;
@@ -30,13 +31,15 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import oakbot.chat.RobustClient.JsonResponse;
 
 /**
- * A connection to Stackoverflow chat. This class is thread-safe (fingers
+ * A connection to Stack Overflow Chat. This class is thread-safe (fingers
  * crossed).
  * @author Michael Angstadt
  * @see <a href="http://chat.stackoverflow.com">chat.stackoverflow.com</a>
@@ -273,6 +276,18 @@ public class StackoverflowChat implements ChatConnection {
 		JsonResponse jsonResponse = send(request).statusCodes(200).asJson();
 		GetPingableUsersResponse response = GetPingableUsersResponse.parse(jsonResponse, roomId);
 		return response.getPingableUsers();
+	}
+
+	@Override
+	public RoomInfo getRoomInfo(int roomId) throws IOException {
+		GetRoomInfoRequest request = new GetRoomInfoRequest(roomId);
+		JsonResponse jsonResponse = send(request).statusCodes(200).asJson();
+		if (jsonResponse.isHttp404()) {
+			return null;
+		}
+
+		GetRoomInfoResponse response = GetRoomInfoResponse.parse(jsonResponse, roomId);
+		return response.getRoomInfo();
 	}
 
 	@Override
@@ -1039,6 +1054,35 @@ public class StackoverflowChat implements ChatConnection {
 			});
 
 			return new GetPingableUsersResponse(users);
+		}
+	}
+
+	private static class GetRoomInfoRequest extends HttpGet {
+		public GetRoomInfoRequest(int roomId) {
+			super(CHAT_DOMAIN + "/rooms/thumbs/" + roomId);
+		}
+	}
+
+	private static class GetRoomInfoResponse {
+		private final RoomInfo info;
+
+		public GetRoomInfoResponse(RoomInfo info) {
+			this.info = info;
+		}
+
+		public RoomInfo getRoomInfo() {
+			return info;
+		}
+
+		public static GetRoomInfoResponse parse(JsonResponse response, int roomId) throws IOException {
+			JsonNode root = response.getBody();
+
+			int id = root.get("id").asInt();
+			String name = root.get("name").asText();
+			String description = root.get("description").asText();
+			List<String> tags = Jsoup.parse(root.get("tags").asText()).getElementsByTag("a").stream().map(Element::html).collect(Collectors.toList());
+
+			return new GetRoomInfoResponse(new RoomInfo(id, name, description, tags));
 		}
 	}
 
