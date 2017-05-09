@@ -30,7 +30,8 @@ public class ShutdownCommand implements Command {
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		if (context.isAuthorAdmin()) {
-			context.shutdownBot("Shutting down. See you later.");
+			boolean broadcast = chatCommand.getContent().equals("broadcast");
+			context.shutdownBot("Shutting down. See you later.", broadcast);
 			return null;
 		}
 

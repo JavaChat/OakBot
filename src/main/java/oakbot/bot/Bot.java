@@ -152,7 +152,11 @@ public class Bot {
 						String shutdownMessage = context.getShutdownMessage();
 						if (shutdownMessage != null) {
 							try {
-								broadcast(shutdownMessage);
+								if (context.isShutdownMessageBroadcast()) {
+									broadcast(shutdownMessage);
+								} else {
+									sendMessage(message.getRoomId(), shutdownMessage);
+								}
 							} catch (IOException e) {
 								//ignore
 							}

@@ -19,7 +19,7 @@ public class BotContext {
 	private final String trigger;
 	private final ChatConnection connection;
 
-	private boolean shutdown = false;
+	private boolean shutdown = false, shutdownMessageBroadcast;
 	private String shutdownMessage;
 
 	private final List<Integer> currentRooms, homeRooms;
@@ -113,16 +113,19 @@ public class BotContext {
 	/**
 	 * Shutdown the bot once all commands and listeners have had a chance to
 	 * respond to the incoming message.
-	 * @param message the message to broadcast to all chat rooms before shutting
-	 * down or null not to broadcast a message
+	 * @param message the message to send before shutting down or null not to
+	 * send a message
+	 * @param broadcast true to broadcast the message to all chat rooms, false
+	 * to only send the message to the room that the shutdown command came from
 	 */
-	public void shutdownBot(String message) {
+	public void shutdownBot(String message, boolean broadcast) {
 		shutdown = true;
 		shutdownMessage = message;
+		shutdownMessageBroadcast = broadcast;
 	}
 
 	/**
-	 * Determines if the bot was told to shutdown.
+	 * Gets whether the bot was told to shutdown.
 	 * @return true to shutdown the bot, false not to
 	 */
 	public boolean isShutdown() {
@@ -131,10 +134,18 @@ public class BotContext {
 
 	/**
 	 * Gets the bot's shutdown message.
-	 * @return the shutdown message or null not to broadcast a shutdown message
+	 * @return the shutdown message or null not to send a shutdown message
 	 */
 	public String getShutdownMessage() {
 		return shutdownMessage;
+	}
+
+	/**
+	 * Gets whether to broadcast the bot's shutdown message.
+	 * @return true to broadcast, false not to
+	 */
+	public boolean isShutdownMessageBroadcast() {
+		return shutdownMessageBroadcast;
 	}
 
 	/**
