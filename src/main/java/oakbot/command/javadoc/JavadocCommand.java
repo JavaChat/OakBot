@@ -137,7 +137,12 @@ public class JavadocCommand implements Command {
 		JavadocCommandArguments arguments = JavadocCommandArguments.parse(content);
 
 		//search for the class
-		Collection<String> fullyQualifiedNames = dao.search(arguments.getClassName());
+		Collection<String> fullyQualifiedNames;
+		try {
+			fullyQualifiedNames = dao.search(arguments.getClassName());
+		} catch (IOException e) {
+			throw new RuntimeException("Problem searching for fully-qualified name.", e);
+		}
 
 		if (fullyQualifiedNames.isEmpty()) {
 			return handleNoMatch(chatCommand);
@@ -147,9 +152,9 @@ public class JavadocCommand implements Command {
 			return handleMultipleMatches(arguments, fullyQualifiedNames, chatCommand);
 		}
 
+		String fullyQualifiedName = fullyQualifiedNames.iterator().next();
 		ClassInfo info;
 		try {
-			String fullyQualifiedName = fullyQualifiedNames.iterator().next();
 			info = dao.getClassInfo(fullyQualifiedName);
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);

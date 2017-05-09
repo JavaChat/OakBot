@@ -38,6 +38,8 @@ import oakbot.command.define.DefineCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
 import oakbot.command.javadoc.JavadocDao;
+import oakbot.command.javadoc.JavadocDaoCached;
+import oakbot.command.javadoc.JavadocDaoUncached;
 import oakbot.command.learn.LearnCommand;
 import oakbot.command.learn.LearnedCommands;
 import oakbot.command.learn.UnlearnCommand;
@@ -95,9 +97,7 @@ public class Main {
 		Rooms rooms = new Rooms(database, props.getHomeRooms(), props.getQuietRooms());
 		LearnedCommands learnedCommands = new LearnedCommands(database);
 
-		Path javadocPath = props.getJavadocPath();
-		JavadocCommand javadocCommand = (javadocPath == null) ? null : createJavadocCommand(javadocPath);
-
+		JavadocCommand javadocCommand = createJavadocCommand(props);
 		AfkCommand afkCommand = new AfkCommand();
 
 		UpsidedownTextFilter upsidedownTextFilter = new UpsidedownTextFilter();
@@ -202,8 +202,14 @@ public class Main {
 		return new BotProperties(properties);
 	}
 
-	private static JavadocCommand createJavadocCommand(Path dir) throws IOException {
-		JavadocDao dao = new JavadocDao(dir);
+	private static JavadocCommand createJavadocCommand(BotProperties props) throws IOException {
+		Path javadocPath = props.getJavadocPath();
+		if (javadocPath == null) {
+			return null;
+		}
+
+		boolean javadocCache = props.getJavadocCache();
+		JavadocDao dao = javadocCache ? new JavadocDaoCached(javadocPath) : new JavadocDaoUncached(javadocPath);
 		return new JavadocCommand(dao);
 	}
 

@@ -1,7 +1,6 @@
 package oakbot;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +21,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final int heartbeat, botUserId;
 	private final Integer hideImagesAfter;
 	private final Path javadocPath;
+	private final boolean javadocCache;
 	private final Map<Integer, String> welcomeMessages;
 
 	/**
@@ -40,10 +40,8 @@ public class BotProperties extends PropertiesWrapper {
 		admins = getIntegerList("admins");
 		bannedUsers = getIntegerList("bannedUsers");
 		heartbeat = getInteger("heartbeat", 3000);
-
-		String javadocPathStr = get("javadoc.folder");
-		javadocPath = (javadocPathStr == null) ? null : Paths.get(javadocPathStr);
-
+		javadocPath = getFile("javadoc.folder");
+		javadocCache = getBoolean("javadoc.cache", true);
 		greeting = get("greeting");
 		dictionaryKey = get("dictionary.key");
 		aboutHost = get("about.host");
@@ -152,6 +150,14 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public Path getJavadocPath() {
 		return javadocPath;
+	}
+
+	/**
+	 * Gets whether the javadoc command should use a cache or not.
+	 * @return true to use a cache, false not to
+	 */
+	public boolean getJavadocCache() {
+		return javadocCache;
 	}
 
 	/**

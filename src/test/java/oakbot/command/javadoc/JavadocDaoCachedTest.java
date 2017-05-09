@@ -26,15 +26,15 @@ import org.junit.rules.TemporaryFolder;
 /**
  * @author Michael Angstadt
  */
-public class JavadocDaoTest {
+public class JavadocDaoCachedTest {
 	@Rule
 	public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 	private final Path root = Paths.get("src", "test", "resources", "oakbot", "command", "javadoc");
-	private final JavadocDao dao;
+	private final JavadocDaoCached dao;
 	{
 		try {
-			dao = new JavadocDao(root);
+			dao = new JavadocDaoCached(root);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -83,7 +83,7 @@ public class JavadocDaoTest {
 	@Test
 	public void directory_watcher_ignore_non_zip_files() throws Exception {
 		Path dir = temporaryFolder.getRoot().toPath();
-		JavadocDao dao = new JavadocDao(dir);
+		JavadocDaoCached dao = new JavadocDaoCached(dir);
 
 		assertNull(dao.getClassInfo("java.util.List"));
 
@@ -97,7 +97,7 @@ public class JavadocDaoTest {
 	@Test
 	public void directory_watcher_add() throws Exception {
 		Path dir = temporaryFolder.getRoot().toPath();
-		JavadocDao dao = new JavadocDao(dir);
+		JavadocDaoCached dao = new JavadocDaoCached(dir);
 
 		assertNull(dao.getClassInfo("java.util.List"));
 
@@ -123,7 +123,7 @@ public class JavadocDaoTest {
 		Path dest = dir.resolve("JavadocZipFileTest.zip");
 		Files.copy(source, dest);
 
-		JavadocDao dao = new JavadocDao(dir);
+		JavadocDaoCached dao = new JavadocDaoCached(dir);
 
 		ClassInfo info = dao.getClassInfo("java.util.List");
 		assertNotNull(info);
@@ -150,7 +150,7 @@ public class JavadocDaoTest {
 
 		Thread.sleep(1500); //wait a bit before modifying the file so the timestamp is significantly different (for Macs)
 
-		JavadocDao dao = new JavadocDao(dir);
+		JavadocDaoCached dao = new JavadocDaoCached(dir);
 
 		ClassInfo info = dao.getClassInfo("java.util.List");
 		assertNotNull(info);
