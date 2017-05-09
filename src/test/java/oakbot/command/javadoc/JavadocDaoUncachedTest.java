@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -28,11 +27,7 @@ public class JavadocDaoUncachedTest {
 	private final Path root = Paths.get("src", "test", "resources", "oakbot", "command", "javadoc");
 	private final JavadocDaoUncached dao;
 	{
-		try {
-			dao = new JavadocDaoUncached(root);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		dao = new JavadocDaoUncached(root);
 	}
 
 	@BeforeClass

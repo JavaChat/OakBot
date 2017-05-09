@@ -17,9 +17,8 @@ public class JavadocDaoUncached implements JavadocDao {
 
 	/**
 	 * @param dir the directory where the Javadoc ZIP files are stored
-	 * @throws IOException if there's a problem reading any of the ZIP files
 	 */
-	public JavadocDaoUncached(Path dir) throws IOException {
+	public JavadocDaoUncached(Path dir) {
 		this.dir = dir;
 	}
 
