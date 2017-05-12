@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -56,7 +57,7 @@ public class Bot {
 	private final Integer userId;
 	private final ChatConnection connection;
 	private final List<Integer> admins, bannedUsers;
-	private final Integer hideImagesAfter;
+	private final Integer hideOneboxesAfter;
 	private final Rooms rooms;
 	private final List<Command> commands;
 	private final LearnedCommands learnedCommands;
@@ -67,7 +68,31 @@ public class Bot {
 	private final UnknownCommandHandler unknownCommandHandler;
 	private final Timer timer = new Timer();
 	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(TimeUnit.HOURS.toMillis(6), TimeUnit.DAYS.toMillis(3));
-	private final Pattern imageUrlRegex = Pattern.compile("^https?://[^\\s]*?\\.(jpg|jpeg|png|gif)$", Pattern.CASE_INSENSITIVE);
+
+	/**
+	 * Determines if a chat message the bot retrieved from the chat room is a
+	 * onebox.
+	 */
+	private final Predicate<String> oneboxRegex = Pattern.compile("^<div class=\"([^\"]*?)onebox([^\"]*?)\"[^>]*?>").asPredicate();
+
+	/**
+	 * <p>
+	 * A collection of messages that the bot posted, but have not been "echoed"
+	 * back yet through the {@link ChatConnection#listen} method. When a message
+	 * is echoed back, it is removed from this map.
+	 * </p>
+	 * <p>
+	 * This is used to determine whether something the bot posted was converted
+	 * to a onebox. It is then used to edit the message in order to hide the
+	 * onebox.
+	 * </p>
+	 * <ul>
+	 * <li>Key = The message ID.</li>
+	 * <li>Value = The raw message content that was sent to the chat room by the
+	 * bot (this can be different from what was echoed back).</li>
+	 * </ul>
+	 */
+	private final Map<Long, PostedMessage> postedMessages = new HashMap<>();
 
 	private Bot(Builder builder) {
 		connection = builder.connection;
@@ -75,7 +100,7 @@ public class Bot {
 		password = builder.password;
 		userName = builder.userName;
 		userId = builder.userId;
-		hideImagesAfter = builder.hideImagesAfter;
+		hideOneboxesAfter = builder.hideOneboxesAfter;
 		trigger = builder.trigger;
 		greeting = builder.greeting;
 		rooms = builder.rooms;
@@ -125,13 +150,52 @@ public class Bot {
 						return;
 					}
 
-					if (message.getUserId() == userId) {
-						//message was posted by this bot, ignore
+					if (bannedUsers.contains(message.getUserId())) {
+						//message was posted by a banned user, ignore
 						return;
 					}
 
-					if (bannedUsers.contains(message.getUserId())) {
-						//message was posted by a banned user, ignore
+					if (message.getUserId() == userId) {
+						//message was posted by this bot
+
+						PostedMessage originalMessage;
+						synchronized (postedMessages) {
+							originalMessage = postedMessages.remove(message.getMessageId());
+						}
+
+						/*
+						 * Check to see if the bot posted something that Stack
+						 * Overflow Chat converted to a onebox.
+						 * 
+						 * Stack Overflow Chat converts certain URLs to
+						 * "oneboxes". Oneboxes can be fairly large and can spam
+						 * the chat. For example, if the message is a URL to an
+						 * image, the image itself will be displayed in the chat
+						 * room. This is nice, but gets annoying if the image is
+						 * large or if it's an animated GIF.
+						 * 
+						 * After giving people some time to see the onebox, edit
+						 * the message so that the onebox no longer displays,
+						 * but the URL is still preserved.
+						 */
+						if (originalMessage != null && hideOneboxesAfter != null && isOnebox(message)) {
+							long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - originalMessage.getTimePosted());
+							if (logger.isLoggable(Level.INFO)) {
+								logger.info("Hiding onebox in " + hideIn + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+							}
+
+							timer.schedule(new TimerTask() {
+								@Override
+								public void run() {
+									try {
+										connection.editMessage(message.getRoomId(), message.getMessageId(), "> " + originalMessage.getContent());
+									} catch (Exception e) {
+										logger.log(Level.SEVERE, "Problem editing chat message [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]", e);
+									}
+								}
+							}, hideIn);
+						}
+
 						return;
 					}
 
@@ -261,29 +325,10 @@ public class Bot {
 				logger.info("Sending message [room=" + roomId + "]: " + filteredMessage);
 			}
 
-			List<Long> messageIds = connection.sendMessage(roomId, filteredMessage, reply.getSplitStrategy());
-
-			/*
-			 * If the message is a URL to an image, SO chat will display the
-			 * image in the chat room. This is nice, but gets annoying if the
-			 * image is large or if it's an animated GIF.
-			 * 
-			 * After giving people some time to see the image, edit these
-			 * messages so that the image no longer displays, but the URL is
-			 * still preserved.
-			 */
-			if (hideImagesAfter != null && isImageUrl(filteredMessage)) {
-				long messageId = messageIds.get(0);
-				timer.schedule(new TimerTask() {
-					@Override
-					public void run() {
-						try {
-							connection.editMessage(roomId, messageId, "> " + filteredMessage);
-						} catch (Exception e) {
-							logger.log(Level.SEVERE, "Problem editing chat message " + messageId + " in room " + roomId + ".", e);
-						}
-					}
-				}, hideImagesAfter);
+			synchronized (postedMessages) {
+				List<Long> messageIds = connection.sendMessage(roomId, filteredMessage, reply.getSplitStrategy());
+				long now = System.currentTimeMillis();
+				messageIds.forEach((id) -> postedMessages.put(id, new PostedMessage(now, filteredMessage)));
 			}
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Problem sending chat message.", e);
@@ -291,12 +336,12 @@ public class Bot {
 	}
 
 	/**
-	 * Determines if a chat message consists of a URL to an image.
+	 * Determines if a chat message is a onebox.
 	 * @param message the chat message
-	 * @return true if it is a URL to an image, false if not
+	 * @return true if it's a onebox, false if not
 	 */
-	private boolean isImageUrl(String message) {
-		return imageUrlRegex.matcher(message).find();
+	private boolean isOnebox(ChatMessage message) {
+		return oneboxRegex.test(message.getContent());
 	}
 
 	/**
@@ -591,6 +636,24 @@ public class Bot {
 		}
 	}
 
+	private static class PostedMessage {
+		private final long timePosted;
+		private final String content;
+
+		public PostedMessage(long timePosted, String content) {
+			this.timePosted = timePosted;
+			this.content = content;
+		}
+
+		public long getTimePosted() {
+			return timePosted;
+		}
+
+		public String getContent() {
+			return content;
+		}
+	}
+
 	/**
 	 * Builds {@link Bot} instances.
 	 * @author Michael Angstadt
@@ -598,7 +661,7 @@ public class Bot {
 	public static class Builder {
 		private ChatConnection connection;
 		private String email, password, userName, trigger = "=", greeting;
-		private Integer userId, hideImagesAfter;
+		private Integer userId, hideOneboxesAfter;
 		private Rooms rooms = new Rooms(Arrays.asList(1), Collections.emptyList());
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
@@ -627,8 +690,8 @@ public class Bot {
 			return this;
 		}
 
-		public Builder hideImagesAfter(Integer hideImagesAfter) {
-			this.hideImagesAfter = hideImagesAfter;
+		public Builder hideOneboxesAfter(Integer hideOneboxesAfter) {
+			this.hideOneboxesAfter = hideOneboxesAfter;
 			return this;
 		}
 

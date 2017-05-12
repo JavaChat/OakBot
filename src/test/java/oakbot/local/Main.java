@@ -187,7 +187,7 @@ public class Main {
 			.rooms(rooms)
 			.stats(stats)
 			.database(database)
-			.hideImagesAfter(props.getHideImagesAfter())
+			.hideOneboxesAfter(props.getHideOneboxesAfter())
 		.build();
 		//@formatter:on
 

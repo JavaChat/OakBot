@@ -19,7 +19,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers;
 	private final int heartbeat, botUserId;
-	private final Integer hideImagesAfter;
+	private final Integer hideOneboxesAfter;
 	private final Path javadocPath;
 	private final boolean javadocCache;
 	private final Map<Integer, String> welcomeMessages;
@@ -47,7 +47,7 @@ public class BotProperties extends PropertiesWrapper {
 		aboutHost = get("about.host");
 		catKey = get("cat.key");
 		reactKey = get("react.key");
-		hideImagesAfter = getInteger("hideImagesAfter");
+		hideOneboxesAfter = getInteger("hideOneboxesAfter");
 
 		welcomeMessages = new HashMap<>();
 		Pattern p = Pattern.compile("^welcome\\.(\\d+)\\.message$");
@@ -202,11 +202,11 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the amount of time to wait before hiding an images the bot posts.
-	 * @return the amount of time (in milliseconds) or null not to hide images
+	 * Gets the amount of time to wait before hiding a onebox the bot posts.
+	 * @return the amount of time (in milliseconds) or null not to hide oneboxes
 	 */
-	public Integer getHideImagesAfter() {
-		return hideImagesAfter;
+	public Integer getHideOneboxesAfter() {
+		return hideOneboxesAfter;
 	}
 
 	/**
