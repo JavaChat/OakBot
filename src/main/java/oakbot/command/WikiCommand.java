@@ -43,6 +43,6 @@ public class WikiCommand implements Command {
 		}
 
 		String url = "http://en.wikipedia.org/wiki/" + UrlEscapers.urlPathSegmentEscaper().escape(content);
-		return reply(url, chatCommand);
+		return new ChatResponse(url);
 	}
 }
