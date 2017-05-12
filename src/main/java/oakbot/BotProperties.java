@@ -35,7 +35,7 @@ public class BotProperties extends PropertiesWrapper {
 		botUserName = get("bot.userName");
 		botUserId = getInteger("bot.userId");
 		trigger = get("trigger", "=");
-		homeRooms = getIntegerList("rooms", Arrays.asList(1)); //default to "Sandbox"
+		homeRooms = getIntegerList("homeRooms", Arrays.asList(1)); //default to "Sandbox"
 		quietRooms = getIntegerList("quietRooms");
 		admins = getIntegerList("admins");
 		bannedUsers = getIntegerList("bannedUsers");
