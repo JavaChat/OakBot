@@ -543,9 +543,18 @@ public class StackoverflowChat implements ChatConnection {
 	public void close() throws IOException {
 		flush();
 
+		/*
+		 * Do not bother leaving each room. Leaving multiple rooms in a row
+		 * causes the leave request to hang for the 2nd or 3rd room, preventing
+		 * the bot process from terminating.
+		 */
+		//@formatter:off
+		/*
 		for (Integer roomId : getRooms()) {
 			leaveRoom(roomId);
 		}
+		*/
+		//@formatter:on
 
 		try {
 			client.close();
