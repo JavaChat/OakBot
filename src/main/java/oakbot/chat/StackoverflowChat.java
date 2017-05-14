@@ -122,7 +122,7 @@ public class StackoverflowChat implements ChatConnection {
 
 		//"prime the pump"
 		List<ChatMessage> messages = getNextMessageBatch(roomId, -1);
-		long messageId = messages.isEmpty() ? -1 : messages.get(0).getMessageId();
+		long messageId = messages.isEmpty() ? -1 : messages.get(messages.size() - 1).getMessageId();
 
 		synchronized (this) {
 			lastMessageProcessed.put(roomId, messageId);
