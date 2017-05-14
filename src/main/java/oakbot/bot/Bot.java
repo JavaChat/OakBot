@@ -368,6 +368,7 @@ public class Bot {
 	 * @throws IOException if there's a problem connecting to the room
 	 */
 	private void join(int roomId, boolean quiet) throws RoomNotFoundException, RoomPermissionException, IOException {
+		logger.info("Joining room " + roomId + "...");
 		connection.joinRoom(roomId);
 		if (!quiet && greeting != null) {
 			sendMessage(roomId, greeting);
@@ -382,6 +383,7 @@ public class Bot {
 	 * @throws IOException if there's a problem leaving the room
 	 */
 	public void leave(int roomId) throws IOException {
+		logger.info("Leaving room " + roomId + "...");
 		connection.leaveRoom(roomId);
 		rooms.remove(roomId);
 		inactiveRoomTasks.cancel(roomId);
