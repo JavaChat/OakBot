@@ -1,6 +1,11 @@
 package oakbot.util;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
+import org.jsoup.select.NodeVisitor;
 
 import oakbot.bot.ChatCommand;
 import oakbot.chat.ChatMessage;
@@ -272,37 +277,120 @@ public class ChatBuilder implements CharSequence {
 		if (fixedFont) {
 			/*
 			 * Any Markdown syntax in a fixed-font message is ignored and
-			 * treated as plain-text.
+			 * treated as plain-text, so there is no need to escape those
+			 * special characters.
 			 */
 			markdown = "    " + content.replaceAll("(\r\n|\r|\n)", "$1    ");
 		} else {
 			boolean multiline = content.indexOf('\n') >= 0 || content.indexOf('\r') >= 0;
 			if (multiline) {
 				/*
+				 * Multi-line messages will not contain HTML formatting tags
+				 * because Stack Overflow Chat does not allow formatting in
+				 * multi-line messages.
+				 * 
 				 * Any Markdown syntax in a multi-line message is ignored and
-				 * treated as plain-text.
+				 * treated as plain-text, so there is no need to escape those
+				 * special characters.
 				 */
 				markdown = content;
 			} else {
-				//@formatter:off
-				markdown = content
-				
-				//escape characters used in Markdown syntax
-				.replaceAll("[\\*_\\`()\\[\\]]", "\\\\$0")
-				
-				//replace formatting tags with Markdown
-				.replaceAll("</?i>", "*")
-				.replaceAll("</?b>", "**")
-				.replaceAll("</?code>", "`")
-				.replaceAll("</?strike>", "---")
-				.replaceAll("<a.*?><span class=\"ob-post-tag\".*?>(.*?)</span></a>", "[tag:$1]")
-				.replaceAll("<a href=\"(.*?)\".*?>(.*?)</a>", "[$2]($1)");
-				//@formatter:on
-
 				/*
+				 * Replace HTML formatting tags with Markdown syntax.
+				 * 
 				 * Note: Stack Overflow Chat does not convert "blockquote"
 				 * syntax (">" character) to an HTML tag.
 				 */
+				ChatBuilder chatBuilder = new ChatBuilder();
+				Jsoup.parse(content).traverse(new NodeVisitor() {
+					private boolean inTag = false;
+					private ChatBuilder linkText = null;
+
+					@Override
+					public void head(Node node, int depth) {
+						ChatBuilder cb = cb();
+
+						//escape characters used in Markdown syntax
+						if (node instanceof TextNode) {
+							TextNode text = (TextNode) node;
+							cb.append(text.text().replaceAll("[\\*_\\`()\\[\\]]", "\\\\$0"));
+							return;
+						}
+
+						if (node instanceof Element) {
+							Element element = (Element) node;
+							switch (element.tagName()) {
+							case "b":
+								cb.bold();
+								break;
+							case "i":
+								cb.italic();
+								break;
+							case "code":
+								cb.code();
+								break;
+							case "strike":
+								cb.strike();
+								break;
+							case "a":
+								linkText = new ChatBuilder();
+								break;
+							case "span":
+								if (linkText != null && element.classNames().contains("ob-post-tag")) {
+									inTag = true;
+								}
+								break;
+							}
+						}
+					}
+
+					@Override
+					public void tail(Node node, int depth) {
+						ChatBuilder cb = cb();
+
+						if (node instanceof Element) {
+							Element element = (Element) node;
+							switch (element.tagName()) {
+							case "b":
+								cb.bold();
+								break;
+							case "i":
+								cb.italic();
+								break;
+							case "code":
+								cb.code();
+								break;
+							case "strike":
+								cb.strike();
+								break;
+							case "a":
+								String text = linkText.toString();
+								if (inTag) {
+									chatBuilder.tag(text);
+								} else {
+									String url = element.attr("href");
+									if (url.isEmpty()) {
+										//just in case a <a> tag without a URL sneaks in there
+										chatBuilder.append(text);
+									} else {
+										String title = element.attr("title");
+										chatBuilder.link(text, url, title);
+									}
+								}
+
+								linkText = null;
+								inTag = false;
+								break;
+							}
+						}
+					}
+
+					private ChatBuilder cb() {
+						return (linkText == null) ? chatBuilder : linkText;
+					}
+				});
+
+				markdown = chatBuilder.toString();
 			}
 		}
 

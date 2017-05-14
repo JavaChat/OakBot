@@ -16,6 +16,8 @@ public class ChatBuilderTest {
 		assertToMarkdown("<code>value</code>", "`value`", false);
 		assertToMarkdown("<strike>value</strike>", "---value---", false);
 		assertToMarkdown("<a href=\"http://google.com\">value</a>", "[value](http://google.com)", false);
+		assertToMarkdown("<a href=\"http://google.com\" title=\"title\">value</a>", "[value](http://google.com \"title\")", false);
+		assertToMarkdown("<a href=\"http://google.com\"><b>one</b> two</a>", "[**one** two](http://google.com)", false);
 		assertToMarkdown("<a href=\"//stackoverflow.com/questions/tagged/java\"><span class=\"ob-post-tag\" style=\"background-color: #E0EAF1; color: #3E6D8E; border-color: #3E6D8E; border-style: solid;\">java</span></a>", "[tag:java]", false);
 
 		//multi-line text
@@ -35,6 +37,9 @@ public class ChatBuilderTest {
 
 		//escape Markdown special characters
 		assertToMarkdown("* _ ` ( ) [ ]", "\\* \\_ \\` \\( \\) \\[ \\]", false);
+
+		//do not escape Markdown characters in URLs
+		assertToMarkdown("<a href=\"http://google.com/foo_bar\">one_two</a>", "[one\\_two](http://google.com/foo_bar)", false);
 
 		//decode HTML entities
 		assertToMarkdown("&lt;value&gt;", "<value>", false);
