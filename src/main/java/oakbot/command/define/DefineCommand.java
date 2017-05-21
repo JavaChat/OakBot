@@ -18,6 +18,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import org.xml.sax.ErrorHandler;
@@ -108,15 +109,15 @@ public class DefineCommand implements Command {
 			return reply("Please specify the word you'd like to define.", chatCommand);
 		}
 
-		List<Definition> definitions;
+		Document response;
 		try {
 			Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
 			URIBuilder b = new URIBuilder("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/" + escaper.escape(word));
 			b.addParameter("key", apiKey);
-			String url = b.toString();
 
-			try (InputStream response = get(url)) {
-				definitions = parseResponse(word, response);
+			String url = b.toString();
+			try (InputStream in = get(url)) {
+				response = docBuilder.parse(in);
 			}
 		} catch (IOException | SAXException | URISyntaxException e) {
 			logger.log(Level.SEVERE, "Problem getting word from dictionary.", e);
@@ -130,12 +131,17 @@ public class DefineCommand implements Command {
 			//@formatter:on
 		}
 
+		List<Definition> definitions = parseResponse(word, response);
 		if (definitions.isEmpty()) {
-			return reply("No definitions found.", chatCommand);
+			List<String> suggestions = parseSuggestions(response);
+			if (suggestions.isEmpty()) {
+				return reply("No definitions found.", chatCommand);
+			} else {
+				return reply("No definitions found. Did you mean " + orList(suggestions) + "?", chatCommand);
+			}
 		}
 
 		ChatBuilder cb = new ChatBuilder();
-		cb.reply(chatCommand);
 		for (Definition definition : definitions) {
 			cb.append(word).append(" (").append(definition.getWordType()).append("):").nl();
 			cb.append(definition.getDefinition());
@@ -148,10 +154,9 @@ public class DefineCommand implements Command {
 		return new ChatResponse(cb.toString().trim(), SplitStrategy.NEWLINE);
 	}
 
-	private List<Definition> parseResponse(String word, InputStream in) throws SAXException, IOException {
-		Document document = docBuilder.parse(in);
+	private List<Definition> parseResponse(String word, Document response) {
 		List<Definition> definitions = new ArrayList<>();
-		for (Node entryNode : xpath.nodelist("/entry_list/entry", document)) {
+		for (Node entryNode : xpath.nodelist("/entry_list/entry", response)) {
 			String ew = xpath.string("ew", entryNode);
 			if (!word.equalsIgnoreCase(ew)) {
 				//ignore similar words
@@ -178,12 +183,32 @@ public class DefineCommand implements Command {
 	}
 
 	public String getDefinition(Node dtNode) {
-		String text = firstTextNode(dtNode);
-		if (text == null) {
-			return null;
+		StringBuilder sb = new StringBuilder();
+		for (Node child : children(dtNode)) {
+			if (child instanceof Text) {
+				sb.append(child.getTextContent());
+				continue;
+			}
+
+			if (child instanceof Element) {
+				Element element = (Element) child;
+				switch (element.getNodeName()) {
+				case "vi":
+					/*
+					 * Examples are parsed separately.
+					 */
+					continue;
+				case "un":
+					sb.append(":").append(getDefinition(element)).append(":");
+					continue;
+				}
+
+				sb.append(element.getTextContent());
+				continue;
+			}
 		}
 
-		String split[] = text.split("\\s*:\\s*");
+		String split[] = sb.toString().split("\\s*:\\s*");
 		List<String> list = new ArrayList<>();
 		for (String s : split) {
 			s = s.trim();
@@ -195,13 +220,37 @@ public class DefineCommand implements Command {
 		return String.join("; ", list);
 	}
 
-	private String firstTextNode(Node node) {
-		for (Node child : children(node)) {
-			if (child instanceof Text) {
-				return child.getTextContent();
-			}
+	private List<String> parseSuggestions(Document document) {
+		Iterable<Element> elements = xpath.elements("/entry_list/suggestion", document);
+
+		List<String> suggestions = new ArrayList<>();
+		elements.forEach((e) -> suggestions.add(e.getTextContent()));
+		return suggestions;
+	}
+
+	private static String orList(List<String> list) {
+		if (list.size() == 1) {
+			return list.get(0);
 		}
-		return null;
+
+		if (list.size() == 2) {
+			return list.get(0) + " or " + list.get(1);
+		}
+
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+		for (String item : list) {
+			if (i > 0) {
+				sb.append(", ");
+				if (i == list.size() - 1) {
+					sb.append("or ");
+				}
+			}
+
+			sb.append(item);
+			i++;
+		}
+		return sb.toString();
 	}
 
 	public String getExample(Node dtNode) {

@@ -75,6 +75,48 @@ public class DefineCommandTest {
 	}
 
 	@Test
+	public void not_found_suggestions_one() throws Exception {
+		ChatCommand message = chatCommandBuilder.build(1, "col");
+		DefineCommand urban = new DefineCommand("theKey") {
+			@Override
+			InputStream get(String url) throws IOException {
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=theKey", url);
+				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion></entry_list>".getBytes());
+			}
+		};
+		ChatResponse response = urban.onMessage(message, null);
+		assertEquals(":1 No definitions found. Did you mean cool?", response.getMessage());
+	}
+
+	@Test
+	public void not_found_suggestions_two() throws Exception {
+		ChatCommand message = chatCommandBuilder.build(1, "col");
+		DefineCommand urban = new DefineCommand("theKey") {
+			@Override
+			InputStream get(String url) throws IOException {
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=theKey", url);
+				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion></entry_list>".getBytes());
+			}
+		};
+		ChatResponse response = urban.onMessage(message, null);
+		assertEquals(":1 No definitions found. Did you mean cool or cold?", response.getMessage());
+	}
+
+	@Test
+	public void not_found_suggestions_multiple() throws Exception {
+		ChatCommand message = chatCommandBuilder.build(1, "col");
+		DefineCommand urban = new DefineCommand("theKey") {
+			@Override
+			InputStream get(String url) throws IOException {
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=theKey", url);
+				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion><suggestion>colt</suggestion></entry_list>".getBytes());
+			}
+		};
+		ChatResponse response = urban.onMessage(message, null);
+		assertEquals(":1 No definitions found. Did you mean cool, cold, or colt?", response.getMessage());
+	}
+
+	@Test
 	public void multiple_definitions() throws Exception {
 		ChatCommand message = chatCommandBuilder.build(1, "cool");
 		DefineCommand urban = new DefineCommand("theKey") {
@@ -87,7 +129,7 @@ public class DefineCommandTest {
 		ChatResponse response = urban.onMessage(message, null);
 		//@formatter:off
 		assertEquals(
-			":1 cool (adjective):\n" +
+			"cool (adjective):\n" +
 			"moderately cold; lacking in warmth\n" +
 			"\n" +
 			"cool (adjective):\n" +
@@ -101,6 +143,9 @@ public class DefineCommandTest {
 			"\n" +
 			"cool (adjective):\n" +
 			"free from tensions or violence (we used to fight, but we're cool now)\n" +
+			"\n" +
+			"cool (adjective):\n" +
+			"used as an intensive\n" +
 			"\n" +
 			"cool (adjective):\n" +
 			"marked by deliberate effrontery or lack of due respect or discretion (a cool reply)\n" +
@@ -118,28 +163,40 @@ public class DefineCommandTest {
 			"relatively lacking in timbre or resonance\n" +
 			"\n" +
 			"cool (adjective):\n" +
-			"very good\n" +
+			"very good; excellent\n" +
+			"\n" +
+			"cool (adjective):\n" +
+			"all right\n" +
+			"\n" +
+			"cool (adjective):\n" +
+			"fashionable hip (not happy with the new shoes … because they were not cool)\n" +
 			"\n" +
 			"cool (verb):\n" +
-			"to become cool; lose heat or warmth (placed the pie in the window to cool)\n" +
+			"to become cool; lose heat or warmth; sometimes used with off or down (placed the pie in the window to cool)\n" +
 			"\n" +
 			"cool (verb):\n" +
 			"to lose ardor or passion (his anger cooled)\n" +
 			"\n" +
 			"cool (verb):\n" +
-			"to make cool; impart a feeling of (cooled the room with a fan)\n" +
+			"to make cool; impart a feeling of coolness to; often used with off or down (cooled the room with a fan)\n" +
 			"\n" +
 			"cool (verb):\n" +
-			"to moderate the heat, excitement, or force of (cooled her growing anger)\n" +
+			"to moderate the heat, excitement, or force of; calm (cooled her growing anger)\n" +
 			"\n" +
 			"cool (verb):\n" +
-			"to slow or lessen the growth or activity of\n" + 
+			"to slow or lessen the growth or activity of; usually used with off or down\n" +
 			"\n" +
 			"cool (noun):\n" +
 			"a cool time, place, or situation (the cool of the evening)\n" +
 			"\n" +
 			"cool (noun):\n" +
-			"absence of excitement or emotional involvement (must surrender his fine cool and enter the closed crazy world of suicide)\n" +
+			"absence of excitement or emotional involvement; detachment (must surrender his fine cool and enter the closed crazy world of suicide)\n" +
+			"\n" +
+			"cool (noun):\n" +
+			"poise composure (press questions … seemed to rattle him and he lost his cool)\n" +
+			"\n" +
+			"cool (noun):\n" +
+			"hipness\n" +
 			"\n" +
 			"cool (adverb):\n" +
 			"in a casual and nonchalant manner (play it cool)"
