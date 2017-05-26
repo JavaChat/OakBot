@@ -15,7 +15,7 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class WaveListenerTest {
-	private static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList());
+	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList());
 
 	@Test
 	public void onMessage() {
@@ -118,7 +118,7 @@ public class WaveListenerTest {
 		private boolean ignored = false;
 
 		public MentionListenerMock(String botUsername) {
-			super(botUsername, "/");
+			super(botUsername);
 		}
 
 		@Override
