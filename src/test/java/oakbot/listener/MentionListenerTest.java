@@ -1,6 +1,8 @@
 package oakbot.listener;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -29,5 +31,40 @@ public class MentionListenerTest {
 		MentionListener listener = new MentionListener("OakBot", "/");
 		ChatResponse response = listener.onMessage(chatMessage, null);
 		assertEquals(mentioned, response != null);
+	}
+
+	@Test
+	public void prevent_spam() {
+		//@formatter:off
+		ChatMessage chatMessage = new ChatMessage.Builder()
+			.content("Hey @Oakbot")
+		.build();
+		//@formatter:on
+
+		MentionListener listener = new MentionListener("OakBot", "/");
+
+		ChatResponse response = listener.onMessage(chatMessage, null);
+		assertNotNull(response);
+
+		response = listener.onMessage(chatMessage, null);
+		assertNull(response);
+	}
+
+	@Test
+	public void ignore_next_message() {
+		//@formatter:off
+		ChatMessage chatMessage = new ChatMessage.Builder()
+			.content("Hey @Oakbot")
+		.build();
+		//@formatter:on
+
+		MentionListener listener = new MentionListener("OakBot", "/");
+		listener.ignoreNextMessage();
+
+		ChatResponse response = listener.onMessage(chatMessage, null);
+		assertNull(response);
+
+		response = listener.onMessage(chatMessage, null);
+		assertNotNull(response);
 	}
 }

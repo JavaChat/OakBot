@@ -1,5 +1,9 @@
 package oakbot.listener;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
@@ -11,6 +15,8 @@ import oakbot.util.ChatBuilder;
  */
 public class MentionListener implements Listener {
 	private final String botUsername, trigger;
+	private final long cooldown = TimeUnit.MINUTES.toMillis(1);
+	private Map<Integer, Long> prevResponses = new HashMap<>();
 	private boolean ignore = false;
 
 	public MentionListener(String botUsername, String trigger) {
@@ -40,16 +46,29 @@ public class MentionListener implements Listener {
 			return null;
 		}
 
-		if (message.isMentioned(botUsername)) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(message)
-				.append("Type ").code().append(trigger).append("help").code().append(" to see all my commands.")
-			);
-			//@formatter:on
+		if (!message.isMentioned(botUsername)) {
+			return null;
 		}
 
-		return null;
+		Long prevResponse = prevResponses.get(message.getRoomId());
+		if (prevResponse == null) {
+			prevResponse = 0L;
+		}
+
+		long now = System.currentTimeMillis();
+		long elapsed = now - prevResponse;
+		if (elapsed < cooldown) {
+			return null;
+		}
+
+		prevResponses.put(message.getRoomId(), now);
+
+		//@formatter:off
+		return new ChatResponse(new ChatBuilder()
+			.reply(message)
+			.append("Type ").code().append(trigger).append("help").code().append(" to see all my commands.")
+		);
+		//@formatter:on
 	}
 
 	/**
