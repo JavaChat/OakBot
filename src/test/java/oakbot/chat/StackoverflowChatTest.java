@@ -240,7 +240,7 @@ public class StackoverflowChatTest {
 			chat.joinRoom(1);
 		}
 
-		verify(client, times(6)).execute(any(HttpUriRequest.class));
+		verify(client, times(5)).execute(any(HttpUriRequest.class));
 		verify(client).close();
 	}
 
