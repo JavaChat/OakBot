@@ -4,8 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
+import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 
@@ -13,6 +16,8 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class MentionListenerTest {
+	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList());
+
 	@Test
 	public void mentioned() {
 		assertMentioned("Hey @OakBot", true);
@@ -28,8 +33,8 @@ public class MentionListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListener listener = new MentionListener("OakBot", "/");
-		ChatResponse response = listener.onMessage(chatMessage, null);
+		MentionListener listener = new MentionListener("OakBot");
+		ChatResponse response = listener.onMessage(chatMessage, context);
 		assertEquals(mentioned, response != null);
 	}
 
@@ -41,12 +46,12 @@ public class MentionListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListener listener = new MentionListener("OakBot", "/");
+		MentionListener listener = new MentionListener("OakBot");
 
-		ChatResponse response = listener.onMessage(chatMessage, null);
+		ChatResponse response = listener.onMessage(chatMessage, context);
 		assertNotNull(response);
 
-		response = listener.onMessage(chatMessage, null);
+		response = listener.onMessage(chatMessage, context);
 		assertNull(response);
 	}
 
@@ -58,13 +63,13 @@ public class MentionListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListener listener = new MentionListener("OakBot", "/");
+		MentionListener listener = new MentionListener("OakBot");
 		listener.ignoreNextMessage();
 
-		ChatResponse response = listener.onMessage(chatMessage, null);
+		ChatResponse response = listener.onMessage(chatMessage, context);
 		assertNull(response);
 
-		response = listener.onMessage(chatMessage, null);
+		response = listener.onMessage(chatMessage, context);
 		assertNotNull(response);
 	}
 }

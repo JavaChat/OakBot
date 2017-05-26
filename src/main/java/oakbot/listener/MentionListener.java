@@ -14,14 +14,13 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class MentionListener implements Listener {
-	private final String botUsername, trigger;
+	private final String botUsername;
 	private final long cooldown = TimeUnit.MINUTES.toMillis(1);
 	private Map<Integer, Long> prevResponses = new HashMap<>();
 	private boolean ignore = false;
 
-	public MentionListener(String botUsername, String trigger) {
+	public MentionListener(String botUsername) {
 		this.botUsername = botUsername;
-		this.trigger = trigger;
 	}
 
 	@Override
@@ -66,7 +65,7 @@ public class MentionListener implements Listener {
 		//@formatter:off
 		return new ChatResponse(new ChatBuilder()
 			.reply(message)
-			.append("Type ").code().append(trigger).append("help").code().append(" to see all my commands.")
+			.append("Type ").code().append(context.getTrigger()).append("help").code().append(" to see all my commands.")
 		);
 		//@formatter:on
 	}

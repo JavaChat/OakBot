@@ -104,7 +104,7 @@ public class Main {
 
 		List<Listener> listeners = new ArrayList<>();
 		{
-			MentionListener mentionListener = new MentionListener(props.getBotUserName(), props.getTrigger());
+			MentionListener mentionListener = new MentionListener(props.getBotUserName());
 
 			if (javadocCommand != null) {
 				listeners.add(new JavadocListener(javadocCommand));
