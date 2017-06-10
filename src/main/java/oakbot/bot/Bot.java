@@ -547,10 +547,9 @@ public class Bot {
 		//@formatter:off
 		private final String[] messages = {
 			"*farts*",
-			"Dead chat. :(",
 			"*picks nose*",
 			"*reads a book*",
-			"*computes 10 trillionth digit of pi*"
+			"*dreams of electric sheep*"
 		};
 		//@formatter:on
 
