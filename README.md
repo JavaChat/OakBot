@@ -25,7 +25,7 @@ This command will build the project and package it into an executable, shaded JA
 1. Copy the following files to the server. Put them in the same directory:
    1. `target/OakBot-VERSION.jar`: The executable, shaded JAR file that contains OakBot's code and dependencies.
    1. `bot.properties`: This file contains configuration data, such as the bot's login credentials. A sample file is located in the root of this project.
-   1. logging.properties (optional): The configuration file for the Java Logging API.  A sample file is located in the root of this project.
+   1. `logging.properties` (optional): The configuration file for the Java Logging API.  A sample file is located in the root of this project.
 1. Run OakBot: `java -jar oakbot.jar &`  
    1. The "&" at the end of the command launches the program in the background.  This is useful if you are logged into a server remotely and need to logout after launching OakBot.
 
@@ -55,6 +55,6 @@ Argument | Description
 
 # Questions/Feedback
 
-One way to reach me is in Stack Overflow's [Java chat room](https://chat.stackoverflow.com/rooms/139). Please mention my name (@Michael) so I will see message.
+One way to reach me is in Stack Overflow's [Java chat room](https://chat.stackoverflow.com/rooms/139). Please mention my name (@Michael) so I will see your message.
 
 You can also submit bug reports and feature requests to the [issue tracker](https://github.com/JavaChat/OakBot/issues).
