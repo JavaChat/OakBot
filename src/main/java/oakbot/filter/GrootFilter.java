@@ -42,13 +42,18 @@ public class GrootFilter extends ChatResponseFilter {
 				cb.fixed();
 			}
 
-			int words = countWords(line);
-			int grootSentences = words / (grootWords.length * 2) + 1;
+			int grootSentenceCount = countWords(line) / (grootWords.length * 2) + 1;
+			for (int i = 0; i < grootSentenceCount; i++) {
+				boolean contraction = random.nextInt(10) < 1;
+				for (int j = 0; j < grootWords.length; j++) {
+					String grootWord = grootWords[j];
 
-			for (int i = 0; i < grootSentences; i++) {
-				boolean first = true;
-				for (String grootWord : grootWords) {
-					if (!first) {
+					if (contraction && j == 1) {
+						//skip "am"
+						continue;
+					}
+
+					if (j > 0) {
 						cb.append(' ');
 					}
 
@@ -64,7 +69,11 @@ public class GrootFilter extends ChatResponseFilter {
 						}
 					}
 
-					if (grootWord.equals("Groot")) {
+					if (contraction && j == 0) {
+						grootWord = "I'm";
+					}
+
+					if (j == 2) {
 						switch (random.nextInt(10)) {
 						case 0:
 							grootWord = "Grooot";
@@ -89,8 +98,6 @@ public class GrootFilter extends ChatResponseFilter {
 							cb.bold();
 						}
 					}
-
-					first = false;
 				}
 
 				switch (random.nextInt(10)) {
