@@ -29,6 +29,7 @@ import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
 import oakbot.command.Command;
 import oakbot.command.EightBallCommand;
+import oakbot.command.GrootCommand;
 import oakbot.command.HelpCommand;
 import oakbot.command.ReactCommand;
 import oakbot.command.RollCommand;
@@ -50,6 +51,7 @@ import oakbot.command.learn.LearnedCommands;
 import oakbot.command.learn.UnlearnCommand;
 import oakbot.command.urban.UrbanCommand;
 import oakbot.filter.ChatResponseFilter;
+import oakbot.filter.GrootFilter;
 import oakbot.filter.UpsidedownTextFilter;
 import oakbot.listener.AfkListener;
 import oakbot.listener.JavadocListener;
@@ -127,6 +129,7 @@ public class Main {
 		AfkCommand afkCommand = new AfkCommand();
 
 		UpsidedownTextFilter upsidedownTextFilter = new UpsidedownTextFilter();
+		GrootFilter grootFilter = new GrootFilter();
 
 		List<Listener> listeners = new ArrayList<>();
 		{
@@ -175,6 +178,7 @@ public class Main {
 			commands.add(new ShrugCommand());
 			commands.add(afkCommand);
 			commands.add(new RolloverCommand(upsidedownTextFilter));
+			commands.add(new GrootCommand(grootFilter));
 			commands.add(new CatCommand(props.getCatKey()));
 
 			String reactKey = props.getReactKey();
@@ -185,7 +189,8 @@ public class Main {
 
 		List<ChatResponseFilter> filters = new ArrayList<>();
 		{
-			filters.add(upsidedownTextFilter);
+			filters.add(grootFilter);
+			filters.add(upsidedownTextFilter); //should be last
 		}
 
 		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build(), 5000, props.getHeartbeat());
