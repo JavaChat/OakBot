@@ -1,7 +1,5 @@
 package oakbot.listener;
 
-import static oakbot.listener.Listener.reply;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,7 +14,9 @@ import oakbot.Database;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
+import oakbot.chat.SplitStrategy;
 import oakbot.chat.UserInfo;
+import oakbot.util.ChatBuilder;
 
 /**
  * Welcomes new users to the chat room.
@@ -90,7 +90,13 @@ public class WelcomeListener implements Listener {
 		}
 
 		String welcomeMessage = welcomeMessagesByRoom.get(roomId);
-		return reply(welcomeMessage, message);
+
+		//@formatter:off
+		return new ChatResponse(new ChatBuilder()
+			.reply(message)
+			.append(welcomeMessage),
+		SplitStrategy.NONE, true);
+		//@formatter:on
 	}
 
 	/**

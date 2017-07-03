@@ -310,7 +310,9 @@ public class Bot {
 
 	private void sendMessage(int roomId, ChatResponse reply) {
 		final String filteredMessage;
-		{
+		if (reply.isBypassFilters()) {
+			filteredMessage = reply.getMessage();
+		} else {
 			String messageText = reply.getMessage();
 			for (ChatResponseFilter filter : responseFilters) {
 				if (filter.isEnabled(roomId)) {
