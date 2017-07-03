@@ -37,9 +37,14 @@ public class GrootFilter extends ChatResponseFilter {
 			if (!firstLine) {
 				cb.nl();
 			}
+			firstLine = false;
 
 			if (fixed) {
 				cb.fixed();
+			}
+
+			if (line.trim().isEmpty()) {
+				continue;
 			}
 
 			int grootSentenceCount = countWords(line) / (grootWords.length * 2) + 1;
@@ -118,8 +123,6 @@ public class GrootFilter extends ChatResponseFilter {
 
 				cb.append(' ');
 			}
-
-			firstLine = false;
 		}
 
 		return cb.toString();
