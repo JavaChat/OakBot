@@ -12,6 +12,7 @@ import java.util.Map;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
+import oakbot.util.ChatBuilder;
 
 /**
  * Marks users as being "afk".
@@ -44,7 +45,7 @@ public class AfkCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String username = chatCommand.getMessage().getUsername();
 		int userId = chatCommand.getMessage().getUserId();
-		String awayMessage = chatCommand.getContent();
+		String awayMessage = ChatBuilder.toMarkdown(chatCommand.getContent(), chatCommand.getMessage().isFixedFont());
 
 		setAway(userId, username, awayMessage);
 
