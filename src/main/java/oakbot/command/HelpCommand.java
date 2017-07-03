@@ -201,7 +201,7 @@ public class HelpCommand implements Command {
 		}
 
 		if (helpTexts.isEmpty()) {
-			reply("No command or listener exists with that name.", message);
+			return reply("No command or listener exists with that name.", message);
 		}
 
 		ChatBuilder cb = new ChatBuilder();
