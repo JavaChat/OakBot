@@ -76,29 +76,31 @@ public class SummonCommand implements Command {
 			return reply("I'm already there... -_-", chatCommand);
 		}
 
-		Pending pending = pendingSummons.get(roomToJoin);
-		long elapsed = System.currentTimeMillis() - ((pending == null) ? 0 : pending.getStarted());
-		if (elapsed > summonTime) {
-			pending = new Pending(roomToJoin);
-			pendingSummons.put(roomToJoin, pending);
-		}
-
-		int userId = chatCommand.getMessage().getUserId();
-		boolean alreadyVoted = !pending.getUserIds().add(userId);
-		int votesNeeded = minSummonsRequired - pending.getUserIds().size();
-		if (alreadyVoted) {
-			if (votesNeeded == 1) {
-				return reply("I need a vote from " + votesNeeded + " other person.", chatCommand);
-			} else {
-				return reply("I need votes from " + votesNeeded + " other people.", chatCommand);
+		if (!context.isAuthorAdmin()) {
+			Pending pending = pendingSummons.get(roomToJoin);
+			long elapsed = System.currentTimeMillis() - ((pending == null) ? 0 : pending.getStarted());
+			if (elapsed > summonTime) {
+				pending = new Pending(roomToJoin);
+				pendingSummons.put(roomToJoin, pending);
 			}
-		}
 
-		if (votesNeeded > 0) {
-			if (votesNeeded == 1) {
-				return reply(votesNeeded + " more vote needed.", chatCommand);
-			} else {
-				return reply(votesNeeded + " more votes needed.", chatCommand);
+			int userId = chatCommand.getMessage().getUserId();
+			boolean alreadyVoted = !pending.getUserIds().add(userId);
+			int votesNeeded = minSummonsRequired - pending.getUserIds().size();
+			if (alreadyVoted) {
+				if (votesNeeded == 1) {
+					return reply("I need a vote from " + votesNeeded + " other person.", chatCommand);
+				} else {
+					return reply("I need votes from " + votesNeeded + " other people.", chatCommand);
+				}
+			}
+
+			if (votesNeeded > 0) {
+				if (votesNeeded == 1) {
+					return reply(votesNeeded + " more vote needed.", chatCommand);
+				} else {
+					return reply(votesNeeded + " more votes needed.", chatCommand);
+				}
 			}
 		}
 
