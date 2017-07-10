@@ -180,12 +180,13 @@ public class RobustClient {
 				continue;
 			}
 
+			int actualStatusCode = response.getStatusLine().getStatusCode();
+
 			/*
 			 * An HTTP 409 response means that the bot is sending messages too
 			 * quickly. The response body contains the number of seconds the bot
 			 * must wait before it can post another message.
 			 */
-			int actualStatusCode = response.getStatusLine().getStatusCode();
 			if (actualStatusCode == 409) {
 				Long waitTime = parse409Response(response);
 				sleep = (waitTime == null) ? 5000 : waitTime;
@@ -193,6 +194,18 @@ public class RobustClient {
 				//do not count this against the max attempts
 				attempts--;
 
+				HttpClientUtils.closeQuietly(response);
+				continue;
+			}
+
+			/**
+			 * The bot sometimes gets HTTP 429 (too many requests) responses
+			 * when pinging the chat rooms for messages. This issue first
+			 * occurred when the bot was in 7 rooms at once, so it may have
+			 * reached some kind of usage limit.
+			 */
+			if (actualStatusCode == 429) {
+				sleep = 5000;
 				HttpClientUtils.closeQuietly(response);
 				continue;
 			}
@@ -209,7 +222,8 @@ public class RobustClient {
 			 * If the status code was incorrect, re-send the request.
 			 */
 			if (expectedStatusCodes != null && !expectedStatusCodes.contains(actualStatusCode)) {
-				logger.severe("The following status codes were expected " + expectedStatusCodes + ", but the actual status code was " + actualStatusCode + ". Retrying.");
+				String body = EntityUtils.toString(response.getEntity());
+				logger.severe("The following status codes were expected " + expectedStatusCodes + ", but the actual status code was " + actualStatusCode + ". Retrying.  The response body was: " + body);
 
 				HttpClientUtils.closeQuietly(response);
 				continue;
