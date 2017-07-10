@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -24,7 +25,7 @@ public class JavadocDaoUncached implements JavadocDao {
 
 	@Override
 	public Collection<String> search(String query) throws IOException {
-		Collection<String> names = new ArrayList<>();
+		Collection<String> names = new HashSet<>();
 		for (Path file : getZipFiles()) {
 			JavadocZipFile zip = new JavadocZipFile(file);
 			for (ClassName className : zip.getClassNames()) {
