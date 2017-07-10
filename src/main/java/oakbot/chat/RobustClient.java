@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -188,7 +187,10 @@ public class RobustClient {
 			 * must wait before it can post another message.
 			 */
 			if (actualStatusCode == 409) {
-				Long waitTime = parse409Response(response);
+				String body = EntityUtils.toString(response.getEntity());
+				logger.info("HTTP " + actualStatusCode + " returned [url=" + request.getURI() + "]: " + body);
+
+				Long waitTime = parse409Response(body);
 				sleep = (waitTime == null) ? 5000 : waitTime;
 
 				//do not count this against the max attempts
@@ -199,12 +201,16 @@ public class RobustClient {
 			}
 
 			/**
-			 * The bot sometimes gets HTTP 429 (too many requests) responses
+			 * The bot sometimes gets HTTP 429 ("too many requests") responses
 			 * when pinging the chat rooms for messages. This issue first
-			 * occurred when the bot was in 7 rooms at once, so it may have
-			 * reached some kind of usage limit.
+			 * occurred when the bot was in seven rooms at once, so it may have
+			 * reached some kind of usage limit. It appears the bot can be in
+			 * five rooms at a time without triggering this response code.
 			 */
 			if (actualStatusCode == 429) {
+				String body = EntityUtils.toString(response.getEntity());
+				logger.info("HTTP " + actualStatusCode + " returned [url=" + request.getURI() + "]: " + body);
+
 				sleep = 5000;
 				HttpClientUtils.closeQuietly(response);
 				continue;
@@ -238,17 +244,14 @@ public class RobustClient {
 	/**
 	 * Parses an HTTP 409 response, which indicates that the bot is sending
 	 * messages too quickly.
-	 * @param response the HTTP 409 response
+	 * @param response the HTTP 409 response body (e.g. "You can perform this
+	 * action again in 2 seconds")
 	 * @return the amount of time (in milliseconds) the bot must wait before the
 	 * chat system will accept new messages, or null if this value could not be
 	 * parsed from the response
 	 * @throws IOException if there's a problem getting the response body
 	 */
-	private Long parse409Response(HttpResponse response) throws IOException {
-		//"You can perform this action again in 2 seconds"
-		String body = EntityUtils.toString(response.getEntity());
-		logger.fine("409 response received: " + body);
-
+	private static Long parse409Response(String body) throws IOException {
 		Matcher m = response409Regex.matcher(body);
 		if (!m.find()) {
 			return null;

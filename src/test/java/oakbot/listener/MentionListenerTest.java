@@ -16,7 +16,7 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class MentionListenerTest {
-	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList());
+	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@Test
 	public void mentioned() {

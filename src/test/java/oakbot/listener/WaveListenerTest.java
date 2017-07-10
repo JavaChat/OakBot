@@ -15,7 +15,7 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class WaveListenerTest {
-	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList());
+	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@Test
 	public void onMessage() {
@@ -78,7 +78,7 @@ public class WaveListenerTest {
 		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
 		WaveListener listener = new WaveListener("OakBot", 0, mentionListener);
 
-		BotContext context = new BotContext(true, "/", null, Collections.emptyList(), Collections.emptyList());
+		BotContext context = new BotContext(true, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
 		ChatResponse chatResponse = listener.onMessage(chatMessage, context);
 		assertEquals("\\o", chatResponse.getMessage());
 		chatResponse = listener.onMessage(chatMessage, context);

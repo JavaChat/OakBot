@@ -16,7 +16,7 @@ import oakbot.command.AfkCommand;
  * @author Michael Angstadt
  */
 public class AfkListenerTest {
-	private final BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList());
+	private final BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@Test
 	public void mention_full() {

@@ -59,6 +59,7 @@ public class Bot {
 	private final List<Integer> admins, bannedUsers;
 	private final Integer hideOneboxesAfter;
 	private final Rooms rooms;
+	private final int MAX_ROOMS = 5;
 	private final List<Command> commands;
 	private final LearnedCommands learnedCommands;
 	private final List<Listener> listeners;
@@ -203,7 +204,7 @@ public class Bot {
 
 					List<ChatResponse> replies = new ArrayList<>();
 					boolean isUserAdmin = admins.contains(message.getUserId());
-					BotContext context = new BotContext(isUserAdmin, trigger, connection, Bot.this.rooms.getRooms(), Bot.this.rooms.getHomeRooms());
+					BotContext context = new BotContext(isUserAdmin, trigger, connection, Bot.this.rooms.getRooms(), Bot.this.rooms.getHomeRooms(), MAX_ROOMS);
 
 					replies.addAll(handleListeners(message, context));
 
@@ -254,15 +255,20 @@ public class Bot {
 
 					for (JoinRoomEvent event : context.getRoomsToJoin()) {
 						ChatResponse response = null;
-						try {
-							join(event.getRoomId());
-							response = event.success();
-						} catch (RoomNotFoundException e) {
-							response = event.ifRoomDoesNotExist();
-						} catch (RoomPermissionException e) {
-							response = event.ifBotDoesNotHavePermission();
-						} catch (IOException e) {
-							response = event.ifOther(e);
+
+						if (rooms.size() >= MAX_ROOMS) {
+							response = event.ifOther(new IOException("Max rooms reached."));
+						} else {
+							try {
+								join(event.getRoomId());
+								response = event.success();
+							} catch (RoomNotFoundException e) {
+								response = event.ifRoomDoesNotExist();
+							} catch (RoomPermissionException e) {
+								response = event.ifBotDoesNotHavePermission();
+							} catch (IOException e) {
+								response = event.ifOther(e);
+							}
 						}
 
 						if (response != null) {
