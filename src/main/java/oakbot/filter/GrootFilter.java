@@ -32,6 +32,7 @@ public class GrootFilter extends ChatResponseFilter {
 
 		Random random = new Random(message.hashCode());
 		String[] lines = message.split("\r\n|\r|\n");
+		boolean applyFormatting = !fixed && lines.length == 1;
 		boolean firstLine = true;
 		for (String line : lines) {
 			if (!firstLine) {
@@ -64,7 +65,7 @@ public class GrootFilter extends ChatResponseFilter {
 
 					boolean bold = random.nextInt(10) < 2;
 					boolean italic = random.nextInt(10) < 2;
-					if (!fixed) {
+					if (applyFormatting) {
 						if (bold) {
 							cb.bold();
 						}
@@ -94,7 +95,7 @@ public class GrootFilter extends ChatResponseFilter {
 
 					cb.append(grootWord);
 
-					if (!fixed) {
+					if (applyFormatting) {
 						if (italic) {
 							cb.italic();
 						}
