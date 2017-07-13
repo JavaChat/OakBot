@@ -16,6 +16,7 @@ public class ChatMessage {
 	private final String username;
 	private final int roomId;
 	private final String content;
+	private final int edits;
 	private final boolean fixedFont;
 
 	private ChatMessage(Builder builder) {
@@ -25,6 +26,7 @@ public class ChatMessage {
 		username = builder.username;
 		roomId = builder.roomId;
 		content = builder.content;
+		edits = builder.edits;
 		fixedFont = builder.fixedFont;
 	}
 
@@ -97,6 +99,14 @@ public class ChatMessage {
 	 */
 	public String getContent() {
 		return content;
+	}
+
+	/**
+	 * Gets the number of times the message was edited.
+	 * @return the number of times the message was edited
+	 */
+	public int getEdits() {
+		return edits;
 	}
 
 	/**
@@ -201,7 +211,7 @@ public class ChatMessage {
 
 	@Override
 	public String toString() {
-		return "ChatMessage [messageId=" + messageId + ", timestamp=" + timestamp + ", userId=" + userId + ", username=" + username + ", roomId=" + roomId + ", content=" + content + ", fixedFont=" + fixedFont + "]";
+		return "ChatMessage [messageId=" + messageId + ", timestamp=" + timestamp + ", userId=" + userId + ", username=" + username + ", roomId=" + roomId + ", content=" + content + ", edits=" + edits + ", fixedFont=" + fixedFont + "]";
 	}
 
 	/**
@@ -215,6 +225,7 @@ public class ChatMessage {
 		private String username;
 		private int roomId;
 		private String content;
+		private int edits;
 		private boolean fixedFont;
 
 		/**
@@ -235,6 +246,7 @@ public class ChatMessage {
 			username = original.username;
 			roomId = original.roomId;
 			content = original.content;
+			edits = original.edits;
 			fixedFont = original.fixedFont;
 		}
 
@@ -307,6 +319,16 @@ public class ChatMessage {
 		public Builder content(String content, boolean fixedFont) {
 			this.content = content;
 			this.fixedFont = fixedFont;
+			return this;
+		}
+
+		/**
+		 * Sets the number of times the chat message was edited.
+		 * @param edits the number of edits
+		 * @return this
+		 */
+		public Builder edits(int edits) {
+			this.edits = edits;
 			return this;
 		}
 

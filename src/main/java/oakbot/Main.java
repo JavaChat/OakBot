@@ -19,11 +19,13 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 import oakbot.bot.Bot;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.StackoverflowChat;
+import oakbot.chat.StackoverflowChatWS;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
@@ -193,7 +195,15 @@ public class Main {
 			filters.add(upsidedownTextFilter); //should be last
 		}
 
-		ChatConnection connection = new StackoverflowChat(HttpClientBuilder.create().build(), 5000, props.getHeartbeat());
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		int heartbeat = props.getHeartbeat();
+		ChatConnection connection;
+		if (heartbeat < 0) {
+			connection = new StackoverflowChatWS(httpClient);
+		} else {
+			connection = new StackoverflowChat(httpClient, 5000, heartbeat);
+		}
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
