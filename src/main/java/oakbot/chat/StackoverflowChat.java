@@ -540,21 +540,20 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	@Override
-	public void close() throws IOException {
+	public synchronized void close() throws IOException {
 		flush();
 
-		/*
-		 * Do not bother leaving each room. Leaving multiple rooms in a row
-		 * causes the leave request to hang for the 2nd or 3rd room, preventing
-		 * the bot process from terminating.
-		 */
-		//@formatter:off
-		/*
-		for (Integer roomId : getRooms()) {
-			leaveRoom(roomId);
+		//leave all rooms
+		{
+			int anyRoomId = lastMessageProcessed.keySet().iterator().next();
+			String fkey = fkeyCache.get(anyRoomId);
+			LeaveRoomRequest request = new LeaveRoomRequest(fkey);
+			try (CloseableHttpResponse response = send(request).attempts(1).asHttp()) {
+				//empty
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Problem leaving all rooms.", e);
+			}
 		}
-		*/
-		//@formatter:on
 
 		try {
 			client.close();
@@ -702,6 +701,18 @@ public class StackoverflowChat implements ChatConnection {
 	}
 
 	private static class LeaveRoomRequest extends HttpPost {
+		public LeaveRoomRequest(String fkey) {
+			super(CHAT_DOMAIN + "/chats/leave/all");
+
+			//@formatter:off
+			List<NameValuePair> params = Arrays.asList(
+				new BasicNameValuePair("quiet", "true"), //setting this parameter to "false" results in an error
+				new BasicNameValuePair("fkey", fkey)
+			);
+			//@formatter:on
+			setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+		}
+
 		public LeaveRoomRequest(int roomId, String fkey) {
 			super(CHAT_DOMAIN + "/chats/leave/" + roomId);
 
