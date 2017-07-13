@@ -200,7 +200,7 @@ public class StackoverflowChatTest {
 					return response(200, "{}");
 				case 6:
 					assertEquals("POST", method);
-					assertEquals("https://chat.stackoverflow.com/chats/leave/1", uri);
+					assertEquals("https://chat.stackoverflow.com/chats/leave/all", uri);
 					//@formatter:off
 					expected = new HashSet<>(Arrays.asList(
 						new BasicNameValuePair("fkey", fkey),
@@ -240,7 +240,7 @@ public class StackoverflowChatTest {
 			chat.joinRoom(1);
 		}
 
-		verify(client, times(5)).execute(any(HttpUriRequest.class));
+		verify(client, times(6)).execute(any(HttpUriRequest.class));
 		verify(client).close();
 	}
 

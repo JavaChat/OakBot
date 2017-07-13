@@ -544,7 +544,7 @@ public class StackoverflowChat implements ChatConnection {
 		flush();
 
 		//leave all rooms
-		{
+		if (!lastMessageProcessed.isEmpty()) {
 			int anyRoomId = lastMessageProcessed.keySet().iterator().next();
 			String fkey = fkeyCache.get(anyRoomId);
 			LeaveRoomRequest request = new LeaveRoomRequest(fkey);
