@@ -57,8 +57,8 @@ public class SummonCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 
-		int maxRooms = context.getMaxRooms();
-		if (context.getCurrentRooms().size() >= maxRooms) {
+		Integer maxRooms = context.getMaxRooms();
+		if (maxRooms != null && context.getCurrentRooms().size() >= maxRooms) {
 			return reply("I can't join anymore rooms, I've reached my limit (" + maxRooms + ").", chatCommand);
 		}
 

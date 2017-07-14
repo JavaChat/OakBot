@@ -25,7 +25,7 @@ public class BotContext {
 	private final List<Integer> currentRooms, homeRooms;
 	private final List<JoinRoomEvent> roomsToJoin = new ArrayList<>(0);
 	private final List<Integer> roomsToLeave = new ArrayList<>(0);
-	private final int maxRooms;
+	private final Integer maxRooms;
 
 	/**
 	 * @param authorAdmin true if the incoming message author is an admin, false
@@ -35,8 +35,9 @@ public class BotContext {
 	 * @param currentRooms the rooms the bot is currently in
 	 * @param homeRooms the bot's home rooms
 	 * @param maxRooms the maximum number of rooms the bot can be in at a time
+	 * or null for no limit
 	 */
-	public BotContext(boolean authorAdmin, String trigger, ChatConnection connection, List<Integer> currentRooms, List<Integer> homeRooms, int maxRooms) {
+	public BotContext(boolean authorAdmin, String trigger, ChatConnection connection, List<Integer> currentRooms, List<Integer> homeRooms, Integer maxRooms) {
 		this.authorAdmin = authorAdmin;
 		this.trigger = trigger;
 		this.connection = connection;
@@ -79,9 +80,9 @@ public class BotContext {
 
 	/**
 	 * Gets the maximum number of rooms the bot can be in at once.
-	 * @return the max rooms
+	 * @return the max rooms or null for no limit
 	 */
-	public int getMaxRooms() {
+	public Integer getMaxRooms() {
 		return maxRooms;
 	}
 

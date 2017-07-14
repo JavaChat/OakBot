@@ -59,7 +59,7 @@ public class Bot {
 	private final List<Integer> admins, bannedUsers;
 	private final Integer hideOneboxesAfter;
 	private final Rooms rooms;
-	private final int MAX_ROOMS = 5;
+	private final Integer maxRooms;
 	private final List<Command> commands;
 	private final LearnedCommands learnedCommands;
 	private final List<Listener> listeners;
@@ -105,6 +105,7 @@ public class Bot {
 		trigger = builder.trigger;
 		greeting = builder.greeting;
 		rooms = builder.rooms;
+		maxRooms = builder.maxRooms;
 		admins = builder.admins.build();
 		bannedUsers = builder.bannedUsers.build();
 		stats = builder.stats;
@@ -204,7 +205,7 @@ public class Bot {
 
 					List<ChatResponse> replies = new ArrayList<>();
 					boolean isUserAdmin = admins.contains(message.getUserId());
-					BotContext context = new BotContext(isUserAdmin, trigger, connection, Bot.this.rooms.getRooms(), Bot.this.rooms.getHomeRooms(), MAX_ROOMS);
+					BotContext context = new BotContext(isUserAdmin, trigger, connection, Bot.this.rooms.getRooms(), Bot.this.rooms.getHomeRooms(), maxRooms);
 
 					replies.addAll(handleListeners(message, context));
 
@@ -256,7 +257,7 @@ public class Bot {
 					for (JoinRoomEvent event : context.getRoomsToJoin()) {
 						ChatResponse response = null;
 
-						if (rooms.size() >= MAX_ROOMS) {
+						if (maxRooms != null && rooms.size() >= maxRooms) {
 							response = event.ifOther(new IOException("Max rooms reached."));
 						} else {
 							try {
@@ -672,6 +673,7 @@ public class Bot {
 		private String email, password, userName, trigger = "=", greeting;
 		private Integer userId, hideOneboxesAfter;
 		private Rooms rooms = new Rooms(Arrays.asList(1), Collections.emptyList());
+		private Integer maxRooms;
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
@@ -721,6 +723,11 @@ public class Bot {
 
 		public Builder rooms(Integer... roomIds) {
 			return rooms(new Rooms(Arrays.asList(roomIds), Collections.emptyList()));
+		}
+
+		public Builder maxRooms(Integer maxRooms) {
+			this.maxRooms = maxRooms;
+			return this;
 		}
 
 		public Builder admins(Integer... admins) {

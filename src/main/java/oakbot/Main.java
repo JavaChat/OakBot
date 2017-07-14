@@ -199,10 +199,11 @@ public class Main {
 
 		int heartbeat = props.getHeartbeat();
 		ChatConnection connection;
-		if (heartbeat < 0) {
-			connection = new StackoverflowChatWS(httpClient);
-		} else {
+		boolean polling = (heartbeat >= 0);
+		if (polling) {
 			connection = new StackoverflowChat(httpClient, 5000, heartbeat);
+		} else {
+			connection = new StackoverflowChatWS(httpClient);
 		}
 
 		//@formatter:off
@@ -219,6 +220,7 @@ public class Main {
 			.trigger(props.getTrigger())
 			.greeting(props.getGreeting())
 			.rooms(rooms)
+			.maxRooms(polling ? 5 : null)
 			.stats(stats)
 			.database(database)
 			.hideOneboxesAfter(props.getHideOneboxesAfter())
