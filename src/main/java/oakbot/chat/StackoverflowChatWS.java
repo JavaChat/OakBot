@@ -77,7 +77,6 @@ public class StackoverflowChatWS implements ChatConnection {
 	private final Map<Integer, String> fkeyCache = new HashMap<>();
 
 	private final Map<Integer, Session> websocketSessions = new HashMap<>();
-	private int leadSession = 0;
 
 	private final BlockingQueue<ChatMessage> newMessages = new LinkedBlockingQueue<>();
 	private final ChatMessage CLOSE_MESSAGE = new ChatMessage.Builder().build();
@@ -139,26 +138,7 @@ public class StackoverflowChatWS implements ChatConnection {
 
 				@Override
 				public void onOpen(Session session, EndpointConfig config) {
-					synchronized (StackoverflowChatWS.this) {
-						if (leadSession == 0) {
-							leadSession = roomId;
-						}
-					}
-
 					session.addMessageHandler(String.class, (json) -> {
-						/*
-						 * Since events from all rooms get broadcast to all
-						 * sessions, ensure that only one session actual handles
-						 * the events (called the "lead session"). When the lead
-						 * session is closed due to leaving a room, another
-						 * session must take the lead.
-						 */
-						synchronized (StackoverflowChatWS.this) {
-							if (leadSession != roomId) {
-								return;
-							}
-						}
-
 						JsonNode node;
 						try {
 							node = mapper.readTree(json);
@@ -171,41 +151,29 @@ public class StackoverflowChatWS implements ChatConnection {
 							logger.fine("[room " + roomId + "]: Received message:\n" + prettyPrint(node) + "\n");
 						}
 
-						/*
-						 * When the bot joins multiple rooms, the web socket
-						 * connection of one room receives all the events from
-						 * the other rooms.
-						 * 
-						 * Because of this, we must process all of the "r"
-						 * fields in the response, instead of only processing
-						 * the ones for the current room.
-						 */
-						Iterator<String> it = node.fieldNames();
-						while (it.hasNext()) {
-							String name = it.next();
-							if (!name.startsWith("r")) {
+						JsonNode roomNode = node.get("r" + roomId);
+						if (roomNode == null) {
+							return;
+						}
+
+						JsonNode eventsNode = roomNode.get("e");
+						if (eventsNode == null || !eventsNode.isArray()) {
+							return;
+						}
+
+						for (JsonNode eventNode : eventsNode) {
+							JsonNode eventTypeNode = eventNode.get("event_type");
+							if (eventTypeNode == null) {
 								continue;
 							}
 
-							JsonNode events = node.get(name).get("e");
-							if (events == null || !events.isArray()) {
+							int eventType = eventTypeNode.asInt();
+							if (eventType != 1 && eventType != 2) {
 								continue;
 							}
 
-							for (JsonNode event : events) {
-								JsonNode eventTypeNode = event.get("event_type");
-								if (eventTypeNode == null) {
-									continue;
-								}
-
-								int eventType = eventTypeNode.asInt();
-								if (eventType != 1 && eventType != 2) {
-									continue;
-								}
-
-								ChatMessage message = ChatMessageParser.fromWebSocket(event);
-								newMessages.add(message);
-							}
+							ChatMessage message = ChatMessageParser.fromWebSocket(eventNode);
+							newMessages.add(message);
 						}
 					});
 				}
@@ -291,9 +259,6 @@ public class StackoverflowChatWS implements ChatConnection {
 		Session session;
 		synchronized (this) {
 			session = websocketSessions.remove(roomId);
-			if (leadSession == roomId) {
-				leadSession = websocketSessions.isEmpty() ? 0 : websocketSessions.keySet().iterator().next();
-			}
 		}
 
 		try {
