@@ -204,12 +204,12 @@ public class Main {
 		ChatConnection connection;
 		boolean polling = (heartbeat >= 0);
 		if (polling) {
+			connection = new StackoverflowChat(httpClient, 5000, heartbeat);
+		} else {
 			ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
 			websocketClient.setDefaultMaxSessionIdleTimeout(0);
 			websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
 			connection = new StackoverflowChatWS(httpClient, websocketClient);
-		} else {
-			connection = new StackoverflowChat(httpClient, 5000, heartbeat);
 		}
 
 		//@formatter:off
