@@ -31,6 +31,7 @@ import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Consts;
@@ -43,9 +44,6 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.ClientProperties;
-import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
@@ -73,6 +71,7 @@ public class StackoverflowChatWS implements ChatConnection {
 	private static final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
 
 	private final Http http;
+	private final WebSocketContainer webSocketClient;
 
 	private final Map<Integer, String> fkeyCache = new HashMap<>();
 
@@ -83,10 +82,13 @@ public class StackoverflowChatWS implements ChatConnection {
 
 	/**
 	 * Creates a web socket connection to Stack Overflow Chat.
-	 * @param client the HTTP client
+	 * @param httpClient the HTTP client (used to interact to the chat room)
+	 * @param webSocketClient the web socket client (used to listen for new
+	 * messages)
 	 */
-	public StackoverflowChatWS(CloseableHttpClient client) {
-		this.http = new Http(client);
+	public StackoverflowChatWS(CloseableHttpClient httpClient, WebSocketContainer webSocketClient) {
+		this.http = new Http(httpClient);
+		this.webSocketClient = webSocketClient;
 	}
 
 	@Override
@@ -130,10 +132,7 @@ public class StackoverflowChatWS implements ChatConnection {
 		Session session;
 		try {
 			logger.info("Connecting to web socket [room=" + roomId + "]: " + websocketUrl);
-			ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
-			websocketClient.setDefaultMaxSessionIdleTimeout(0);
-			websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
-			session = websocketClient.connectToServer(new Endpoint() {
+			session = webSocketClient.connectToServer(new Endpoint() {
 				private final ObjectMapper mapper = new ObjectMapper();
 
 				@Override
@@ -143,7 +142,7 @@ public class StackoverflowChatWS implements ChatConnection {
 						try {
 							node = mapper.readTree(json);
 						} catch (IOException e) {
-							logger.log(Level.SEVERE, "Problem parsing JSON from websocket: " + json, e);
+							logger.log(Level.SEVERE, "Problem parsing JSON from web socket: " + json, e);
 							return;
 						}
 

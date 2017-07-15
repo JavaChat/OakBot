@@ -21,6 +21,9 @@ import java.util.logging.Logger;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
+import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 
 import oakbot.bot.Bot;
 import oakbot.chat.ChatConnection;
@@ -201,9 +204,12 @@ public class Main {
 		ChatConnection connection;
 		boolean polling = (heartbeat >= 0);
 		if (polling) {
-			connection = new StackoverflowChat(httpClient, 5000, heartbeat);
+			ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
+			websocketClient.setDefaultMaxSessionIdleTimeout(0);
+			websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
+			connection = new StackoverflowChatWS(httpClient, websocketClient);
 		} else {
-			connection = new StackoverflowChatWS(httpClient);
+			connection = new StackoverflowChat(httpClient, 5000, heartbeat);
 		}
 
 		//@formatter:off
