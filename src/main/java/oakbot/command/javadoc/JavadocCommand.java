@@ -352,6 +352,9 @@ public class JavadocCommand implements Command {
 
 		//print the method description
 		String description = methodInfo.getDescription();
+		if (description == null || description.isEmpty()) {
+			description = new ChatBuilder().italic("no description").toString();
+		}
 		String since = methodInfo.getSince();
 		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
@@ -511,6 +514,9 @@ public class JavadocCommand implements Command {
 
 		//print the class description
 		String description = info.getDescription();
+		if (description == null || description.isEmpty()) {
+			description = new ChatBuilder().italic("no description").toString();
+		}
 		String since = info.getSince();
 		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
