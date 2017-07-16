@@ -2,7 +2,6 @@ package oakbot.chat;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
@@ -47,12 +46,11 @@ import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import oakbot.util.JsonUtils;
 
 /**
  * A connection to Stack Overflow Chat that uses web sockets to retrieve new
@@ -147,7 +145,7 @@ public class StackoverflowChatWS implements ChatConnection {
 						}
 
 						if (logger.isLoggable(Level.FINE)) {
-							logger.fine("[room " + roomId + "]: Received message:\n" + prettyPrint(node) + "\n");
+							logger.fine("[room " + roomId + "]: Received message:\n" + JsonUtils.prettyPrint(node) + "\n");
 						}
 
 						JsonNode roomNode = node.get("r" + roomId);
@@ -641,22 +639,6 @@ public class StackoverflowChatWS implements ChatConnection {
 	private static LocalDateTime timestamp(long ts) {
 		Instant instant = Instant.ofEpochSecond(ts);
 		return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-	}
-
-	private static String prettyPrint(JsonNode node) {
-		ObjectMapper mapper = new ObjectMapper();
-		JsonFactory factory = new JsonFactory();
-		StringWriter writer = new StringWriter();
-		try {
-			JsonGenerator generator = factory.createGenerator(writer);
-			generator.setPrettyPrinter(new DefaultPrettyPrinter());
-			mapper.writeTree(generator, node);
-			generator.close();
-			return writer.toString();
-		} catch (IOException e) {
-			//should never be thrown
-			throw new RuntimeException(e);
-		}
 	}
 
 	private static class ChatMessageParser {
