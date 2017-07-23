@@ -3,6 +3,8 @@ package oakbot.chat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * Represents a chat message. Use its {@link Builder} class to construct new
@@ -10,24 +12,54 @@ import java.util.List;
  * @author Michael Angstadt
  */
 public class ChatMessage {
-	private final long messageId;
+	private static final Predicate<String> oneboxRegex = Pattern.compile("^<div class=\"([^\"]*?)onebox([^\"]*?)\"[^>]*?>").asPredicate();
+
 	private final LocalDateTime timestamp;
+
+	private final long messageId;
+	private final long parentMessageId;
+
 	private final int userId;
 	private final String username;
+	private final int mentionedUserId;
+
 	private final int roomId;
+	private final String roomName;
+
 	private final String content;
-	private final int edits;
 	private final boolean fixedFont;
 
+	private final int edits;
+
+	private final int stars;
+
 	private ChatMessage(Builder builder) {
-		messageId = builder.messageId;
 		timestamp = builder.timestamp;
+
+		messageId = builder.messageId;
+		parentMessageId = builder.parentMessageId;
+
 		userId = builder.userId;
 		username = builder.username;
+		mentionedUserId = builder.mentionedUserId;
+
 		roomId = builder.roomId;
+		roomName = builder.roomName;
+
 		content = builder.content;
-		edits = builder.edits;
 		fixedFont = builder.fixedFont;
+
+		edits = builder.edits;
+
+		stars = builder.stars;
+	}
+
+	/**
+	 * Gets the timestamp the message was posted or modified.
+	 * @return the timestamp
+	 */
+	public LocalDateTime getTimestamp() {
+		return timestamp;
 	}
 
 	/**
@@ -39,11 +71,11 @@ public class ChatMessage {
 	}
 
 	/**
-	 * Gets the timestamp the message was posted.
-	 * @return the timestamp
+	 * Gets the ID of the message that this message is replying to.
+	 * @return the parent message ID or 0 if this message is not a reply
 	 */
-	public LocalDateTime getTimestamp() {
-		return timestamp;
+	public long getParentMessageId() {
+		return parentMessageId;
 	}
 
 	/**
@@ -63,11 +95,29 @@ public class ChatMessage {
 	}
 
 	/**
-	 * Gets the room the message was posted in.
+	 * Gets the ID of the user that was mentioned in the message content. If a
+	 * message contains multiple mentions, only the ID of the first mentioned
+	 * user is returned by the API.
+	 * @return the ID of the mentioned user or 0 if nobody was mentioned
+	 */
+	public int getMentionedUserId() {
+		return mentionedUserId;
+	}
+
+	/**
+	 * Gets the ID of the room the message is currently in.
 	 * @return the room ID
 	 */
 	public int getRoomId() {
 		return roomId;
+	}
+
+	/**
+	 * Gets the name of the room the message is currently in.
+	 * @return the room name
+	 */
+	public String getRoomName() {
+		return roomName;
 	}
 
 	/**
@@ -110,11 +160,27 @@ public class ChatMessage {
 	}
 
 	/**
+	 * Gets the number of stars the message has.
+	 * @return the number of stars
+	 */
+	public int getStars() {
+		return stars;
+	}
+
+	/**
 	 * Gets whether the entire message is formatted in a monospace font.
 	 * @return true if it's formatted in a fixed font, false if not
 	 */
 	public boolean isFixedFont() {
 		return fixedFont;
+	}
+
+	/**
+	 * Determines if the message content is a onebox.
+	 * @return true if the message content is a onebox, false if not
+	 */
+	public boolean isOnebox() {
+		return (content == null) ? false : oneboxRegex.test(content);
 	}
 
 	/**
@@ -152,6 +218,10 @@ public class ChatMessage {
 	 * not included in the returned output.
 	 */
 	public List<String> getMentions() {
+		if (content == null) {
+			return new ArrayList<>(0);
+		}
+
 		final int minLength = 3;
 		List<String> mentions = new ArrayList<>(1);
 
@@ -211,7 +281,7 @@ public class ChatMessage {
 
 	@Override
 	public String toString() {
-		return "ChatMessage [messageId=" + messageId + ", timestamp=" + timestamp + ", userId=" + userId + ", username=" + username + ", roomId=" + roomId + ", content=" + content + ", edits=" + edits + ", fixedFont=" + fixedFont + "]";
+		return "ChatMessage [timestamp=" + timestamp + ", messageId=" + messageId + ", parentMessageId=" + parentMessageId + ", userId=" + userId + ", username=" + username + ", mentionedUserId=" + mentionedUserId + ", roomId=" + roomId + ", roomName=" + roomName + ", content=" + content + ", fixedFont=" + fixedFont + ", edits=" + edits + ", stars=" + stars + "]";
 	}
 
 	/**
@@ -219,14 +289,24 @@ public class ChatMessage {
 	 * @author Michael Angstadt
 	 */
 	public static class Builder {
-		private long messageId;
 		private LocalDateTime timestamp;
+
+		private long messageId;
+		private long parentMessageId;
+
 		private int userId;
 		private String username;
+		private int mentionedUserId;
+
 		private int roomId;
+		private String roomName;
+
 		private String content;
-		private int edits;
 		private boolean fixedFont;
+
+		private int edits;
+
+		private int stars;
 
 		/**
 		 * Creates an empty builder.
@@ -240,14 +320,34 @@ public class ChatMessage {
 		 * @param original the original object
 		 */
 		public Builder(ChatMessage original) {
-			messageId = original.messageId;
 			timestamp = original.timestamp;
+
+			messageId = original.messageId;
+			parentMessageId = original.parentMessageId;
+
 			userId = original.userId;
 			username = original.username;
+			mentionedUserId = original.mentionedUserId;
+
 			roomId = original.roomId;
+			roomName = original.roomName;
+
 			content = original.content;
-			edits = original.edits;
 			fixedFont = original.fixedFont;
+
+			edits = original.edits;
+
+			stars = original.stars;
+		}
+
+		/**
+		 * Sets the time the message was posted or modified.
+		 * @param timestamp the timestamp
+		 * @return this
+		 */
+		public Builder timestamp(LocalDateTime timestamp) {
+			this.timestamp = timestamp;
+			return this;
 		}
 
 		/**
@@ -261,12 +361,14 @@ public class ChatMessage {
 		}
 
 		/**
-		 * Sets the timestamp the message was posted.
-		 * @param timestamp the timestamp
+		 * Sets the ID of the message that this message is replying to. This ID
+		 * is unique across all chat rooms.
+		 * @param parentMessageId the parent message ID or 0 if this message is
+		 * not a reply
 		 * @return this
 		 */
-		public Builder timestamp(LocalDateTime timestamp) {
-			this.timestamp = timestamp;
+		public Builder parentMessageId(long parentMessageId) {
+			this.parentMessageId = parentMessageId;
 			return this;
 		}
 
@@ -291,12 +393,35 @@ public class ChatMessage {
 		}
 
 		/**
-		 * Sets the room the message was posted in.
+		 * Sets the ID of the user that was mentioned in the message content. If
+		 * a message contains multiple mentions, only the ID of the first
+		 * mentioned user is recorded.
+		 * @param mentionedUserId the ID of the mentioned user or 0 if nobody
+		 * was mentioned
+		 * @return this
+		 */
+		public Builder mentionedUserId(int mentionedUserId) {
+			this.mentionedUserId = mentionedUserId;
+			return this;
+		}
+
+		/**
+		 * Sets the ID of the room the message is currently in.
 		 * @param roomId the room ID
 		 * @return this
 		 */
 		public Builder roomId(int roomId) {
 			this.roomId = roomId;
+			return this;
+		}
+
+		/**
+		 * Sets the name of the room the message is currently in.
+		 * @param roomName the room name
+		 * @return this
+		 */
+		public Builder roomName(String roomName) {
+			this.roomName = roomName;
 			return this;
 		}
 
@@ -323,7 +448,7 @@ public class ChatMessage {
 		}
 
 		/**
-		 * Sets the number of times the chat message was edited.
+		 * Sets the number of times the message was edited.
 		 * @param edits the number of edits
 		 * @return this
 		 */
@@ -333,7 +458,17 @@ public class ChatMessage {
 		}
 
 		/**
-		 * Builds the object.
+		 * Sets the number of stars the message has.
+		 * @param stars the number of stars
+		 * @return this
+		 */
+		public Builder stars(int stars) {
+			this.stars = stars;
+			return this;
+		}
+
+		/**
+		 * Builds the chat message.
 		 * @return the built object
 		 */
 		public ChatMessage build() {

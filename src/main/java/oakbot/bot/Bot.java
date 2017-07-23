@@ -14,10 +14,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -69,12 +67,6 @@ public class Bot {
 	private final UnknownCommandHandler unknownCommandHandler;
 	private final Timer timer = new Timer();
 	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(TimeUnit.HOURS.toMillis(6), TimeUnit.DAYS.toMillis(3));
-
-	/**
-	 * Determines if a chat message the bot retrieved from the chat room is a
-	 * onebox.
-	 */
-	private final Predicate<String> oneboxRegex = Pattern.compile("^<div class=\"([^\"]*?)onebox([^\"]*?)\"[^>]*?>").asPredicate();
 
 	/**
 	 * <p>
@@ -180,7 +172,7 @@ public class Bot {
 						 * the message so that the onebox no longer displays,
 						 * but the URL is still preserved.
 						 */
-						if (originalMessage != null && hideOneboxesAfter != null && isOnebox(message)) {
+						if (originalMessage != null && hideOneboxesAfter != null && message.isOnebox()) {
 							long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - originalMessage.getTimePosted());
 							if (logger.isLoggable(Level.INFO)) {
 								logger.info("Hiding onebox in " + hideIn + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
@@ -342,15 +334,6 @@ public class Bot {
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Problem sending chat message.", e);
 		}
-	}
-
-	/**
-	 * Determines if a chat message is a onebox.
-	 * @param message the chat message
-	 * @return true if it's a onebox, false if not
-	 */
-	private boolean isOnebox(ChatMessage message) {
-		return oneboxRegex.test(message.getContent());
 	}
 
 	/**

@@ -28,7 +28,7 @@ import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import oakbot.bot.Bot;
 import oakbot.chat.ChatConnection;
 import oakbot.chat.StackoverflowChat;
-import oakbot.chat.StackoverflowChatWS;
+import oakbot.chat.StackoverflowChatWSEvents;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
@@ -209,7 +209,7 @@ public class Main {
 			ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
 			websocketClient.setDefaultMaxSessionIdleTimeout(0);
 			websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
-			connection = new StackoverflowChatWS(httpClient, websocketClient);
+			connection = new StackoverflowChatWSEvents(httpClient, websocketClient);
 		}
 
 		//@formatter:off
