@@ -647,6 +647,10 @@ public class Room implements Closeable {
 		}
 	}
 
+	/**
+	 * Closes the room's web socket connection. To properly leave a room, call
+	 * the {@link #leave} method instead.
+	 */
 	@Override
 	public void close() throws IOException {
 		session.close();

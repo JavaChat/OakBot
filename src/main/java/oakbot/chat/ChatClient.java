@@ -115,7 +115,9 @@ public class ChatClient implements Closeable {
 	}
 
 	/**
-	 * Gets all of the rooms the chat client is connected to.
+	 * Gets all of the rooms the chat client is connected to at this moment in
+	 * time. Note that the returned list is a copy and is not backed by
+	 * anything.
 	 * @return the rooms
 	 */
 	public List<Room> getRooms() {

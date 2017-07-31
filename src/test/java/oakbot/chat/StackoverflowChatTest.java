@@ -14,11 +14,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -77,7 +72,7 @@ public class StackoverflowChatTest {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://stackoverflow.com/users/login", uri);
-					return response(200, loginPage(loginFkey));
+					return response(200, ResponseSamples.loginPage(loginFkey));
 				case 2:
 					assertEquals("POST", method);
 					assertEquals("https://stackoverflow.com/users/login", uri);
@@ -121,7 +116,7 @@ public class StackoverflowChatTest {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://stackoverflow.com/users/login", uri);
-					return response(200, loginPage(loginFkey));
+					return response(200, ResponseSamples.loginPage(loginFkey));
 				case 2:
 					assertEquals("POST", method);
 					assertEquals("https://stackoverflow.com/users/login", uri);
@@ -179,11 +174,11 @@ public class StackoverflowChatTest {
 				case 3:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, protectedChatRoom(fkey));
+					return response(200, ResponseSamples.protectedChatRoom(fkey));
 				case 4:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, chatRoom(fkey));
+					return response(200, ResponseSamples.chatRoom(fkey));
 				case 5:
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/events", uri);
@@ -316,7 +311,7 @@ public class StackoverflowChatTest {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, chatRoom(fkey));
+					return response(200, ResponseSamples.chatRoom(fkey));
 				case 2:
 					prevRequestSent = System.currentTimeMillis();
 					return response(200, "<html>error!</html>");
@@ -366,7 +361,7 @@ public class StackoverflowChatTest {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, chatRoom(fkey));
+					return response(200, ResponseSamples.chatRoom(fkey));
 				case 2:
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/events", uri);
@@ -441,7 +436,7 @@ public class StackoverflowChatTest {
 				case 1:
 					assertEquals("GET", method);
 					assertEquals("https://chat.stackoverflow.com/rooms/1", uri);
-					return response(200, chatRoom(fkey));
+					return response(200, ResponseSamples.chatRoom(fkey));
 				case 2:
 					assertEquals("POST", method);
 					assertEquals("https://chat.stackoverflow.com/chats/1/events", uri);
@@ -657,50 +652,4 @@ public class StackoverflowChatTest {
 			return new HashSet<>(URLEncodedUtils.parse(body, Consts.UTF_8));
 		}
 	};
-
-	/**
-	 * Gets the HTML of the login page.
-	 * @param fkey the fkey to populate the page with.
-	 * @return the login page HTML
-	 * @throws IOException
-	 */
-	private static String loginPage(String fkey) throws IOException {
-		String html = readFile("users-login.html");
-		return html.replace("${fkey}", fkey);
-	}
-
-	/**
-	 * Gets the HTML of a chat room that the bot has permission to post to.
-	 * @param fkey the fkey to populate the page with
-	 * @return the chat room HTML
-	 * @throws IOException
-	 */
-	private static String chatRoom(String fkey) throws IOException {
-		String html = readFile("rooms-1.html");
-		return html.replace("${fkey}", fkey);
-	}
-
-	/**
-	 * Gets the HTML of a chat room that the bot does not have permission to
-	 * post to.
-	 * @param fkey the fkey to populate the page with
-	 * @return the chat room HTML
-	 * @throws IOException
-	 */
-	private static String protectedChatRoom(String fkey) throws IOException {
-		String html = readFile("rooms-15-protected.html");
-		return html.replace("${fkey}", fkey);
-	}
-
-	private static String readFile(String file) throws IOException {
-		URI uri;
-		try {
-			uri = StackoverflowChatTest.class.getResource(file).toURI();
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
-
-		Path path = Paths.get(uri);
-		return new String(Files.readAllBytes(path));
-	}
 }
