@@ -69,7 +69,7 @@ public class Room implements Closeable {
 	private final String chatDomain;
 	private final boolean canPost;
 	private final Http http;
-	private final ChatClient connection;
+	private final ChatClient chatClient;
 	private final Session session;
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -94,17 +94,17 @@ public class Room implements Closeable {
 	 * @param http the HTTP client
 	 * @param webSocketContainer the object used to create the web socket
 	 * connection
-	 * @param connection the {@link ChatClient} object that created this
+	 * @param chatClient the {@link ChatClient} object that created this
 	 * connection
 	 * @throws IOException if there's a problem joining the room
 	 * @throws RoomNotFoundException if the room does not exist or the user does
 	 * not have permission to view the room
 	 */
-	public Room(int roomId, String domain, Http http, WebSocketContainer webSocketContainer, ChatClient connection) throws IOException, RoomNotFoundException {
+	public Room(int roomId, String domain, Http http, WebSocketContainer webSocketContainer, ChatClient chatClient) throws IOException, RoomNotFoundException {
 		this.roomId = roomId;
 		chatDomain = "https://chat." + domain;
 		this.http = http;
-		this.connection = connection;
+		this.chatClient = chatClient;
 
 		Response response = http.get(chatDomain + "/rooms/" + roomId);
 
@@ -159,7 +159,8 @@ public class Room implements Closeable {
 
 					@Override
 					public void onError(Session session, Throwable t) {
-						logger.log(Level.SEVERE, "Could not connect to web socket [room=" + roomId + "].", t);
+						logger.log(Level.SEVERE, "Problem with web socket [room=" + roomId + "]. Leaving room.", t);
+						leave();
 					}
 				}, config, new URI(webSocketUrl));
 			} catch (DeploymentException | URISyntaxException e) {
@@ -623,10 +624,10 @@ public class Room implements Closeable {
 	}
 
 	/**
-	 * Leaves the room.
+	 * Leaves the room and closes the web socket connection.
 	 */
 	public void leave() {
-		connection.removeRoom(this);
+		chatClient.removeRoom(this);
 
 		try {
 			//@formatter:off
