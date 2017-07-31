@@ -70,9 +70,7 @@ public class Room implements Closeable {
 	private final boolean canPost;
 	private final Http http;
 	private final ChatClient connection;
-
-	private Session session;
-
+	private final Session session;
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final Map<Class<? extends Event>, List<Consumer<Event>>> listeners;
@@ -89,17 +87,20 @@ public class Room implements Closeable {
 	}
 
 	/**
-	 * Creates a connection to a room.
+	 * Creates a connection to a specific chat room. This constructor is only
+	 * meant to be called by {@link ChatClient} when the user joins a room.
 	 * @param roomId the room ID
 	 * @param domain the Stack Exchange domain (e.g. "stackoverflow.com")
 	 * @param http the HTTP client
+	 * @param webSocketContainer the object used to create the web socket
+	 * connection
 	 * @param connection the {@link ChatClient} object that created this
 	 * connection
 	 * @throws IOException if there's a problem joining the room
 	 * @throws RoomNotFoundException if the room does not exist or the user does
 	 * not have permission to view the room
 	 */
-	public Room(int roomId, String domain, Http http, ChatClient connection) throws IOException, RoomNotFoundException {
+	public Room(int roomId, String domain, Http http, WebSocketContainer webSocketContainer, ChatClient connection) throws IOException, RoomNotFoundException {
 		this.roomId = roomId;
 		chatDomain = "https://chat." + domain;
 		this.http = http;
@@ -125,10 +126,48 @@ public class Room implements Closeable {
 		}
 
 		/*
-		 * The textbox for sending messages won't be there if the bot can't post
-		 * to the room.
+		 * The textbox for sending messages won't be there if the user can't
+		 * post to the room.
 		 */
 		canPost = body.contains("<textarea id=\"input\">");
+
+		/**
+		 * Create the web socket connection.
+		 */
+		{
+			String webSocketUrl = getWebSocketUrl();
+
+			//@formatter:off
+			ClientEndpointConfig config = ClientEndpointConfig.Builder.create()
+				.configurator(new Configurator() {
+					@Override
+					public void beforeRequest(Map<String, List<String>> headers) {
+						headers.put("Origin", Arrays.asList(chatDomain));
+					}
+				})
+			.build();
+			//@formatter:on
+
+			logger.info("Connecting to web socket [room=" + roomId + "]: " + webSocketUrl);
+
+			try {
+				session = webSocketContainer.connectToServer(new Endpoint() {
+					@Override
+					public void onOpen(Session session, EndpointConfig config) {
+						session.addMessageHandler(String.class, Room.this::handleWebSocketMessage);
+					}
+
+					@Override
+					public void onError(Session session, Throwable t) {
+						logger.log(Level.SEVERE, "Could not connect to web socket [room=" + roomId + "].", t);
+					}
+				}, config, new URI(webSocketUrl));
+			} catch (DeploymentException | URISyntaxException e) {
+				throw new IOException(e);
+			}
+
+			logger.info("Web socket connection successful [room=" + roomId + "]: " + webSocketUrl);
+		}
 	}
 
 	/**
@@ -147,52 +186,6 @@ public class Room implements Closeable {
 	 */
 	public String getFkey() {
 		return fkey;
-	}
-
-	/**
-	 * <p>
-	 * Connects to the room's web socket API. This is performed by the
-	 * {@link ChatClient} object when the {@link Room} object is created.
-	 * </p>
-	 * <p>
-	 * Use the {@link #addEventListener} method to respond to these events.
-	 * </p>
-	 * @param webSocketClient the client to use to make the connection
-	 * @throws IOException if there's a problem establishing a connection
-	 */
-	public void connectToWebsocket(WebSocketContainer webSocketClient) throws IOException {
-		String webSocketUrl = getWebSocketUrl();
-
-		//@formatter:off
-		ClientEndpointConfig config = ClientEndpointConfig.Builder.create()
-			.configurator(new Configurator() {
-				@Override
-				public void beforeRequest(Map<String, List<String>> headers) {
-					headers.put("Origin", Arrays.asList(chatDomain));
-				}
-			})
-		.build();
-		//@formatter:on
-
-		logger.info("Connecting to web socket [room=" + roomId + "]: " + webSocketUrl);
-
-		try {
-			session = webSocketClient.connectToServer(new Endpoint() {
-				@Override
-				public void onOpen(Session session, EndpointConfig config) {
-					session.addMessageHandler(String.class, Room.this::handleWebSocketMessage);
-				}
-
-				@Override
-				public void onError(Session session, Throwable t) {
-					logger.log(Level.SEVERE, "Could not connect to web socket [room=" + roomId + "].", t);
-				}
-			}, config, new URI(webSocketUrl));
-		} catch (DeploymentException | URISyntaxException e) {
-			throw new IOException(e);
-		}
-
-		logger.info("Web socket connection successful [room=" + roomId + "]: " + webSocketUrl);
 	}
 
 	private String getWebSocketUrl() throws IOException {

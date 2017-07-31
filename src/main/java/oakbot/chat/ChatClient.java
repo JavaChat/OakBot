@@ -107,8 +107,7 @@ public class ChatClient implements Closeable {
 				return room;
 			}
 
-			room = new Room(roomId, domain, http, this);
-			room.connectToWebsocket(webSocketClient);
+			room = new Room(roomId, domain, http, webSocketClient, this);
 			rooms.put(roomId, room);
 
 			return room;
