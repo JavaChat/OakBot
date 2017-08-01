@@ -42,6 +42,38 @@ public class MockHttpClientBuilder {
 	private final List<HttpResponse> responses = new ArrayList<>();
 
 	/**
+	 * Adds the requests/responses involved in joining a room.
+	 * @param roomId
+	 * @param fkey
+	 * @param webSocketUrl
+	 * @param timestamp
+	 * @return this
+	 * @throws IOException
+	 */
+	public MockHttpClientBuilder joinRoom(int roomId, String fkey, String webSocketUrl, long timestamp) throws IOException {
+		//@formatter:off	
+		return
+			 request("GET", "https://chat.stackoverflow.com/rooms/" + roomId)
+			.response(200, ResponseSamples.chatRoom(fkey))
+			
+			.request("POST", "https://chat.stackoverflow.com/ws-auth",
+				"roomid", roomId + "",
+				"fkey", fkey
+			)
+			.response(200, ResponseSamples.wsAuth(webSocketUrl))
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/" + roomId + "/events",
+				"mode", "messages",
+				"msgCount", "1",
+				"fkey", fkey
+			)
+			.response(200, ResponseSamples.events()
+				.event(timestamp, "content", 50, "UserName", roomId, 20157245)
+			.build());
+		//@formatter:on
+	}
+
+	/**
 	 * Adds an expected request.
 	 * @param method the expected method (e.g. "GET")
 	 * @param uri the expected URI

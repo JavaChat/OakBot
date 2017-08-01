@@ -1,15 +1,20 @@
 package oakbot.chat;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+
 /**
- * Allows you to create Stack Overflow Chat API response samples for unit
- * testing.
+ * Helper class for creating examples of the kind of responses that are returned
+ * from the Stack Overflow Chat API. For unit testing.
  * @author Michael Angstadt
  */
 public final class ResponseSamples {
@@ -80,15 +85,15 @@ public final class ResponseSamples {
 	 * Generates the response for requesting the recent events of a chat room.
 	 * @return a builder object for building the response
 	 */
-	public static EventsBuilder events() {
-		return new EventsBuilder();
+	public static EventsResponseBuilder events() {
+		return new EventsResponseBuilder();
 	}
 
-	public static class EventsBuilder {
+	public static class EventsResponseBuilder {
 		private final StringBuilder sb = new StringBuilder();
 		private boolean first = true;
 
-		public EventsBuilder() {
+		public EventsResponseBuilder() {
 			sb.append("{\"events\":[");
 		}
 
@@ -102,7 +107,7 @@ public final class ResponseSamples {
 		 * @param messageId the message ID
 		 * @return this
 		 */
-		public EventsBuilder event(long timestamp, String content, int userId, String username, int roomId, long messageId) {
+		public EventsResponseBuilder event(long timestamp, String content, int userId, String username, int roomId, long messageId) {
 			if (!first) {
 				sb.append(',');
 			}
@@ -129,6 +134,113 @@ public final class ResponseSamples {
 		 */
 		public String build() {
 			return sb.toString() + "]}";
+		}
+	}
+
+	/**
+	 * Generates the kinds of messages that are received over the web socket
+	 * connection.
+	 * @return a builder object for building the messages
+	 * @throws IOException
+	 * @see https://github.com/JavaChat/OakBot/wiki/Example-WebSocket-Messages
+	 */
+	public static WebSocketMessageBuilder webSocket() throws IOException {
+		return new WebSocketMessageBuilder();
+	}
+
+	public static class WebSocketMessageBuilder {
+		private final StringWriter writer = new StringWriter();
+		private final JsonGenerator generator;
+
+		private int roomId;
+		private String roomName;
+		private boolean firstEvent = true, firstRoom = true;
+
+		public WebSocketMessageBuilder() throws IOException {
+			JsonFactory factory = new JsonFactory();
+			generator = factory.createGenerator(writer);
+			generator.setPrettyPrinter(new DefaultPrettyPrinter());
+
+			generator.writeStartObject();
+		}
+
+		/**
+		 * Sets what room the events are coming from. This method should be
+		 * called before any other method.
+		 * @param id
+		 * @param name
+		 * @return
+		 * @throws IOException
+		 */
+		public WebSocketMessageBuilder room(int id, String name) throws IOException {
+			roomId = id;
+			roomName = name;
+
+			if (!firstEvent) {
+				generator.writeEndArray();
+			}
+
+			if (!firstRoom) {
+				generator.writeEndObject();
+			}
+			firstRoom = false;
+
+			generator.writeObjectFieldStart("r" + id);
+
+			firstEvent = true;
+
+			return this;
+		}
+
+		/**
+		 * Adds a "new message" event.
+		 * @param eventId
+		 * @param timestamp
+		 * @param content
+		 * @param userId
+		 * @param username
+		 * @param messageId
+		 * @return
+		 * @throws IOException
+		 */
+		public WebSocketMessageBuilder newMessage(long eventId, long timestamp, String content, int userId, String username, long messageId) throws IOException {
+			initEventList();
+
+			generator.writeStartObject();
+			generator.writeNumberField("event_type", 1);
+			generator.writeNumberField("time_stamp", timestamp);
+			generator.writeStringField("content", content);
+			generator.writeNumberField("id", eventId);
+			generator.writeNumberField("user_id", userId);
+			generator.writeStringField("user_name", username);
+			generator.writeNumberField("room_id", roomId);
+			generator.writeStringField("room_name", roomName);
+			generator.writeNumberField("message_id", messageId);
+			generator.writeEndObject();
+
+			return this;
+		}
+
+		private void initEventList() throws IOException {
+			if (firstEvent) {
+				generator.writeArrayFieldStart("e");
+			}
+			firstEvent = false;
+		}
+
+		public String build() throws IOException {
+			if (!firstEvent) {
+				generator.writeEndArray();
+			}
+
+			if (!firstRoom) {
+				generator.writeEndObject();
+			}
+
+			generator.writeEndObject();
+
+			generator.close();
+			return writer.toString();
 		}
 	}
 

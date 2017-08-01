@@ -87,8 +87,8 @@ public class Room implements Closeable {
 	}
 
 	/**
-	 * Creates a connection to a specific chat room. This constructor is only
-	 * meant to be called by {@link ChatClient} when the user joins a room.
+	 * Creates a connection to a specific chat room. This constructor is meant
+	 * to be called by {@link ChatClient#joinRoom}.
 	 * @param roomId the room ID
 	 * @param domain the Stack Exchange domain (e.g. "stackoverflow.com")
 	 * @param http the HTTP client
@@ -100,7 +100,7 @@ public class Room implements Closeable {
 	 * @throws RoomNotFoundException if the room does not exist or the user does
 	 * not have permission to view the room
 	 */
-	public Room(int roomId, String domain, Http http, WebSocketContainer webSocketContainer, ChatClient chatClient) throws IOException, RoomNotFoundException {
+	Room(int roomId, String domain, Http http, WebSocketContainer webSocketContainer, ChatClient chatClient) throws IOException, RoomNotFoundException {
 		this.roomId = roomId;
 		chatDomain = "https://chat." + domain;
 		this.http = http;
