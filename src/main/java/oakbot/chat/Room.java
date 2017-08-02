@@ -332,11 +332,33 @@ public class Room implements Closeable {
 		}
 	}
 
+	/**
+	 * Adds a listener for a specific type of event.
+	 * @param clazz the event class
+	 * @param listener the listener
+	 */
 	@SuppressWarnings("unchecked")
 	public <T extends Event> void addEventListener(Class<T> clazz, Consumer<T> listener) {
+		if (clazz == Event.class) {
+			addEventListener((Consumer<Event>) listener);
+			return;
+		}
+
 		List<Consumer<Event>> eventListeners = listeners.get(clazz);
 		synchronized (eventListeners) {
 			eventListeners.add((Consumer<Event>) listener);
+		}
+	}
+
+	/**
+	 * Adds a listener which receives all events.
+	 * @param listener the listener
+	 */
+	public void addEventListener(Consumer<Event> listener) {
+		for (List<Consumer<Event>> eventListeners : listeners.values()) {
+			synchronized (eventListeners) {
+				eventListeners.add(listener);
+			}
 		}
 	}
 
