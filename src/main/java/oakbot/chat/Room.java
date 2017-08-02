@@ -1168,7 +1168,7 @@ public class Room implements Closeable {
 			/*
 			 * This field is only present if the message has been edited.
 			 */
-			value = element.get("edits");
+			value = element.get("message_edits");
 			if (value != null) {
 				builder.edits(value.asInt());
 			}
