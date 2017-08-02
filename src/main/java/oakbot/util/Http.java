@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,6 +49,11 @@ public class Http implements Closeable {
 	 */
 	public Response get(String uri) throws IOException {
 		HttpGet request = new HttpGet(uri);
+
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Sending request [method=GET; URI=" + uri + "]...");
+		}
+
 		return send(request);
 	}
 
@@ -74,6 +80,10 @@ public class Http implements Closeable {
 				params.add(new BasicNameValuePair(parameters[i].toString(), parameters[i + 1].toString()));
 			}
 			request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+		}
+
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Sending request [method=POST; URI=" + uri + "; params=" + parameters + "]...");
 		}
 
 		return send(request);
@@ -114,17 +124,33 @@ public class Http implements Closeable {
 			 * must wait before it can post another message.
 			 */
 			if (statusCode == 409) {
-				logger.info("HTTP " + statusCode + " response [url=" + request.getURI() + "]: " + body);
 				Long waitTime = parse409Response(body);
 				sleep = (waitTime == null) ? 5000 : waitTime;
+
+				logger.info("HTTP " + statusCode + " response, sleeping " + sleep + "ms [request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "]: " + body);
+
 				attempts++;
 				continue;
 			}
 
-			return new Response(statusCode, body);
+			Response response = new Response(statusCode, body);
+
+			if (logger.isLoggable(Level.FINE)) {
+				String bodyDebug;
+				try {
+					JsonNode node = response.getBodyAsJson();
+					bodyDebug = JsonUtils.prettyPrint(node);
+				} catch (JsonProcessingException e) {
+					//not JSON
+					bodyDebug = body;
+				}
+				logger.fine("Received response [status=" + statusCode + "; request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "]: " + bodyDebug);
+			}
+
+			return response;
 		}
 
-		throw new IOException("Request to " + request.getURI() + " could not be sent after " + attempts + " attempts.");
+		throw new IOException("Request could not be sent after " + attempts + " attempts [request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "].");
 	}
 
 	private static final Pattern response409Regex = Pattern.compile("\\d+");
