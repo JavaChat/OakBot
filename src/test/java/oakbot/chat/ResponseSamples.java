@@ -148,6 +148,10 @@ public final class ResponseSamples {
 		return new WebSocketMessageBuilder();
 	}
 
+	/**
+	 * Creates a web socket message.
+	 * @author Michael Angstadt
+	 */
 	public static class WebSocketMessageBuilder {
 		private final StringWriter writer = new StringWriter();
 		private final JsonGenerator generator;
@@ -167,10 +171,10 @@ public final class ResponseSamples {
 		/**
 		 * Sets what room the events are coming from. This method should be
 		 * called before any other method.
-		 * @param id
-		 * @param name
-		 * @return
-		 * @throws IOException
+		 * @param id the room ID
+		 * @param name the room name
+		 * @return this
+		 * @throws IOException never thrown
 		 */
 		public WebSocketMessageBuilder room(int id, String name) throws IOException {
 			roomId = id;
@@ -194,14 +198,14 @@ public final class ResponseSamples {
 
 		/**
 		 * Adds a "new message" event.
-		 * @param eventId
-		 * @param timestamp
-		 * @param content
-		 * @param userId
-		 * @param username
-		 * @param messageId
-		 * @return
-		 * @throws IOException
+		 * @param eventId the unique ID of the individual event
+		 * @param timestamp the time of the event
+		 * @param content the message content
+		 * @param userId the user ID of the message author
+		 * @param username the username of the message author
+		 * @param messageId the unique ID of the message
+		 * @return this
+		 * @throws IOException never thrown
 		 */
 		public WebSocketMessageBuilder newMessage(long eventId, long timestamp, String content, int userId, String username, long messageId) throws IOException {
 			initEventList();
@@ -216,6 +220,116 @@ public final class ResponseSamples {
 			generator.writeNumberField("room_id", roomId);
 			generator.writeStringField("room_name", roomName);
 			generator.writeNumberField("message_id", messageId);
+			generator.writeEndObject();
+
+			return this;
+		}
+
+		/**
+		 * Adds a "message edited" event.
+		 * @param eventId the unique ID of the individual event
+		 * @param timestamp the time of the event
+		 * @param content the message content
+		 * @param userId the user ID of the message author
+		 * @param username the username of the message author
+		 * @param messageId the unique ID of the message
+		 * @param edits the number of times the message has been edited
+		 * @return this
+		 * @throws IOException never thrown
+		 */
+		public WebSocketMessageBuilder messageEdited(long eventId, long timestamp, String content, int userId, String username, long messageId, int edits) throws IOException {
+			initEventList();
+
+			generator.writeStartObject();
+			generator.writeNumberField("event_type", 2);
+			generator.writeNumberField("time_stamp", timestamp);
+			generator.writeStringField("content", content);
+			generator.writeNumberField("id", eventId);
+			generator.writeNumberField("user_id", userId);
+			generator.writeStringField("user_name", username);
+			generator.writeNumberField("room_id", roomId);
+			generator.writeStringField("room_name", roomName);
+			generator.writeNumberField("message_id", messageId);
+			generator.writeNumberField("message_edits", edits);
+			generator.writeEndObject();
+
+			return this;
+		}
+
+		/**
+		 * Adds a "message deleted" event.
+		 * @param eventId the unique ID of the individual event
+		 * @param timestamp the time of the event
+		 * @param userId the user ID of the message author
+		 * @param username the username of the message author
+		 * @param messageId the unique ID of the message
+		 * @return this
+		 * @throws IOException never thrown
+		 */
+		public WebSocketMessageBuilder messageDeleted(long eventId, long timestamp, int userId, String username, long messageId) throws IOException {
+			initEventList();
+
+			generator.writeStartObject();
+			generator.writeNumberField("event_type", 10);
+			generator.writeNumberField("time_stamp", timestamp);
+			generator.writeNumberField("id", eventId);
+			generator.writeNumberField("user_id", userId);
+			generator.writeStringField("user_name", username);
+			generator.writeNumberField("room_id", roomId);
+			generator.writeStringField("room_name", roomName);
+			generator.writeNumberField("message_id", messageId);
+			generator.writeEndObject();
+
+			return this;
+		}
+
+		/**
+		 * Adds a "user entered the room" event.
+		 * @param eventId the unique ID of the individual event
+		 * @param timestamp the time of the event
+		 * @param userId the user ID of the user
+		 * @param username the username of the user
+		 * @return this
+		 * @throws IOException never thrown
+		 */
+		public WebSocketMessageBuilder userEntered(long eventId, long timestamp, int userId, String username) throws IOException {
+			initEventList();
+
+			generator.writeStartObject();
+			generator.writeNumberField("event_type", 3);
+			generator.writeNumberField("time_stamp", timestamp);
+			generator.writeNumberField("id", eventId);
+			generator.writeNumberField("user_id", userId);
+			generator.writeNumberField("target_user_id", userId);
+			generator.writeStringField("user_name", username);
+			generator.writeNumberField("room_id", roomId);
+			generator.writeStringField("room_name", roomName);
+			generator.writeEndObject();
+
+			return this;
+		}
+
+		/**
+		 * Adds a "user left the room" event.
+		 * @param eventId the unique ID of the individual event
+		 * @param timestamp the time of the event
+		 * @param userId the user ID of the user
+		 * @param username the username of the user
+		 * @return this
+		 * @throws IOException never thrown
+		 */
+		public WebSocketMessageBuilder userLeft(long eventId, long timestamp, int userId, String username) throws IOException {
+			initEventList();
+
+			generator.writeStartObject();
+			generator.writeNumberField("event_type", 4);
+			generator.writeNumberField("time_stamp", timestamp);
+			generator.writeNumberField("id", eventId);
+			generator.writeNumberField("user_id", userId);
+			generator.writeNumberField("target_user_id", userId);
+			generator.writeStringField("user_name", username);
+			generator.writeNumberField("room_id", roomId);
+			generator.writeStringField("room_name", roomName);
 			generator.writeEndObject();
 
 			return this;
@@ -240,6 +354,7 @@ public final class ResponseSamples {
 			generator.writeEndObject();
 
 			generator.close();
+
 			return writer.toString();
 		}
 	}
@@ -247,7 +362,7 @@ public final class ResponseSamples {
 	private static String readFile(String file) throws IOException {
 		URI uri;
 		try {
-			uri = ChatClientTest.class.getResource(file).toURI();
+			uri = ResponseSamples.class.getResource(file).toURI();
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}

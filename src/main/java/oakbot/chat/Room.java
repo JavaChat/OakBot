@@ -76,6 +76,7 @@ public class Room implements Closeable {
 	private final Map<Class<? extends Event>, List<Consumer<Event>>> listeners;
 	{
 		Map<Class<? extends Event>, List<Consumer<Event>>> map = new HashMap<>();
+		map.put(Event.class, new ArrayList<>());
 		map.put(MessageDeletedEvent.class, new ArrayList<>());
 		map.put(MessageEditedEvent.class, new ArrayList<>());
 		map.put(MessagePostedEvent.class, new ArrayList<>());
@@ -322,6 +323,15 @@ public class Room implements Closeable {
 			eventsToPublish.add(event);
 		}
 
+		List<Consumer<Event>> genericListeners = listeners.get(Event.class);
+		synchronized (genericListeners) {
+			for (Consumer<Event> listener : genericListeners) {
+				for (Event event : eventsToPublish) {
+					listener.accept(event);
+				}
+			}
+		}
+
 		for (Event event : eventsToPublish) {
 			List<Consumer<Event>> eventListeners = listeners.get(event.getClass());
 			synchronized (eventListeners) {
@@ -339,11 +349,6 @@ public class Room implements Closeable {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends Event> void addEventListener(Class<T> clazz, Consumer<T> listener) {
-		if (clazz == Event.class) {
-			addEventListener((Consumer<Event>) listener);
-			return;
-		}
-
 		List<Consumer<Event>> eventListeners = listeners.get(clazz);
 		synchronized (eventListeners) {
 			eventListeners.add((Consumer<Event>) listener);
@@ -355,11 +360,7 @@ public class Room implements Closeable {
 	 * @param listener the listener
 	 */
 	public void addEventListener(Consumer<Event> listener) {
-		for (List<Consumer<Event>> eventListeners : listeners.values()) {
-			synchronized (eventListeners) {
-				eventListeners.add(listener);
-			}
-		}
+		addEventListener(Event.class, listener);
 	}
 
 	/**

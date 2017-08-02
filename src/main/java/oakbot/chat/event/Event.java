@@ -24,25 +24,32 @@ public abstract class Event {
 	}
 
 	/**
-	 * Gets the ID of the event.
+	 * Gets the unique ID of the individual event.
 	 * @return the event ID
 	 */
 	public long getEventId() {
 		return eventId;
 	}
 
+	/**
+	 * Used for constructing {@link Event} instances.
+	 * @author Michael Angstadt
+	 * @param <T> the event class that is being built
+	 * @param <U> allows the setter methods to return instances of the
+	 * implementing child class
+	 */
 	public static abstract class Builder<T extends Event, U extends Builder<?, ?>> {
 		protected LocalDateTime timestamp;
 		protected long eventId;
 
 		@SuppressWarnings("unchecked")
-		final U this_ = (U) this;
+		private final U this_ = (U) this;
 
-		public Builder() {
+		protected Builder() {
 			//empty
 		}
 
-		public Builder(Event original) {
+		protected Builder(Event original) {
 			timestamp = original.timestamp;
 			eventId = original.eventId;
 		}
@@ -58,7 +65,7 @@ public abstract class Event {
 		}
 
 		/**
-		 * Sets the ID of the event.
+		 * Sets the unique ID of the individual event.
 		 * @param eventId the event ID
 		 * @return this
 		 */
