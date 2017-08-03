@@ -988,8 +988,9 @@ public class Room implements Closeable {
 				 * Whenever a "reply" event is posted, an accompanying
 				 * "new message" or "message edited" event is also posted. This
 				 * event has less information than the "reply" event, so ignore
-				 * it. But we need to know which one was fired so we know what
-				 * kind of event to fire on our end.
+				 * it. But we need to know whether a "new message" or
+				 * "message edited" event was fired so we know what kind of
+				 * event to fire on our end.
 				 */
 
 				JsonNode event = findMessageWithId(newMessageEvents, message.getMessageId());
@@ -1060,9 +1061,11 @@ public class Room implements Closeable {
 				 * Whenever a "user mentioned" event is posted, an accompanying
 				 * "new message" or "message edited" event is also posted. This
 				 * event has less information than the "user mentioned" event,
-				 * so ignore it. But we need to know which one was fired so we
-				 * know what kind of event to fire on our end.
+				 * so ignore it. But we need to know whether a "new message" or
+				 * "message edited" event was fired so we know what kind of
+				 * event to fire on our end.
 				 */
+
 				JsonNode event = findMessageWithId(newMessageEvents, message.getMessageId());
 				if (event != null) {
 					newMessageEvents.remove(event);
