@@ -41,6 +41,8 @@ import oakbot.chat.event.Event;
 import oakbot.chat.event.MessageDeletedEvent;
 import oakbot.chat.event.MessageEditedEvent;
 import oakbot.chat.event.MessagePostedEvent;
+import oakbot.chat.event.MessageStarredEvent;
+import oakbot.chat.event.MessagesMovedEvent;
 import oakbot.chat.event.UserEnteredEvent;
 import oakbot.chat.event.UserLeftEvent;
 
@@ -99,7 +101,7 @@ public class RoomTest {
 		//@formatter:off
 		wsRoom1.send(ResponseSamples.webSocket()
 		.room(1, "Sandbox")
-			.newMessage(1, 1417041460, "one", 50, "User", 20157245)
+			.newMessage().id(1).timestamp(1417041460).content("one").user(50, "User").messageId(20157245).done()
 		.build());
 		//@formatter:on
 
@@ -119,6 +121,140 @@ public class RoomTest {
 		assertEquals(timestamp(1417041460), event.getMessage().getTimestamp());
 		assertEquals(50, event.getMessage().getUserId());
 		assertEquals("User", event.getMessage().getUsername());
+
+		verifyHttpClient(httpClient, 3);
+	}
+
+	@Test
+	public void webSocket_MessagePostedEvent_reply() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+		.build();
+		//@formatter:on
+
+		WebSocketContainer container = mock(WebSocketContainer.class);
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(container, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+
+		ChatClient chatClient = new ChatClient(httpClient, container);
+		Room room = chatClient.joinRoom(1);
+
+		List<Event> events = new ArrayList<>();
+		room.addEventListener(MessagePostedEvent.class, (event) -> {
+			events.add(event);
+		});
+		room.addEventListener(MessageEditedEvent.class, (event) -> {
+			events.add(event);
+		});
+
+		//@formatter:off
+		wsRoom1.send(ResponseSamples.webSocket()
+		.room(1, "Sandbox")
+			.reply().id(1).timestamp(1417041460).content("@Bob Howdy.").user(50, "User").targetUser(100).messageId(20157245).parentId(20157230).done()
+			.newMessage().id(2).timestamp(1417041460).content("@Bob Howdy.").user(50, "User").messageId(20157245).parentId(20157230).done()
+			.reply().id(3).timestamp(1417041470).edits(1).content("@Greg Sup.").user(50, "User").targetUser(150).messageId(20157240).parentId(20157220).done()
+			.messageEdited().id(4).timestamp(1417041470).edits(1).content("@Greg Sup.").user(50, "User").messageId(20157240).parentId(20157220).done()
+		.build());
+		//@formatter:on
+
+		assertEquals(2, events.size());
+
+		MessagePostedEvent postedEvent = (MessagePostedEvent) events.get(0);
+		assertEquals(1, postedEvent.getEventId());
+		assertEquals(timestamp(1417041460), postedEvent.getTimestamp());
+		assertEquals("@Bob Howdy.", postedEvent.getMessage().getContent());
+		assertEquals(0, postedEvent.getMessage().getEdits());
+		assertEquals(100, postedEvent.getMessage().getMentionedUserId());
+		assertEquals(20157245, postedEvent.getMessage().getMessageId());
+		assertEquals(20157230, postedEvent.getMessage().getParentMessageId());
+		assertEquals(1, postedEvent.getMessage().getRoomId());
+		assertEquals("Sandbox", postedEvent.getMessage().getRoomName());
+		assertEquals(0, postedEvent.getMessage().getStars());
+		assertEquals(timestamp(1417041460), postedEvent.getMessage().getTimestamp());
+		assertEquals(50, postedEvent.getMessage().getUserId());
+		assertEquals("User", postedEvent.getMessage().getUsername());
+
+		MessageEditedEvent editedEvent = (MessageEditedEvent) events.get(1);
+		assertEquals(3, editedEvent.getEventId());
+		assertEquals(timestamp(1417041470), editedEvent.getTimestamp());
+		assertEquals("@Greg Sup.", editedEvent.getMessage().getContent());
+		assertEquals(1, editedEvent.getMessage().getEdits());
+		assertEquals(150, editedEvent.getMessage().getMentionedUserId());
+		assertEquals(20157240, editedEvent.getMessage().getMessageId());
+		assertEquals(20157220, editedEvent.getMessage().getParentMessageId());
+		assertEquals(1, editedEvent.getMessage().getRoomId());
+		assertEquals("Sandbox", editedEvent.getMessage().getRoomName());
+		assertEquals(0, editedEvent.getMessage().getStars());
+		assertEquals(timestamp(1417041470), editedEvent.getMessage().getTimestamp());
+		assertEquals(50, editedEvent.getMessage().getUserId());
+		assertEquals("User", editedEvent.getMessage().getUsername());
+
+		verifyHttpClient(httpClient, 3);
+	}
+
+	@Test
+	public void webSocket_MessagePostedEvent_mention() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+		.build();
+		//@formatter:on
+
+		WebSocketContainer container = mock(WebSocketContainer.class);
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(container, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+
+		ChatClient chatClient = new ChatClient(httpClient, container);
+		Room room = chatClient.joinRoom(1);
+
+		List<Event> events = new ArrayList<>();
+		room.addEventListener(MessagePostedEvent.class, (event) -> {
+			events.add(event);
+		});
+		room.addEventListener(MessageEditedEvent.class, (event) -> {
+			events.add(event);
+		});
+
+		//@formatter:off
+		wsRoom1.send(ResponseSamples.webSocket()
+		.room(1, "Sandbox")
+			.mention().id(1).timestamp(1417041460).content("@Bob Howdy.").user(50, "User").targetUser(100).messageId(20157245).done()
+			.newMessage().id(2).timestamp(1417041460).content("@Bob Howdy.").user(50, "User").messageId(20157245).done()
+			.mention().id(3).timestamp(1417041470).edits(1).content("@Greg Sup.").user(50, "User").targetUser(150).messageId(20157240).done()
+			.messageEdited().id(4).timestamp(1417041470).edits(1).content("@Greg Sup.").user(50, "User").messageId(20157240).done()
+		.build());
+		//@formatter:on
+
+		assertEquals(2, events.size());
+
+		MessagePostedEvent postedEvent = (MessagePostedEvent) events.get(0);
+		assertEquals(1, postedEvent.getEventId());
+		assertEquals(timestamp(1417041460), postedEvent.getTimestamp());
+		assertEquals("@Bob Howdy.", postedEvent.getMessage().getContent());
+		assertEquals(0, postedEvent.getMessage().getEdits());
+		assertEquals(100, postedEvent.getMessage().getMentionedUserId());
+		assertEquals(20157245, postedEvent.getMessage().getMessageId());
+		assertEquals(0, postedEvent.getMessage().getParentMessageId());
+		assertEquals(1, postedEvent.getMessage().getRoomId());
+		assertEquals("Sandbox", postedEvent.getMessage().getRoomName());
+		assertEquals(0, postedEvent.getMessage().getStars());
+		assertEquals(timestamp(1417041460), postedEvent.getMessage().getTimestamp());
+		assertEquals(50, postedEvent.getMessage().getUserId());
+		assertEquals("User", postedEvent.getMessage().getUsername());
+
+		MessageEditedEvent editedEvent = (MessageEditedEvent) events.get(1);
+		assertEquals(3, editedEvent.getEventId());
+		assertEquals(timestamp(1417041470), editedEvent.getTimestamp());
+		assertEquals("@Greg Sup.", editedEvent.getMessage().getContent());
+		assertEquals(1, editedEvent.getMessage().getEdits());
+		assertEquals(150, editedEvent.getMessage().getMentionedUserId());
+		assertEquals(20157240, editedEvent.getMessage().getMessageId());
+		assertEquals(0, editedEvent.getMessage().getParentMessageId());
+		assertEquals(1, editedEvent.getMessage().getRoomId());
+		assertEquals("Sandbox", editedEvent.getMessage().getRoomName());
+		assertEquals(0, editedEvent.getMessage().getStars());
+		assertEquals(timestamp(1417041470), editedEvent.getMessage().getTimestamp());
+		assertEquals(50, editedEvent.getMessage().getUserId());
+		assertEquals("User", editedEvent.getMessage().getUsername());
 
 		verifyHttpClient(httpClient, 3);
 	}
@@ -145,7 +281,7 @@ public class RoomTest {
 		//@formatter:off
 		wsRoom1.send(ResponseSamples.webSocket()
 		.room(1, "Sandbox")
-			.messageEdited(1, 1417041460, "one", 50, "User", 20157245, 1)
+			.messageEdited().id(1).timestamp(1417041460).content("one").user(50, "User").messageId(20157245).edits(1).done()
 		.build());
 		//@formatter:on
 
@@ -165,6 +301,52 @@ public class RoomTest {
 		assertEquals(timestamp(1417041460), event.getMessage().getTimestamp());
 		assertEquals(50, event.getMessage().getUserId());
 		assertEquals("User", event.getMessage().getUsername());
+
+		verifyHttpClient(httpClient, 3);
+	}
+
+	@Test
+	public void webSocket_MessageStarredEvent() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+		.build();
+		//@formatter:on
+
+		WebSocketContainer container = mock(WebSocketContainer.class);
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(container, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+
+		ChatClient chatClient = new ChatClient(httpClient, container);
+		Room room = chatClient.joinRoom(1);
+
+		List<Event> events = new ArrayList<>();
+		room.addEventListener(MessageStarredEvent.class, (event) -> {
+			events.add(event);
+		});
+
+		//@formatter:off
+		wsRoom1.send(ResponseSamples.webSocket()
+		.room(1, "Sandbox")
+			.messageStarred().id(1).timestamp(1417041460).content("one").messageId(20157245).stars(1).done()
+		.build());
+		//@formatter:on
+
+		assertEquals(1, events.size());
+
+		MessageStarredEvent event = (MessageStarredEvent) events.get(0);
+		assertEquals(1, event.getEventId());
+		assertEquals(timestamp(1417041460), event.getTimestamp());
+		assertEquals("one", event.getMessage().getContent());
+		assertEquals(0, event.getMessage().getEdits());
+		assertEquals(0, event.getMessage().getMentionedUserId());
+		assertEquals(20157245, event.getMessage().getMessageId());
+		assertEquals(0, event.getMessage().getParentMessageId());
+		assertEquals(1, event.getMessage().getRoomId());
+		assertEquals("Sandbox", event.getMessage().getRoomName());
+		assertEquals(1, event.getMessage().getStars());
+		assertEquals(timestamp(1417041460), event.getMessage().getTimestamp());
+		assertEquals(0, event.getMessage().getUserId());
+		assertNull(event.getMessage().getUsername());
 
 		verifyHttpClient(httpClient, 3);
 	}
@@ -191,7 +373,7 @@ public class RoomTest {
 		//@formatter:off
 		wsRoom1.send(ResponseSamples.webSocket()
 		.room(1, "Sandbox")
-			.messageDeleted(1, 1417041460, 50, "User", 20157245)
+			.messageDeleted().id(1).timestamp(1417041460).user(50, "User").messageId(20157245).done()
 		.build());
 		//@formatter:on
 
@@ -211,6 +393,180 @@ public class RoomTest {
 		assertEquals(timestamp(1417041460), event.getMessage().getTimestamp());
 		assertEquals(50, event.getMessage().getUserId());
 		assertEquals("User", event.getMessage().getUsername());
+
+		verifyHttpClient(httpClient, 3);
+	}
+
+	@Test
+	public void webSocket_MessagesMovedEvent_out() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+		.build();
+		//@formatter:on
+
+		WebSocketContainer container = mock(WebSocketContainer.class);
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(container, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+
+		ChatClient chatClient = new ChatClient(httpClient, container);
+		Room room = chatClient.joinRoom(1);
+
+		List<Event> events = new ArrayList<>();
+		room.addEventListener(MessagesMovedEvent.class, (event) -> {
+			events.add(event);
+		});
+
+		//@formatter:off
+		wsRoom1.send(ResponseSamples.webSocket()
+		.room(1, "Sandbox")
+			.movedOut().id(1).timestamp(1417041460).content("one").user(50, "User").messageId(20157245).moved().done()
+			.movedOut().id(2).timestamp(1417041470).content("two").user(50, "User").messageId(20157246).moved().done()
+			.movedOut().id(3).timestamp(1417041480).content("three").user(50, "User").messageId(20157247).moved().done()
+			.newMessage().id(4).timestamp(1417041490).content("&rarr; <i><a href=\"http://chat.stackoverflow.com/transcript/message/38258010#38258010\">3 messages</a> moved to <a href=\"http://chat.stackoverflow.com/rooms/48058/trash\">Trash</a></i>").user(100, "RoomOwner").messageId(20157248).done()
+		.build());
+		//@formatter:on
+
+		assertEquals(1, events.size());
+
+		MessagesMovedEvent event = (MessagesMovedEvent) events.get(0);
+		assertEquals(4, event.getEventId());
+		assertEquals(timestamp(1417041490), event.getTimestamp());
+		assertEquals(1, event.getSourceRoomId());
+		assertEquals("Sandbox", event.getSourceRoomName());
+		assertEquals(48058, event.getDestRoomId());
+		assertEquals("Trash", event.getDestRoomName());
+		assertEquals(100, event.getMoverUserId());
+		assertEquals("RoomOwner", event.getMoverUsername());
+
+		Iterator<ChatMessage> it = event.getMessages().iterator();
+
+		ChatMessage message = it.next();
+		assertEquals("one", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(0, message.getMentionedUserId());
+		assertEquals(20157245, message.getMessageId());
+		assertEquals(0, message.getParentMessageId());
+		assertEquals(1, message.getRoomId());
+		assertEquals("Sandbox", message.getRoomName());
+		assertEquals(0, message.getStars());
+		assertEquals(timestamp(1417041460), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User", message.getUsername());
+
+		message = it.next();
+		assertEquals("two", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(0, message.getMentionedUserId());
+		assertEquals(20157246, message.getMessageId());
+		assertEquals(0, message.getParentMessageId());
+		assertEquals(1, message.getRoomId());
+		assertEquals("Sandbox", message.getRoomName());
+		assertEquals(0, message.getStars());
+		assertEquals(timestamp(1417041470), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User", message.getUsername());
+
+		message = it.next();
+		assertEquals("three", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(0, message.getMentionedUserId());
+		assertEquals(20157247, message.getMessageId());
+		assertEquals(0, message.getParentMessageId());
+		assertEquals(1, message.getRoomId());
+		assertEquals("Sandbox", message.getRoomName());
+		assertEquals(0, message.getStars());
+		assertEquals(timestamp(1417041480), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User", message.getUsername());
+
+		assertFalse(it.hasNext());
+
+		verifyHttpClient(httpClient, 3);
+	}
+
+	@Test
+	public void webSocket_MessagesMovedEvent_in() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+		.build();
+		//@formatter:on
+
+		WebSocketContainer container = mock(WebSocketContainer.class);
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(container, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+
+		ChatClient chatClient = new ChatClient(httpClient, container);
+		Room room = chatClient.joinRoom(1);
+
+		List<Event> events = new ArrayList<>();
+		room.addEventListener(MessagesMovedEvent.class, (event) -> {
+			events.add(event);
+		});
+
+		//@formatter:off
+		wsRoom1.send(ResponseSamples.webSocket()
+		.room(1, "Sandbox")
+			.movedIn().id(1).timestamp(1417041460).content("one").user(50, "User").messageId(20157245).moved().done()
+			.movedIn().id(2).timestamp(1417041470).content("two").user(50, "User").messageId(20157246).moved().done()
+			.movedIn().id(3).timestamp(1417041480).content("three").user(50, "User").messageId(20157247).moved().done()
+			.newMessage().id(4).timestamp(1417041490).content("&larr; <i>3 messages moved from <a href=\"http://chat.stackoverflow.com/rooms/139/jaba\">Jaba</a></i>").user(100, "RoomOwner").messageId(20157248).done()
+		.build());
+		//@formatter:on
+
+		assertEquals(1, events.size());
+
+		MessagesMovedEvent event = (MessagesMovedEvent) events.get(0);
+		assertEquals(4, event.getEventId());
+		assertEquals(timestamp(1417041490), event.getTimestamp());
+		assertEquals(139, event.getSourceRoomId());
+		assertEquals("Jaba", event.getSourceRoomName());
+		assertEquals(1, event.getDestRoomId());
+		assertEquals("Sandbox", event.getDestRoomName());
+		assertEquals(100, event.getMoverUserId());
+		assertEquals("RoomOwner", event.getMoverUsername());
+
+		Iterator<ChatMessage> it = event.getMessages().iterator();
+
+		ChatMessage message = it.next();
+		assertEquals("one", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(0, message.getMentionedUserId());
+		assertEquals(20157245, message.getMessageId());
+		assertEquals(0, message.getParentMessageId());
+		assertEquals(1, message.getRoomId());
+		assertEquals("Sandbox", message.getRoomName());
+		assertEquals(0, message.getStars());
+		assertEquals(timestamp(1417041460), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User", message.getUsername());
+
+		message = it.next();
+		assertEquals("two", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(0, message.getMentionedUserId());
+		assertEquals(20157246, message.getMessageId());
+		assertEquals(0, message.getParentMessageId());
+		assertEquals(1, message.getRoomId());
+		assertEquals("Sandbox", message.getRoomName());
+		assertEquals(0, message.getStars());
+		assertEquals(timestamp(1417041470), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User", message.getUsername());
+
+		message = it.next();
+		assertEquals("three", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(0, message.getMentionedUserId());
+		assertEquals(20157247, message.getMessageId());
+		assertEquals(0, message.getParentMessageId());
+		assertEquals(1, message.getRoomId());
+		assertEquals("Sandbox", message.getRoomName());
+		assertEquals(0, message.getStars());
+		assertEquals(timestamp(1417041480), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User", message.getUsername());
+
+		assertFalse(it.hasNext());
 
 		verifyHttpClient(httpClient, 3);
 	}
@@ -237,7 +593,7 @@ public class RoomTest {
 		//@formatter:off
 		wsRoom1.send(ResponseSamples.webSocket()
 		.room(1, "Sandbox")
-			.userEntered(1, 1417041460, 50, "User")
+			.userEntered().id(1).timestamp(1417041460).user(50, "User").done()
 		.build());
 		//@formatter:on
 
@@ -276,7 +632,7 @@ public class RoomTest {
 		//@formatter:off
 		wsRoom1.send(ResponseSamples.webSocket()
 		.room(1, "Sandbox")
-			.userLeft(1, 1417041460, 50, "User")
+			.userLeft().id(1).timestamp(1417041460).user(50, "User").done()
 		.build());
 		//@formatter:on
 
@@ -315,9 +671,9 @@ public class RoomTest {
 		//@formatter:off
 		wsRoom1.send(ResponseSamples.webSocket()
 		.room(1, "Sandbox")
-			.newMessage(1, 1417041460, "one", 50, "User", 20157245)
+			.newMessage().id(1).timestamp(1417041460).content("one").user(50, "User").messageId(20157245).done()
 		.room(139, "Jaba")
-			.newMessage(2, 1417041460, "two", 50, "User", 20157245)
+			.newMessage().id(2).timestamp(1417041460).content("two").user(50, "User").messageId(20157245).done()
 		.build());
 		//@formatter:on
 
@@ -363,13 +719,13 @@ public class RoomTest {
 		//@formatter:off
 		wsRoom1.send(ResponseSamples.webSocket()
 		.room(1, "Sandbox")
-			.userEntered(1, 1417041460, 50, "User")
-			.newMessage(2, 1417041470, "<i>meow</i>", 50, "User", 20157245)
+			.userEntered().id(1).timestamp(1417041460).user(50, "User").done()
+			.newMessage().id(2).timestamp(1417041470).content("<i>meow</i>").user(50, "User").messageId(20157245).done()
 		.build());
 		
 		wsRoom1.send(ResponseSamples.webSocket()
 		.room(1, "Sandbox")
-			.userLeft(3, 1417041480, 50, "User")
+			.userLeft().id(3).timestamp(1417041480).user(50, "User").done()
 		.build());
 		//@formatter:on
 
@@ -418,12 +774,83 @@ public class RoomTest {
 	}
 
 	@Test
+	public void getMessages() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("POST", "https://chat.stackoverflow.com/chats/1/events",
+				"mode", "messages",
+				"msgCount", "3",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, ResponseSamples.events()
+				.event(1417041460, "one", 50, "User", 1, 20157245)
+				.event(1417041470, "two", 50, "User", 1, 20157246)
+				.event(1417041480, "three", 50, "User", 1, 20157247)
+			.build()
+			)
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+		List<ChatMessage> messages = room.getMessages(3);
+
+		Iterator<ChatMessage> it = messages.iterator();
+
+		ChatMessage message = it.next();
+		assertEquals("one", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(0, message.getMentionedUserId());
+		assertEquals(20157245, message.getMessageId());
+		assertEquals(0, message.getParentMessageId());
+		assertEquals(1, message.getRoomId());
+		assertNull(message.getRoomName());
+		assertEquals(0, message.getStars());
+		assertEquals(timestamp(1417041460), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User", message.getUsername());
+
+		message = it.next();
+		assertEquals("two", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(0, message.getMentionedUserId());
+		assertEquals(20157246, message.getMessageId());
+		assertEquals(0, message.getParentMessageId());
+		assertEquals(1, message.getRoomId());
+		assertNull(message.getRoomName());
+		assertEquals(0, message.getStars());
+		assertEquals(timestamp(1417041470), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User", message.getUsername());
+
+		message = it.next();
+		assertEquals("three", message.getContent());
+		assertEquals(0, message.getEdits());
+		assertEquals(0, message.getMentionedUserId());
+		assertEquals(20157247, message.getMessageId());
+		assertEquals(0, message.getParentMessageId());
+		assertEquals(1, message.getRoomId());
+		assertNull(message.getRoomName());
+		assertEquals(0, message.getStars());
+		assertEquals(timestamp(1417041480), message.getTimestamp());
+		assertEquals(50, message.getUserId());
+		assertEquals("User", message.getUsername());
+
+		assertFalse(it.hasNext());
+
+		verifyHttpClient(httpClient, 4);
+	}
+
+	@Test
 	public void sendMessage() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
-			
-			//====send message
+
 			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
 				"text", "one",
 				"fkey", "0123456789abcdef0123456789abcdef"
@@ -446,8 +873,6 @@ public class RoomTest {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
-			
-			//====send message
 			
 			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
 				"text", "Java is an island of Indonesia. With a population of over 141 million (the island itself) or 145 million (the administrative region), Java is home to 56.7 percent of the Indonesian population and is the most populous island on Earth. The Indonesian capital city, Jakarta, is located on western Java. Much of Indonesian history took place on Java. It was the center of powerful Hindu-Buddhist empires, the Islamic sultanates, and the core of the colonial Dutch East Indies. Java was also the ...",
@@ -479,8 +904,6 @@ public class RoomTest {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
-			
-			//====send message
 			
 			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
 				"text", "one",
@@ -515,10 +938,8 @@ public class RoomTest {
 	public void sendMessage_cannot_post() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
-			//====join room
-				
 			.request("GET", "https://chat.stackoverflow.com/rooms/1")
-			.response(200, ResponseSamples.protectedChatRoom("0123456789abcdef0123456789abcdef"))
+			.response(200, ResponseSamples.protectedChatRoom("0123456789abcdef0123456789abcdef")) //room is protected
 			
 			.request("POST", "https://chat.stackoverflow.com/ws-auth",
 				"roomid", "1",
@@ -551,6 +972,159 @@ public class RoomTest {
 		}
 
 		verifyHttpClient(httpClient, 3);
+	}
+
+	@Test
+	public void editMessage() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247",
+				"text", "edited",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "\"ok\"")
+			
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247",
+				"text", "edited",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(302, "")
+			
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247",
+				"text", "edited",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "\"This message has already been deleted and cannot be edited\"")
+				
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247",
+				"text", "edited",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "\"It is too late to edit this message.\"")
+					
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247",
+				"text", "edited",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "\"You can only edit your own messages\"")
+			
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247",
+				"text", "edited",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "unexpected response")
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		room.editMessage(20157247, "edited");
+
+		try {
+			room.editMessage(20157247, "edited");
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+		try {
+			room.editMessage(20157247, "edited");
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+		try {
+			room.editMessage(20157247, "edited");
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+		try {
+			room.editMessage(20157247, "edited");
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		room.editMessage(20157247, "edited");
+
+		verifyHttpClient(httpClient, 9);
+	}
+
+	@Test
+	public void deleteMessage() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247/delete",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "\"ok\"")
+			
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247/delete",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(302, "")
+			
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247/delete",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "\"This message has already been deleted.\"")
+				
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247/delete",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "\"It is too late to delete this message\"")
+					
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247/delete",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "\"You can only delete your own messages\"")
+			
+			.request("POST", "https://chat.stackoverflow.com/messages/20157247/delete",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "unexpected response")
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		room.deleteMessage(20157247);
+
+		try {
+			room.deleteMessage(20157247);
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		room.deleteMessage(20157247);
+
+		try {
+			room.deleteMessage(20157247);
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+		try {
+			room.deleteMessage(20157247);
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		room.deleteMessage(20157247);
+
+		verifyHttpClient(httpClient, 9);
 	}
 
 	/**
