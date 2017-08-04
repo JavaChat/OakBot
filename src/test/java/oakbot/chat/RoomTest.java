@@ -74,7 +74,14 @@ public class RoomTest {
 		ChatClient chatClient = new ChatClient(httpClient, container);
 		chatClient.joinRoom(1);
 
-		wsRoom1.send("garbage data");
+		wsRoom1.send("not JSON");
+		wsRoom1.send("{\"r20\": {} }");
+		wsRoom1.send("{\"r1\": {} }");
+		wsRoom1.send("{\"r1\": { \"e\": {} } }");
+		wsRoom1.send("{\"r1\": { \"e\": [] } }");
+		wsRoom1.send("{\"r1\": { \"e\": [ {} ] } }");
+		wsRoom1.send("{\"r1\": { \"e\": [ {\"event_type\": \"invalid\"} ] } }");
+		wsRoom1.send("{\"r1\": { \"e\": [ {\"event_type\": 9001} ] } }");
 
 		verifyHttpClient(httpClient, 3);
 	}
@@ -869,6 +876,34 @@ public class RoomTest {
 	}
 
 	@Test
+	public void sendMessage_404() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
+				"text", "one",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(404, "The room does not exist, or you do not have permission")
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+		try {
+			room.sendMessage("one");
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		verifyHttpClient(httpClient, 4);
+	}
+
+	@Test
 	public void sendMessage_split_strategy() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
@@ -885,6 +920,12 @@ public class RoomTest {
 				"fkey", "0123456789abcdef0123456789abcdef"
 			)
 			.response(200, ResponseSamples.newMessage(2))
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
+				"text", "Java is an island of Indonesia. With a population of over 141 million (the island itself) or 145 million (the administrative region), Java is home to 56.7 percent of the Indonesian population and is the most populous island on Earth.\nThe Indonesian capital city, Jakarta, is located on western Java. Much of Indonesian history took place on Java. It was the center of powerful Hindu-Buddhist empires, the Islamic sultanates, and the core of the colonial Dutch East Indies. Java was also the center of the Indonesian struggle for independence during the 1930s and 1940s. Java dominates Indonesia politically, economically and culturally.",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, ResponseSamples.newMessage(3))
 		.build();
 		//@formatter:on
 
@@ -894,9 +935,14 @@ public class RoomTest {
 
 		ChatClient chatClient = new ChatClient(httpClient, ws);
 		Room room = chatClient.joinRoom(1);
+
+		//split up into 2 posts
 		assertEquals(Arrays.asList(1L, 2L), room.sendMessage("Java is an island of Indonesia. With a population of over 141 million (the island itself) or 145 million (the administrative region), Java is home to 56.7 percent of the Indonesian population and is the most populous island on Earth. The Indonesian capital city, Jakarta, is located on western Java. Much of Indonesian history took place on Java. It was the center of powerful Hindu-Buddhist empires, the Islamic sultanates, and the core of the colonial Dutch East Indies. Java was also the center of the Indonesian struggle for independence during the 1930s and 1940s. Java dominates Indonesia politically, economically and culturally.", SplitStrategy.WORD));
 
-		verifyHttpClient(httpClient, 5);
+		//do not split because it has a newline
+		assertEquals(Arrays.asList(3L), room.sendMessage("Java is an island of Indonesia. With a population of over 141 million (the island itself) or 145 million (the administrative region), Java is home to 56.7 percent of the Indonesian population and is the most populous island on Earth.\nThe Indonesian capital city, Jakarta, is located on western Java. Much of Indonesian history took place on Java. It was the center of powerful Hindu-Buddhist empires, the Islamic sultanates, and the core of the colonial Dutch East Indies. Java was also the center of the Indonesian struggle for independence during the 1930s and 1940s. Java dominates Indonesia politically, economically and culturally.", SplitStrategy.WORD));
+
+		verifyHttpClient(httpClient, 6);
 	}
 
 	@Test
@@ -1125,6 +1171,128 @@ public class RoomTest {
 		room.deleteMessage(20157247);
 
 		verifyHttpClient(httpClient, 9);
+	}
+
+	@Test
+	public void getPingableUsers() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("GET", "https://chat.stackoverflow.com/rooms/pingable/1"	)
+			.response(200, ResponseSamples.pingableUsers()
+				.user(13379, "Michael", 1501806926, 1501769526)
+				.user(4258326, "OakBot", 1501806934, 1501802068)
+			.build())
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		List<PingableUser> users = room.getPingableUsers();
+
+		Iterator<PingableUser> it = users.iterator();
+
+		PingableUser user = it.next();
+		assertEquals(timestamp(1501769526), user.getLastPost());
+		assertEquals(1, user.getRoomId());
+		assertEquals(13379, user.getUserId());
+		assertEquals("Michael", user.getUsername());
+
+		user = it.next();
+		assertEquals(timestamp(1501802068), user.getLastPost());
+		assertEquals(1, user.getRoomId());
+		assertEquals(4258326, user.getUserId());
+		assertEquals("OakBot", user.getUsername());
+
+		assertFalse(it.hasNext());
+
+		verifyHttpClient(httpClient, 4);
+	}
+
+	@Test
+	public void getUserInfo() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("POST", "https://chat.stackoverflow.com/user/info",
+				"ids", "13379,4258326",
+				"roomId", "1"
+			)
+			.response(200, ResponseSamples.userInfo()
+				.user(13379, "Michael", "!https://i.stack.imgur.com/awces.jpg?s=128\\u0026g=1", 23145, false, true, 1501724997, 1501770855)
+				.user(4258326, "OakBot", "f5166c4602a6deaf2accdc98c89e9b82", 408, false, false, 1501769545, 1501771253)
+			.build())
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		List<UserInfo> users = room.getUserInfo(Arrays.asList(13379, 4258326));
+
+		Iterator<UserInfo> it = users.iterator();
+
+		UserInfo user = it.next();
+		assertEquals(13379, user.getUserId());
+		assertEquals("Michael", user.getUsername());
+		assertEquals("https://i.stack.imgur.com/awces.jpg?s=128&g=1", user.getProfilePicture());
+		assertEquals(23145, user.getReputation());
+		assertFalse(user.isModerator());
+		assertTrue(user.isOwner());
+		assertEquals(timestamp(1501724997), user.getLastPost());
+		assertEquals(timestamp(1501770855), user.getLastSeen());
+
+		user = it.next();
+		assertEquals(4258326, user.getUserId());
+		assertEquals("OakBot", user.getUsername());
+		assertEquals("https://www.gravatar.com/avatar/f5166c4602a6deaf2accdc98c89e9b82?d=identicon&s=128", user.getProfilePicture());
+		assertEquals(408, user.getReputation());
+		assertFalse(user.isModerator());
+		assertFalse(user.isOwner());
+		assertEquals(timestamp(1501769545), user.getLastPost());
+		assertEquals(timestamp(1501771253), user.getLastSeen());
+
+		assertFalse(it.hasNext());
+
+		verifyHttpClient(httpClient, 4);
+	}
+
+	@Test
+	public void getRoomInfo() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1"	)
+			.response(200, ResponseSamples.roomInfo(
+				1,
+				"Sandbox",
+				"Where you can play with regular chat features (except flagging) without upsetting anyone",
+				true,
+				Arrays.asList("one", "two")
+			))
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		RoomInfo info = room.getRoomInfo();
+		assertEquals("Where you can play with regular chat features (except flagging) without upsetting anyone", info.getDescription());
+		assertEquals(1, info.getId());
+		assertEquals("Sandbox", info.getName());
+		assertEquals(Arrays.asList("one", "two"), info.getTags());
+
+		verifyHttpClient(httpClient, 4);
 	}
 
 	/**

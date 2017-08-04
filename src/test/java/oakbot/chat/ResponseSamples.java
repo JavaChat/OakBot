@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -135,6 +136,131 @@ public final class ResponseSamples {
 		public String build() {
 			return sb.toString() + "]}";
 		}
+	}
+
+	/**
+	 * Generates the response for requesting the users that will receive
+	 * notifications if they are mentioned.
+	 * @return a builder object for building the response
+	 */
+	public static PingableUsersBuilder pingableUsers() {
+		return new PingableUsersBuilder();
+	}
+
+	public static class PingableUsersBuilder {
+		private final StringBuilder sb = new StringBuilder();
+		private boolean first = true;
+
+		public PingableUsersBuilder() {
+			sb.append("[");
+		}
+
+		/**
+		 * Adds a user to the response.
+		 * @param userId the ID of the user
+		 * @param username the name of the user
+		 * @param unknown unknown
+		 * @param lastMessage the last time they posted a message
+		 * @return this
+		 */
+		public PingableUsersBuilder user(int userId, String username, long unknown, long lastMessage) {
+			if (!first) {
+				sb.append(',');
+			}
+			first = false;
+
+			sb.append("[" + userId + ",\"" + username + "\"," + unknown + "," + lastMessage + "]");
+
+			return this;
+		}
+
+		/**
+		 * Generates the final response string.
+		 * @return the JSON response
+		 */
+		public String build() {
+			return sb.toString() + "]";
+		}
+	}
+
+	/**
+	 * Generates the response for requesting user info.
+	 * @return a builder object for building the response
+	 */
+	public static UserInfoBuilder userInfo() {
+		return new UserInfoBuilder();
+	}
+
+	public static class UserInfoBuilder {
+		private final StringBuilder sb = new StringBuilder();
+		private boolean first = true;
+
+		public UserInfoBuilder() {
+			sb.append("{\"users\":[");
+		}
+
+		public UserInfoBuilder user(int userId, String username, String emailHash, int reputation, boolean moderator, boolean owner, long lastPost, long lastSeen) {
+			if (!first) {
+				sb.append(',');
+			}
+			first = false;
+
+			//@formatter:off
+			sb.append("{" +
+				"\"id\": " + userId + "," +
+				"\"name\": \"" + username + "\"," +
+				"\"email_hash\": \"" + emailHash + "\"," +
+				"\"reputation\": " + reputation + "," +
+				"\"is_moderator\": " + moderator + "," +
+				"\"is_owner\": " + (owner ? "true" : "null") + "," +
+				"\"last_post\": " + lastPost + "," +
+				"\"last_seen\": " + lastSeen +
+			"}");
+			//@formatter:on
+
+			return this;
+		}
+
+		/**
+		 * Generates the final response string.
+		 * @return the JSON response
+		 */
+		public String build() {
+			return sb.toString() + "]}";
+		}
+	}
+
+	/**
+	 * Generates the response for getting room info.
+	 * @param id the ID of the room
+	 * @param name the name of the room
+	 * @param description the room description
+	 * @param favorite whether the user has marked the room as a favorite
+	 * @param tags the room's tags
+	 * @return the JSON response
+	 */
+	public static String roomInfo(int id, String name, String description, boolean favorite, List<String> tags) {
+		StringBuilder tagsStr = new StringBuilder();
+		boolean first = true;
+		for (String tag : tags) {
+			if (!first) {
+				tagsStr.append(" ");
+			}
+			first = false;
+
+			tagsStr.append("\\u003ca rel=\\\"noopener noreferrer\\\" class=\\\"tag\\\" href=\\\"http://stackoverflow.com/tags/" + tag + "/info\\\"\\u003e" + tag + "\\u003c/a\\u003e");
+		}
+
+		//@formatter:off
+		return "{" +
+			"\"id\": " + id + "," +
+			"\"name\": \"" + name + "\"," +
+			"\"description\": \"" + description + "\"," +
+			"\"isFavorite\": " + favorite + "," +
+			"\"usage\": null," +
+			"\"tags\": \"" + tagsStr + "\"" +
+		"}";
+		//@formatter:on
 	}
 
 	/**
