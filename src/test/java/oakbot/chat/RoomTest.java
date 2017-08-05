@@ -795,8 +795,7 @@ public class RoomTest {
 				.event(1417041460, "one", 50, "User", 1, 20157245)
 				.event(1417041470, "two", 50, "User", 1, 20157246)
 				.event(1417041480, "three", 50, "User", 1, 20157247)
-			.build()
-			)
+			.build())
 		.build();
 		//@formatter:on
 
@@ -853,6 +852,75 @@ public class RoomTest {
 	}
 
 	@Test
+	public void getMessages_bad_responses() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("POST", "https://chat.stackoverflow.com/chats/1/events",
+				"mode", "messages",
+				"msgCount", "3",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(404, "")
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/1/events",
+				"mode", "messages",
+				"msgCount", "3",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "not JSON")
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/1/events",
+				"mode", "messages",
+				"msgCount", "3",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "{}")
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/1/events",
+				"mode", "messages",
+				"msgCount", "3",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "{\"events\":{}}")
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/1/events",
+				"mode", "messages",
+				"msgCount", "3",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "{\"events\":[]}")
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		try {
+			room.getMessages(3);
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		try {
+			room.getMessages(3);
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		assertEquals(Arrays.asList(), room.getMessages(3));
+		assertEquals(Arrays.asList(), room.getMessages(3));
+		assertEquals(Arrays.asList(), room.getMessages(3));
+
+		verifyHttpClient(httpClient, 8);
+	}
+
+	@Test
 	public void sendMessage() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
@@ -871,34 +939,6 @@ public class RoomTest {
 		ChatClient chatClient = new ChatClient(httpClient, ws);
 		Room room = chatClient.joinRoom(1);
 		assertEquals(1, room.sendMessage("one"));
-
-		verifyHttpClient(httpClient, 4);
-	}
-
-	@Test
-	public void sendMessage_404() throws Exception {
-		//@formatter:off
-		CloseableHttpClient httpClient = new MockHttpClientBuilder()
-			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
-
-			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
-				"text", "one",
-				"fkey", "0123456789abcdef0123456789abcdef"
-			)
-			.response(404, "The room does not exist, or you do not have permission")
-		.build();
-		//@formatter:on
-
-		WebSocketContainer ws = mock(WebSocketContainer.class);
-
-		ChatClient chatClient = new ChatClient(httpClient, ws);
-		Room room = chatClient.joinRoom(1);
-		try {
-			room.sendMessage("one");
-			fail();
-		} catch (IOException e) {
-			//expected
-		}
 
 		verifyHttpClient(httpClient, 4);
 	}
@@ -981,7 +1021,7 @@ public class RoomTest {
 	}
 
 	@Test
-	public void sendMessage_cannot_post() throws Exception {
+	public void sendMessage_permission_problem() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
 			.request("GET", "https://chat.stackoverflow.com/rooms/1")
@@ -1018,6 +1058,63 @@ public class RoomTest {
 		}
 
 		verifyHttpClient(httpClient, 3);
+	}
+
+	@Test
+	public void sendMessage_bad_responses() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
+				"text", "one",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(404, "The room does not exist, or you do not have permission")
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
+				"text", "one",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "not JSON")
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
+				"text", "one",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "{}")
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
+				"text", "one",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "{\"id\": \"value\"}")
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		try {
+			room.sendMessage("one");
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		try {
+			room.sendMessage("one");
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		assertEquals(0, room.sendMessage("one"));
+		assertEquals(0, room.sendMessage("one"));
+
+		verifyHttpClient(httpClient, 7);
 	}
 
 	@Test
@@ -1214,6 +1311,55 @@ public class RoomTest {
 	}
 
 	@Test
+	public void getPingableUsers_bad_responses() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+			
+			.request("GET", "https://chat.stackoverflow.com/rooms/pingable/1"	)
+			.response(404, "")
+
+			.request("GET", "https://chat.stackoverflow.com/rooms/pingable/1"	)
+			.response(200, "not JSON")
+			
+			.request("GET", "https://chat.stackoverflow.com/rooms/pingable/1"	)
+			.response(200, "{}")
+			
+			.request("GET", "https://chat.stackoverflow.com/rooms/pingable/1"	)
+			.response(200, "[]")
+			
+			.request("GET", "https://chat.stackoverflow.com/rooms/pingable/1"	)
+			.response(200, "[ {}, [1, \"User\"], [13379, \"Michael\", 1501806926, 1501769526] ]")
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		try {
+			room.getPingableUsers();
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		try {
+			room.getPingableUsers();
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		assertEquals(0, room.getPingableUsers().size());
+		assertEquals(0, room.getPingableUsers().size());
+		assertEquals(1, room.getPingableUsers().size());
+
+		verifyHttpClient(httpClient, 8);
+	}
+
+	@Test
 	public void getUserInfo() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
@@ -1265,12 +1411,74 @@ public class RoomTest {
 	}
 
 	@Test
+	public void getUserInfo_bad_responses() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+
+			.request("POST", "https://chat.stackoverflow.com/user/info",
+				"ids", "13379",
+				"roomId", "1"
+			)
+			.response(200, "not JSON")
+			
+			.request("POST", "https://chat.stackoverflow.com/user/info",
+				"ids", "13379",
+				"roomId", "1"
+			)
+			.response(200, "{}")
+			
+			.request("POST", "https://chat.stackoverflow.com/user/info",
+				"ids", "13379",
+				"roomId", "1"
+			)
+			.response(200, "{ \"users\":{} }")
+			
+			.request("POST", "https://chat.stackoverflow.com/user/info",
+				"ids", "13379",
+				"roomId", "1"
+			)
+			.response(200, "{ \"users\":[ {} ] }")
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		try {
+			room.getUserInfo(Arrays.asList(13379));
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		assertEquals(0, room.getUserInfo(Arrays.asList(13379)).size());
+		assertEquals(0, room.getUserInfo(Arrays.asList(13379)).size());
+
+		List<UserInfo> users = room.getUserInfo(Arrays.asList(13379));
+		assertEquals(1, users.size());
+		UserInfo user = users.get(0);
+		assertEquals(0, user.getUserId());
+		assertNull(user.getUsername());
+		assertNull(user.getProfilePicture());
+		assertEquals(0, user.getReputation());
+		assertFalse(user.isModerator());
+		assertFalse(user.isOwner());
+		assertNull(user.getLastPost());
+		assertNull(user.getLastSeen());
+
+		verifyHttpClient(httpClient, 7);
+	}
+
+	@Test
 	public void getRoomInfo() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
-			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1"	)
+			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1")
 			.response(200, ResponseSamples.roomInfo(
 				1,
 				"Sandbox",
@@ -1293,6 +1501,69 @@ public class RoomTest {
 		assertEquals(Arrays.asList("one", "two"), info.getTags());
 
 		verifyHttpClient(httpClient, 4);
+	}
+
+	@Test
+	public void getRoomInfo_bad_responses() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
+			
+			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1")
+			.response(404, "")
+
+			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1")
+			.response(200, "not JSON")
+			
+			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1")
+			.response(200, "[]")
+			
+			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1")
+			.response(200, "{}")
+			
+			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1")
+			.response(200, "{\"tags\":\"garbage\"}")
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		ChatClient chatClient = new ChatClient(httpClient, ws);
+		Room room = chatClient.joinRoom(1);
+
+		try {
+			room.getRoomInfo();
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		try {
+			room.getRoomInfo();
+			fail();
+		} catch (IOException e) {
+			//expected
+		}
+
+		RoomInfo info = room.getRoomInfo();
+		assertNull(info.getDescription());
+		assertEquals(0, info.getId());
+		assertNull(info.getName());
+		assertEquals(Arrays.asList(), info.getTags());
+
+		info = room.getRoomInfo();
+		assertNull(info.getDescription());
+		assertEquals(0, info.getId());
+		assertNull(info.getName());
+		assertEquals(Arrays.asList(), info.getTags());
+
+		info = room.getRoomInfo();
+		assertNull(info.getDescription());
+		assertEquals(0, info.getId());
+		assertNull(info.getName());
+		assertEquals(Arrays.asList(), info.getTags());
+
+		verifyHttpClient(httpClient, 8);
 	}
 
 	/**

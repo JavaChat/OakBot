@@ -291,32 +291,27 @@ public class Room implements Closeable {
 			EventType eventType = EventType.get(eventNode.get("event_type").asInt());
 
 			Event event;
-			try {
-				switch (eventType) {
-				case MESSAGE_POSTED:
-					event = EventParsers.messagePosted(eventNode);
-					break;
-				case MESSAGE_EDITED:
-					event = EventParsers.messageEdited(eventNode);
-					break;
-				case USER_ENTERED:
-					event = EventParsers.userEntered(eventNode);
-					break;
-				case USER_LEFT:
-					event = EventParsers.userLeft(eventNode);
-					break;
-				case MESSAGE_STARRED:
-					event = EventParsers.messageStarred(eventNode);
-					break;
-				case MESSAGE_DELETED:
-					event = EventParsers.messageDeleted(eventNode);
-					break;
-				default:
-					logger.warning("[room " + roomId + "]: Ignoring event with unknown \"event_type\":\n" + JsonUtils.prettyPrint(eventNode) + "\n");
-					continue;
-				}
-			} catch (Exception e) {
-				logger.log(Level.SEVERE, "[room " + roomId + "]: Ignoring event that could not be parsed:\n" + JsonUtils.prettyPrint(eventNode), e);
+			switch (eventType) {
+			case MESSAGE_POSTED:
+				event = EventParsers.messagePosted(eventNode);
+				break;
+			case MESSAGE_EDITED:
+				event = EventParsers.messageEdited(eventNode);
+				break;
+			case USER_ENTERED:
+				event = EventParsers.userEntered(eventNode);
+				break;
+			case USER_LEFT:
+				event = EventParsers.userLeft(eventNode);
+				break;
+			case MESSAGE_STARRED:
+				event = EventParsers.messageStarred(eventNode);
+				break;
+			case MESSAGE_DELETED:
+				event = EventParsers.messageDeleted(eventNode);
+				break;
+			default:
+				logger.warning("[room " + roomId + "]: Ignoring event with unknown \"event_type\":\n" + JsonUtils.prettyPrint(eventNode) + "\n");
 				continue;
 			}
 
@@ -424,7 +419,8 @@ public class Room implements Closeable {
 			}
 
 			JsonNode body = response.getBodyAsJson();
-			long id = body.get("id").asLong();
+			JsonNode idNode = body.get("id");
+			long id = (idNode == null) ? 0 : idNode.asLong();
 			messageIds.add(id);
 		}
 
@@ -458,7 +454,7 @@ public class Room implements Closeable {
 		JsonNode events = body.get("events");
 
 		List<ChatMessage> messages;
-		if (events == null) {
+		if (events == null || !events.isArray()) {
 			messages = new ArrayList<>(0);
 		} else {
 			messages = new ArrayList<>();
@@ -558,39 +554,67 @@ public class Room implements Closeable {
 		);
 		//@formatter:on
 
-		if (response.getStatusCode() == 404) {
-			throw notFound(response, "getting user info");
-		}
-
+		List<UserInfo> users = new ArrayList<>();
 		JsonNode usersNode = response.getBodyAsJson().get("users");
-		if (usersNode == null) {
-			return null;
+		if (usersNode == null || !usersNode.isArray()) {
+			return users;
 		}
 
-		List<UserInfo> users = new ArrayList<>(usersNode.size());
 		for (JsonNode userNode : usersNode) {
 			UserInfo.Builder builder = new UserInfo.Builder();
-			builder.userId(userNode.get("id").asInt());
+
 			builder.roomId(roomId);
-			builder.username(userNode.get("name").asText());
 
-			String profilePicture;
-			String emailHash = userNode.get("email_hash").asText();
-			if (emailHash.startsWith("!")) {
-				profilePicture = emailHash.substring(1);
-			} else {
-				profilePicture = "https://www.gravatar.com/avatar/" + emailHash + "?d=identicon&s=128";
+			JsonNode node = userNode.get("id");
+			if (node != null) {
+				builder.userId(node.asInt());
 			}
-			builder.profilePicture(profilePicture);
 
-			builder.reputation(userNode.get("reputation").asInt());
-			builder.moderator(userNode.get("is_moderator").asBoolean());
-			builder.owner(userNode.get("is_owner").asBoolean());
-			builder.lastPost(timestamp(userNode.get("last_post").asLong()));
-			builder.lastSeen(timestamp(userNode.get("last_seen").asLong()));
+			node = userNode.get("name");
+			if (node != null) {
+				builder.username(node.asText());
+			}
+
+			node = userNode.get("email_hash");
+			if (node != null) {
+				String profilePicture;
+				String emailHash = node.asText();
+				if (emailHash.startsWith("!")) {
+					profilePicture = emailHash.substring(1);
+				} else {
+					profilePicture = "https://www.gravatar.com/avatar/" + emailHash + "?d=identicon&s=128";
+				}
+				builder.profilePicture(profilePicture);
+			}
+
+			node = userNode.get("reputation");
+			if (node != null) {
+				builder.reputation(node.asInt());
+			}
+
+			node = userNode.get("is_moderator");
+			if (node != null) {
+				builder.moderator(node.asBoolean());
+			}
+
+			node = userNode.get("is_owner");
+			if (node != null) {
+				builder.owner(node.asBoolean());
+			}
+
+			node = userNode.get("last_post");
+			if (node != null) {
+				builder.lastPost(timestamp(node.asLong()));
+			}
+
+			node = userNode.get("last_seen");
+			if (node != null) {
+				builder.lastSeen(timestamp(node.asLong()));
+			}
 
 			users.add(builder.build());
 		}
+
 		return users;
 	}
 
@@ -638,10 +662,17 @@ public class Room implements Closeable {
 
 		JsonNode root = response.getBodyAsJson();
 
-		int id = root.get("id").asInt();
-		String name = root.get("name").asText();
-		String description = root.get("description").asText();
-		List<String> tags = Jsoup.parse(root.get("tags").asText()).getElementsByTag("a").stream().map(Element::html).collect(Collectors.toList());
+		JsonNode node = root.get("id");
+		int id = (node == null) ? 0 : node.asInt();
+
+		node = root.get("name");
+		String name = (node == null) ? null : node.asText();
+
+		node = root.get("description");
+		String description = (node == null) ? null : node.asText();
+
+		node = root.get("tags");
+		List<String> tags = (node == null) ? new ArrayList<>(0) : Jsoup.parse(node.asText()).getElementsByTag("a").stream().map(Element::html).collect(Collectors.toList());
 
 		return new RoomInfo(id, name, description, tags);
 	}

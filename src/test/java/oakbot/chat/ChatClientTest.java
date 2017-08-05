@@ -225,6 +225,48 @@ public class ChatClientTest {
 	}
 
 	@Test
+	public void joinRoom_that_has_no_messages() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.request("GET", "https://chat.stackoverflow.com/rooms/1")
+			.response(200, ResponseSamples.chatRoom("0123456789abcdef0123456789abcdef"))
+			
+			.request("POST", "https://chat.stackoverflow.com/ws-auth",
+				"roomid", "1",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, ResponseSamples.wsAuth("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247"))
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/1/events",
+				"mode", "messages",
+				"msgCount", "1",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, ResponseSamples.events()
+				//empty
+			.build())
+			
+			.request("POST", "https://chat.stackoverflow.com/chats/leave/all",
+				"quiet", "true",
+				"fkey", "0123456789abcdef0123456789abcdef"
+			)
+			.response(200, "")
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+		Session session = mock(Session.class);
+		doReturn(session).when(ws).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=0")));
+
+		try (ChatClient client = new ChatClient(httpClient, ws)) {
+			client.joinRoom(1);
+		}
+
+		verify(session).close();
+		verifyHttpClient(httpClient, 4);
+	}
+
+	@Test
 	public void leave_room() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
