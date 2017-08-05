@@ -1,6 +1,5 @@
 package oakbot.chat;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -60,7 +59,7 @@ import oakbot.util.JsonUtils;
  * class.
  * @author Michael Angstadt
  */
-public class Room implements Closeable {
+public class Room implements IRoom {
 	private static final Logger logger = Logger.getLogger(Room.class.getName());
 	private static final int MAX_MESSAGE_LENGTH = 500;
 
@@ -172,20 +171,12 @@ public class Room implements Closeable {
 		}
 	}
 
-	/**
-	 * Gets the ID of this room.
-	 * @return the room ID
-	 */
+	@Override
 	public int getRoomId() {
 		return roomId;
 	}
 
-	/**
-	 * Gets this room's fkey. The fkey is a 32 character, hexadecimal sequence
-	 * that is required to interact with a chat room in any way. It changes at
-	 * every login.
-	 * @return the fkey
-	 */
+	@Override
 	public String getFkey() {
 		return fkey;
 	}
@@ -337,11 +328,7 @@ public class Room implements Closeable {
 		}
 	}
 
-	/**
-	 * Adds a listener for a specific type of event.
-	 * @param clazz the event class
-	 * @param listener the listener
-	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends Event> void addEventListener(Class<T> clazz, Consumer<T> listener) {
 		List<Consumer<Event>> eventListeners = listeners.get(clazz);
@@ -350,38 +337,17 @@ public class Room implements Closeable {
 		}
 	}
 
-	/**
-	 * Adds a listener which receives all events.
-	 * @param listener the listener
-	 */
+	@Override
 	public void addEventListener(Consumer<Event> listener) {
 		addEventListener(Event.class, listener);
 	}
 
-	/**
-	 * Posts a message. If the message exceeds the max message size, it will be
-	 * truncated.
-	 * @param message the message to post
-	 * @return the ID of the new message
-	 * @throws RoomPermissionException if the user doesn't have permission to
-	 * post messages to the room
-	 * @throws IOException if there's a network problem
-	 */
+	@Override
 	public long sendMessage(String message) throws IOException {
 		return sendMessage(message, SplitStrategy.NONE).get(0);
 	}
 
-	/**
-	 * Posts a message.
-	 * @param message the message to post
-	 * @param splitStrategy defines how the message should be split up if the
-	 * message exceeds the chat connection's max message size
-	 * @return the ID(s) of the new message(s). This list will contain multiple
-	 * IDs if the message was split up into multiple messages.
-	 * @throws RoomPermissionException if the user doesn't have permission to
-	 * post messages to the room
-	 * @throws IOException if there's a network problem
-	 */
+	@Override
 	public List<Long> sendMessage(String message, SplitStrategy splitStrategy) throws IOException {
 		if (!canPost) {
 			throw new RoomPermissionException(roomId);
@@ -427,16 +393,7 @@ public class Room implements Closeable {
 		return messageIds;
 	}
 
-	private IOException notFound(Response response, String action) {
-		return new IOException("[roomId=" + roomId + "]: 404 response received when trying to " + action + ": " + response.getBody());
-	}
-
-	/**
-	 * Gets the most recent messages from a room.
-	 * @param count the number of messages to retrieve
-	 * @return the messages
-	 * @throws IOException if there's a network problem
-	 */
+	@Override
 	public List<ChatMessage> getMessages(int count) throws IOException {
 		//@formatter:off
 		Response response = http.post(chatDomain + "/chats/" + roomId + "/events",
@@ -469,12 +426,7 @@ public class Room implements Closeable {
 		return messages;
 	}
 
-	/**
-	 * Deletes a message. You can only delete your own messages. Messages older
-	 * than two minutes cannot be deleted.
-	 * @param messageId the ID of the message to delete
-	 * @throws IOException if there's a problem deleting the message
-	 */
+	@Override
 	public void deleteMessage(long messageId) throws IOException {
 		//@formatter:off
 		Response response = http.post(chatDomain + "/messages/" + messageId + "/delete",
@@ -503,13 +455,7 @@ public class Room implements Closeable {
 		}
 	}
 
-	/**
-	 * Edits an existing message. You can only edit your own messages. Messages
-	 * older than two minutes cannot be edited.
-	 * @param messageId the ID of the message to edit
-	 * @param updatedMessage the updated message
-	 * @throws IOException if there's a problem editing the message
-	 */
+	@Override
 	public void editMessage(long messageId, String updatedMessage) throws IOException {
 		//@formatter:off
 		Response response = http.post(chatDomain + "/messages/" + messageId,
@@ -540,12 +486,7 @@ public class Room implements Closeable {
 		}
 	}
 
-	/**
-	 * Gets information about room users, such as their reputation and username.
-	 * @param userIds the user ID(s)
-	 * @return the user information
-	 * @throws IOException if there's a network problem
-	 */
+	@Override
 	public List<UserInfo> getUserInfo(List<Integer> userIds) throws IOException {
 		//@formatter:off
 		Response response = http.post(chatDomain + "/user/info",
@@ -618,13 +559,7 @@ public class Room implements Closeable {
 		return users;
 	}
 
-	/**
-	 * Gets the users in a room that are "pingable". Pingable users receive
-	 * notifications if they are mentioned. If a user is pingable, it does not
-	 * necessarily mean they are currently in the room, although they could be.
-	 * @return the pingable users
-	 * @throws IOException if there's a network problem
-	 */
+	@Override
 	public List<PingableUser> getPingableUsers() throws IOException {
 		Response response = http.get(chatDomain + "/rooms/pingable/" + roomId);
 
@@ -648,11 +583,7 @@ public class Room implements Closeable {
 		return users;
 	}
 
-	/**
-	 * Gets information about the room, such as its name and description.
-	 * @return the room info
-	 * @throws IOException if there's a network problem
-	 */
+	@Override
 	public RoomInfo getRoomInfo() throws IOException {
 		Response response = http.get(chatDomain + "/rooms/thumbs/" + roomId);
 
@@ -677,9 +608,7 @@ public class Room implements Closeable {
 		return new RoomInfo(id, name, description, tags);
 	}
 
-	/**
-	 * Leaves the room and closes the web socket connection.
-	 */
+	@Override
 	public void leave() {
 		chatClient.removeRoom(this);
 
@@ -701,10 +630,10 @@ public class Room implements Closeable {
 		}
 	}
 
-	/**
-	 * Closes the room's web socket connection. To properly leave a room, call
-	 * the {@link #leave} method instead.
-	 */
+	private IOException notFound(Response response, String action) {
+		return new IOException("[roomId=" + roomId + "]: 404 response received when trying to " + action + ": " + response.getBody());
+	}
+
 	@Override
 	public void close() throws IOException {
 		session.close();

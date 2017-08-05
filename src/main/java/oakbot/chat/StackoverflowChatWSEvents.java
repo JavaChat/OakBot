@@ -22,7 +22,7 @@ import oakbot.chat.event.MessagePostedEvent;
  * explanation of how SO Chat works</a>
  */
 public class StackoverflowChatWSEvents implements ChatConnection {
-	private final ChatClient chatClient;
+	private final IChatClient chatClient;
 	private final BlockingQueue<ChatMessage> newMessages = new LinkedBlockingQueue<>();
 	private final ChatMessage CLOSE_MESSAGE = new ChatMessage.Builder().build();
 
@@ -46,7 +46,7 @@ public class StackoverflowChatWSEvents implements ChatConnection {
 			return;
 		}
 
-		Room room = chatClient.joinRoom(roomId);
+		IRoom room = chatClient.joinRoom(roomId);
 		room.addEventListener(MessagePostedEvent.class, (event) -> {
 			newMessages.add(event.getMessage());
 		});
@@ -57,7 +57,7 @@ public class StackoverflowChatWSEvents implements ChatConnection {
 
 	@Override
 	public void leaveRoom(int roomId) {
-		Room room = chatClient.getRoom(roomId);
+		IRoom room = chatClient.getRoom(roomId);
 		if (room == null) {
 			return;
 		}
@@ -72,7 +72,7 @@ public class StackoverflowChatWSEvents implements ChatConnection {
 
 	@Override
 	public List<Long> sendMessage(int roomId, String message, SplitStrategy splitStrategy) throws IOException {
-		Room room = chatClient.getRoom(roomId);
+		IRoom room = chatClient.getRoom(roomId);
 		if (room == null) {
 			throw new IllegalStateException("Room must be joined first.");
 		}
@@ -82,7 +82,7 @@ public class StackoverflowChatWSEvents implements ChatConnection {
 
 	@Override
 	public List<ChatMessage> getMessages(int roomId, int count) throws IOException {
-		Room room = chatClient.getRoom(roomId);
+		IRoom room = chatClient.getRoom(roomId);
 		if (room == null) {
 			throw new IllegalStateException("Room must be joined first.");
 		}
@@ -92,7 +92,7 @@ public class StackoverflowChatWSEvents implements ChatConnection {
 
 	@Override
 	public boolean deleteMessage(int roomId, long messageId) throws IOException {
-		Room room = chatClient.getRoom(roomId);
+		IRoom room = chatClient.getRoom(roomId);
 		if (room == null) {
 			throw new IllegalStateException("Room must be joined first.");
 		}
@@ -107,7 +107,7 @@ public class StackoverflowChatWSEvents implements ChatConnection {
 
 	@Override
 	public boolean editMessage(int roomId, long messageId, String updatedMessage) throws IOException {
-		Room room = chatClient.getRoom(roomId);
+		IRoom room = chatClient.getRoom(roomId);
 		if (room == null) {
 			throw new IllegalStateException("Room must be joined first.");
 		}
@@ -122,7 +122,7 @@ public class StackoverflowChatWSEvents implements ChatConnection {
 
 	@Override
 	public List<UserInfo> getUserInfo(int roomId, List<Integer> userIds) throws IOException {
-		Room room = chatClient.getRoom(roomId);
+		IRoom room = chatClient.getRoom(roomId);
 		if (room == null) {
 			throw new IllegalStateException("Room must be joined first.");
 		}
@@ -132,7 +132,7 @@ public class StackoverflowChatWSEvents implements ChatConnection {
 
 	@Override
 	public List<PingableUser> getPingableUsers(int roomId) throws IOException {
-		Room room = chatClient.getRoom(roomId);
+		IRoom room = chatClient.getRoom(roomId);
 		if (room == null) {
 			throw new IllegalStateException("Room must be joined first.");
 		}
@@ -142,7 +142,7 @@ public class StackoverflowChatWSEvents implements ChatConnection {
 
 	@Override
 	public RoomInfo getRoomInfo(int roomId) throws IOException {
-		Room room = chatClient.getRoom(roomId);
+		IRoom room = chatClient.getRoom(roomId);
 		if (room == null) {
 			throw new IllegalStateException("Room must be joined first.");
 		}

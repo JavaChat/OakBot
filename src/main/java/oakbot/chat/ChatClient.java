@@ -1,6 +1,5 @@
 package oakbot.chat;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -26,7 +25,7 @@ import oakbot.util.Http.Response;
  * "https://github.com/Zirak/SO-ChatBot/blob/master/source/adapter.js">Good
  * explanation of how SO Chat works</a>
  */
-public class ChatClient implements Closeable {
+public class ChatClient implements IChatClient {
 	private static final Logger logger = Logger.getLogger(ChatClient.class.getName());
 
 	private final Http http;
@@ -59,13 +58,7 @@ public class ChatClient implements Closeable {
 		chatDomain = "https://chat." + domain;
 	}
 
-	/**
-	 * Logs into the chat system. This should be called before any other method.
-	 * @param email the login email
-	 * @param password the login password
-	 * @throws InvalidCredentialsException if the login credentials are bad
-	 * @throws IOException if there's a network problem
-	 */
+	@Override
 	public void login(String email, String password) throws InvalidCredentialsException, IOException {
 		Response response = http.get("https://" + domain + "/users/login");
 		String fkey = ChatUtils.parseFkey(response.getBody());
@@ -92,14 +85,7 @@ public class ChatClient implements Closeable {
 		 */
 	}
 
-	/**
-	 * Joins a chat room.
-	 * @param roomId the room ID
-	 * @return the connection to the chat room
-	 * @throws RoomNotFoundException if the room doesn't exist or the user does
-	 * not have permission to view the room
-	 * @throws IOException if there's a problem connecting to the room
-	 */
+	@Override
 	public Room joinRoom(int roomId) throws RoomNotFoundException, IOException {
 		synchronized (rooms) {
 			Room room = rooms.get(roomId);
@@ -114,34 +100,21 @@ public class ChatClient implements Closeable {
 		}
 	}
 
-	/**
-	 * Gets all of the rooms the chat client is connected to at this moment in
-	 * time. Note that the returned list is a copy and is not backed by
-	 * anything.
-	 * @return the rooms
-	 */
+	@Override
 	public List<Room> getRooms() {
 		synchronized (rooms) {
 			return new ArrayList<Room>(rooms.values());
 		}
 	}
 
-	/**
-	 * Gets a room the chat client is connected to.
-	 * @param roomId the room ID
-	 * @return the room or null if the chat client is not connected to that room
-	 */
+	@Override
 	public Room getRoom(int roomId) {
 		synchronized (rooms) {
 			return rooms.get(roomId);
 		}
 	}
 
-	/**
-	 * Determines if the chat client is connected to a room.
-	 * @param roomId the room ID
-	 * @return true if the chat client is connected to the room, false if not
-	 */
+	@Override
 	public boolean isInRoom(int roomId) {
 		synchronized (rooms) {
 			return rooms.containsKey(roomId);
@@ -159,9 +132,6 @@ public class ChatClient implements Closeable {
 		}
 	}
 
-	/**
-	 * Leaves all chat rooms and closes all network connections.
-	 */
 	@Override
 	public void close() throws IOException {
 		synchronized (rooms) {
