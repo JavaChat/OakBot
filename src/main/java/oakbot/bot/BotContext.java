@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import oakbot.chat.ChatConnection;
+import oakbot.chat.IChatClient;
+import oakbot.chat.IRoom;
 import oakbot.command.Command;
 import oakbot.listener.Listener;
 
@@ -17,7 +18,7 @@ import oakbot.listener.Listener;
 public class BotContext {
 	private final boolean authorAdmin;
 	private final String trigger;
-	private final ChatConnection connection;
+	private final IChatClient connection;
 
 	private boolean shutdown = false, shutdownMessageBroadcast;
 	private String shutdownMessage;
@@ -37,7 +38,7 @@ public class BotContext {
 	 * @param maxRooms the maximum number of rooms the bot can be in at a time
 	 * or null for no limit
 	 */
-	public BotContext(boolean authorAdmin, String trigger, ChatConnection connection, List<Integer> currentRooms, List<Integer> homeRooms, Integer maxRooms) {
+	public BotContext(boolean authorAdmin, String trigger, IChatClient connection, List<Integer> currentRooms, List<Integer> homeRooms, Integer maxRooms) {
 		this.authorAdmin = authorAdmin;
 		this.trigger = trigger;
 		this.connection = connection;
@@ -60,6 +61,16 @@ public class BotContext {
 	 */
 	public boolean isAuthorAdmin() {
 		return authorAdmin;
+	}
+
+	/**
+	 * Gets the connection to a chat room.
+	 * @param roomId the room ID
+	 * @return the connection or null if the chat client is not connected to
+	 * that room
+	 */
+	public IRoom getRoom(int roomId) {
+		return connection.getRoom(roomId);
 	}
 
 	/**
@@ -158,14 +169,6 @@ public class BotContext {
 	 */
 	public boolean isShutdownMessageBroadcast() {
 		return shutdownMessageBroadcast;
-	}
-
-	/**
-	 * Gets the connection to the chat system.
-	 * @return the chat connection
-	 */
-	public ChatConnection getConnection() {
-		return connection;
 	}
 
 	/**

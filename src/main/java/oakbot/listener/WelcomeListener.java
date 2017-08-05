@@ -14,6 +14,7 @@ import oakbot.Database;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
+import oakbot.chat.IRoom;
 import oakbot.chat.SplitStrategy;
 import oakbot.chat.UserInfo;
 import oakbot.util.ChatBuilder;
@@ -74,7 +75,8 @@ public class WelcomeListener implements Listener {
 
 		List<UserInfo> userInfo;
 		try {
-			userInfo = context.getConnection().getUserInfo(roomId, Arrays.asList(userId));
+			IRoom room = context.getRoom(roomId);
+			userInfo = room.getUserInfo(Arrays.asList(userId));
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Could not get user info for user " + userId, e);
 			return null;

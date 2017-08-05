@@ -18,7 +18,7 @@ import oakbot.util.PropertiesWrapper;
 public class BotProperties extends PropertiesWrapper {
 	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers;
-	private final int heartbeat, botUserId;
+	private final int botUserId;
 	private final Integer hideOneboxesAfter;
 	private final Path javadocPath;
 	private final boolean javadocCache;
@@ -39,7 +39,6 @@ public class BotProperties extends PropertiesWrapper {
 		quietRooms = getIntegerList("quietRooms");
 		admins = getIntegerList("admins");
 		bannedUsers = getIntegerList("bannedUsers");
-		heartbeat = getInteger("heartbeat", 3000);
 		javadocPath = getFile("javadoc.folder");
 		javadocCache = getBoolean("javadoc.cache", true);
 		greeting = get("greeting");
@@ -133,15 +132,6 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public List<Integer> getBannedUsers() {
 		return bannedUsers;
-	}
-
-	/**
-	 * Gets how often the bot will poll each chat room looking for new messages
-	 * (defaults to 3 seconds).
-	 * @return the polling interval (in milliseconds)
-	 */
-	public int getHeartbeat() {
-		return heartbeat;
 	}
 
 	/**

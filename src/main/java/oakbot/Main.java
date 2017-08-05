@@ -26,9 +26,8 @@ import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 
 import oakbot.bot.Bot;
-import oakbot.chat.ChatConnection;
-import oakbot.chat.StackoverflowChat;
-import oakbot.chat.StackoverflowChatWSEvents;
+import oakbot.chat.ChatClient;
+import oakbot.chat.IChatClient;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
@@ -200,17 +199,11 @@ public class Main {
 
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 
-		int heartbeat = props.getHeartbeat();
-		ChatConnection connection;
-		boolean polling = (heartbeat >= 0);
-		if (polling) {
-			connection = new StackoverflowChat(httpClient, 5000, heartbeat);
-		} else {
-			ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
-			websocketClient.setDefaultMaxSessionIdleTimeout(0);
-			websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
-			connection = new StackoverflowChatWSEvents(httpClient, websocketClient);
-		}
+		ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
+		websocketClient.setDefaultMaxSessionIdleTimeout(0);
+		websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
+
+		IChatClient connection = new ChatClient(httpClient, websocketClient);
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
@@ -226,7 +219,6 @@ public class Main {
 			.trigger(props.getTrigger())
 			.greeting(props.getGreeting())
 			.rooms(rooms)
-			.maxRooms(polling ? 5 : null)
 			.stats(stats)
 			.database(database)
 			.hideOneboxesAfter(props.getHideOneboxesAfter())

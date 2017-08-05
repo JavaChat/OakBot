@@ -18,7 +18,6 @@ import oakbot.JsonDatabase;
 import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.bot.Bot;
-import oakbot.chat.ChatConnection;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
@@ -83,16 +82,12 @@ import oakbot.listener.WelcomeListener;
  */
 public class Main {
 	private static final Path db = Paths.get("local.db.json");
-	private static final Path input = Paths.get("local.input.txt");
 
 	public static void main(String[] args) throws Exception {
 		LogManager.getLogManager().getLogger("").setLevel(Level.WARNING);
 
 		Path settings = Paths.get((args.length == 0) ? "bot.properties" : args[0]);
 		BotProperties props = loadProperties(settings);
-
-		Files.deleteIfExists(input);
-		Files.createFile(input);
 
 		Database database = new JsonDatabase(db);
 		Statistics stats = new Statistics(database);
@@ -168,11 +163,9 @@ public class Main {
 		}
 
 		//@formatter:off
-		ChatConnection connection = new FileChatConnection(
+		FileChatClient connection = new FileChatClient(
 			props.getBotUserId(), props.getBotUserName(),
-			props.getAdmins().get(0), "Michael",
-			rooms.getRooms().get(0),
-			input
+			props.getAdmins().get(0), "Michael"
 		);
 		//@formatter:on
 

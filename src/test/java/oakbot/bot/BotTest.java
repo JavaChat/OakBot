@@ -1,25 +1,30 @@
 package oakbot.bot;
 
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.function.Consumer;
 import java.util.logging.LogManager;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
-import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
-import oakbot.chat.ChatMessageHandler;
+import oakbot.chat.IChatClient;
+import oakbot.chat.IRoom;
 import oakbot.chat.InvalidCredentialsException;
+import oakbot.chat.event.Event;
+import oakbot.chat.event.MessageEditedEvent;
+import oakbot.chat.event.MessagePostedEvent;
 
 /**
  * @author Michael Angstadt
@@ -38,7 +43,7 @@ public class BotTest {
 
 	@Test(expected = InvalidCredentialsException.class)
 	public void bad_login() throws Exception {
-		ChatConnection connection = mock(ChatConnection.class);
+		IChatClient connection = mock(IChatClient.class);
 		doThrow(new InvalidCredentialsException()).when(connection).login("user", "pass");
 
 		//@formatter:off
@@ -54,32 +59,33 @@ public class BotTest {
 	@Test
 	public void unknown_command() throws Exception {
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
-			.content("=foobar")
-			.messageId(1)
-			.roomId(1)
+		MessagePostedEvent event = new MessagePostedEvent.Builder()
+			.eventId(1)
 			.timestamp(LocalDateTime.now())
-			.userId(1)
-			.username("User1")
+			.message(new ChatMessage.Builder()
+				.content("=foobar")
+				.messageId(1)
+				.roomId(1)
+				.timestamp(LocalDateTime.now())
+				.userId(1)
+				.username("User1")
+			.build())
 		.build();
 		//@formatter:on
 
-		ChatConnection connection = mock(ChatConnection.class);
-		doAnswer(new Answer<Void>() {
-			@Override
-			public Void answer(InvocationOnMock invocation) {
-				ChatMessageHandler handler = (ChatMessageHandler) invocation.getArguments()[0];
-				handler.onMessage(message);
-				return null;
-			}
-		}).when(connection).listen(any(ChatMessageHandler.class));
+		IChatClient connection = mock(IChatClient.class);
 
-		ChatResponse response = new ChatResponse("");
+		MockRoom room = new MockRoom(1, event);
+		when(connection.joinRoom(1)).thenReturn(room.room);
+		//when(connection.getRooms()).thenReturn(Arrays.asList(room.room));
+		when(connection.getRoom(1)).thenReturn(room.room);
+		when(connection.isInRoom(1)).thenReturn(true);
+
 		UnknownCommandHandler handler = spy(new UnknownCommandHandler() {
 			@Override
 			public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
-				assertSame(message, chatCommand.getMessage());
-				return response;
+				assertSame(event.getMessage(), chatCommand.getMessage());
+				return null;
 			}
 		});
 
@@ -93,8 +99,59 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		bot.connect(false);
+		Thread t = null;
+		try {
+			t = new Thread(() -> {
+				try {
+					bot.connect(false);
+				} catch (Exception e) {
+					//ignore
+				}
+			});
+			t.start();
 
-		verify(handler).onMessage(any(ChatCommand.class), any(BotContext.class));
+			Thread.sleep(500);
+
+			verify(handler).onMessage(any(ChatCommand.class), any(BotContext.class));
+		} finally {
+			t.interrupt();
+		}
+	}
+
+	private class MockRoom {
+		private final IRoom room;
+		private Consumer<MessagePostedEvent> postedHandler;
+		private Consumer<MessageEditedEvent> editedHandler;
+
+		@SuppressWarnings("unchecked")
+		public MockRoom(int roomId, Event... events) {
+			room = mock(IRoom.class);
+			when(room.getRoomId()).thenReturn(roomId);
+
+			doAnswer((invocations) -> {
+				postedHandler = (Consumer<MessagePostedEvent>) invocations.getArguments()[1];
+				return null;
+			}).when(room).addEventListener(eq(MessagePostedEvent.class), any(Consumer.class));
+
+			doAnswer((invocations) -> {
+				editedHandler = (Consumer<MessageEditedEvent>) invocations.getArguments()[1];
+
+				/*
+				 * We know the edit handler is assigned last, so push the events
+				 * as soon as we have it.
+				 */
+				for (Event event : events) {
+					if (event instanceof MessagePostedEvent) {
+						postedHandler.accept((MessagePostedEvent) event);
+					} else if (event instanceof MessageEditedEvent) {
+						editedHandler.accept((MessageEditedEvent) event);
+					} else {
+						fail("The bot does not handle these events: " + event.getClass().getSimpleName());
+					}
+				}
+
+				return null;
+			}).when(room).addEventListener(eq(MessageEditedEvent.class), any(Consumer.class));
+		}
 	}
 }

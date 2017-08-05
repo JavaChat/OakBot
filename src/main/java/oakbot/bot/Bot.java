@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,13 +32,15 @@ import oakbot.Database;
 import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.bot.BotContext.JoinRoomEvent;
-import oakbot.chat.ChatConnection;
 import oakbot.chat.ChatMessage;
-import oakbot.chat.ChatMessageHandler;
+import oakbot.chat.IChatClient;
+import oakbot.chat.IRoom;
 import oakbot.chat.InvalidCredentialsException;
 import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.RoomPermissionException;
 import oakbot.chat.SplitStrategy;
+import oakbot.chat.event.MessageEditedEvent;
+import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommands;
@@ -53,7 +57,9 @@ public class Bot {
 
 	private final String email, password, userName, trigger, greeting;
 	private final Integer userId;
-	private final ChatConnection connection;
+	private final IChatClient connection;
+	private final BlockingQueue<ChatMessage> newMessages = new LinkedBlockingQueue<>();
+	private final ChatMessage CLOSE_MESSAGE = new ChatMessage.Builder().build();
 	private final List<Integer> admins, bannedUsers;
 	private final Integer hideOneboxesAfter;
 	private final Rooms rooms;
@@ -71,8 +77,8 @@ public class Bot {
 	/**
 	 * <p>
 	 * A collection of messages that the bot posted, but have not been "echoed"
-	 * back yet through the {@link ChatConnection#listen} method. When a message
-	 * is echoed back, it is removed from this map.
+	 * back yet in the chat room. When a message is echoed back, it is removed
+	 * from this map.
 	 * </p>
 	 * <p>
 	 * This is used to determine whether something the bot posted was converted
@@ -82,7 +88,7 @@ public class Bot {
 	 * <ul>
 	 * <li>Key = The message ID.</li>
 	 * <li>Value = The raw message content that was sent to the chat room by the
-	 * bot (this can be different from what was echoed back).</li>
+	 * bot (which can be different from what was echoed back).</li>
 	 * </ul>
 	 */
 	private final Map<Long, PostedMessage> postedMessages = new HashMap<>();
@@ -136,185 +142,182 @@ public class Bot {
 		startQuoteOfTheDay();
 
 		try {
-			connection.listen(new ChatMessageHandler() {
-				@Override
-				public void onMessage(ChatMessage message) {
-					if (message.getContent() == null) {
-						//user deleted his/her message, ignore
-						return;
-					}
-
-					if (bannedUsers.contains(message.getUserId())) {
-						//message was posted by a banned user, ignore
-						return;
-					}
-
-					if (message.getUserId() == userId) {
-						//message was posted by this bot
-
-						PostedMessage originalMessage;
-						synchronized (postedMessages) {
-							originalMessage = postedMessages.remove(message.getMessageId());
-						}
-
-						/*
-						 * Check to see if the bot posted something that Stack
-						 * Overflow Chat converted to a onebox.
-						 * 
-						 * Stack Overflow Chat converts certain URLs to
-						 * "oneboxes". Oneboxes can be fairly large and can spam
-						 * the chat. For example, if the message is a URL to an
-						 * image, the image itself will be displayed in the chat
-						 * room. This is nice, but gets annoying if the image is
-						 * large or if it's an animated GIF.
-						 * 
-						 * After giving people some time to see the onebox, edit
-						 * the message so that the onebox no longer displays,
-						 * but the URL is still preserved.
-						 */
-						if (originalMessage != null && hideOneboxesAfter != null && message.isOnebox()) {
-							long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - originalMessage.getTimePosted());
-							if (logger.isLoggable(Level.INFO)) {
-								logger.info("Hiding onebox in " + hideIn + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
-							}
-
-							timer.schedule(new TimerTask() {
-								@Override
-								public void run() {
-									try {
-										connection.editMessage(message.getRoomId(), message.getMessageId(), "> " + originalMessage.getContent());
-									} catch (Exception e) {
-										logger.log(Level.SEVERE, "Problem editing chat message [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]", e);
-									}
-								}
-							}, hideIn);
-						}
-
-						return;
-					}
-
-					inactiveRoomTasks.reset(message.getRoomId());
-
-					List<ChatResponse> replies = new ArrayList<>();
-					boolean isUserAdmin = admins.contains(message.getUserId());
-					BotContext context = new BotContext(isUserAdmin, trigger, connection, Bot.this.rooms.getRooms(), Bot.this.rooms.getHomeRooms(), maxRooms);
-
-					replies.addAll(handleListeners(message, context));
-
-					ChatCommand command = ChatCommand.fromMessage(message, trigger);
-					if (command != null) {
-						replies.addAll(handleCommands(command, context));
-					}
-
-					if (context.isShutdown()) {
-						String shutdownMessage = context.getShutdownMessage();
-						if (shutdownMessage != null) {
-							try {
-								if (context.isShutdownMessageBroadcast()) {
-									broadcast(shutdownMessage);
-								} else {
-									sendMessage(message.getRoomId(), shutdownMessage);
-								}
-							} catch (IOException e) {
-								//ignore
-							}
-						}
-						try {
-							connection.close();
-						} catch (IOException e) {
-							//ignore
-						}
-
-						if (database != null) {
-							database.commit();
-						}
-
-						return;
-					}
-
-					if (!replies.isEmpty()) {
-						if (logger.isLoggable(Level.INFO)) {
-							logger.info("Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
-						}
-
-						if (stats != null) {
-							stats.incMessagesRespondedTo(replies.size());
-						}
-
-						for (ChatResponse reply : replies) {
-							sendMessage(message.getRoomId(), reply);
-						}
-					}
-
-					for (JoinRoomEvent event : context.getRoomsToJoin()) {
-						ChatResponse response = null;
-
-						if (maxRooms != null && rooms.size() >= maxRooms) {
-							response = event.ifOther(new IOException("Max rooms reached."));
-						} else {
-							try {
-								join(event.getRoomId());
-								response = event.success();
-							} catch (RoomNotFoundException e) {
-								response = event.ifRoomDoesNotExist();
-							} catch (RoomPermissionException e) {
-								response = event.ifBotDoesNotHavePermission();
-							} catch (IOException e) {
-								response = event.ifOther(e);
-							}
-						}
-
-						if (response != null) {
-							sendMessage(message.getRoomId(), response);
-						}
-					}
-
-					for (Integer roomId : context.getRoomsToLeave()) {
-						try {
-							leave(roomId);
-						} catch (IOException e) {
-							logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
-						}
-					}
-
-					if (database != null) {
-						database.commit();
-					}
+			while (true) {
+				ChatMessage message;
+				try {
+					message = newMessages.take();
+				} catch (InterruptedException e) {
+					break;
 				}
 
-				@Override
-				public void onMessageEdited(ChatMessage message) {
-					onMessage(message);
+				if (message == CLOSE_MESSAGE) {
+					break;
 				}
 
-				@Override
-				public void onError(int roomId, Exception thrown) {
-					logger.log(Level.SEVERE, "An error occurred getting messages from room " + roomId + ". Leaving room.", thrown);
-
-					try {
-						leave(roomId);
-					} catch (IOException e) {
-						logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
-					}
-				}
-			});
+				handleMessage(message);
+			}
 		} finally {
 			timer.cancel();
 		}
 	}
 
-	private void sendMessage(int roomId, String message) {
-		sendMessage(roomId, new ChatResponse(message));
+	private void handleMessage(ChatMessage message) {
+		if (message.getContent() == null) {
+			//user deleted his/her message, ignore
+			return;
+		}
+
+		if (bannedUsers.contains(message.getUserId())) {
+			//message was posted by a banned user, ignore
+			return;
+		}
+
+		IRoom room = connection.getRoom(message.getRoomId());
+
+		if (message.getUserId() == userId) {
+			//message was posted by this bot
+
+			PostedMessage originalMessage;
+			synchronized (postedMessages) {
+				originalMessage = postedMessages.remove(message.getMessageId());
+			}
+
+			/*
+			 * Check to see if the bot posted something that Stack Overflow Chat
+			 * converted to a onebox.
+			 * 
+			 * Stack Overflow Chat converts certain URLs to "oneboxes". Oneboxes
+			 * can be fairly large and can spam the chat. For example, if the
+			 * message is a URL to an image, the image itself will be displayed
+			 * in the chat room. This is nice, but gets annoying if the image is
+			 * large or if it's an animated GIF.
+			 * 
+			 * After giving people some time to see the onebox, edit the message
+			 * so that the onebox no longer displays, but the URL is still
+			 * preserved.
+			 */
+			if (originalMessage != null && hideOneboxesAfter != null && message.isOnebox()) {
+				long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - originalMessage.getTimePosted());
+				if (logger.isLoggable(Level.INFO)) {
+					logger.info("Hiding onebox in " + hideIn + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+				}
+
+				timer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						try {
+							room.editMessage(message.getMessageId(), "> " + originalMessage.getContent());
+						} catch (Exception e) {
+							logger.log(Level.SEVERE, "Problem editing chat message [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]", e);
+						}
+					}
+				}, hideIn);
+			}
+
+			return;
+		}
+
+		inactiveRoomTasks.reset(room);
+
+		List<ChatResponse> replies = new ArrayList<>();
+		boolean isUserAdmin = admins.contains(message.getUserId());
+		BotContext context = new BotContext(isUserAdmin, trigger, connection, rooms.getRooms(), rooms.getHomeRooms(), maxRooms);
+
+		replies.addAll(handleListeners(message, context));
+
+		ChatCommand command = ChatCommand.fromMessage(message, trigger);
+		if (command != null) {
+			replies.addAll(handleCommands(command, context));
+		}
+
+		if (context.isShutdown()) {
+			String shutdownMessage = context.getShutdownMessage();
+			if (shutdownMessage != null) {
+				try {
+					if (context.isShutdownMessageBroadcast()) {
+						broadcast(shutdownMessage);
+					} else {
+						sendMessage(room, shutdownMessage);
+					}
+				} catch (IOException e) {
+					//ignore
+				}
+			}
+			try {
+				connection.close();
+			} catch (IOException e) {
+				//ignore
+			}
+
+			if (database != null) {
+				database.commit();
+			}
+
+			return;
+		}
+
+		if (!replies.isEmpty()) {
+			if (logger.isLoggable(Level.INFO)) {
+				logger.info("Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+			}
+
+			if (stats != null) {
+				stats.incMessagesRespondedTo(replies.size());
+			}
+
+			for (ChatResponse reply : replies) {
+				sendMessage(room, reply);
+			}
+		}
+
+		for (JoinRoomEvent event : context.getRoomsToJoin()) {
+			ChatResponse response = null;
+
+			if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
+				response = event.ifOther(new IOException("Max rooms reached."));
+			} else {
+				try {
+					join(event.getRoomId());
+					response = event.success();
+				} catch (RoomNotFoundException e) {
+					response = event.ifRoomDoesNotExist();
+				} catch (RoomPermissionException e) {
+					response = event.ifBotDoesNotHavePermission();
+				} catch (IOException e) {
+					response = event.ifOther(e);
+				}
+			}
+
+			if (response != null) {
+				sendMessage(room, response);
+			}
+		}
+
+		for (Integer roomId : context.getRoomsToLeave()) {
+			try {
+				leave(roomId);
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
+			}
+		}
+
+		if (database != null) {
+			database.commit();
+		}
 	}
 
-	private void sendMessage(int roomId, ChatResponse reply) {
+	private void sendMessage(IRoom room, String message) {
+		sendMessage(room, new ChatResponse(message));
+	}
+
+	private void sendMessage(IRoom room, ChatResponse reply) {
 		final String filteredMessage;
 		if (reply.isBypassFilters()) {
 			filteredMessage = reply.getMessage();
 		} else {
 			String messageText = reply.getMessage();
 			for (ChatResponseFilter filter : responseFilters) {
-				if (filter.isEnabled(roomId)) {
+				if (filter.isEnabled(room.getRoomId())) {
 					messageText = filter.filter(messageText);
 				}
 			}
@@ -323,11 +326,11 @@ public class Bot {
 
 		try {
 			if (logger.isLoggable(Level.INFO)) {
-				logger.info("Sending message [room=" + roomId + "]: " + filteredMessage);
+				logger.info("Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);
 			}
 
 			synchronized (postedMessages) {
-				List<Long> messageIds = connection.sendMessage(roomId, filteredMessage, reply.getSplitStrategy());
+				List<Long> messageIds = room.sendMessage(filteredMessage, reply.getSplitStrategy());
 				long now = System.currentTimeMillis();
 				messageIds.forEach((id) -> postedMessages.put(id, new PostedMessage(now, filteredMessage)));
 			}
@@ -344,7 +347,7 @@ public class Bot {
 	 * @throws IOException if there's a problem connecting to the room
 	 */
 	public void join(int roomId) throws IOException {
-		if (rooms.contains(roomId)) {
+		if (connection.isInRoom(roomId)) {
 			return;
 		}
 
@@ -361,12 +364,21 @@ public class Bot {
 	 */
 	private void join(int roomId, boolean quiet) throws RoomNotFoundException, RoomPermissionException, IOException {
 		logger.info("Joining room " + roomId + "...");
-		connection.joinRoom(roomId);
+		IRoom room = connection.joinRoom(roomId);
+
+		room.addEventListener(MessagePostedEvent.class, (event) -> {
+			newMessages.add(event.getMessage());
+		});
+		room.addEventListener(MessageEditedEvent.class, (event) -> {
+			newMessages.add(event.getMessage());
+		});
+
 		if (!quiet && greeting != null) {
-			sendMessage(roomId, greeting);
+			sendMessage(room, greeting);
 		}
+
 		rooms.add(roomId);
-		inactiveRoomTasks.reset(roomId);
+		inactiveRoomTasks.reset(room);
 	}
 
 	/**
@@ -376,9 +388,14 @@ public class Bot {
 	 */
 	public void leave(int roomId) throws IOException {
 		logger.info("Leaving room " + roomId + "...");
-		connection.leaveRoom(roomId);
+		IRoom room = connection.getRoom(roomId);
+		if (room == null) {
+			return;
+		}
+
+		room.leave();
 		rooms.remove(roomId);
-		inactiveRoomTasks.cancel(roomId);
+		inactiveRoomTasks.cancel(room);
 	}
 
 	/**
@@ -418,7 +435,9 @@ public class Bot {
 			if (unknownCommandHandler == null) {
 				return Collections.emptyList();
 			}
-			return Arrays.asList(unknownCommandHandler.onMessage(chatCommand, context));
+
+			ChatResponse response = unknownCommandHandler.onMessage(chatCommand, context);
+			return (response == null) ? Collections.emptyList() : Arrays.asList(response);
 		}
 
 		List<ChatResponse> replies = new ArrayList<>(commands.size());
@@ -461,14 +480,8 @@ public class Bot {
 	 * @throws IOException if there's a problem sending the message
 	 */
 	private void broadcast(String message) throws IOException {
-		/*
-		 * Commands can join rooms, so make a copy of the room list to prevent a
-		 * concurrent modification exception.
-		 */
-		List<Integer> roomIds = new ArrayList<>(this.rooms.getRooms());
-
-		for (Integer roomId : roomIds) {
-			sendMessage(roomId, new ChatResponse(message, SplitStrategy.WORD));
+		for (IRoom room : connection.getRooms()) {
+			sendMessage(room, new ChatResponse(message, SplitStrategy.WORD));
 		}
 	}
 
@@ -546,8 +559,8 @@ public class Bot {
 		//@formatter:on
 
 		private final long waitTime, leaveRoomAfter;
-		private final Map<Integer, TimerTask> tasks = new HashMap<>();
-		private final Map<Integer, Long> resetTimes = new HashMap<>();
+		private final Map<IRoom, TimerTask> tasks = new HashMap<>();
+		private final Map<IRoom, Long> resetTimes = new HashMap<>();
 
 		/**
 		 * @param waitTime how long to wait in between messages (in
@@ -560,16 +573,17 @@ public class Bot {
 			this.leaveRoomAfter = leaveRoomAfter;
 		}
 
-		public void reset(int roomId) {
-			reset(roomId, true);
+		public void reset(IRoom room) {
+			reset(room, true);
 		}
 
-		public void reset(int roomId, boolean userPostedMessage) {
+		public void reset(IRoom room, boolean userPostedMessage) {
+			int roomId = room.getRoomId();
 			if (rooms.getQuietRooms().contains(roomId)) {
 				return;
 			}
 
-			TimerTask task = tasks.get(roomId);
+			TimerTask task = tasks.get(room);
 			if (task != null) {
 				task.cancel();
 			}
@@ -577,7 +591,7 @@ public class Bot {
 			task = new TimerTask() {
 				@Override
 				public void run() {
-					long lastReset = resetTimes.get(roomId);
+					long lastReset = resetTimes.get(room);
 					long elapsed = System.currentTimeMillis() - lastReset;
 					if (elapsed > leaveRoomAfter) {
 						leaveRoom();
@@ -586,7 +600,7 @@ public class Bot {
 
 					String message = Command.random(messages);
 					try {
-						sendMessage(roomId, message);
+						sendMessage(room, message);
 					} catch (Exception e) {
 						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
 					}
@@ -594,7 +608,7 @@ public class Bot {
 
 				private void leaveRoom() {
 					try {
-						sendMessage(roomId, "*quietly closes door behind him*");
+						sendMessage(room, "*quietly closes door behind him*");
 					} catch (Exception e) {
 						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
 					}
@@ -608,24 +622,24 @@ public class Bot {
 			};
 
 			if (userPostedMessage || !resetTimes.containsKey(roomId)) {
-				resetTimes.put(roomId, System.currentTimeMillis());
+				resetTimes.put(room, System.currentTimeMillis());
 			}
-			tasks.put(roomId, task);
+			tasks.put(room, task);
 			timer.scheduleAtFixedRate(task, waitTime, waitTime);
 		}
 
 		public void resetAfterQotd() {
-			for (Integer roomId : tasks.keySet()) {
-				reset(roomId, false);
+			for (IRoom room : tasks.keySet()) {
+				reset(room, false);
 			}
 		}
 
-		public void cancel(int roomId) {
-			TimerTask task = tasks.remove(roomId);
+		public void cancel(IRoom room) {
+			TimerTask task = tasks.remove(room);
 			if (task != null) {
 				task.cancel();
 			}
-			resetTimes.remove(roomId);
+			resetTimes.remove(room);
 		}
 	}
 
@@ -652,7 +666,7 @@ public class Bot {
 	 * @author Michael Angstadt
 	 */
 	public static class Builder {
-		private ChatConnection connection;
+		private IChatClient connection;
 		private String email, password, userName, trigger = "=", greeting;
 		private Integer userId, hideOneboxesAfter;
 		private Rooms rooms = new Rooms(Arrays.asList(1), Collections.emptyList());
@@ -673,7 +687,7 @@ public class Bot {
 			return this;
 		}
 
-		public Builder connection(ChatConnection connection) {
+		public Builder connection(IChatClient connection) {
 			this.connection = connection;
 			return this;
 		}
