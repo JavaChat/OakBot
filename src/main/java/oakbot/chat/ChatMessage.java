@@ -284,6 +284,54 @@ public class ChatMessage {
 		return "ChatMessage [timestamp=" + timestamp + ", messageId=" + messageId + ", parentMessageId=" + parentMessageId + ", userId=" + userId + ", username=" + username + ", mentionedUserId=" + mentionedUserId + ", roomId=" + roomId + ", roomName=" + roomName + ", content=" + content + ", fixedFont=" + fixedFont + ", edits=" + edits + ", stars=" + stars + "]";
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((content == null) ? 0 : content.hashCode());
+		result = prime * result + edits;
+		result = prime * result + (fixedFont ? 1231 : 1237);
+		result = prime * result + mentionedUserId;
+		result = prime * result + (int) (messageId ^ (messageId >>> 32));
+		result = prime * result + (int) (parentMessageId ^ (parentMessageId >>> 32));
+		result = prime * result + roomId;
+		result = prime * result + ((roomName == null) ? 0 : roomName.hashCode());
+		result = prime * result + stars;
+		result = prime * result + ((timestamp == null) ? 0 : timestamp.hashCode());
+		result = prime * result + userId;
+		result = prime * result + ((username == null) ? 0 : username.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		ChatMessage other = (ChatMessage) obj;
+		if (content == null) {
+			if (other.content != null) return false;
+		} else if (!content.equals(other.content)) return false;
+		if (edits != other.edits) return false;
+		if (fixedFont != other.fixedFont) return false;
+		if (mentionedUserId != other.mentionedUserId) return false;
+		if (messageId != other.messageId) return false;
+		if (parentMessageId != other.parentMessageId) return false;
+		if (roomId != other.roomId) return false;
+		if (roomName == null) {
+			if (other.roomName != null) return false;
+		} else if (!roomName.equals(other.roomName)) return false;
+		if (stars != other.stars) return false;
+		if (timestamp == null) {
+			if (other.timestamp != null) return false;
+		} else if (!timestamp.equals(other.timestamp)) return false;
+		if (userId != other.userId) return false;
+		if (username == null) {
+			if (other.username != null) return false;
+		} else if (!username.equals(other.username)) return false;
+		return true;
+	}
+
 	/**
 	 * Used for constructing {@link ChatMessage} instances.
 	 * @author Michael Angstadt

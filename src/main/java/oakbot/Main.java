@@ -225,7 +225,7 @@ public class Main {
 		.build();
 		//@formatter:on
 
-		bot.connect(arguments.quiet());
+		bot.connect(arguments.quiet()).join();
 
 		logger.info("Terminating.");
 	}

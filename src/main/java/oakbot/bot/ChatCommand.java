@@ -201,4 +201,37 @@ public class ChatCommand {
 
 		return new ChatCommand(message, name, text);
 	}
+
+	@Override
+	public String toString() {
+		return "ChatCommand [message=" + message + ", commandName=" + commandName + ", content=" + content + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((commandName == null) ? 0 : commandName.hashCode());
+		result = prime * result + ((content == null) ? 0 : content.hashCode());
+		result = prime * result + ((message == null) ? 0 : message.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		ChatCommand other = (ChatCommand) obj;
+		if (commandName == null) {
+			if (other.commandName != null) return false;
+		} else if (!commandName.equals(other.commandName)) return false;
+		if (content == null) {
+			if (other.content != null) return false;
+		} else if (!content.equals(other.content)) return false;
+		if (message == null) {
+			if (other.message != null) return false;
+		} else if (!message.equals(other.message)) return false;
+		return true;
+	}
 }

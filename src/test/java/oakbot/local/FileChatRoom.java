@@ -109,7 +109,6 @@ public class FileChatRoom implements IRoom {
 		if (clazz == MessagePostedEvent.class) {
 			this.listener = (Consumer<MessagePostedEvent>) listener;
 		}
-		throw new UnsupportedOperationException();
 	}
 
 	@Override

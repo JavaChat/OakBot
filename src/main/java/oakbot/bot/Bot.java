@@ -116,14 +116,15 @@ public class Bot {
 	}
 
 	/**
-	 * Starts the chat bot. This method blocks until the bot is terminated,
-	 * either by an unexpected error or a shutdown command.
+	 * Starts the chat bot.
 	 * @param quiet true to start the bot without broadcasting the greeting
 	 * message, false to broadcast the greeting message
+	 * @return the thread that the bot is running in. This thread will terminate
+	 * when the bot terminates
 	 * @throws InvalidCredentialsException if the login credentials are bad
 	 * @throws IOException if there's a network problem
 	 */
-	public void connect(boolean quiet) throws InvalidCredentialsException, IOException {
+	public Thread connect(boolean quiet) throws InvalidCredentialsException, IOException {
 		//login
 		logger.info("Logging in as " + email + "...");
 		connection.login(email, password);
@@ -139,26 +140,44 @@ public class Bot {
 			}
 		}
 
-		startQuoteOfTheDay();
+		Thread thread = new Thread(() -> {
+			try {
+				startQuoteOfTheDay();
 
-		try {
-			while (true) {
-				ChatMessage message;
+				while (true) {
+					ChatMessage message;
+					try {
+						message = newMessages.take();
+					} catch (InterruptedException e) {
+						break;
+					}
+
+					if (message == CLOSE_MESSAGE) {
+						break;
+					}
+
+					handleMessage(message);
+				}
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Bot terminated due to unexpected exception.", e);
+			} finally {
 				try {
-					message = newMessages.take();
-				} catch (InterruptedException e) {
-					break;
+					connection.close();
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem closing ChatClient connection.", e);
 				}
 
-				if (message == CLOSE_MESSAGE) {
-					break;
+				if (database != null) {
+					database.commit();
 				}
 
-				handleMessage(message);
+				timer.cancel();
 			}
-		} finally {
-			timer.cancel();
-		}
+		});
+
+		thread.start();
+
+		return thread;
 	}
 
 	private void handleMessage(ChatMessage message) {
@@ -173,6 +192,10 @@ public class Bot {
 		}
 
 		IRoom room = connection.getRoom(message.getRoomId());
+		if (room == null) {
+			//no longer in the room
+			return;
+		}
 
 		if (message.getUserId() == userId) {
 			//message was posted by this bot
@@ -240,18 +263,12 @@ public class Bot {
 						sendMessage(room, shutdownMessage);
 					}
 				} catch (IOException e) {
-					//ignore
+					logger.log(Level.SEVERE, "Problem sending shutdown message.", e);
 				}
 			}
-			try {
-				connection.close();
-			} catch (IOException e) {
-				//ignore
-			}
 
-			if (database != null) {
-				database.commit();
-			}
+			newMessages.clear();
+			stop();
 
 			return;
 		}
@@ -346,7 +363,7 @@ public class Bot {
 	 * @throws RoomPermissionException if messages cannot be posted to this room
 	 * @throws IOException if there's a problem connecting to the room
 	 */
-	public void join(int roomId) throws IOException {
+	private void join(int roomId) throws IOException {
 		if (connection.isInRoom(roomId)) {
 			return;
 		}
@@ -386,7 +403,7 @@ public class Bot {
 	 * @param roomId the room ID
 	 * @throws IOException if there's a problem leaving the room
 	 */
-	public void leave(int roomId) throws IOException {
+	private void leave(int roomId) throws IOException {
 		logger.info("Leaving room " + roomId + "...");
 		IRoom room = connection.getRoom(roomId);
 		if (room == null) {
@@ -483,6 +500,14 @@ public class Bot {
 		for (IRoom room : connection.getRooms()) {
 			sendMessage(room, new ChatResponse(message, SplitStrategy.WORD));
 		}
+	}
+
+	/**
+	 * Terminates the bot. This method blocks until it finishes processing all
+	 * existing messages in its queue.
+	 */
+	public void stop() {
+		newMessages.add(CLOSE_MESSAGE);
 	}
 
 	private void startQuoteOfTheDay() {
@@ -621,7 +646,7 @@ public class Bot {
 				}
 			};
 
-			if (userPostedMessage || !resetTimes.containsKey(roomId)) {
+			if (userPostedMessage || !resetTimes.containsKey(room)) {
 				resetTimes.put(room, System.currentTimeMillis());
 			}
 			tasks.put(room, task);

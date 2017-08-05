@@ -189,7 +189,7 @@ public class Main {
 		.build();
 		//@formatter:on
 
-		bot.connect(false);
+		bot.connect(false).join();
 	}
 
 	private static BotProperties loadProperties(Path file) throws IOException {
