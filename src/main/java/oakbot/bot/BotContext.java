@@ -3,7 +3,9 @@ package oakbot.bot;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import oakbot.chat.IChatClient;
 import oakbot.chat.IRoom;
@@ -24,7 +26,7 @@ public class BotContext {
 	private String shutdownMessage;
 
 	private final List<Integer> currentRooms, homeRooms;
-	private final List<JoinRoomEvent> roomsToJoin = new ArrayList<>(0);
+	private final Map<Integer, JoinRoomCallback> roomsToJoin = new LinkedHashMap<>(0);
 	private final List<Integer> roomsToLeave = new ArrayList<>(0);
 	private final Integer maxRooms;
 
@@ -100,10 +102,12 @@ public class BotContext {
 	/**
 	 * Joins a room once all commands and listeners have had a chance to respond
 	 * to the incoming message.
-	 * @param event the join event
+	 * @param roomId the room to join
+	 * @param callback what to do if the join operation was successful or a
+	 * failure
 	 */
-	public void joinRoom(JoinRoomEvent event) {
-		roomsToJoin.add(event);
+	public void joinRoom(int roomId, JoinRoomCallback callback) {
+		roomsToJoin.put(roomId, callback);
 	}
 
 	/**
@@ -111,7 +115,7 @@ public class BotContext {
 	 * a chance to respond to the incoming message.
 	 * @return the join events
 	 */
-	public List<JoinRoomEvent> getRoomsToJoin() {
+	public Map<Integer, JoinRoomCallback> getRoomsToJoin() {
 		return roomsToJoin;
 	}
 
@@ -175,47 +179,30 @@ public class BotContext {
 	 * Used to join a room.
 	 * @author Michael Angstadt
 	 */
-	public static abstract class JoinRoomEvent {
-		private final int roomId;
-
+	public interface JoinRoomCallback {
 		/**
-		 * @param roomId the ID of the room to join
-		 */
-		public JoinRoomEvent(int roomId) {
-			this.roomId = roomId;
-		}
-
-		/**
-		 * Gets the room to join.
-		 * @return the room ID
-		 */
-		public int getRoomId() {
-			return roomId;
-		}
-
-		/**
-		 * Gest the message to send if the join was successful.
+		 * Gets the message to send if the join was successful.
 		 * @return the message or null not to send a message
 		 */
-		public abstract ChatResponse success();
+		ChatResponse success();
 
 		/**
 		 * Gets the message to send if the room does not exist.
 		 * @return the message or null not to send a message
 		 */
-		public abstract ChatResponse ifRoomDoesNotExist();
+		ChatResponse ifRoomDoesNotExist();
 
 		/**
 		 * Gets the message to send if the bot cannot post messages to the room.
 		 * @return the message or null not to send a message
 		 */
-		public abstract ChatResponse ifBotDoesNotHavePermission();
+		ChatResponse ifBotDoesNotHavePermission();
 
 		/**
 		 * Gets the message to send if another error occurs.
 		 * @param thrown the thrown exception
 		 * @return the message or null not to send a message
 		 */
-		public abstract ChatResponse ifOther(IOException thrown);
+		ChatResponse ifOther(IOException thrown);
 	}
 }

@@ -99,6 +99,11 @@ public class FileChatRoom implements IRoom {
 	}
 
 	@Override
+	public boolean canPost() {
+		return true;
+	}
+
+	@Override
 	public void addEventListener(Consumer<Event> listener) {
 		throw new UnsupportedOperationException();
 	}

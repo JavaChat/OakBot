@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
-import oakbot.bot.BotContext.JoinRoomEvent;
+import oakbot.bot.BotContext.JoinRoomCallback;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 
@@ -111,7 +111,7 @@ public class SummonCommand implements Command {
 
 		pendingSummons.remove(roomToJoin);
 
-		context.joinRoom(new JoinRoomEvent(roomToJoin) {
+		context.joinRoom(roomToJoin, new JoinRoomCallback() {
 			@Override
 			public ChatResponse success() {
 				return reply("Joined.", chatCommand);

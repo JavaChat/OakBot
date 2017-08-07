@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableList;
 import oakbot.Database;
 import oakbot.Rooms;
 import oakbot.Statistics;
-import oakbot.bot.BotContext.JoinRoomEvent;
+import oakbot.bot.BotContext.JoinRoomCallback;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.IChatClient;
 import oakbot.chat.IRoom;
@@ -287,21 +287,31 @@ public class Bot {
 			}
 		}
 
-		for (JoinRoomEvent event : context.getRoomsToJoin()) {
+		for (Map.Entry<Integer, JoinRoomCallback> entry : context.getRoomsToJoin().entrySet()) {
+			int roomId = entry.getKey();
+			JoinRoomCallback callback = entry.getValue();
+
 			ChatResponse response = null;
 
 			if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
-				response = event.ifOther(new IOException("Max rooms reached."));
+				response = callback.ifOther(new IOException("Max rooms reached."));
 			} else {
 				try {
-					join(event.getRoomId());
-					response = event.success();
+					IRoom joinedRoom = join(roomId);
+					if (joinedRoom.canPost()) {
+						response = callback.success();
+					} else {
+						response = callback.ifBotDoesNotHavePermission();
+						try {
+							leave(roomId);
+						} catch (IOException e) {
+							logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
+						}
+					}
 				} catch (RoomNotFoundException e) {
-					response = event.ifRoomDoesNotExist();
-				} catch (RoomPermissionException e) {
-					response = event.ifBotDoesNotHavePermission();
+					response = callback.ifRoomDoesNotExist();
 				} catch (IOException e) {
-					response = event.ifOther(e);
+					response = callback.ifOther(e);
 				}
 			}
 
@@ -359,27 +369,29 @@ public class Bot {
 	/**
 	 * Joins a room.
 	 * @param roomId the room ID
+	 * @return the connection to the room
 	 * @throws RoomNotFoundException if the room does not exist
 	 * @throws RoomPermissionException if messages cannot be posted to this room
 	 * @throws IOException if there's a problem connecting to the room
 	 */
-	private void join(int roomId) throws IOException {
-		if (connection.isInRoom(roomId)) {
-			return;
+	private IRoom join(int roomId) throws IOException {
+		IRoom room = connection.getRoom(roomId);
+		if (room != null) {
+			return room;
 		}
 
-		join(roomId, false);
+		return join(roomId, false);
 	}
 
 	/**
 	 * Joins a room.
 	 * @param roomId the room ID
 	 * @param quiet true to not post an announcement message, false to post one
+	 * @return the connection to the room
 	 * @throws RoomNotFoundException if the room does not exist
-	 * @throws RoomPermissionException if messages cannot be posted to this room
 	 * @throws IOException if there's a problem connecting to the room
 	 */
-	private void join(int roomId, boolean quiet) throws RoomNotFoundException, RoomPermissionException, IOException {
+	private IRoom join(int roomId, boolean quiet) throws RoomNotFoundException, IOException {
 		logger.info("Joining room " + roomId + "...");
 		IRoom room = connection.joinRoom(roomId);
 
@@ -396,6 +408,8 @@ public class Bot {
 
 		rooms.add(roomId);
 		inactiveRoomTasks.reset(room);
+
+		return room;
 	}
 
 	/**

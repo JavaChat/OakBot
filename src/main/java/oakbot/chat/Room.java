@@ -181,6 +181,11 @@ public class Room implements IRoom {
 		return fkey;
 	}
 
+	@Override
+	public boolean canPost() {
+		return canPost;
+	}
+
 	private String getWebSocketUrl() throws IOException {
 		//@formatter:off
 		Response response = http.post(chatDomain + "/ws-auth",

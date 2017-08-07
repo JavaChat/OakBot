@@ -28,6 +28,12 @@ public interface IRoom extends Closeable {
 	String getFkey();
 
 	/**
+	 * Determines if the user can post messages to the room.
+	 * @return true if the user can post messages, false if not
+	 */
+	boolean canPost();
+
+	/**
 	 * Adds a listener which receives all events.
 	 * @param listener the listener
 	 */
