@@ -1,5 +1,8 @@
 package oakbot.bot;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -70,9 +73,11 @@ public class BotTest {
 
 	@After
 	public void after() throws Exception {
-		if (runAfter) {
-			verify(chatClient).close();
+		if (!runAfter) {
+			return;
 		}
+
+		verify(chatClient).close();
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -240,18 +245,21 @@ public class BotTest {
 		 */
 		MessagePostedEvent event1 = event("Ignore me");
 		MessagePostedEvent event2 = event("=name command");
-		MessagePostedEvent event3 = event("=name reply");
+		MessagePostedEvent event3 = event("=alias command");
+		MessagePostedEvent event4 = event("=name reply");
 
 		/**
 		 * Create the command.
 		 */
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("name");
-		when(command.aliases()).thenReturn(Arrays.asList("name"));
+		when(command.aliases()).thenReturn(Arrays.asList("alias"));
 		ChatCommand expectedChatCommand2 = new ChatCommand(event2.getMessage(), "name", "command");
 		when(command.onMessage(eq(expectedChatCommand2), any(BotContext.class))).thenReturn(null);
-		ChatCommand expectedChatCommand3 = new ChatCommand(event3.getMessage(), "name", "reply");
-		when(command.onMessage(eq(expectedChatCommand3), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
+		ChatCommand expectedChatCommand3 = new ChatCommand(event3.getMessage(), "alias", "command");
+		when(command.onMessage(eq(expectedChatCommand3), any(BotContext.class))).thenReturn(null);
+		ChatCommand expectedChatCommand4 = new ChatCommand(event4.getMessage(), "name", "reply");
+		when(command.onMessage(eq(expectedChatCommand4), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
 
 		/**
 		 * Create the bot.
@@ -266,13 +274,14 @@ public class BotTest {
 		/**
 		 * Run the bot.
 		 */
-		run(bot, event1, event2, event3);
+		run(bot, event1, event2, event3, event4);
 
 		/*
 		 * Verify.
 		 */
 		verify(command).onMessage(eq(expectedChatCommand2), any(BotContext.class));
 		verify(command).onMessage(eq(expectedChatCommand3), any(BotContext.class));
+		verify(command).onMessage(eq(expectedChatCommand4), any(BotContext.class));
 		verify(room1, times(1)).sendMessage(anyString(), any(SplitStrategy.class));
 		verify(room1).sendMessage("reply", SplitStrategy.NONE);
 	}
@@ -355,7 +364,7 @@ public class BotTest {
 		 */
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("command");
-		when(command.aliases()).thenReturn(Arrays.asList("command"));
+		when(command.aliases()).thenReturn(Arrays.asList());
 		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
 
 		/**
@@ -431,7 +440,7 @@ public class BotTest {
 		 */
 		IRoom room1 = chatServer.createRoom(1);
 		IRoom room2 = chatServer.createRoom(2);
-		IRoom room4 = chatServer.createRoom(4, false);
+		chatServer.createRoom(4, false);
 
 		/*
 		 * Define the chat room events to push.
@@ -459,7 +468,7 @@ public class BotTest {
 		 */
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("join");
-		when(command.aliases()).thenReturn(Arrays.asList("join"));
+		when(command.aliases()).thenReturn(Arrays.asList());
 		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).then((invocation) -> {
 			ChatCommand chatCommand = (ChatCommand) invocation.getArguments()[0];
 			BotContext context = (BotContext) invocation.getArguments()[1];
@@ -508,35 +517,319 @@ public class BotTest {
 		verify(room2).sendMessage("Greetings.", SplitStrategy.NONE);
 	}
 
-	//	@Test
-	//	public void leave_room() {
-	//
-	//	}
-	//
-	//	@Test
-	//	public void shutdown() {
-	//
-	//	}
-	//
-	//	@Test
-	//	public void content_null() {
-	//
-	//	}
-	//
-	//	@Test
-	//	public void admin_user() {
-	//
-	//	}
-	//
-	//	@Test
-	//	public void banned_user() {
-	//
-	//	}
-	//
-	//	@Test
-	//	public void onebox() {
-	//
-	//	}
+	@Test
+	public void leave_room() throws Exception {
+		/**
+		 * Setup the chat rooms.
+		 */
+		chatServer.createRoom(1);
+		IRoom room2 = chatServer.createRoom(2);
+
+		/*
+		 * Define the chat room events to push.
+		 */
+		MessagePostedEvent event1 = event("=leave");
+
+		/*
+		 * Create the leave command.
+		 */
+		Command command = mock(Command.class);
+		when(command.name()).thenReturn("leave");
+		when(command.aliases()).thenReturn(Arrays.asList());
+		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).then((invocation) -> {
+			BotContext context = (BotContext) invocation.getArguments()[1];
+			context.leaveRoom(2);
+			return null;
+		});
+
+		/**
+		 * Create the bot.
+		 */
+		//@formatter:off
+		Bot bot = bot()
+			.rooms(1, 2)
+			.commands(command)
+		.build();
+		//@formatter:on
+
+		/**
+		 * Run the bot.
+		 */
+		run(bot, event1);
+
+		/*
+		 * Verify.
+		 */
+		verify(room2).leave();
+		assertEquals(Arrays.asList(1), bot.getRooms().getRooms());
+	}
+
+	@Test
+	public void shutdown_broadcast() throws Exception {
+		shutdown(true, true);
+	}
+
+	@Test
+	public void shutdown_message_current_room() throws Exception {
+		shutdown(true, false);
+	}
+
+	@Test
+	public void shutdown_no_message() throws Exception {
+		shutdown(false, false);
+	}
+
+	private void shutdown(boolean postAMessage, boolean broadcastTheMessage) throws Exception {
+		/**
+		 * Setup the chat rooms.
+		 */
+		IRoom room1 = chatServer.createRoom(1);
+		IRoom room2 = chatServer.createRoom(2);
+
+		/*
+		 * Define the chat room events to push.
+		 */
+		MessagePostedEvent event1 = event("=shutdown");
+
+		/*
+		 * Create the shutdown command.
+		 */
+		Command command = mock(Command.class);
+		when(command.name()).thenReturn("shutdown");
+		when(command.aliases()).thenReturn(Arrays.asList());
+		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).then((invocation) -> {
+			BotContext context = (BotContext) invocation.getArguments()[1];
+			String content = postAMessage ? "Bye." : null;
+			context.shutdownBot(content, broadcastTheMessage);
+			return null;
+		});
+
+		/**
+		 * Create the bot.
+		 */
+		//@formatter:off
+		Bot bot = bot()
+			.rooms(1, 2)
+			.commands(command)
+		.build();
+		//@formatter:on
+
+		/**
+		 * Run the bot.
+		 */
+		Thread t = bot.connect(true);
+		chatServer.pushEvents(event1);
+		//bot.stop(); //this method call should not be necessary
+		t.join();
+
+		/*
+		 * Verify.
+		 */
+		verify(room1, times(postAMessage ? 1 : 0)).sendMessage("Bye.", SplitStrategy.NONE);
+		verify(room2, times(postAMessage && broadcastTheMessage ? 1 : 0)).sendMessage("Bye.", SplitStrategy.NONE);
+	}
+
+	@Test
+	public void content_null() throws Exception {
+		/**
+		 * Setup the chat rooms.
+		 */
+		chatServer.createRoom(1);
+
+		/*
+		 * Define the chat room events to push.
+		 */
+		MessagePostedEvent event1 = event(null);
+
+		/**
+		 * Create the listener
+		 */
+		Listener listener = mock(Listener.class);
+
+		/**
+		 * Create the bot.
+		 */
+		//@formatter:off
+		Bot bot = bot()
+			.rooms(1)
+			.listeners(listener)
+		.build();
+		//@formatter:on
+
+		/**
+		 * Run the bot.
+		 */
+		run(bot, event1);
+
+		/*
+		 * Verify.
+		 */
+		verify(listener, times(0)).onMessage(same(event1.getMessage()), any(BotContext.class));
+	}
+
+	@Test
+	public void admin_user() throws Exception {
+		/**
+		 * Setup the chat rooms.
+		 */
+		chatServer.createRoom(1);
+
+		/*
+		 * Define the chat room events to push.
+		 */
+		MessagePostedEvent event1 = event("Test", 2);
+		MessagePostedEvent event2 = event("Test", 100);
+
+		/**
+		 * Create the listener
+		 */
+		Listener listener = mock(Listener.class);
+		when(listener.onMessage(same(event1.getMessage()), any(BotContext.class))).then((invocation) -> {
+			BotContext context = (BotContext) invocation.getArguments()[1];
+			assertFalse(context.isAuthorAdmin());
+			return null;
+		});
+		when(listener.onMessage(same(event2.getMessage()), any(BotContext.class))).then((invocation) -> {
+			BotContext context = (BotContext) invocation.getArguments()[1];
+			assertTrue(context.isAuthorAdmin());
+			return null;
+		});
+
+		/**
+		 * Create the bot.
+		 */
+		//@formatter:off
+		Bot bot = bot()
+			.rooms(1)
+			.admins(100)
+			.listeners(listener)
+		.build();
+		//@formatter:on
+
+		/**
+		 * Run the bot.
+		 */
+		run(bot, event1, event2);
+
+		/*
+		 * Verify.
+		 */
+		verify(listener).onMessage(same(event1.getMessage()), any(BotContext.class));
+		verify(listener).onMessage(same(event2.getMessage()), any(BotContext.class));
+	}
+
+	@Test
+	public void banned_user() throws Exception {
+		/**
+		 * Setup the chat rooms.
+		 */
+		chatServer.createRoom(1);
+
+		/*
+		 * Define the chat room events to push.
+		 */
+		MessagePostedEvent event1 = event("Test", 2);
+		MessagePostedEvent event2 = event("Test", 100);
+
+		/**
+		 * Create the listener
+		 */
+		Listener listener = mock(Listener.class);
+
+		/**
+		 * Create the bot.
+		 */
+		//@formatter:off
+		Bot bot = bot()
+			.rooms(1)
+			.bannedUsers(100)
+			.listeners(listener)
+		.build();
+		//@formatter:on
+
+		/**
+		 * Run the bot.
+		 */
+		run(bot, event1, event2);
+
+		/*
+		 * Verify.
+		 */
+		verify(listener).onMessage(same(event1.getMessage()), any(BotContext.class));
+		verify(listener, times(0)).onMessage(same(event2.getMessage()), any(BotContext.class));
+	}
+
+	@Test
+	public void onebox() throws Exception {
+		/**
+		 * Setup the chat rooms.
+		 */
+		IRoom room1 = chatServer.createRoom(1);
+		when(room1.sendMessage("http://en.wikipedia.org/wiki/Java", SplitStrategy.NONE)).thenReturn(Arrays.asList(100L));
+
+		/*
+		 * Define the chat room events to push.
+		 */
+		MessagePostedEvent event1 = event("trigger the listener");
+		//@formatter:off
+		LocalDateTime now = LocalDateTime.now();
+		MessagePostedEvent event2 = new MessagePostedEvent.Builder()
+			.eventId(eventId++)
+			.timestamp(now)
+			.message(new ChatMessage.Builder()
+				.content("<div class=\"onebox ob-wikipedia\"><img class=\"ob-wikipedia-image\" src=\"//upload.wikimedia.org/wikipedia/commons/thumb/4/43/Java_Topography.png/220px-Java_Topography.png\" /><div class=\"ob-wikipedia-title\"><img src=\"//en.wikipedia.org/static/favicon/wikipedia.ico\" width=\"24\" height=\"24\" class=\"ob-wikipedia-favicon\"/> <a rel=\"nofollow noopener noreferrer\" href=\"http://en.wikipedia.org/wiki/Java\">Java</a></div><div class=\"ob-wikipedia-text\">Java (Indonesian: Jawa; Javanese: ꦗꦮ; Sundanese: ᮏᮝ) is an island of Indonesia. With a population of over 141 million (the island itself) or 145 million (the administrative region), Java is home to 56.7 percent of the Indonesian population and is the most populous island on Earth. The Indonesian capital city, Jakarta, is located on western Java. Much of Indonesian history took place on Java. It was the center of powerful Hindu-Buddhist empires, the Islamic sultanates, and the core of the colonial Dutch East Indies. Java was also the center of the Indonesian struggle for independence during the...</div></div>")
+				.messageId(100)
+				.timestamp(now)
+				.userId(1)
+				.username("BotUser")
+				.roomId(1)
+			.build())
+		.build();
+		//@formatter:on
+
+		/**
+		 * Create the listener
+		 */
+		Listener listener = mock(Listener.class);
+		when(listener.onMessage(same(event1.getMessage()), any(BotContext.class))).then((invocation) -> {
+			return new ChatResponse("http://en.wikipedia.org/wiki/Java");
+		});
+
+		/**
+		 * Create the bot.
+		 */
+		//@formatter:off
+		Bot bot = bot()
+			.rooms(1)
+			.hideOneboxesAfter(1000)
+			.listeners(listener)
+		.build();
+		//@formatter:on
+
+		/*
+		 * Stop the bot when the bot sends the edit request.
+		 */
+		doAnswer((invocation) -> {
+			bot.stop();
+			return null;
+		}).when(room1).editMessage(100, "> http://en.wikipedia.org/wiki/Java");
+
+		/**
+		 * Run the bot.
+		 */
+		long start = System.currentTimeMillis();
+		Thread t = bot.connect(true);
+		chatServer.pushEvents(event1, event2);
+		t.join();
+		long stop = System.currentTimeMillis();
+
+		/*
+		 * Verify.
+		 */
+		verify(room1).sendMessage("http://en.wikipedia.org/wiki/Java", SplitStrategy.NONE);
+		verify(room1).editMessage(100, "> http://en.wikipedia.org/wiki/Java");
+		assertTrue(stop - start >= 1000);
+	}
 
 	@Test
 	public void unknown_command() throws Exception {
@@ -584,6 +877,10 @@ public class BotTest {
 	}
 
 	private MessagePostedEvent event(String content) {
+		return event(content, 2);
+	}
+
+	private MessagePostedEvent event(String content, int userId) {
 		LocalDateTime now = LocalDateTime.now();
 
 		//@formatter:off
@@ -595,7 +892,7 @@ public class BotTest {
 				.messageId(messageId++)
 				.roomId(1)
 				.timestamp(now)
-				.userId(2)
+				.userId(userId)
 				.username("User")
 			.build())
 		.build();

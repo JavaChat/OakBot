@@ -38,7 +38,6 @@ import oakbot.chat.IRoom;
 import oakbot.chat.InvalidCredentialsException;
 import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.RoomPermissionException;
-import oakbot.chat.SplitStrategy;
 import oakbot.chat.event.MessageEditedEvent;
 import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
@@ -512,7 +511,7 @@ public class Bot {
 	 */
 	private void broadcast(String message) throws IOException {
 		for (IRoom room : connection.getRooms()) {
-			sendMessage(room, new ChatResponse(message, SplitStrategy.WORD));
+			sendMessage(room, new ChatResponse(message));
 		}
 	}
 
