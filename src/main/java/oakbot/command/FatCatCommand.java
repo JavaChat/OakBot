@@ -49,10 +49,10 @@ public class FatCatCommand implements Command {
 	public String helpText(String trigger) {
 		//@formatter:off
 		return new ChatBuilder()
-			.code().append(trigger).append(name()).code().append(" : Show a random fat cat. ").nl()
-			.code().append(trigger).append(name()).append(" list").code().append(" : List all fat cats. ").nl()
-			.code().append(trigger).append(name()).append(" add URL").code().append(" : Add a fat cats. ").nl()
-			.code().append(trigger).append(name()).append(" delete URL").code().append(" : Delete a fat cat. ").nl()
+			.append(trigger).append(name()).append(" : Show a random fat cat. ").nl()
+			.append(trigger).append(name()).append(" list").append(" : List all fat cats. ").nl()
+			.append(trigger).append(name()).append(" add URL").append(" : Add a fat cat. ").nl()
+			.append(trigger).append(name()).append(" delete URL").append(" : Delete a fat cat. ").nl()
 		.toString();
 		//@formatter:on
 	}
@@ -76,7 +76,7 @@ public class FatCatCommand implements Command {
 				return reply("Specify the URL of the cat you want to add: `" + context.getTrigger() + name() + " add URL`", chatCommand);
 			}
 
-			String cat = params[1];
+			String cat = ChatBuilder.toMarkdown(params[1], false);
 			if (cats.contains(cat)) {
 				return reply("Cat already added.", chatCommand);
 			}
@@ -93,7 +93,8 @@ public class FatCatCommand implements Command {
 				return reply("Specify the URL of the cat you want to delete: `" + context.getTrigger() + name() + " delete URL`", chatCommand);
 			}
 
-			return deleteCat(params[1], chatCommand);
+			cat = ChatBuilder.toMarkdown(params[1], false);
+			return deleteCat(cat, chatCommand);
 		default:
 			return reply("Unknown action.", chatCommand);
 		}
