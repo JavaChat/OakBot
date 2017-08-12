@@ -125,6 +125,7 @@ public class FatCatCommand implements Command {
 
 	private ChatResponse deleteCat(String cat, ChatCommand chatCommand) {
 		boolean removed = cats.remove(cat);
+		save();
 		return reply(removed ? "Deleted." : "404 cat not found.", chatCommand);
 	}
 
