@@ -23,6 +23,7 @@ import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
 import oakbot.command.Command;
 import oakbot.command.EightBallCommand;
+import oakbot.command.FatCatCommand;
 import oakbot.command.GrootCommand;
 import oakbot.command.HelpCommand;
 import oakbot.command.ReactCommand;
@@ -48,6 +49,7 @@ import oakbot.filter.ChatResponseFilter;
 import oakbot.filter.GrootFilter;
 import oakbot.filter.UpsidedownTextFilter;
 import oakbot.listener.AfkListener;
+import oakbot.listener.FatCatListener;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
@@ -96,6 +98,7 @@ public class Main {
 
 		JavadocCommand javadocCommand = createJavadocCommand(props);
 		AfkCommand afkCommand = new AfkCommand();
+		FatCatCommand fatCatCommand = new FatCatCommand(database);
 
 		UpsidedownTextFilter upsidedownTextFilter = new UpsidedownTextFilter();
 		GrootFilter grootFilter = new GrootFilter();
@@ -110,6 +113,7 @@ public class Main {
 			listeners.add(new AfkListener(afkCommand));
 			listeners.add(new WaveListener(props.getBotUserName(), 1000, mentionListener));
 			listeners.add(new WelcomeListener(database, props.getWelcomeMessages()));
+			listeners.add(new FatCatListener(fatCatCommand));
 
 			/*
 			 * Put mention listener at the bottom so the other listeners have a
@@ -149,6 +153,7 @@ public class Main {
 			commands.add(new RolloverCommand(upsidedownTextFilter));
 			commands.add(new GrootCommand(grootFilter));
 			commands.add(new CatCommand(props.getCatKey()));
+			commands.add(fatCatCommand);
 
 			String reactKey = props.getReactKey();
 			if (reactKey != null) {

@@ -2,6 +2,7 @@ package oakbot.command;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 import oakbot.bot.BotContext;
@@ -80,5 +81,15 @@ public interface Command {
 	static <T> T random(@SuppressWarnings("unchecked") T... array) {
 		int index = random.nextInt(array.length);
 		return array[index];
+	}
+
+	/**
+	 * Chooses a random element from a list.
+	 * @param list the list
+	 * @return the random element
+	 */
+	static <T> T random(List<T> list) {
+		int index = random.nextInt(list.size());
+		return list.get(index);
 	}
 }
