@@ -5,6 +5,8 @@ import static oakbot.command.Command.reply;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import oakbot.Database;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
@@ -76,7 +78,8 @@ public class FatCatCommand implements Command {
 				return reply("Specify the URL of the cat you want to add: `" + context.getTrigger() + name() + " add URL`", chatCommand);
 			}
 
-			String cat = ChatBuilder.toMarkdown(params[1], false);
+			//unescape HTML entities like "&amp;"
+			String cat = StringEscapeUtils.unescapeHtml4(params[1]);
 			if (cats.contains(cat)) {
 				return reply("Cat already added.", chatCommand);
 			}
@@ -93,7 +96,9 @@ public class FatCatCommand implements Command {
 				return reply("Specify the URL of the cat you want to delete: `" + context.getTrigger() + name() + " delete URL`", chatCommand);
 			}
 
-			cat = ChatBuilder.toMarkdown(params[1], false);
+			//unescape HTML entities like "&amp;"
+			cat = StringEscapeUtils.unescapeHtml4(params[1]);
+
 			return deleteCat(cat, chatCommand);
 		default:
 			return reply("Unknown action.", chatCommand);
