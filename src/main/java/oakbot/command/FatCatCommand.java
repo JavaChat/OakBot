@@ -23,8 +23,7 @@ public class FatCatCommand implements Command {
 	private final int hans = 4581014;
 	private final Database db;
 	private final List<String> cats = new ArrayList<>();
-	private int isCatFatUserId;
-	private String isCatFatUrl;
+	private final Conversations conversations = new Conversations();
 
 	public FatCatCommand(Database db) {
 		this.db = db;
@@ -64,15 +63,16 @@ public class FatCatCommand implements Command {
 		String params[] = chatCommand.getContent().split("\\s+", 2);
 
 		String action = params[0].toLowerCase();
+		String url = (params.length < 2) ? null : params[1];
 		switch (action) {
 		case "":
 			return showCat(chatCommand);
 		case "list":
 			return listCats();
 		case "add":
-			return addCat(chatCommand, context, (params.length < 2) ? null : params[1]);
+			return addCat(chatCommand, context, url);
 		case "delete":
-			return deleteCat(chatCommand, context, (params.length < 2) ? null : params[1]);
+			return deleteCat(chatCommand, context, url);
 		default:
 			return reply("Unknown action.", chatCommand);
 		}
@@ -108,14 +108,15 @@ public class FatCatCommand implements Command {
 
 		if (cat == null) {
 			//@formatter:off
-			return reply(new ChatBuilder()
+			return new ChatResponse(new ChatBuilder()
+				.reply(chatCommand)
 				.append("Specify the URL of the cat you want to add: ")
 				.code()
 				.append(context.getTrigger())
 				.append(name())
 				.append(" add URL")
 				.code()
-			.toString(), chatCommand);
+			);
 			//@formatter:on
 		}
 
@@ -130,8 +131,9 @@ public class FatCatCommand implements Command {
 			return reply("Cat already added.", chatCommand);
 		}
 
-		isCatFatUserId = chatCommand.getMessage().getUserId();
-		isCatFatUrl = cat;
+		Conversation conversation = new Conversation(chatCommand.getMessage().getRoomId(), chatCommand.getMessage().getUserId(), cat);
+		conversations.add(conversation);
+
 		return reply("Is cat fat? (y/n)", chatCommand);
 	}
 
@@ -142,14 +144,15 @@ public class FatCatCommand implements Command {
 
 		if (cat == null) {
 			//@formatter:off
-			return reply(new ChatBuilder()
+			return new ChatResponse(new ChatBuilder()
+				.reply(chatCommand)
 				.append("Specify the URL of the cat you want to delete: ")
 				.code()
 				.append(context.getTrigger())
 				.append(name())
 				.append(" delete URL")
 				.code()
-			.toString(), chatCommand);
+			);
 			//@formatter:on
 		}
 
@@ -170,11 +173,8 @@ public class FatCatCommand implements Command {
 	}
 
 	public String handleResponse(ChatMessage message) {
-		if (isCatFatUserId == 0) {
-			return null;
-		}
-
-		if (message.getUserId() != isCatFatUserId) {
+		Conversation conversation = conversations.get(message.getRoomId(), message.getUserId());
+		if (conversation == null) {
 			return null;
 		}
 
@@ -185,14 +185,12 @@ public class FatCatCommand implements Command {
 
 		switch (Character.toLowerCase(content.charAt(0))) {
 		case 'y':
-			cats.add(isCatFatUrl);
+			cats.add(conversation.url);
 			save();
-			isCatFatUserId = 0;
-			isCatFatUrl = null;
+			conversations.remove(conversation);
 			return "Added.";
 		case 'n':
-			isCatFatUserId = 0;
-			isCatFatUrl = null;
+			conversations.remove(conversation);
 			return "Cat not added.  Cat must be fat.";
 		default:
 			return "Please answer yes or no.";
@@ -201,5 +199,43 @@ public class FatCatCommand implements Command {
 
 	private void save() {
 		db.set("fatcat", cats);
+	}
+
+	private class Conversations {
+		private final List<Conversation> conversations = new ArrayList<>();
+
+		public Conversation get(int roomId, int userId) {
+			for (Conversation conversation : conversations) {
+				if (conversation.roomId == roomId && conversation.userId == userId) {
+					return conversation;
+				}
+			}
+			return null;
+		}
+
+		public void add(Conversation conversation) {
+			Conversation existing = get(conversation.roomId, conversation.userId);
+			if (existing != null) {
+				remove(existing);
+			}
+
+			conversations.add(conversation);
+		}
+
+		public void remove(Conversation conversation) {
+			conversations.remove(conversation);
+		}
+	}
+
+	private class Conversation {
+		private final int roomId;
+		private final int userId;
+		private final String url;
+
+		public Conversation(int roomId, int userId, String url) {
+			this.roomId = roomId;
+			this.userId = userId;
+			this.url = url;
+		}
 	}
 }
