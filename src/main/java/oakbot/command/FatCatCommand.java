@@ -70,36 +70,9 @@ public class FatCatCommand implements Command {
 		case "list":
 			return listCats();
 		case "add":
-			if (!context.isAuthorAdmin() && chatCommand.getMessage().getUserId() != hans) {
-				return reply("Ask Hans.", chatCommand);
-			}
-
-			if (params.length < 2) {
-				return reply("Specify the URL of the cat you want to add: `" + context.getTrigger() + name() + " add URL`", chatCommand);
-			}
-
-			//unescape HTML entities like "&amp;"
-			String cat = StringEscapeUtils.unescapeHtml4(params[1]);
-			if (cats.contains(cat)) {
-				return reply("Cat already added.", chatCommand);
-			}
-
-			isCatFatUserId = chatCommand.getMessage().getUserId();
-			isCatFatUrl = cat;
-			return reply("Is cat fat? (y/n)", chatCommand);
+			return addCat(chatCommand, context, (params.length < 2) ? null : params[1]);
 		case "delete":
-			if (!context.isAuthorAdmin() && chatCommand.getMessage().getUserId() != hans) {
-				return reply("Ask Hans.", chatCommand);
-			}
-
-			if (params.length < 2) {
-				return reply("Specify the URL of the cat you want to delete: `" + context.getTrigger() + name() + " delete URL`", chatCommand);
-			}
-
-			//unescape HTML entities like "&amp;"
-			cat = StringEscapeUtils.unescapeHtml4(params[1]);
-
-			return deleteCat(cat, chatCommand);
+			return deleteCat(chatCommand, context, (params.length < 2) ? null : params[1]);
 		default:
 			return reply("Unknown action.", chatCommand);
 		}
@@ -128,10 +101,72 @@ public class FatCatCommand implements Command {
 		return new ChatResponse(cb);
 	}
 
-	private ChatResponse deleteCat(String cat, ChatCommand chatCommand) {
+	private ChatResponse addCat(ChatCommand chatCommand, BotContext context, String cat) {
+		if (!context.isAuthorAdmin() && chatCommand.getMessage().getUserId() != hans) {
+			return reply("Only Hans can add.", chatCommand);
+		}
+
+		if (cat == null) {
+			//@formatter:off
+			return reply(new ChatBuilder()
+				.append("Specify the URL of the cat you want to add: ")
+				.code()
+				.append(context.getTrigger())
+				.append(name())
+				.append(" add URL")
+				.code()
+			.toString(), chatCommand);
+			//@formatter:on
+		}
+
+		/*
+		 * Just unescape the HTML entities. Do not convert to Markdown because
+		 * this will escape special characters like underscores, which will
+		 * break the URL.
+		 */
+		cat = StringEscapeUtils.unescapeHtml4(cat);
+
+		if (cats.contains(cat)) {
+			return reply("Cat already added.", chatCommand);
+		}
+
+		isCatFatUserId = chatCommand.getMessage().getUserId();
+		isCatFatUrl = cat;
+		return reply("Is cat fat? (y/n)", chatCommand);
+	}
+
+	private ChatResponse deleteCat(ChatCommand chatCommand, BotContext context, String cat) {
+		if (!context.isAuthorAdmin() && chatCommand.getMessage().getUserId() != hans) {
+			return reply("Only Hans can delete.", chatCommand);
+		}
+
+		if (cat == null) {
+			//@formatter:off
+			return reply(new ChatBuilder()
+				.append("Specify the URL of the cat you want to delete: ")
+				.code()
+				.append(context.getTrigger())
+				.append(name())
+				.append(" delete URL")
+				.code()
+			.toString(), chatCommand);
+			//@formatter:on
+		}
+
+		/*
+		 * Just unescape the HTML entities. Do not convert to Markdown because
+		 * this will escape special characters like underscores, which will
+		 * break the URL.
+		 */
+		cat = StringEscapeUtils.unescapeHtml4(cat);
+
 		boolean removed = cats.remove(cat);
+		if (!removed) {
+			return reply("404 cat not found.", chatCommand);
+		}
+
 		save();
-		return reply(removed ? "Deleted." : "404 cat not found.", chatCommand);
+		return reply("Deleted.", chatCommand);
 	}
 
 	public String handleResponse(ChatMessage message) {
