@@ -51,9 +51,9 @@ public class FatCatCommand implements Command {
 		//@formatter:off
 		return new ChatBuilder()
 			.append(trigger).append(name()).append(" : Show a random fat cat. ").nl()
-			.append(trigger).append(name()).append(" list").append(" : List all fat cats. ").nl()
-			.append(trigger).append(name()).append(" add URL").append(" : Add a fat cat. ").nl()
-			.append(trigger).append(name()).append(" delete URL").append(" : Delete a fat cat. ").nl()
+			.append(trigger).append(name()).append(" list : List all fat cats. ").nl()
+			.append(trigger).append(name()).append(" add URL : Add a fat cat. ").nl()
+			.append(trigger).append(name()).append(" delete URL : Delete a fat cat. ").nl()
 		.toString();
 		//@formatter:on
 	}
