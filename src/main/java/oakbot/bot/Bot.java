@@ -38,6 +38,7 @@ import oakbot.chat.IRoom;
 import oakbot.chat.InvalidCredentialsException;
 import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.RoomPermissionException;
+import oakbot.chat.SplitStrategy;
 import oakbot.chat.event.MessageEditedEvent;
 import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
@@ -510,8 +511,17 @@ public class Bot {
 	 * @throws IOException if there's a problem sending the message
 	 */
 	private void broadcast(String message) throws IOException {
+		broadcast(new ChatResponse(message));
+	}
+
+	/**
+	 * Sends a message to all the chat rooms the bot is logged into.
+	 * @param message the message to send
+	 * @throws IOException if there's a problem sending the message
+	 */
+	private void broadcast(ChatResponse message) throws IOException {
 		for (IRoom room : connection.getRooms()) {
-			sendMessage(room, new ChatResponse(message));
+			sendMessage(room, message);
 		}
 	}
 
@@ -554,7 +564,7 @@ public class Bot {
 				cb.append(' ').link("(source)", permalink);
 
 				try {
-					broadcast(cb.toString());
+					broadcast(new ChatResponse(cb, SplitStrategy.WORD));
 				} catch (Exception e) {
 					logger.log(Level.SEVERE, "Error broadcasting quote.", e);
 				}
