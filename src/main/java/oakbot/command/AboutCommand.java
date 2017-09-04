@@ -2,6 +2,8 @@ package oakbot.command;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 import oakbot.Main;
@@ -18,7 +20,7 @@ import oakbot.util.RelativeDateFormat;
  * @author Michael Angstadt
  */
 public class AboutCommand implements Command {
-	private final Date startedUp = new Date();
+	private final LocalDateTime startedUp = LocalDateTime.now();
 	private final Statistics stats;
 	private final String host;
 
@@ -45,12 +47,13 @@ public class AboutCommand implements Command {
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		RelativeDateFormat relativeDf = new RelativeDateFormat();
+		LocalDateTime built = LocalDateTime.ofInstant(Main.BUILT.toInstant(), ZoneId.systemDefault());
 
 		//@formatter:off
 		ChatBuilder cb = new ChatBuilder()
 		.bold("OakBot").append(" by ").link("Michael", "http://stackoverflow.com/users/13379/michael").append(" | ")
 		.link("source code", Main.URL).append(" | ")
-		.append("JAR built on: ").append(relativeDf.format(Main.BUILT)).append(" | ")
+		.append("JAR built on: ").append(relativeDf.format(built)).append(" | ")
 		.append("started up: ").append(relativeDf.format(startedUp));
 		//@formatter:on
 

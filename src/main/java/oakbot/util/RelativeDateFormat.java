@@ -1,58 +1,53 @@
 package oakbot.util;
 
-import java.text.DateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 
 /**
  * Formats dates relative to the current time.
  * @author Michael Angstadt
  */
 public class RelativeDateFormat {
-	//private final DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
-	private final DateFormat tf = DateFormat.getTimeInstance(DateFormat.SHORT);
+	private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT);
 
 	/**
 	 * Formats a date
 	 * @param date the date or format
 	 * @return the formatted date (e.g. "Today at 1:00 PM")
 	 */
-	public String format(Date date) {
-		Date now = new Date();
+	public String format(LocalDateTime date) {
+		LocalDateTime now = LocalDateTime.now();
+		Duration diff = Duration.between(date, now);
 
-		long diff = now.getTime() - date.getTime();
-		if (diff <= 60 * 1000) {
+		if (diff.toMinutes() < 1) {
 			return "A moment ago";
 		}
 
-		if (diff <= 60 * 60 * 1000) {
-			return (diff / (60 * 1000)) + " minutes ago";
+		if (diff.toHours() < 1) {
+			return diff.toMinutes() + " minutes ago";
 		}
 
-		Calendar dateCal = Calendar.getInstance();
-		dateCal.setTime(date);
-		Calendar nowCal = Calendar.getInstance();
-		nowCal.setTime(now);
-		int dayDiff = (nowCal.get(Calendar.YEAR) - dateCal.get(Calendar.YEAR)) * 365 + (nowCal.get(Calendar.DAY_OF_YEAR) - dateCal.get(Calendar.DAY_OF_YEAR));
-
+		long dayDiff = diff.toDays();
 		if (dayDiff == 0) {
-			return "Today at " + tf.format(date);
+			return "Today at " + timeFormatter.format(date);
 		}
 		if (dayDiff == 1) {
-			return "Yesterday at " + tf.format(date);
+			return "Yesterday at " + timeFormatter.format(date);
 		}
 		if (dayDiff < 7) {
 			return "About " + dayDiff + " days ago.";
 		}
 		if (dayDiff < 14) {
-			return "About a week ago.";
+			return "Over a week ago.";
 		}
 		if (dayDiff < 30) {
-			return "About " + (dayDiff / 7) + " weeks ago.";
+			return "Over " + (dayDiff / 7) + " weeks ago.";
 		}
 		if (dayDiff < 60) {
-			return "About a month ago.";
+			return "Over a month ago.";
 		}
-		return "About " + (dayDiff / 30) + " months ago.";
+		return "Over " + (dayDiff / 30) + " months ago.";
 	}
 }
