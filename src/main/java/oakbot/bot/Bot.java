@@ -2,12 +2,13 @@ package oakbot.bot;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +16,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -72,7 +72,7 @@ public class Bot {
 	private final Database database;
 	private final UnknownCommandHandler unknownCommandHandler;
 	private final Timer timer = new Timer();
-	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(TimeUnit.HOURS.toMillis(6), TimeUnit.DAYS.toMillis(3));
+	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(Duration.ofHours(6).toMillis(), Duration.ofDays(3).toMillis());
 
 	/**
 	 * <p>
@@ -534,13 +534,14 @@ public class Bot {
 	}
 
 	private void startQuoteOfTheDay() {
-		Calendar c = Calendar.getInstance();
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		c.set(Calendar.MILLISECOND, 0);
-		c.add(Calendar.DAY_OF_MONTH, 1);
-		Date firstQuote = c.getTime();
+		long delayBeforeFirstRun;
+		{
+			LocalDateTime now = LocalDateTime.now();
+			LocalDateTime tomorrow = now.truncatedTo(ChronoUnit.DAYS).plusDays(1);
+			delayBeforeFirstRun = Duration.between(now, tomorrow).toMillis();
+		}
+
+		long interval = Duration.ofDays(1).toMillis();
 
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
@@ -593,7 +594,7 @@ public class Bot {
 			}
 			*/
 			//@formatter:on
-		}, firstQuote, TimeUnit.DAYS.toMillis(1));
+		}, delayBeforeFirstRun, interval);
 	}
 
 	private class InactiveRoomTasks {
