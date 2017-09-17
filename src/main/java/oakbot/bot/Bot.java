@@ -601,6 +601,8 @@ public class Bot {
 	}
 
 	private void startHealthMonitor() {
+		logger.info("Starting health monitor...");
+
 		/*
 		 * Do not start the health monitor if there is a problem checking for
 		 * security updates.
@@ -611,6 +613,8 @@ public class Bot {
 		}
 
 		scheduleNextHealthPost(securityUpdates);
+
+		logger.info("Health monitor started.  There are " + securityUpdates + " available security updates.");
 	}
 
 	/**
@@ -668,6 +672,8 @@ public class Bot {
 				Integer updates = getNumSecurityUpdates();
 				if (updates == null) {
 					updates = 0;
+				} else {
+					logger.fine("There are " + updates + " available security updates.");
 				}
 
 				if (updates >= 10) {
