@@ -1,7 +1,9 @@
 package oakbot.bot;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -143,6 +145,7 @@ public class Bot {
 		Thread thread = new Thread(() -> {
 			try {
 				startQuoteOfTheDay();
+				startHealthMonitor();
 
 				while (true) {
 					ChatMessage message;
@@ -595,6 +598,97 @@ public class Bot {
 			*/
 			//@formatter:on
 		}, delayBeforeFirstRun, interval);
+	}
+
+	private void startHealthMonitor() {
+		/*
+		 * Do not start the health monitor if there is a problem checking for
+		 * security updates.
+		 */
+		Integer securityUpdates = getNumSecurityUpdates();
+		if (securityUpdates == null) {
+			return;
+		}
+
+		scheduleNextHealthPost(securityUpdates);
+	}
+
+	/**
+	 * Queries the local operating system for the number of security updates
+	 * that are available.
+	 * @return the number of security updates or null if they couldn't be
+	 * retrieved
+	 */
+	private Integer getNumSecurityUpdates() {
+		/*
+		 * The apt-check command returns output in the following format:
+		 * 
+		 * NUM_TOTAL_UPDATES;NUM_SECURITY_UPDATES
+		 * 
+		 * For example, the output "128;68" means there are 128 updates, 68 of
+		 * which are considered to be security updates.
+		 */
+		try {
+			/*
+			 * For some reason, the command output is sent to the error stream,
+			 * so redirect all error output to the standard stream.
+			 */
+			Process process = new ProcessBuilder("/usr/lib/update-notifier/apt-check").redirectErrorStream(true).start();
+
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				String line = reader.readLine();
+				String split[] = line.split(";");
+				return Integer.valueOf(split[1]);
+			}
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "An error occurred while querying the local operating system for the number of available security updates.", e);
+		}
+		return null;
+	}
+
+	private void scheduleNextHealthPost(final int securityUpdates) {
+		long delay;
+		if (securityUpdates < 10) {
+			/*
+			 * Don't post anything if there are less than 10 updates. But check
+			 * again tomorrow.
+			 */
+			delay = Duration.ofDays(1).toMillis();
+		} else {
+			double timesToPostPerDay = securityUpdates / 30.0;
+			delay = (long) ((24 / timesToPostPerDay) * 1000);
+		}
+
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				if (securityUpdates >= 10) {
+					/*
+					 * Only post to the Java room.
+					 */
+					IRoom javaRoom = connection.getRoom(139);
+
+					if (javaRoom != null) {
+						ChatBuilder cb = new ChatBuilder();
+						cb.italic(Command.random("coughs", "sneezes"));
+						ChatResponse response = new ChatResponse(cb, SplitStrategy.NONE, true);
+						sendMessage(javaRoom, response);
+					}
+				}
+
+				Integer updates = getNumSecurityUpdates();
+
+				/*
+				 * If there is a temporary glitch in checking for updates, treat
+				 * it as "0".
+				 */
+				if (updates == null) {
+					updates = 0;
+				}
+
+				scheduleNextHealthPost(updates);
+			}
+		}, delay);
 	}
 
 	private class InactiveRoomTasks {
