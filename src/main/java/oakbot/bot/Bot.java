@@ -646,7 +646,7 @@ public class Bot {
 		return null;
 	}
 
-	private void scheduleNextHealthPost(final int securityUpdates) {
+	private void scheduleNextHealthPost(int securityUpdates) {
 		long delay;
 		if (securityUpdates < 10) {
 			/*
@@ -665,7 +665,12 @@ public class Bot {
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (securityUpdates >= 10) {
+				Integer updates = getNumSecurityUpdates();
+				if (updates == null) {
+					updates = 0;
+				}
+
+				if (updates >= 10) {
 					/*
 					 * Only post to the Java room.
 					 */
@@ -677,16 +682,6 @@ public class Bot {
 						ChatResponse response = new ChatResponse(cb, SplitStrategy.NONE, true);
 						sendMessage(javaRoom, response);
 					}
-				}
-
-				Integer updates = getNumSecurityUpdates();
-
-				/*
-				 * If there is a temporary glitch in checking for updates, treat
-				 * it as "0".
-				 */
-				if (updates == null) {
-					updates = 0;
 				}
 
 				scheduleNextHealthPost(updates);
