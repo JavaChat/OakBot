@@ -656,7 +656,7 @@ public class Bot {
 			delay = Duration.ofDays(1).toMillis();
 		} else {
 			double timesToPostPerDay = securityUpdates / 30.0;
-			delay = (long) ((24 / timesToPostPerDay) * 1000);
+			delay = (long) ((24 / timesToPostPerDay) * 60 * 60 * 1000);
 		}
 
 		timer.schedule(new TimerTask() {
