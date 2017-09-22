@@ -659,9 +659,9 @@ public class Bot {
 			 */
 			delay = Duration.ofDays(1).toMillis();
 		} else {
-			double timesToPostPerDay = securityUpdates / 30.0;
-			if (timesToPostPerDay > 3) {
-				timesToPostPerDay = 3;
+			double timesToPostPerDay = securityUpdates / 15.0;
+			if (timesToPostPerDay > 8) {
+				timesToPostPerDay = 8;
 			}
 			delay = (long) ((24 / timesToPostPerDay) * 60 * 60 * 1000);
 		}
@@ -684,7 +684,7 @@ public class Bot {
 
 					if (javaRoom != null) {
 						ChatBuilder cb = new ChatBuilder();
-						cb.italic(Command.random("coughs", "sneezes"));
+						cb.italic(Command.random("coughs", "sneezes", "clears throat", "expectorates", "sniffles", "wheezes"));
 						ChatResponse response = new ChatResponse(cb, SplitStrategy.NONE, true);
 						sendMessage(javaRoom, response);
 					}
