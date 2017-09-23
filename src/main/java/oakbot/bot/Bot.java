@@ -541,7 +541,7 @@ public class Bot {
 		{
 			LocalDateTime now = LocalDateTime.now();
 			LocalDateTime tomorrow = now.truncatedTo(ChronoUnit.DAYS).plusDays(1);
-			delayBeforeFirstRun = Duration.between(now, tomorrow).toMillis();
+			delayBeforeFirstRun = now.until(tomorrow, ChronoUnit.MILLIS);
 		}
 
 		long interval = Duration.ofDays(1).toMillis();

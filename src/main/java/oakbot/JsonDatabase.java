@@ -6,12 +6,11 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +32,7 @@ public class JsonDatabase implements Database {
 	private static final Logger logger = Logger.getLogger(JsonDatabase.class.getName());
 	private final Path file;
 	private final Map<String, Object> fields = new HashMap<>();
-	private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	private boolean changed = false;
 
 	/**
@@ -102,8 +101,8 @@ public class JsonDatabase implements Database {
 		String text = node.asText();
 
 		try {
-			return df.parse(text);
-		} catch (ParseException e) {
+			return LocalDateTime.parse(text, dateTimeFormatter);
+		} catch (DateTimeParseException e) {
 			//not a date string
 		}
 
@@ -186,9 +185,9 @@ public class JsonDatabase implements Database {
 			return;
 		}
 
-		if (value instanceof Date) {
-			Date date = (Date) value;
-			generator.writeString(df.format(date));
+		if (value instanceof LocalDateTime) {
+			LocalDateTime date = (LocalDateTime) value;
+			generator.writeString(date.format(dateTimeFormatter));
 			return;
 		}
 

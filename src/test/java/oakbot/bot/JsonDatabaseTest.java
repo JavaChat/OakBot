@@ -6,9 +6,9 @@ import static org.junit.Assert.assertNull;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class JsonDatabaseTest {
 			submap.put("five", "5");
 			map.put("four", Arrays.asList(1, "2", Arrays.asList(3, 4), submap));
 
-			map.put("five", date("2017-03-26"));
+			map.put("five", date("2017-03-26 00:00:00"));
 			map.put("six", null);
 		}
 
@@ -71,7 +71,8 @@ public class JsonDatabaseTest {
 		assertNull(db.get("non-existant"));
 	}
 
-	private static Date date(String date) throws ParseException {
-		return new SimpleDateFormat("yyyy-MM-dd").parse(date);
+	private static LocalDateTime date(String date) throws ParseException {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		return LocalDateTime.parse(date, formatter);
 	}
 }

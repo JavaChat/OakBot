@@ -1,10 +1,8 @@
 package oakbot.command;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
 
 import oakbot.Main;
 import oakbot.Statistics;
@@ -47,7 +45,7 @@ public class AboutCommand implements Command {
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		RelativeDateFormat relativeDf = new RelativeDateFormat();
-		LocalDateTime built = LocalDateTime.ofInstant(Main.BUILT.toInstant(), ZoneId.systemDefault());
+		LocalDateTime built = LocalDateTime.ofInstant(Main.BUILT, ZoneId.systemDefault());
 
 		//@formatter:off
 		ChatBuilder cb = new ChatBuilder()
@@ -64,10 +62,10 @@ public class AboutCommand implements Command {
 		if (stats != null) {
 			cb.append(" | ").append("responded to ").append(stats.getMessagesRespondedTo()).append(" commands");
 
-			Date since = stats.getSince();
+			LocalDateTime since = stats.getSince();
 			if (since != null) {
-				DateFormat df = new SimpleDateFormat("MMM d, yyyy");
-				cb.append(" since ").append(df.format(since));
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy");
+				cb.append(" since ").append(since.format(formatter));
 			}
 		}
 

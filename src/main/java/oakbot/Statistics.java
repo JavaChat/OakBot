@@ -1,6 +1,6 @@
 package oakbot;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class Statistics {
 	private final Database db;
-	private final Date since;
+	private final LocalDateTime since;
 	private int responses;
 
 	/**
@@ -21,11 +21,11 @@ public class Statistics {
 
 		Map<String, Object> value = db.getMap("statistics");
 		if (value == null) {
-			since = new Date();
+			since = LocalDateTime.now();
 			responses = 0;
 			save();
 		} else {
-			since = (Date) value.get("since");
+			since = (LocalDateTime) value.get("since");
 			responses = (Integer) value.get("responses");
 		}
 	}
@@ -43,7 +43,7 @@ public class Statistics {
 		return responses;
 	}
 
-	public Date getSince() {
+	public LocalDateTime getSince() {
 		return since;
 	}
 

@@ -8,11 +8,11 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -73,7 +73,7 @@ public class Main {
 	private static final Logger logger = Logger.getLogger(Main.class.getName());
 
 	public static final String VERSION, URL;
-	public static final Date BUILT;
+	public static final Instant BUILT;
 	static {
 		Properties props = new Properties();
 		try (InputStream in = Main.class.getResourceAsStream("/info.properties")) {
@@ -85,13 +85,18 @@ public class Main {
 		VERSION = props.getProperty("version");
 		URL = props.getProperty("url");
 
-		Date built;
+		Instant built;
+		String builtStr = props.getProperty("built");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z");
 		try {
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
-			built = df.parse(props.getProperty("built"));
-		} catch (ParseException e) {
-			//this could happen during development if the properties file is not filtered by Maven
-			built = new Date();
+			built = OffsetDateTime.parse(builtStr, formatter).toInstant();
+		} catch (DateTimeParseException e) {
+			/*
+			 * If the project is run from a development environment, the
+			 * properties file might not have been filtered, so just set the
+			 * build date to now.
+			 */
+			built = Instant.now();
 		}
 		BUILT = built;
 	}

@@ -7,11 +7,11 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	private final Properties properties;
-	private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 	/**
 	 * Creates an empty properties list.
@@ -88,8 +88,8 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * </p>
 	 * <p>
 	 * The value's {@code toString()} is called in order to generate a string
-	 * value. If the object is a {@link Date}, then its string value will be
-	 * generated using an internal {@link DateFormat} object.
+	 * value. If the object is a {@link LocalDateTime}, then its string value
+	 * will be generated using an internal {@link DateTimeFormatter} object.
 	 * <p>
 	 * @param key the key
 	 * @param value the value or null to remove
@@ -101,8 +101,9 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 		}
 
 		String valueStr;
-		if (value instanceof Date) {
-			valueStr = df.format(value);
+		if (value instanceof LocalDateTime) {
+			LocalDateTime dateTime = (LocalDateTime) value;
+			valueStr = dateTime.format(dateTimeFormatter);
 		} else {
 			valueStr = value.toString();
 		}
@@ -202,11 +203,11 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * Gets a date property value.
 	 * @param key the key
 	 * @return the value or null if not found
-	 * @throws ParseException if it could not parse the value as a date
+	 * @throws DateTimeParseException if it could not parse the value as a date
 	 */
-	public Date getDate(String key) throws ParseException {
+	public LocalDateTime getDate(String key) throws ParseException {
 		String value = get(key);
-		return (value == null) ? null : df.parse(value);
+		return (value == null) ? null : LocalDateTime.parse(value, dateTimeFormatter);
 	}
 
 	/**

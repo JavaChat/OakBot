@@ -9,11 +9,10 @@ import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Properties;
 
 import org.junit.Test;
@@ -75,7 +74,7 @@ public class PropertiesWrapperTest {
 		assertNull(wrapper.getDate("foo"));
 	}
 
-	@Test(expected = ParseException.class)
+	@Test(expected = DateTimeParseException.class)
 	public void getDate_invalid() throws Exception {
 		Properties props = new Properties();
 		props.setProperty("key", "value");
@@ -124,7 +123,7 @@ public class PropertiesWrapperTest {
 	@Test
 	public void set_date() throws Exception {
 		PropertiesWrapper wrapper = new PropertiesWrapper();
-		Date value = date("2015-11-04");
+		LocalDateTime value = date("2015-11-04");
 		wrapper.set("key", value);
 
 		assertEquals(value, wrapper.getDate("key"));
@@ -146,15 +145,15 @@ public class PropertiesWrapperTest {
 		assertEquals(Arrays.asList(), wrapper.getIntegerList("foo"));
 	}
 
-	private static Date date(String date) {
+	private static LocalDateTime date(String date) {
 		if (date.length() == 10) {
 			date += " 00:00:00";
 		}
 
 		try {
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			return df.parse(date);
-		} catch (ParseException e) {
+			DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+			return LocalDateTime.parse(date, df);
+		} catch (DateTimeParseException e) {
 			throw new RuntimeException(e);
 		}
 	}
