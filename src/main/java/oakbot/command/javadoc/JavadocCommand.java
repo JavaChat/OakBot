@@ -359,7 +359,24 @@ public class JavadocCommand implements Command {
 		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
 
-		return new ChatResponse(cb, SplitStrategy.WORD);
+		return new ChatResponse(cb, SplitStrategy.WORD, false, buildHideMessage(classInfo, methodInfo));
+	}
+
+	private String buildHideMessage(ClassInfo classInfo, MethodInfo methodInfo) {
+		ChatBuilder sig = new ChatBuilder();
+
+		if (methodInfo.isDeprecated()) sig.strike();
+		String signature = methodInfo.getSignatureString();
+		String url = classInfo.getUrl(false);
+		if (url == null) {
+			sig.bold().code(signature).bold();
+		} else {
+			url += "#" + methodInfo.getUrlAnchor();
+			sig.link(new ChatBuilder().bold().code(signature).bold().toString(), url);
+		}
+		if (methodInfo.isDeprecated()) sig.strike();
+
+		return sig.toString();
 	}
 
 	/**
@@ -520,7 +537,23 @@ public class JavadocCommand implements Command {
 		String since = info.getSince();
 		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
-		return new ChatResponse(cb, SplitStrategy.WORD);
+		return new ChatResponse(cb, SplitStrategy.WORD, false, buildHideMessage(info));
+	}
+
+	private String buildHideMessage(ClassInfo info) {
+		ChatBuilder cb = new ChatBuilder();
+
+		if (info.isDeprecated()) cb.strike();
+		String fullName = info.getName().getFullyQualifiedName();
+		String url = info.getUrl(true);
+		if (url == null) {
+			cb.bold().code(fullName).bold();
+		} else {
+			cb.link(new ChatBuilder().bold().code(fullName).bold().toString(), url);
+		}
+		if (info.isDeprecated()) cb.strike();
+
+		return cb.toString();
 	}
 
 	/**

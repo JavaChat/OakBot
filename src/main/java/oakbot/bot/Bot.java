@@ -209,8 +209,13 @@ public class Bot {
 			}
 
 			/*
-			 * Check to see if the bot posted something that Stack Overflow Chat
-			 * converted to a onebox.
+			 * Check to see if the message should be edited for brevity after a
+			 * short time so it doesn't spam the chat history.
+			 * 
+			 * This could happen if (1) the bot posted something that Stack
+			 * Overflow Chat converted to a onebox (e.g. an image) or (2) the
+			 * message itself has asked to be edited (e.g. a javadoc
+			 * description).
 			 * 
 			 * Stack Overflow Chat converts certain URLs to "oneboxes". Oneboxes
 			 * can be fairly large and can spam the chat. For example, if the
@@ -222,10 +227,11 @@ public class Bot {
 			 * so that the onebox no longer displays, but the URL is still
 			 * preserved.
 			 */
-			if (originalMessage != null && hideOneboxesAfter != null && message.isOnebox()) {
+			if (originalMessage != null && hideOneboxesAfter != null && (message.isOnebox() || originalMessage.hide())) {
 				long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - originalMessage.getTimePosted());
 				if (logger.isLoggable(Level.INFO)) {
-					logger.info("Hiding onebox in " + hideIn + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+					String action = message.isOnebox() ? "Hiding onebox" : "Condensing message";
+					logger.info(action + " in " + hideIn + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
 				}
 
 				timer.schedule(new TimerTask() {
@@ -233,6 +239,9 @@ public class Bot {
 					public void run() {
 						try {
 							room.editMessage(message.getMessageId(), "> " + originalMessage.getContent());
+							for (Long id : originalMessage.getRelatedMessageIds()) {
+								room.deleteMessage(id);
+							}
 						} catch (Exception e) {
 							logger.log(Level.SEVERE, "Problem editing chat message [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]", e);
 						}
@@ -362,7 +371,15 @@ public class Bot {
 			synchronized (postedMessages) {
 				List<Long> messageIds = room.sendMessage(filteredMessage, reply.getSplitStrategy());
 				long now = System.currentTimeMillis();
-				messageIds.forEach((id) -> postedMessages.put(id, new PostedMessage(now, filteredMessage)));
+
+				String hideMessage = reply.getHideMessage();
+				boolean hide = (hideMessage != null);
+				if (!hide) {
+					hideMessage = filteredMessage;
+				}
+
+				PostedMessage postedMessage = new PostedMessage(now, hideMessage, hide, messageIds.subList(1, messageIds.size()));
+				postedMessages.put(messageIds.get(0), postedMessage);
 			}
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Problem sending chat message.", e);
@@ -793,10 +810,14 @@ public class Bot {
 	private static class PostedMessage {
 		private final long timePosted;
 		private final String content;
+		private final boolean hide;
+		private final List<Long> relatedMessageIds;
 
-		public PostedMessage(long timePosted, String content) {
+		public PostedMessage(long timePosted, String content, boolean hide, List<Long> relatedMessageIds) {
 			this.timePosted = timePosted;
 			this.content = content;
+			this.hide = hide;
+			this.relatedMessageIds = relatedMessageIds;
 		}
 
 		public long getTimePosted() {
@@ -805,6 +826,14 @@ public class Bot {
 
 		public String getContent() {
 			return content;
+		}
+
+		public boolean hide() {
+			return hide;
+		}
+
+		public List<Long> getRelatedMessageIds() {
+			return relatedMessageIds;
 		}
 	}
 
