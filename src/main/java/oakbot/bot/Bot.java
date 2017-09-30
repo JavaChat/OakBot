@@ -141,6 +141,17 @@ public class Bot {
 				logger.log(Level.SEVERE, "Could not join room " + room + ". Removing from rooms list.", e);
 				this.rooms.remove(room);
 			}
+
+			/*
+			 * Insert a pause between joining each room in an attempt to resolve
+			 * an issue where the bot chooses to ignore all messages in certain
+			 * rooms.
+			 */
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				//ignore
+			}
 		}
 
 		Thread thread = new Thread(() -> {
