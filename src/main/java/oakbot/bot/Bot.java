@@ -1,12 +1,8 @@
 package oakbot.bot;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,13 +18,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 
 import oakbot.Database;
@@ -41,7 +30,6 @@ import oakbot.chat.IRoom;
 import oakbot.chat.InvalidCredentialsException;
 import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.RoomPermissionException;
-import oakbot.chat.SplitStrategy;
 import oakbot.chat.event.MessageEditedEvent;
 import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
@@ -49,7 +37,7 @@ import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommands;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.Listener;
-import oakbot.util.ChatBuilder;
+import oakbot.task.ScheduledTask;
 
 /**
  * A Stackoverflow chat bot.
@@ -71,6 +59,7 @@ public class Bot {
 	private final LearnedCommands learnedCommands;
 	private final List<Listener> listeners;
 	private final List<ChatResponseFilter> responseFilters;
+	private final List<ScheduledTask> scheduledTasks;
 	private final Statistics stats;
 	private final Database database;
 	private final UnknownCommandHandler unknownCommandHandler;
@@ -115,7 +104,27 @@ public class Bot {
 		commands = builder.commands.build();
 		learnedCommands = builder.learnedCommands;
 		listeners = builder.listeners.build();
+		scheduledTasks = builder.tasks.build();
 		responseFilters = builder.responseFilters.build();
+	}
+
+	private void scheduleTask(ScheduledTask task) {
+		long nextRun = task.nextRun();
+		if (nextRun <= 0) {
+			return;
+		}
+
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				try {
+					task.run(Bot.this);
+				} catch (Exception e) {
+					logger.log(Level.SEVERE, "Problem running task " + task.getClass().getSimpleName() + ".", e);
+				}
+				scheduleTask(task);
+			}
+		}, nextRun);
 	}
 
 	/**
@@ -156,8 +165,9 @@ public class Bot {
 
 		Thread thread = new Thread(() -> {
 			try {
-				startQuoteOfTheDay();
-				startHealthMonitor();
+				for (ScheduledTask task : scheduledTasks) {
+					scheduleTask(task);
+				}
 				scheduleNextRoomCheck();
 
 				while (true) {
@@ -358,6 +368,19 @@ public class Bot {
 		}
 	}
 
+	/**
+	 * Posts a message to a room. If the bot has not joined the given room, then
+	 * it will not post anything.
+	 * @param roomId the room ID
+	 * @param message the message to post
+	 */
+	public void sendMessage(int roomId, ChatResponse message) {
+		IRoom room = connection.getRoom(roomId);
+		if (room != null) {
+			sendMessage(room, message);
+		}
+	}
+
 	private void sendMessage(IRoom room, String message) {
 		sendMessage(room, new ChatResponse(message));
 	}
@@ -543,7 +566,7 @@ public class Bot {
 	 * @param message the message to send
 	 * @throws IOException if there's a problem sending the message
 	 */
-	private void broadcast(String message) throws IOException {
+	public void broadcast(String message) throws IOException {
 		broadcast(new ChatResponse(message));
 	}
 
@@ -552,7 +575,7 @@ public class Bot {
 	 * @param message the message to send
 	 * @throws IOException if there's a problem sending the message
 	 */
-	private void broadcast(ChatResponse message) throws IOException {
+	public void broadcast(ChatResponse message) throws IOException {
 		for (IRoom room : connection.getRooms()) {
 			sendMessage(room, message);
 		}
@@ -564,165 +587,6 @@ public class Bot {
 	 */
 	public void stop() {
 		newMessages.add(CLOSE_MESSAGE);
-	}
-
-	private void startQuoteOfTheDay() {
-		long delayBeforeFirstRun;
-		{
-			LocalDateTime now = LocalDateTime.now();
-			LocalDateTime tomorrow = now.truncatedTo(ChronoUnit.DAYS).plusDays(1);
-			delayBeforeFirstRun = now.until(tomorrow, ChronoUnit.MILLIS);
-		}
-
-		long interval = Duration.ofDays(1).toMillis();
-
-		timer.scheduleAtFixedRate(new TimerTask() {
-			@Override
-			public void run() {
-				String quote, author, permalink;
-				try {
-					JsonNode response = getResponse();
-					JsonNode quoteNode = response.get("contents").get("quotes").get(0);
-
-					quote = quoteNode.get("quote").asText();
-					author = quoteNode.get("author").asText();
-					permalink = quoteNode.get("permalink").asText();
-				} catch (Exception e) {
-					logger.log(Level.SEVERE, "Error querying quote API.", e);
-					return;
-				}
-
-				ChatBuilder cb = new ChatBuilder();
-				cb.italic().append('"').append(quote).append('"').italic();
-				cb.append(" -").append(author);
-				cb.append(' ').link("(source)", permalink);
-
-				try {
-					broadcast(new ChatResponse(cb, SplitStrategy.WORD));
-				} catch (Exception e) {
-					logger.log(Level.SEVERE, "Error broadcasting quote.", e);
-				}
-
-				inactiveRoomTasks.resetAfterQotd();
-			}
-
-			private JsonNode getResponse() throws IOException {
-				ObjectMapper mapper = new ObjectMapper();
-				HttpGet request = new HttpGet("http://quotes.rest/qod.json");
-				try (CloseableHttpClient client = HttpClients.createDefault()) {
-					try (CloseableHttpResponse response = client.execute(request)) {
-						try (InputStream in = response.getEntity().getContent()) {
-							return mapper.readTree(in);
-						}
-					}
-				}
-			}
-
-			//@formatter:off
-			/*
-			private JsonNode getResponse() throws IOException {
-				byte[] b = Files.readAllBytes(Paths.get("quotes.rest-example.json"));
-				ObjectMapper mapper = new ObjectMapper();
-				return mapper.readTree(b);
-			}
-			*/
-			//@formatter:on
-		}, delayBeforeFirstRun, interval);
-	}
-
-	private void startHealthMonitor() {
-		logger.info("Starting health monitor...");
-
-		/*
-		 * Do not start the health monitor if there is a problem checking for
-		 * security updates.
-		 */
-		Integer securityUpdates = getNumSecurityUpdates();
-		if (securityUpdates == null) {
-			return;
-		}
-
-		scheduleNextHealthPost(securityUpdates);
-
-		logger.info("Health monitor started.  There are " + securityUpdates + " available security updates.");
-	}
-
-	/**
-	 * Queries the local operating system for the number of security updates
-	 * that are available.
-	 * @return the number of security updates or null if they couldn't be
-	 * retrieved
-	 */
-	private Integer getNumSecurityUpdates() {
-		/*
-		 * The apt-check command returns output in the following format:
-		 * 
-		 * NUM_TOTAL_UPDATES;NUM_SECURITY_UPDATES
-		 * 
-		 * For example, the output "128;68" means there are 128 updates, 68 of
-		 * which are considered to be security updates.
-		 */
-		try {
-			/*
-			 * For some reason, the command output is sent to the error stream,
-			 * so redirect all error output to the standard stream.
-			 */
-			Process process = new ProcessBuilder("/usr/lib/update-notifier/apt-check").redirectErrorStream(true).start();
-
-			try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-				String line = reader.readLine();
-				String split[] = line.split(";");
-				return Integer.valueOf(split[1]);
-			}
-		} catch (Exception e) {
-			logger.log(Level.WARNING, "An error occurred while querying the local operating system for the number of available security updates.", e);
-		}
-		return null;
-	}
-
-	private void scheduleNextHealthPost(int securityUpdates) {
-		long delay;
-		if (securityUpdates < 10) {
-			/*
-			 * Don't post anything if there are less than 10 updates. But check
-			 * again tomorrow.
-			 */
-			delay = Duration.ofDays(1).toMillis();
-		} else {
-			double timesToPostPerDay = securityUpdates / 15.0;
-			if (timesToPostPerDay > 8) {
-				timesToPostPerDay = 8;
-			}
-			delay = (long) ((24 / timesToPostPerDay) * 60 * 60 * 1000);
-		}
-
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				Integer updates = getNumSecurityUpdates();
-				if (updates == null) {
-					updates = 0;
-				} else {
-					logger.fine("There are " + updates + " available security updates.");
-				}
-
-				if (updates >= 10) {
-					/*
-					 * Only post to the Java room.
-					 */
-					IRoom javaRoom = connection.getRoom(139);
-
-					if (javaRoom != null) {
-						ChatBuilder cb = new ChatBuilder();
-						cb.italic(Command.random("coughs", "sneezes", "clears throat", "expectorates", "sniffles", "wheezes"));
-						ChatResponse response = new ChatResponse(cb, SplitStrategy.NONE, true);
-						sendMessage(javaRoom, response);
-					}
-				}
-
-				scheduleNextHealthPost(updates);
-			}
-		}, delay);
 	}
 
 	private void scheduleNextRoomCheck() {
@@ -768,10 +632,6 @@ public class Bot {
 		}
 
 		public void reset(IRoom room) {
-			reset(room, true);
-		}
-
-		public void reset(IRoom room, boolean userPostedMessage) {
 			int roomId = room.getRoomId();
 			if (rooms.getQuietRooms().contains(roomId)) {
 				return;
@@ -815,17 +675,11 @@ public class Bot {
 				}
 			};
 
-			if (userPostedMessage || !resetTimes.containsKey(room)) {
+			if (!resetTimes.containsKey(room)) {
 				resetTimes.put(room, System.currentTimeMillis());
 			}
 			tasks.put(room, task);
 			timer.scheduleAtFixedRate(task, waitTime, waitTime);
-		}
-
-		public void resetAfterQotd() {
-			for (IRoom room : tasks.keySet()) {
-				reset(room, false);
-			}
 		}
 
 		public void cancel(IRoom room) {
@@ -882,6 +736,7 @@ public class Bot {
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
 		private LearnedCommands learnedCommands = new LearnedCommands();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
+		private ImmutableList.Builder<ScheduledTask> tasks = ImmutableList.builder();
 		private ImmutableList.Builder<ChatResponseFilter> responseFilters = ImmutableList.builder();
 		private Statistics stats;
 		private Database database;
@@ -971,6 +826,15 @@ public class Bot {
 
 		public Builder listeners(Collection<Listener> listeners) {
 			this.listeners.addAll(listeners);
+			return this;
+		}
+
+		public Builder tasks(ScheduledTask... tasks) {
+			return tasks(Arrays.asList(tasks));
+		}
+
+		public Builder tasks(Collection<ScheduledTask> tasks) {
+			this.tasks.addAll(tasks);
 			return this;
 		}
 

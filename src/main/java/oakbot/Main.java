@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -65,6 +66,9 @@ import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
+import oakbot.task.HealthMonitor;
+import oakbot.task.QOTD;
+import oakbot.task.ScheduledTask;
 
 /**
  * @author Michael Angstadt
@@ -201,6 +205,12 @@ public class Main {
 			}
 		}
 
+		List<ScheduledTask> tasks = new ArrayList<>();
+		{
+			tasks.add(new QOTD());
+			tasks.add(new HealthMonitor(Arrays.asList(139)));
+		}
+
 		List<ChatResponseFilter> filters = new ArrayList<>();
 		{
 			filters.add(grootFilter);
@@ -221,6 +231,7 @@ public class Main {
 			.commands(commands)
 			.learnedCommands(learnedCommands)
 			.listeners(listeners)
+			.tasks(tasks)
 			.responseFilters(filters)
 			.connection(connection)
 			.admins(props.getAdmins())
