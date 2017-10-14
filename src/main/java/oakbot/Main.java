@@ -66,6 +66,7 @@ import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
+import oakbot.task.FOTD;
 import oakbot.task.HealthMonitor;
 import oakbot.task.QOTD;
 import oakbot.task.ScheduledTask;
@@ -208,6 +209,7 @@ public class Main {
 		List<ScheduledTask> tasks = new ArrayList<>();
 		{
 			tasks.add(new QOTD());
+			tasks.add(new FOTD());
 			tasks.add(new HealthMonitor(Arrays.asList(139)));
 		}
 
