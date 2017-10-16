@@ -3,6 +3,7 @@ package oakbot.task;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +23,8 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class FOTD implements ScheduledTask {
+	private static final Logger logger = Logger.getLogger(FOTD.class.getName());
+
 	@Override
 	public long nextRun() {
 		LocalDateTime now = LocalDateTime.now();
@@ -35,28 +38,28 @@ public class FOTD implements ScheduledTask {
 	@Override
 	public void run(Bot bot) throws Exception {
 		String response = getResponse();
-		String quote = parseQuote(response);
-		if (quote == null) {
+		String fact = parseFact(response);
+		if (fact == null) {
+			logger.warning("Unable to parse FOTD.");
 			return;
 		}
 
-		quote = ChatBuilder.toMarkdown(quote, false);
-		ChatBuilder cb = new ChatBuilder(quote);
+		fact = ChatBuilder.toMarkdown(fact, false);
+		ChatBuilder cb = new ChatBuilder(fact);
 		cb.append(' ').link("(source)", "http://www.refdesk.com");
 		bot.broadcast(new ChatResponse(cb, SplitStrategy.WORD));
 	}
 
-	private String parseQuote(String html) {
+	private String parseFact(String html) {
 		Pattern p = Pattern.compile("<!------------FOTD START---------------->(.*?)-\\s*Provided\\s*by", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(html);
-		return m.find() ? m.group(1).trim() : null;
+		return m.find() ? m.group(1).trim().replace("�", "'") : null;
 	}
 
 	/**
 	 * Queries the website for the fact of the day.
-	 * @return the JSON response
-	 * @throws IOException if there's a network problem or a problem parsing the
-	 * response
+	 * @return the HTML response
+	 * @throws IOException if there's a network problem
 	 */
 	private String getResponse() throws IOException {
 		HttpGet request = new HttpGet("http://www.refdesk.com");
