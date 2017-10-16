@@ -1,8 +1,6 @@
 package oakbot.task;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.regex.Matcher;
@@ -12,6 +10,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
@@ -60,20 +59,11 @@ public class FOTD implements ScheduledTask {
 	 * response
 	 */
 	private String getResponse() throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		HttpGet request = new HttpGet("http://www.refdesk.com");
 		try (CloseableHttpClient client = HttpClients.createDefault()) {
 			try (CloseableHttpResponse response = client.execute(request)) {
-				try (InputStream in = response.getEntity().getContent()) {
-					byte buf[] = new byte[4096];
-					int read;
-					while ((read = in.read(buf)) != -1) {
-						out.write(buf, 0, read);
-					}
-				}
+				return EntityUtils.toString(response.getEntity());
 			}
 		}
-
-		return new String(out.toByteArray());
 	}
 }
