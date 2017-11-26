@@ -275,7 +275,7 @@ public class Bot {
 			return;
 		}
 
-		inactiveRoomTasks.reset(room);
+		inactiveRoomTasks.resetTimer(room);
 
 		List<ChatResponse> replies = new ArrayList<>();
 		boolean isUserAdmin = admins.contains(message.getUserId());
@@ -463,7 +463,7 @@ public class Bot {
 		}
 
 		rooms.add(roomId);
-		inactiveRoomTasks.reset(room);
+		inactiveRoomTasks.resetTimer(room);
 
 		return room;
 	}
@@ -482,7 +482,7 @@ public class Bot {
 
 		room.leave();
 		rooms.remove(roomId);
-		inactiveRoomTasks.cancel(room);
+		inactiveRoomTasks.cancelTimer(room);
 	}
 
 	/**
@@ -618,7 +618,6 @@ public class Bot {
 
 		private final long waitTime, leaveRoomAfter;
 		private final Map<IRoom, TimerTask> tasks = new HashMap<>();
-		private final Map<IRoom, Long> resetTimes = new HashMap<>();
 
 		/**
 		 * @param waitTime how long to wait in between messages (in
@@ -631,25 +630,26 @@ public class Bot {
 			this.leaveRoomAfter = leaveRoomAfter;
 		}
 
-		public void reset(IRoom room) {
+		public void resetTimer(IRoom room) {
 			int roomId = room.getRoomId();
 			if (rooms.getQuietRooms().contains(roomId)) {
 				return;
 			}
 
-			TimerTask task = tasks.get(room);
-			if (task != null) {
-				task.cancel();
-			}
+			cancelTimer(room);
 
-			task = new TimerTask() {
+			TimerTask task = new TimerTask() {
+				private long taskStarted = System.currentTimeMillis();
+
 				@Override
 				public void run() {
-					long lastReset = resetTimes.get(room);
-					long elapsed = System.currentTimeMillis() - lastReset;
-					if (elapsed > leaveRoomAfter) {
-						leaveRoom();
-						return;
+					boolean isHomeRoom = rooms.getHomeRooms().contains(roomId);
+					if (!isHomeRoom) {
+						long sinceLastMessage = System.currentTimeMillis() - taskStarted;
+						if (sinceLastMessage > leaveRoomAfter) {
+							leaveRoom();
+							return;
+						}
 					}
 
 					String message = Command.random(messages);
@@ -662,7 +662,7 @@ public class Bot {
 
 				private void leaveRoom() {
 					try {
-						sendMessage(room, "*quietly closes door behind him*");
+						sendMessage(room, "*quietly closes the door behind him*");
 					} catch (Exception e) {
 						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
 					}
@@ -675,19 +675,15 @@ public class Bot {
 				}
 			};
 
-			if (!resetTimes.containsKey(room)) {
-				resetTimes.put(room, System.currentTimeMillis());
-			}
 			tasks.put(room, task);
 			timer.scheduleAtFixedRate(task, waitTime, waitTime);
 		}
 
-		public void cancel(IRoom room) {
+		public void cancelTimer(IRoom room) {
 			TimerTask task = tasks.remove(room);
 			if (task != null) {
 				task.cancel();
 			}
-			resetTimes.remove(room);
 		}
 	}
 
