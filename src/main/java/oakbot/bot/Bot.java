@@ -318,7 +318,11 @@ public class Bot {
 			}
 
 			for (ChatResponse reply : replies) {
-				sendMessage(room, reply);
+				try {
+					sendMessage(room, reply);
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem posting message [room=" + room.getRoomId() + "]: " + reply.getMessage(), e);
+				}
 			}
 		}
 
@@ -351,7 +355,11 @@ public class Bot {
 			}
 
 			if (response != null) {
-				sendMessage(room, response);
+				try {
+					sendMessage(room, response);
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem posting leave message [room=" + room.getRoomId() + "]: " + response, e);
+				}
 			}
 		}
 
@@ -373,19 +381,20 @@ public class Bot {
 	 * it will not post anything.
 	 * @param roomId the room ID
 	 * @param message the message to post
+	 * @throws IOException if there's a problem sending the message
 	 */
-	public void sendMessage(int roomId, ChatResponse message) {
+	public void sendMessage(int roomId, ChatResponse message) throws IOException {
 		IRoom room = connection.getRoom(roomId);
 		if (room != null) {
 			sendMessage(room, message);
 		}
 	}
 
-	private void sendMessage(IRoom room, String message) {
+	private void sendMessage(IRoom room, String message) throws IOException {
 		sendMessage(room, new ChatResponse(message));
 	}
 
-	private void sendMessage(IRoom room, ChatResponse reply) {
+	private void sendMessage(IRoom room, ChatResponse reply) throws IOException {
 		final String filteredMessage;
 		if (reply.isBypassFilters()) {
 			filteredMessage = reply.getMessage();
@@ -399,26 +408,22 @@ public class Bot {
 			filteredMessage = messageText;
 		}
 
-		try {
-			if (logger.isLoggable(Level.INFO)) {
-				logger.info("Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info("Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);
+		}
+
+		synchronized (postedMessages) {
+			List<Long> messageIds = room.sendMessage(filteredMessage, reply.getSplitStrategy());
+			long now = System.currentTimeMillis();
+
+			String hideMessage = reply.getHideMessage();
+			boolean hide = (hideMessage != null);
+			if (!hide) {
+				hideMessage = filteredMessage;
 			}
 
-			synchronized (postedMessages) {
-				List<Long> messageIds = room.sendMessage(filteredMessage, reply.getSplitStrategy());
-				long now = System.currentTimeMillis();
-
-				String hideMessage = reply.getHideMessage();
-				boolean hide = (hideMessage != null);
-				if (!hide) {
-					hideMessage = filteredMessage;
-				}
-
-				PostedMessage postedMessage = new PostedMessage(now, hideMessage, hide, messageIds.subList(1, messageIds.size()));
-				postedMessages.put(messageIds.get(0), postedMessage);
-			}
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Problem sending chat message.", e);
+			PostedMessage postedMessage = new PostedMessage(now, hideMessage, hide, messageIds.subList(1, messageIds.size()));
+			postedMessages.put(messageIds.get(0), postedMessage);
 		}
 	}
 
