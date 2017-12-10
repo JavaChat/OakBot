@@ -19,6 +19,7 @@ import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.bot.Bot;
 import oakbot.command.AboutCommand;
+import oakbot.command.AdventOfCodeCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
 import oakbot.command.Command;
@@ -154,6 +155,11 @@ public class Main {
 			commands.add(new GrootCommand(grootFilter));
 			commands.add(new CatCommand(props.getCatKey()));
 			commands.add(fatCatCommand);
+
+			String adventSession = props.getAdventOfCodeSession();
+			if (adventSession != null) {
+				commands.add(new AdventOfCodeCommand(props.getAdventOfCodeLeaderboards(), adventSession));
+			}
 
 			String reactKey = props.getReactKey();
 			if (reactKey != null) {

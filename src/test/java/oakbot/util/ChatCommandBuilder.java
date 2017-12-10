@@ -24,9 +24,21 @@ public class ChatCommandBuilder {
 	 * @return the chat command
 	 */
 	public ChatCommand build(int messageId, String content) {
+		return build(messageId, 0, content);
+	}
+
+	/**
+	 * Constructs a mock {@link ChatCommand} object.
+	 * @param messageId the message ID
+	 * @param roomId the roomId
+	 * @param content the command content
+	 * @return the chat command
+	 */
+	public ChatCommand build(int messageId, int roomId, String content) {
 		//@formatter:off
 		ChatMessage message = new ChatMessage.Builder()
 			.messageId(messageId)
+			.roomId(roomId)
 			.content("/" + commandName + " " + content)
 		.build();
 		//@formatter:on

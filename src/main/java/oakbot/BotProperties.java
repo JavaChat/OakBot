@@ -9,6 +9,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import oakbot.command.AdventOfCodeCommand;
 import oakbot.util.PropertiesWrapper;
 
 /**
@@ -16,13 +17,13 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
-	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey;
+	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey, adventOfCodeSession;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers;
 	private final int botUserId;
 	private final Integer hideOneboxesAfter;
 	private final Path javadocPath;
 	private final boolean javadocCache;
-	private final Map<Integer, String> welcomeMessages;
+	private final Map<Integer, String> welcomeMessages, adventOfCodeLeaderboards;
 
 	/**
 	 * @param properties the properties file to pull the settings from
@@ -49,17 +50,36 @@ public class BotProperties extends PropertiesWrapper {
 		hideOneboxesAfter = getInteger("hideOneboxesAfter");
 
 		welcomeMessages = new HashMap<>();
-		Pattern p = Pattern.compile("^welcome\\.(\\d+)\\.message$");
-		for (String key : keySet()) {
-			Matcher m = p.matcher(key);
-			if (m.find()) {
-				Integer roomId = Integer.valueOf(m.group(1));
-				String message = get(key);
-				if (message != null) {
-					welcomeMessages.put(roomId, message);
+		{
+			Pattern p = Pattern.compile("^welcome\\.(\\d+)\\.message$");
+			for (String key : keySet()) {
+				Matcher m = p.matcher(key);
+				if (m.find()) {
+					Integer roomId = Integer.valueOf(m.group(1));
+					String message = get(key);
+					if (message != null) {
+						welcomeMessages.put(roomId, message);
+					}
 				}
 			}
 		}
+
+		adventOfCodeLeaderboards = new HashMap<>();
+		{
+			Pattern p = Pattern.compile("^advent\\.(\\d+)\\.id$");
+			for (String key : keySet()) {
+				Matcher m = p.matcher(key);
+				if (m.find()) {
+					Integer roomId = Integer.valueOf(m.group(1));
+					String id = get(key);
+					if (id != null && !id.isEmpty()) {
+						adventOfCodeLeaderboards.put(roomId, id);
+					}
+				}
+			}
+		}
+
+		adventOfCodeSession = get("advent.session");
 	}
 
 	/**
@@ -201,9 +221,26 @@ public class BotProperties extends PropertiesWrapper {
 
 	/**
 	 * Gets the messages to post when a new user joins a room.
-	 * @return the messages (key = roomId, value = message)
+	 * @return the messages (key = room ID, value = message)
 	 */
 	public Map<Integer, String> getWelcomeMessages() {
 		return welcomeMessages;
+	}
+
+	/**
+	 * Gets the default Advent of Code leaderboard ID to use for the
+	 * {@link AdventOfCodeCommand} command.
+	 * @return the messages (key = room ID, value = leaderboard ID)
+	 */
+	public Map<Integer, String> getAdventOfCodeLeaderboards() {
+		return adventOfCodeLeaderboards;
+	}
+
+	/**
+	 * Gets the session token used to query the Advent of Code leaderboards.
+	 * @return the session token or null if not set
+	 */
+	public String getAdventOfCodeSession() {
+		return adventOfCodeSession;
 	}
 }
