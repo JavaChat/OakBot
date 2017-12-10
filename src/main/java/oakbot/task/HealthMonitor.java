@@ -21,7 +21,7 @@ import oakbot.util.ChatBuilder;
 public class HealthMonitor implements ScheduledTask {
 	private static final Logger logger = Logger.getLogger(HealthMonitor.class.getName());
 
-	private final String[] responses = { "coughs", "sneezes", "clears throat", "expectorates", "sniffles", "wheezes" };
+	private final String[] responses = { "coughs", "sneezes", "clears throat", "expectorates", "sniffles", "wheezes", "groans", "moans" };
 	private final List<Integer> roomIds;
 	private boolean first = true;
 	private int securityUpdates;
@@ -83,7 +83,11 @@ public class HealthMonitor implements ScheduledTask {
 				ChatBuilder cb = new ChatBuilder();
 				cb.italic(Command.random(responses));
 				ChatResponse response = new ChatResponse(cb, SplitStrategy.NONE, true);
-				bot.sendMessage(roomId, response);
+				try {
+					bot.sendMessage(roomId, response);
+				} catch (Exception e) {
+					logger.log(Level.WARNING, "Problem sending cough message [room=" + roomId + "].", e);
+				}
 			}
 		}
 	}

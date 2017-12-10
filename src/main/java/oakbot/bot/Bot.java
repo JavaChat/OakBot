@@ -275,7 +275,7 @@ public class Bot {
 			return;
 		}
 
-		inactiveRoomTasks.reset(room);
+		inactiveRoomTasks.resetTimer(room);
 
 		List<ChatResponse> replies = new ArrayList<>();
 		boolean isUserAdmin = admins.contains(message.getUserId());
@@ -318,7 +318,11 @@ public class Bot {
 			}
 
 			for (ChatResponse reply : replies) {
-				sendMessage(room, reply);
+				try {
+					sendMessage(room, reply);
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem posting message [room=" + room.getRoomId() + "]: " + reply.getMessage(), e);
+				}
 			}
 		}
 
@@ -351,7 +355,11 @@ public class Bot {
 			}
 
 			if (response != null) {
-				sendMessage(room, response);
+				try {
+					sendMessage(room, response);
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem posting leave message [room=" + room.getRoomId() + "]: " + response, e);
+				}
 			}
 		}
 
@@ -373,19 +381,20 @@ public class Bot {
 	 * it will not post anything.
 	 * @param roomId the room ID
 	 * @param message the message to post
+	 * @throws IOException if there's a problem sending the message
 	 */
-	public void sendMessage(int roomId, ChatResponse message) {
+	public void sendMessage(int roomId, ChatResponse message) throws IOException {
 		IRoom room = connection.getRoom(roomId);
 		if (room != null) {
 			sendMessage(room, message);
 		}
 	}
 
-	private void sendMessage(IRoom room, String message) {
+	private void sendMessage(IRoom room, String message) throws IOException {
 		sendMessage(room, new ChatResponse(message));
 	}
 
-	private void sendMessage(IRoom room, ChatResponse reply) {
+	private void sendMessage(IRoom room, ChatResponse reply) throws IOException {
 		final String filteredMessage;
 		if (reply.isBypassFilters()) {
 			filteredMessage = reply.getMessage();
@@ -399,26 +408,22 @@ public class Bot {
 			filteredMessage = messageText;
 		}
 
-		try {
-			if (logger.isLoggable(Level.INFO)) {
-				logger.info("Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info("Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);
+		}
+
+		synchronized (postedMessages) {
+			List<Long> messageIds = room.sendMessage(filteredMessage, reply.getSplitStrategy());
+			long now = System.currentTimeMillis();
+
+			String hideMessage = reply.getHideMessage();
+			boolean hide = (hideMessage != null);
+			if (!hide) {
+				hideMessage = filteredMessage;
 			}
 
-			synchronized (postedMessages) {
-				List<Long> messageIds = room.sendMessage(filteredMessage, reply.getSplitStrategy());
-				long now = System.currentTimeMillis();
-
-				String hideMessage = reply.getHideMessage();
-				boolean hide = (hideMessage != null);
-				if (!hide) {
-					hideMessage = filteredMessage;
-				}
-
-				PostedMessage postedMessage = new PostedMessage(now, hideMessage, hide, messageIds.subList(1, messageIds.size()));
-				postedMessages.put(messageIds.get(0), postedMessage);
-			}
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Problem sending chat message.", e);
+			PostedMessage postedMessage = new PostedMessage(now, hideMessage, hide, messageIds.subList(1, messageIds.size()));
+			postedMessages.put(messageIds.get(0), postedMessage);
 		}
 	}
 
@@ -463,7 +468,7 @@ public class Bot {
 		}
 
 		rooms.add(roomId);
-		inactiveRoomTasks.reset(room);
+		inactiveRoomTasks.resetTimer(room);
 
 		return room;
 	}
@@ -482,7 +487,7 @@ public class Bot {
 
 		room.leave();
 		rooms.remove(roomId);
-		inactiveRoomTasks.cancel(room);
+		inactiveRoomTasks.cancelTimer(room);
 	}
 
 	/**
@@ -618,7 +623,6 @@ public class Bot {
 
 		private final long waitTime, leaveRoomAfter;
 		private final Map<IRoom, TimerTask> tasks = new HashMap<>();
-		private final Map<IRoom, Long> resetTimes = new HashMap<>();
 
 		/**
 		 * @param waitTime how long to wait in between messages (in
@@ -631,25 +635,26 @@ public class Bot {
 			this.leaveRoomAfter = leaveRoomAfter;
 		}
 
-		public void reset(IRoom room) {
+		public void resetTimer(IRoom room) {
 			int roomId = room.getRoomId();
 			if (rooms.getQuietRooms().contains(roomId)) {
 				return;
 			}
 
-			TimerTask task = tasks.get(room);
-			if (task != null) {
-				task.cancel();
-			}
+			cancelTimer(room);
 
-			task = new TimerTask() {
+			TimerTask task = new TimerTask() {
+				private long taskStarted = System.currentTimeMillis();
+
 				@Override
 				public void run() {
-					long lastReset = resetTimes.get(room);
-					long elapsed = System.currentTimeMillis() - lastReset;
-					if (elapsed > leaveRoomAfter) {
-						leaveRoom();
-						return;
+					boolean isHomeRoom = rooms.getHomeRooms().contains(roomId);
+					if (!isHomeRoom) {
+						long sinceLastMessage = System.currentTimeMillis() - taskStarted;
+						if (sinceLastMessage > leaveRoomAfter) {
+							leaveRoom();
+							return;
+						}
 					}
 
 					String message = Command.random(messages);
@@ -662,7 +667,7 @@ public class Bot {
 
 				private void leaveRoom() {
 					try {
-						sendMessage(room, "*quietly closes door behind him*");
+						sendMessage(room, "*quietly closes the door behind him*");
 					} catch (Exception e) {
 						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
 					}
@@ -675,19 +680,15 @@ public class Bot {
 				}
 			};
 
-			if (!resetTimes.containsKey(room)) {
-				resetTimes.put(room, System.currentTimeMillis());
-			}
 			tasks.put(room, task);
 			timer.scheduleAtFixedRate(task, waitTime, waitTime);
 		}
 
-		public void cancel(IRoom room) {
+		public void cancelTimer(IRoom room) {
 			TimerTask task = tasks.remove(room);
 			if (task != null) {
 				task.cancel();
 			}
-			resetTimes.remove(room);
 		}
 	}
 
