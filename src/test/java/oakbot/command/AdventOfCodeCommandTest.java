@@ -49,6 +49,11 @@ public class AdventOfCodeCommandTest {
 				fail("Should not be called because no leaderboard ID was specified.");
 				return null;
 			}
+
+			@Override
+			boolean isActive() {
+				return true;
+			}
 		};
 
 		BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), null);
@@ -68,6 +73,29 @@ public class AdventOfCodeCommandTest {
 		assertLeaderboardResponse("098765", response);
 	}
 
+	@Test
+	public void not_active() {
+		ChatCommand message = chatCommandBuilder.build(1, 1, "");
+
+		Map<Integer, String> leaderboardIds = new HashMap<>();
+		AdventOfCodeCommand command = new AdventOfCodeCommand(leaderboardIds, "") {
+			@Override
+			JsonNode get(String url) throws IOException {
+				fail("Should not be called because the command is not active.");
+				return null;
+			}
+
+			@Override
+			boolean isActive() {
+				return false;
+			}
+		};
+
+		BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), null);
+		ChatResponse response = command.onMessage(message, context);
+		assertEquals(":1 This command is only active during the month of December.", response.getMessage());
+	}
+
 	private static AdventOfCodeCommand mock(Map<Integer, String> leaderboardIds, String expectedLeaderboardId) {
 		return new AdventOfCodeCommand(leaderboardIds, "") {
 			@Override
@@ -79,6 +107,11 @@ public class AdventOfCodeCommandTest {
 				try (InputStream in = getClass().getResourceAsStream("advent-of-code-2017.json")) {
 					return mapper.readTree(in);
 				}
+			}
+
+			@Override
+			boolean isActive() {
+				return true;
 			}
 		};
 	}

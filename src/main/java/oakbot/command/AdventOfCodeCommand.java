@@ -5,6 +5,7 @@ import static oakbot.command.Command.reply;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +68,10 @@ public class AdventOfCodeCommand implements Command {
 
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+		if (!isActive()) {
+			return reply("This command is only active during the month of December.", chatCommand);
+		}
+
 		String leaderboardId = chatCommand.getContent().trim();
 		if (leaderboardId.isEmpty()) {
 			leaderboardId = defaultLeaderboardIds.get(chatCommand.getMessage().getRoomId());
@@ -155,6 +160,15 @@ public class AdventOfCodeCommand implements Command {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Determines whether this command is currently active. This method is
+	 * package private so this class can be unit tested.
+	 * @return true if the command is active, false if not
+	 */
+	boolean isActive() {
+		return LocalDateTime.now().getMonth() == Month.DECEMBER;
 	}
 
 	/**
