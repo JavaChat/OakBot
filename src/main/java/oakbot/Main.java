@@ -15,6 +15,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -68,6 +69,7 @@ import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
+import oakbot.task.AdventOfCodeTask;
 import oakbot.task.FOTD;
 import oakbot.task.HealthMonitor;
 import oakbot.task.QOTD;
@@ -147,6 +149,10 @@ public class Main {
 		AfkCommand afkCommand = new AfkCommand();
 		FatCatCommand fatCatCommand = new FatCatCommand(database);
 
+		String aocSession = props.getAdventOfCodeSession();
+		Map<Integer, String> aocDefaultLeaderboards = props.getAdventOfCodeLeaderboards();
+		AdventOfCodeApi aocApi = (aocSession == null) ? null : new AdventOfCodeApi(aocSession);
+
 		UpsidedownTextFilter upsidedownTextFilter = new UpsidedownTextFilter();
 		GrootFilter grootFilter = new GrootFilter();
 
@@ -202,10 +208,8 @@ public class Main {
 			commands.add(new CatCommand(props.getCatKey()));
 			commands.add(fatCatCommand);
 
-			String adventSession = props.getAdventOfCodeSession();
-			if (adventSession != null) {
-				AdventOfCodeApi api = new AdventOfCodeApi(adventSession);
-				commands.add(new AdventOfCodeCommand(props.getAdventOfCodeLeaderboards(), api));
+			if (aocApi != null) {
+				commands.add(new AdventOfCodeCommand(aocDefaultLeaderboards, aocApi));
 			}
 
 			String reactKey = props.getReactKey();
@@ -219,6 +223,10 @@ public class Main {
 			tasks.add(new QOTD());
 			tasks.add(new FOTD());
 			tasks.add(new HealthMonitor(Arrays.asList(139)));
+
+			if (aocApi != null && !aocDefaultLeaderboards.isEmpty()) {
+				tasks.add(new AdventOfCodeTask(aocDefaultLeaderboards, aocApi));
+			}
 		}
 
 		List<ChatResponseFilter> filters = new ArrayList<>();
