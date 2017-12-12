@@ -24,7 +24,7 @@ import oakbot.util.ChatCommandBuilder;
  * @author Michael Angstadt
  */
 public class AdventOfCodeCommandTest {
-	private final ChatCommandBuilder chatCommandBuilder = new ChatCommandBuilder(new AdventOfCodeCommand(new HashMap<>(), "").name());
+	private final ChatCommandBuilder chatCommandBuilder = new ChatCommandBuilder(new AdventOfCodeCommand(new HashMap<>(), null).name());
 
 	@Test
 	public void using_default_id() {
@@ -43,13 +43,14 @@ public class AdventOfCodeCommandTest {
 		ChatCommand message = chatCommandBuilder.build(1, 1, "");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
-		AdventOfCodeCommand command = new AdventOfCodeCommand(leaderboardIds, "") {
+		AdventOfCodeApi api = new AdventOfCodeApi("") {
 			@Override
 			JsonNode get(String url) throws IOException {
 				fail("Should not be called because no leaderboard ID was specified.");
 				return null;
 			}
-
+		};
+		AdventOfCodeCommand command = new AdventOfCodeCommand(leaderboardIds, api) {
 			@Override
 			boolean isActive() {
 				return true;
@@ -78,13 +79,14 @@ public class AdventOfCodeCommandTest {
 		ChatCommand message = chatCommandBuilder.build(1, 1, "");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
-		AdventOfCodeCommand command = new AdventOfCodeCommand(leaderboardIds, "") {
+		AdventOfCodeApi api = new AdventOfCodeApi("") {
 			@Override
 			JsonNode get(String url) throws IOException {
 				fail("Should not be called because the command is not active.");
 				return null;
 			}
-
+		};
+		AdventOfCodeCommand command = new AdventOfCodeCommand(leaderboardIds, api) {
 			@Override
 			boolean isActive() {
 				return false;
@@ -97,7 +99,7 @@ public class AdventOfCodeCommandTest {
 	}
 
 	private static AdventOfCodeCommand mock(Map<Integer, String> leaderboardIds, String expectedLeaderboardId) {
-		return new AdventOfCodeCommand(leaderboardIds, "") {
+		AdventOfCodeApi api = new AdventOfCodeApi("") {
 			@Override
 			JsonNode get(String url) throws IOException {
 				int year = LocalDateTime.now().getYear();
@@ -108,7 +110,8 @@ public class AdventOfCodeCommandTest {
 					return mapper.readTree(in);
 				}
 			}
-
+		};
+		return new AdventOfCodeCommand(leaderboardIds, api) {
 			@Override
 			boolean isActive() {
 				return true;
@@ -134,7 +137,7 @@ public class AdventOfCodeCommandTest {
 		"10. ArcticEcho - 102 (12 stars)\n" +
 		"11. Shady_maniac - 90 (8 stars)\n" +
 		"12. dSolver - 90 (12 stars)\n" +
-		"13. annonymous - 38 (6 stars)\n" +
+		"13. anonymous - 38 (6 stars)\n" +
 		"14. Michael Prieto - 31 (5 stars)\n" +
 		"15. Simon - 26 (5 stars)\n" +
 		"16. Jacob Gray - 0 (0 stars)\n";
