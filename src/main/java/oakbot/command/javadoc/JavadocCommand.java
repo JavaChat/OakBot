@@ -45,6 +45,13 @@ public class JavadocCommand implements Command {
 	private List<String> prevChoices = new ArrayList<>();
 
 	/**
+	 * The user that the javadoc response should be directed towards or null if
+	 * not specified. This field is used if there are multiple matches and a
+	 * list of suggestions has to be presented.
+	 */
+	private String prevTargetUser;
+
+	/**
 	 * The last time the list of previous choices were accessed in some way
 	 * (timestamp).
 	 */
@@ -118,10 +125,13 @@ public class JavadocCommand implements Command {
 		return new ChatBuilder()
 			.append("Displays class documentation from the Javadocs.  ")
 			.append("If more than one class or method matches the query, then a list of choices is displayed.  Queries are case-insensitive.").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" CLASS_NAME[#METHOD_NAME]").nl()
+			.append("Usage: ").append(trigger).append(name()).append(" CLASS_NAME[#METHOD_NAME[(METHOD_PARAMS)]] [PARAGRAPH_NUM] [[@]TARGET_USER]").nl()
 			.append("Examples:").nl()
 			.append(trigger).append(name()).append(" String").nl()
 			.append(trigger).append(name()).append(" java.lang.String#indexOf").nl()
+			.append(trigger).append(name()).append(" java.lang.String#indexOf 2").nl()
+			.append(trigger).append(name()).append(" java.lang.String#indexOf NoobUser").nl()
+			.append(trigger).append(name()).append(" java.lang.String#substring(int)").nl()
 		.toString();
 		//@formatter:on
 	}
@@ -133,7 +143,7 @@ public class JavadocCommand implements Command {
 			return reply("Type the name of a Java class (e.g. \"java.lang.String\") or a method (e.g. \"Integer#parseInt\").", chatCommand);
 		}
 
-		//parse the command
+		//parse the command arguments
 		JavadocCommandArguments arguments = JavadocCommandArguments.parse(content);
 
 		//search for the class
@@ -171,16 +181,16 @@ public class JavadocCommand implements Command {
 		return reply("Sorry, I never heard of that class. :(", message);
 	}
 
-	private ChatResponse handleSingleMatch(JavadocCommandArguments commandText, ClassInfo info, ChatCommand message) {
-		if (commandText.getMethodName() == null) {
+	private ChatResponse handleSingleMatch(JavadocCommandArguments arguments, ClassInfo info, ChatCommand message) {
+		if (arguments.getMethodName() == null) {
 			//method name not specified, so print the class docs
-			return printClass(info, commandText.getParagraph(), message);
+			return printClass(info, arguments, message);
 		}
 
 		//print the method docs
 		MatchingMethods matchingMethods;
 		try {
-			matchingMethods = getMatchingMethods(info, commandText.getMethodName(), commandText.getParameters());
+			matchingMethods = getMatchingMethods(info, arguments.getMethodName(), arguments.getParameters());
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		}
@@ -192,23 +202,23 @@ public class JavadocCommand implements Command {
 
 		if (matchingMethods.exactSignature != null) {
 			//an exact match was found!
-			return printMethod(matchingMethods.exactSignature, info, commandText.getParagraph(), message);
+			return printMethod(matchingMethods.exactSignature, info, arguments, message);
 		}
 
-		if (matchingMethods.matchingName.size() == 1 && commandText.getParameters() == null) {
-			return printMethod(matchingMethods.matchingName.get(0), info, commandText.getParagraph(), message);
+		if (matchingMethods.matchingName.size() == 1 && arguments.getParameters() == null) {
+			return printMethod(matchingMethods.matchingName.get(0), info, arguments, message);
 		}
 
 		//print the methods with the same name
 		Multimap<ClassInfo, MethodInfo> map = ArrayListMultimap.create();
 		map.putAll(info, matchingMethods.matchingName);
-		return printMethodChoices(map, commandText.getParameters(), message);
+		return printMethodChoices(map, arguments, message);
 	}
 
-	private ChatResponse handleMultipleMatches(JavadocCommandArguments commandText, Collection<String> matches, ChatCommand message) {
-		if (commandText.getMethodName() == null) {
+	private ChatResponse handleMultipleMatches(JavadocCommandArguments arguments, Collection<String> matches, ChatCommand message) {
+		if (arguments.getMethodName() == null) {
 			//user is just querying for a class, so print the class choices
-			return printClassChoices(matches, message);
+			return printClassChoices(matches, arguments, message);
 		}
 
 		//user is querying for a method
@@ -219,7 +229,7 @@ public class JavadocCommand implements Command {
 		for (String className : matches) {
 			try {
 				ClassInfo classInfo = dao.getClassInfo(className);
-				MatchingMethods methods = getMatchingMethods(classInfo, commandText.getMethodName(), commandText.getParameters());
+				MatchingMethods methods = getMatchingMethods(classInfo, arguments.getMethodName(), arguments.getParameters());
 				if (methods.exactSignature != null) {
 					exactMatches.put(classInfo, methods.exactSignature);
 				}
@@ -238,14 +248,14 @@ public class JavadocCommand implements Command {
 			//a single, exact match was found!
 			MethodInfo method = exactMatches.values().iterator().next();
 			ClassInfo classInfo = exactMatches.keySet().iterator().next();
-			return printMethod(method, classInfo, commandText.getParagraph(), message);
+			return printMethod(method, classInfo, arguments, message);
 		}
 
-		if (matchingNames.size() == 1 && commandText.getParameters() == null) {
+		if (matchingNames.size() == 1 && arguments.getParameters() == null) {
 			//user did not specify parameters and there is method with a matching name
 			MethodInfo method = matchingNames.values().iterator().next();
 			ClassInfo classInfo = matchingNames.keySet().iterator().next();
-			return printMethod(method, classInfo, commandText.getParagraph(), message);
+			return printMethod(method, classInfo, arguments, message);
 		}
 
 		//multiple matches were found
@@ -258,7 +268,7 @@ public class JavadocCommand implements Command {
 		} else {
 			methodsToPrint = matchingNames;
 		}
-		return printMethodChoices(methodsToPrint, commandText.getParameters(), message);
+		return printMethodChoices(methodsToPrint, arguments, message);
 	}
 
 	/**
@@ -295,7 +305,12 @@ public class JavadocCommand implements Command {
 		}
 
 		//valid choice entered, print the info
-		ChatCommand newCommand = new ChatCommand(message, name(), prevChoices.get(index));
+		ChatBuilder cb = new ChatBuilder();
+		cb.append(prevChoices.get(index));
+		if (prevTargetUser != null) {
+			cb.append(' ').mention(prevTargetUser);
+		}
+		ChatCommand newCommand = new ChatCommand(message, name(), cb.toString());
 		return onMessage(newCommand, null);
 	}
 
@@ -303,14 +318,21 @@ public class JavadocCommand implements Command {
 	 * Prints the Javadoc info of a particular method.
 	 * @param methodinfo the method
 	 * @param classInfo the class that the method belongs to
-	 * @param paragraph the paragraph to print
+	 * @param arguments the command arguments
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printMethod(MethodInfo methodInfo, ClassInfo classInfo, int paragraph, ChatCommand message) {
+	private ChatResponse printMethod(MethodInfo methodInfo, ClassInfo classInfo, JavadocCommandArguments arguments, ChatCommand message) {
 		ChatBuilder cb = new ChatBuilder();
-		cb.reply(message);
 
+		String username = arguments.getTargetUser();
+		if (username == null) {
+			cb.reply(message);
+		} else {
+			cb.mention(username).append(' ');
+		}
+
+		int paragraph = arguments.getParagraph();
 		if (paragraph == 1) {
 			//print library name
 			JavadocZipFile zipFile = classInfo.getZipFile();
@@ -382,17 +404,19 @@ public class JavadocCommand implements Command {
 	/**
 	 * Prints the methods to choose from when multiple methods are found.
 	 * @param matchingMethods the methods to choose from
-	 * @param methodParams the parameters of the method or null if no parameters
-	 * were specified
+	 * @param arguments the command arguments
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, List<String> methodParams, ChatCommand message) {
+	private ChatResponse printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, JavadocCommandArguments arguments, ChatCommand message) {
 		prevChoices = new ArrayList<>();
+		prevTargetUser = arguments.getTargetUser();
 		prevChoicesPinged = System.currentTimeMillis();
 
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(message);
+
+		List<String> methodParams = arguments.getParameters();
 
 		if (matchingMethods.size() == 1) {
 			if (methodParams == null) {
@@ -450,13 +474,15 @@ public class JavadocCommand implements Command {
 	/**
 	 * Prints the classes to choose from when multiple class are found.
 	 * @param classes the fully-qualified names of the classes
-	 * @param cb the chat builder
+	 * @param arguments the command arguments
+	 * @param message the original message
 	 * @return the chat response
 	 */
-	private ChatResponse printClassChoices(Collection<String> classes, ChatCommand message) {
+	private ChatResponse printClassChoices(Collection<String> classes, JavadocCommandArguments arguments, ChatCommand message) {
 		List<String> choices = new ArrayList<>(classes);
 		Collections.sort(choices);
 		prevChoices = choices;
+		prevTargetUser = arguments.getTargetUser();
 		prevChoicesPinged = System.currentTimeMillis();
 
 		ChatBuilder cb = new ChatBuilder();
@@ -472,10 +498,17 @@ public class JavadocCommand implements Command {
 		return new ChatResponse(cb, SplitStrategy.NEWLINE);
 	}
 
-	private ChatResponse printClass(ClassInfo info, int paragraph, ChatCommand message) {
+	private ChatResponse printClass(ClassInfo info, JavadocCommandArguments arguments, ChatCommand message) {
 		ChatBuilder cb = new ChatBuilder();
-		cb.reply(message);
 
+		String username = arguments.getTargetUser();
+		if (username == null) {
+			cb.reply(message);
+		} else {
+			cb.mention(username).append(' ');
+		}
+
+		int paragraph = arguments.getParagraph();
 		if (paragraph == 1) {
 			//print the library name
 			JavadocZipFile zipFile = info.getZipFile();
