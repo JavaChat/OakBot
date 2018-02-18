@@ -53,7 +53,7 @@ public class AfkListener implements Listener {
 
 		boolean returned = command.setBack(message.getUserId());
 
-		Collection<String> mentions = new HashSet<>(message.getMentions()); //remove duplicates
+		Collection<String> mentions = new HashSet<>(message.getContent().getMentions()); //remove duplicates
 		Collection<AfkUser> mentionedAfkUsers = getAfkUsers(mentions);
 		List<AfkUser> usersNotWarnedAbout = filterUsersNotWarnedAbout(mentionedAfkUsers, message.getUserId());
 		if (!usersNotWarnedAbout.isEmpty()) {
@@ -124,12 +124,14 @@ public class AfkListener implements Listener {
 	 * @return true or false
 	 */
 	private boolean isUserAwayAndTypedAfkCommandAgain(ChatMessage message, String trigger) {
+		String content = message.getContent().getContent();
+
 		//@formatter:off
 		return
 		command.isAway(message.getUserId()) &&
 		(
-			message.getContent().equals(trigger + command.name()) ||
-			message.getContent().startsWith(trigger + command.name() + " ")
+			content.equals(trigger + command.name()) ||
+			content.startsWith(trigger + command.name() + " ")
 		);
 		//@formatter:on
 	}

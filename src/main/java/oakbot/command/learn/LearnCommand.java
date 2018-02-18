@@ -43,9 +43,7 @@ public class LearnCommand implements Command {
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		ChatMessage message = chatCommand.getMessage();
-		String content = chatCommand.getContent();
-
-		ChatMessage subMessage = new ChatMessage.Builder(message).content(content, message.isFixedFont()).build();
+		ChatMessage subMessage = new ChatMessage.Builder(message).content(chatCommand.getContent(), chatCommand.isFixedFont()).build();
 		ChatCommand subCommand = ChatCommand.fromMessage(subMessage, null);
 		if (subCommand == null) {
 			//@formatter:off
@@ -73,8 +71,7 @@ public class LearnCommand implements Command {
 			return reply("A command with that name already exists.", chatCommand);
 		}
 
-		String commandOutput = ChatBuilder.toMarkdown(subCommand.getContent(), subMessage.isFixedFont());
-		learnedCommands.add(commandName, commandOutput);
+		learnedCommands.add(commandName, subCommand.getContentMarkdown());
 
 		return reply("Saved.", chatCommand);
 	}

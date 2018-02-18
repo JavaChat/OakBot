@@ -250,10 +250,10 @@ public class Bot {
 			 * so that the onebox no longer displays, but the URL is still
 			 * preserved.
 			 */
-			if (originalMessage != null && hideOneboxesAfter != null && (message.isOnebox() || originalMessage.hide())) {
+			if (originalMessage != null && hideOneboxesAfter != null && (message.getContent().isOnebox() || originalMessage.hide())) {
 				long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - originalMessage.getTimePosted());
 				if (logger.isLoggable(Level.INFO)) {
-					String action = message.isOnebox() ? "Hiding onebox" : "Condensing message";
+					String action = message.getContent().isOnebox() ? "Hiding onebox" : "Condensing message";
 					logger.info(action + " in " + hideIn + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
 				}
 

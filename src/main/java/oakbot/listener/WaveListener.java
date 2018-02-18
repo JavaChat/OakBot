@@ -51,8 +51,8 @@ public class WaveListener implements Listener {
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
-		String content = message.getContent();
-		boolean mentioned = message.isMentioned(botUsername);
+		String content = message.getContent().getContent();
+		boolean mentioned = message.getContent().isMentioned(botUsername);
 
 		String wave;
 		if (mentioned) {

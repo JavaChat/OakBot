@@ -819,7 +819,7 @@ public class Room implements IRoom {
 				MessagePostedEvent messagePostedEvent = EventParsers.messagePosted(event);
 				ChatMessage message = messagePostedEvent.getMessage();
 
-				Matcher m = messagesMovedOutRegex.matcher(message.getContent());
+				Matcher m = messagesMovedOutRegex.matcher(message.getContent().getContent());
 				if (!m.find()) {
 					continue;
 				}
@@ -899,7 +899,7 @@ public class Room implements IRoom {
 				MessagePostedEvent messagePostedEvent = EventParsers.messagePosted(event);
 				ChatMessage message = messagePostedEvent.getMessage();
 
-				Matcher m = messagesMovedInRegex.matcher(message.getContent());
+				Matcher m = messagesMovedInRegex.matcher(message.getContent().getContent());
 				if (!m.find()) {
 					continue;
 				}
@@ -1179,50 +1179,11 @@ public class Room implements IRoom {
 			 * This field is not present for "message deleted" events.
 			 */
 			value = element.get("content");
-			if (value != null) {
-				String content = value.asText();
-				String inner = extractFixedFontContent(content);
-				boolean fixedFont = (inner != null);
-				if (!fixedFont) {
-					inner = extractMultiLineContent(content);
-					if (inner == null) {
-						inner = content;
-					}
-				}
-
-				builder.content(inner, fixedFont);
+			if (value != null && !value.isNull()) {
+				builder.content(Content.parse(value.asText()));
 			}
 
 			return builder.build();
-		}
-
-		private static final Pattern fixedWidthRegex = Pattern.compile("^<pre class='(full|partial)'>(.*?)</pre>$", Pattern.DOTALL);
-
-		/**
-		 * Extracts the message content from a message that is formatted in
-		 * fixed font. Fixed font messages are enclosed in a &lt;pre&gt; tag.
-		 * @param content the complete chat message content
-		 * @return the extracted message content or null if the message is not
-		 * fixed-font
-		 */
-		private static String extractFixedFontContent(String content) {
-			Matcher m = fixedWidthRegex.matcher(content);
-			return m.find() ? m.group(2) : null;
-		}
-
-		private static final Pattern multiLineRegex = Pattern.compile("^<div class='(full|partial)'>(.*?)</div>$", Pattern.DOTALL);
-
-		/**
-		 * Extracts the message content from a multi-line message. Multi-line
-		 * messages are enclosed in a &lt;div&gt; tag. Also converts &lt;br&gt;
-		 * tags to newlines.
-		 * @param content the complete chat message content
-		 * @return the extracted message content or null if the message is not
-		 * multi-line
-		 */
-		private static String extractMultiLineContent(String content) {
-			Matcher m = multiLineRegex.matcher(content);
-			return m.find() ? m.group(2).replace(" <br> ", "\n") : null;
 		}
 	}
 

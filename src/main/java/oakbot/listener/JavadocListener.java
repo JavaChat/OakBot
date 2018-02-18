@@ -34,7 +34,7 @@ public class JavadocListener implements Listener {
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
-		String content = message.getContent();
+		String content = message.getContent().getContent();
 		try {
 			int num = Integer.parseInt(content);
 			return command.showChoice(message, num);

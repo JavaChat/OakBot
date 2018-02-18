@@ -178,8 +178,8 @@ public class FatCatCommand implements Command {
 			return null;
 		}
 
-		String content = message.getContent();
-		if (content == null || content.isEmpty()) {
+		String content = message.getContent().getContent();
+		if (content.isEmpty()) {
 			return null;
 		}
 

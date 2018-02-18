@@ -6,6 +6,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import oakbot.chat.ChatMessage;
+import oakbot.chat.Content;
+import oakbot.util.ChatBuilder;
 
 /**
  * Represents a chat message that is in the form of a bot command.
@@ -52,18 +54,36 @@ public class ChatCommand {
 
 	/**
 	 * <p>
-	 * Gets the rest of the text that came after the command name.
+	 * Gets the text that comes after the command name.
 	 * </p>
 	 * <p>
 	 * For example, given the chat message "/define java", this method would
-	 * return "java". All whitespace after the command name are excluded from
-	 * this method's return value. Any HTML formatting within the content is
-	 * preserved.
+	 * return "java". All whitespace after the command name is excluded. Any
+	 * HTML formatting within the content is preserved.
 	 * <p>
 	 * @return the text or empty string if there is no text after the command
+	 * name
 	 */
 	public String getContent() {
 		return content;
+	}
+
+	/**
+	 * Converts any HTML formatting in the text that comes after the command
+	 * name to Markdown syntax.
+	 * @return the Markdown text or empty string if there is no text after the
+	 * command name
+	 */
+	public String getContentMarkdown() {
+		return ChatBuilder.toMarkdown(content, isFixedFont());
+	}
+
+	/**
+	 * Determines whether the command is formatted in a monospace font.
+	 * @return true if it's formatted in a monospace font, false if not
+	 */
+	public boolean isFixedFont() {
+		return message.getContent().isFixedFont();
 	}
 
 	/**
@@ -75,11 +95,12 @@ public class ChatCommand {
 	 * command
 	 */
 	public static ChatCommand fromMessage(ChatMessage message, String trigger) {
-		String content = message.getContent();
-		if (content == null) {
+		Content contentObj = message.getContent();
+		if (contentObj == null) {
 			return null;
 		}
 
+		String content = contentObj.getContent();
 		StringBuilder nameBuffer = new StringBuilder();
 		List<String[]> openTags = new ArrayList<>();
 		boolean inTag = false, inTagName = false, inClosingTag = false;
@@ -188,7 +209,7 @@ public class ChatCommand {
 			text = "";
 		} else {
 			text = content.substring(startOfText);
-			if (!message.isFixedFont()) {
+			if (!contentObj.isFixedFont()) {
 				text = text.trim();
 			}
 		}

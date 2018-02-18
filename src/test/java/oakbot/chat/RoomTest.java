@@ -117,7 +117,7 @@ public class RoomTest {
 		MessagePostedEvent event = (MessagePostedEvent) events.get(0);
 		assertEquals(1, event.getEventId());
 		assertEquals(timestamp(1417041460), event.getTimestamp());
-		assertEquals("one", event.getMessage().getContent());
+		assertEquals("one", event.getMessage().getContent().getContent());
 		assertEquals(0, event.getMessage().getEdits());
 		assertEquals(0, event.getMessage().getMentionedUserId());
 		assertEquals(20157245, event.getMessage().getMessageId());
@@ -169,7 +169,7 @@ public class RoomTest {
 		MessagePostedEvent postedEvent = (MessagePostedEvent) events.get(0);
 		assertEquals(1, postedEvent.getEventId());
 		assertEquals(timestamp(1417041460), postedEvent.getTimestamp());
-		assertEquals("@Bob Howdy.", postedEvent.getMessage().getContent());
+		assertEquals("@Bob Howdy.", postedEvent.getMessage().getContent().getContent());
 		assertEquals(0, postedEvent.getMessage().getEdits());
 		assertEquals(100, postedEvent.getMessage().getMentionedUserId());
 		assertEquals(20157245, postedEvent.getMessage().getMessageId());
@@ -184,7 +184,7 @@ public class RoomTest {
 		MessageEditedEvent editedEvent = (MessageEditedEvent) events.get(1);
 		assertEquals(3, editedEvent.getEventId());
 		assertEquals(timestamp(1417041470), editedEvent.getTimestamp());
-		assertEquals("@Greg Sup.", editedEvent.getMessage().getContent());
+		assertEquals("@Greg Sup.", editedEvent.getMessage().getContent().getContent());
 		assertEquals(1, editedEvent.getMessage().getEdits());
 		assertEquals(150, editedEvent.getMessage().getMentionedUserId());
 		assertEquals(20157240, editedEvent.getMessage().getMessageId());
@@ -236,7 +236,7 @@ public class RoomTest {
 		MessagePostedEvent postedEvent = (MessagePostedEvent) events.get(0);
 		assertEquals(1, postedEvent.getEventId());
 		assertEquals(timestamp(1417041460), postedEvent.getTimestamp());
-		assertEquals("@Bob Howdy.", postedEvent.getMessage().getContent());
+		assertEquals("@Bob Howdy.", postedEvent.getMessage().getContent().getContent());
 		assertEquals(0, postedEvent.getMessage().getEdits());
 		assertEquals(100, postedEvent.getMessage().getMentionedUserId());
 		assertEquals(20157245, postedEvent.getMessage().getMessageId());
@@ -251,7 +251,7 @@ public class RoomTest {
 		MessageEditedEvent editedEvent = (MessageEditedEvent) events.get(1);
 		assertEquals(3, editedEvent.getEventId());
 		assertEquals(timestamp(1417041470), editedEvent.getTimestamp());
-		assertEquals("@Greg Sup.", editedEvent.getMessage().getContent());
+		assertEquals("@Greg Sup.", editedEvent.getMessage().getContent().getContent());
 		assertEquals(1, editedEvent.getMessage().getEdits());
 		assertEquals(150, editedEvent.getMessage().getMentionedUserId());
 		assertEquals(20157240, editedEvent.getMessage().getMessageId());
@@ -297,7 +297,7 @@ public class RoomTest {
 		MessageEditedEvent event = (MessageEditedEvent) events.get(0);
 		assertEquals(1, event.getEventId());
 		assertEquals(timestamp(1417041460), event.getTimestamp());
-		assertEquals("one", event.getMessage().getContent());
+		assertEquals("one", event.getMessage().getContent().getContent());
 		assertEquals(1, event.getMessage().getEdits());
 		assertEquals(0, event.getMessage().getMentionedUserId());
 		assertEquals(20157245, event.getMessage().getMessageId());
@@ -343,7 +343,7 @@ public class RoomTest {
 		MessageStarredEvent event = (MessageStarredEvent) events.get(0);
 		assertEquals(1, event.getEventId());
 		assertEquals(timestamp(1417041460), event.getTimestamp());
-		assertEquals("one", event.getMessage().getContent());
+		assertEquals("one", event.getMessage().getContent().getContent());
 		assertEquals(0, event.getMessage().getEdits());
 		assertEquals(0, event.getMessage().getMentionedUserId());
 		assertEquals(20157245, event.getMessage().getMessageId());
@@ -448,7 +448,7 @@ public class RoomTest {
 		Iterator<ChatMessage> it = event.getMessages().iterator();
 
 		ChatMessage message = it.next();
-		assertEquals("one", message.getContent());
+		assertEquals("one", message.getContent().getContent());
 		assertEquals(0, message.getEdits());
 		assertEquals(0, message.getMentionedUserId());
 		assertEquals(20157245, message.getMessageId());
@@ -461,7 +461,7 @@ public class RoomTest {
 		assertEquals("User", message.getUsername());
 
 		message = it.next();
-		assertEquals("two", message.getContent());
+		assertEquals("two", message.getContent().getContent());
 		assertEquals(0, message.getEdits());
 		assertEquals(0, message.getMentionedUserId());
 		assertEquals(20157246, message.getMessageId());
@@ -474,7 +474,7 @@ public class RoomTest {
 		assertEquals("User", message.getUsername());
 
 		message = it.next();
-		assertEquals("three", message.getContent());
+		assertEquals("three", message.getContent().getContent());
 		assertEquals(0, message.getEdits());
 		assertEquals(0, message.getMentionedUserId());
 		assertEquals(20157247, message.getMessageId());
@@ -535,7 +535,7 @@ public class RoomTest {
 		Iterator<ChatMessage> it = event.getMessages().iterator();
 
 		ChatMessage message = it.next();
-		assertEquals("one", message.getContent());
+		assertEquals("one", message.getContent().getContent());
 		assertEquals(0, message.getEdits());
 		assertEquals(0, message.getMentionedUserId());
 		assertEquals(20157245, message.getMessageId());
@@ -548,7 +548,7 @@ public class RoomTest {
 		assertEquals("User", message.getUsername());
 
 		message = it.next();
-		assertEquals("two", message.getContent());
+		assertEquals("two", message.getContent().getContent());
 		assertEquals(0, message.getEdits());
 		assertEquals(0, message.getMentionedUserId());
 		assertEquals(20157246, message.getMessageId());
@@ -561,7 +561,7 @@ public class RoomTest {
 		assertEquals("User", message.getUsername());
 
 		message = it.next();
-		assertEquals("three", message.getContent());
+		assertEquals("three", message.getContent().getContent());
 		assertEquals(0, message.getEdits());
 		assertEquals(0, message.getMentionedUserId());
 		assertEquals(20157247, message.getMessageId());
@@ -689,7 +689,7 @@ public class RoomTest {
 		MessagePostedEvent event = (MessagePostedEvent) events.get(0);
 		assertEquals(1, event.getEventId());
 		assertEquals(timestamp(1417041460), event.getTimestamp());
-		assertEquals("one", event.getMessage().getContent());
+		assertEquals("one", event.getMessage().getContent().getContent());
 		assertEquals(0, event.getMessage().getEdits());
 		assertEquals(0, event.getMessage().getMentionedUserId());
 		assertEquals(20157245, event.getMessage().getMessageId());
@@ -752,7 +752,7 @@ public class RoomTest {
 			MessagePostedEvent event = (MessagePostedEvent) it.next();
 			assertEquals(2, event.getEventId());
 			assertEquals(timestamp(1417041470), event.getTimestamp());
-			assertEquals("<i>meow</i>", event.getMessage().getContent());
+			assertEquals("<i>meow</i>", event.getMessage().getContent().getContent());
 			assertEquals(0, event.getMessage().getEdits());
 			assertEquals(0, event.getMessage().getMentionedUserId());
 			assertEquals(20157245, event.getMessage().getMessageId());
@@ -808,7 +808,7 @@ public class RoomTest {
 		Iterator<ChatMessage> it = messages.iterator();
 
 		ChatMessage message = it.next();
-		assertEquals("one", message.getContent());
+		assertEquals("one", message.getContent().getContent());
 		assertEquals(0, message.getEdits());
 		assertEquals(0, message.getMentionedUserId());
 		assertEquals(20157245, message.getMessageId());
@@ -821,7 +821,7 @@ public class RoomTest {
 		assertEquals("User", message.getUsername());
 
 		message = it.next();
-		assertEquals("two", message.getContent());
+		assertEquals("two", message.getContent().getContent());
 		assertEquals(0, message.getEdits());
 		assertEquals(0, message.getMentionedUserId());
 		assertEquals(20157246, message.getMessageId());
@@ -834,7 +834,7 @@ public class RoomTest {
 		assertEquals("User", message.getUsername());
 
 		message = it.next();
-		assertEquals("three", message.getContent());
+		assertEquals("three", message.getContent().getContent());
 		assertEquals(0, message.getEdits());
 		assertEquals(0, message.getMentionedUserId());
 		assertEquals(20157247, message.getMessageId());

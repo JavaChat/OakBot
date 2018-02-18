@@ -45,7 +45,7 @@ public class MentionListener implements Listener {
 			return null;
 		}
 
-		if (!message.isMentioned(botUsername)) {
+		if (!message.getContent().isMentioned(botUsername)) {
 			return null;
 		}
 
