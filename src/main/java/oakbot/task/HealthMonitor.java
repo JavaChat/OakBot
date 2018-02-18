@@ -62,7 +62,7 @@ public class HealthMonitor implements ScheduledTask {
 			return Duration.ofDays(1).toMillis();
 		}
 
-		double timesToPostPerDay = securityUpdates / 15.0;
+		double timesToPostPerDay = securityUpdates / 30.0;
 		if (timesToPostPerDay > 8) {
 			timesToPostPerDay = 8;
 		}
