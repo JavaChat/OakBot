@@ -3,6 +3,8 @@ package oakbot.command.learn;
 import static oakbot.command.Command.reply;
 
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
@@ -18,7 +20,7 @@ import oakbot.util.ChatBuilder;
 public class LearnCommand implements Command {
 	private final List<Command> hardcodedCommands;
 	private final LearnedCommands learnedCommands;
-	private final String invalidCommandNameChars = "*_-`[]()\\";
+	private final Predicate<String> validCommandName = Pattern.compile("[A-Za-z0-9]+").asPredicate();
 
 	public LearnCommand(List<Command> hardcodedCommands, LearnedCommands learnedCommands) {
 		this.hardcodedCommands = hardcodedCommands;
@@ -56,15 +58,7 @@ public class LearnCommand implements Command {
 
 		String commandName = subCommand.getCommandName();
 		if (!commandNameValid(commandName)) {
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < invalidCommandNameChars.length(); i++) {
-				char c = invalidCommandNameChars.charAt(i);
-				if (c != '\\' && c != '-') {
-					sb.append('\\');
-				}
-				sb.append(c).append(' ');
-			}
-			return reply("Tricksy hobbitses. Command names can't contain these characters: " + sb, chatCommand);
+			return reply("Tricksy hobbitses. Command names can only contain letters (a-z) and numbers.", chatCommand);
 		}
 
 		if (commandExists(commandName)) {
@@ -103,12 +97,6 @@ public class LearnCommand implements Command {
 	 * @return true if it's valid, false if not
 	 */
 	private boolean commandNameValid(String commandName) {
-		for (int i = 0; i < invalidCommandNameChars.length(); i++) {
-			char c = invalidCommandNameChars.charAt(i);
-			if (commandName.indexOf(c) >= 0) {
-				return false;
-			}
-		}
-		return true;
+		return validCommandName.test(commandName);
 	}
 }
