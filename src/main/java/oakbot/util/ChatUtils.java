@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  * @author Michael Angstadt
  */
 public class ChatUtils {
-	private static final Pattern fkeyRegex = Pattern.compile("value=\"([0-9a-f]{32})\"");
+	private static final Pattern fkeyRegex = Pattern.compile("name=\"fkey\"\\s+(?>type=\"hidden\"\\s+)?value=\"([^\"]+)\"");
 
 	/**
 	 * Parses the "fkey" field out of an HTML page.
