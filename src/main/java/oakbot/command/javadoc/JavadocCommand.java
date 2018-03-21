@@ -3,6 +3,8 @@ package oakbot.command.javadoc;
 import static oakbot.command.Command.reply;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -280,14 +282,14 @@ public class JavadocCommand implements Command {
 			return null;
 		}
 
-		boolean timedOut = System.currentTimeMillis() - conversation.timeLastTouched > choiceTimeout;
+		boolean timedOut = ChronoUnit.MILLIS.between(conversation.timeLastTouched, Instant.now()) > choiceTimeout;
 		if (timedOut) {
 			//it's been a while since the choices were printed to the chat in this room, so ignore
 			return null;
 		}
 
 		//reset the time-out timer
-		conversation.timeLastTouched = System.currentTimeMillis();
+		conversation.timeLastTouched = Instant.now();
 
 		int index = num - 1;
 		if (index < 0 || index >= conversation.choices.size()) {
@@ -733,10 +735,9 @@ public class JavadocCommand implements Command {
 		private final String targetUser;
 
 		/**
-		 * The last time the list of choices were accessed in some way
-		 * (timestamp).
+		 * The last time the list of choices were accessed in some way.
 		 */
-		private long timeLastTouched = System.currentTimeMillis();
+		private Instant timeLastTouched = Instant.now();
 
 		/**
 		 * @param choices the list of suggestions that were posted to the chat
