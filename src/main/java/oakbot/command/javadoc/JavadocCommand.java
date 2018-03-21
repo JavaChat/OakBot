@@ -35,29 +35,6 @@ import oakbot.util.ChatBuilder;
  */
 public class JavadocCommand implements Command {
 	/**
-	 * Used for accessing the Javadoc information.
-	 */
-	private final JavadocDao dao;
-
-	/**
-	 * The most recent list of suggestions that were sent to the chat.
-	 */
-	private List<String> prevChoices = new ArrayList<>();
-
-	/**
-	 * The user that the javadoc response should be directed towards or null if
-	 * not specified. This field is used if there are multiple matches and a
-	 * list of suggestions has to be presented.
-	 */
-	private String prevTargetUser;
-
-	/**
-	 * The last time the list of previous choices were accessed in some way
-	 * (timestamp).
-	 */
-	private long prevChoicesPinged = 0;
-
-	/**
 	 * Stop responding to numeric choices the user enters after this amount of
 	 * time.
 	 */
@@ -96,6 +73,23 @@ public class JavadocCommand implements Command {
 		b.add("private", "protected", "public");
 		methodModifiersToIgnore = b.build();
 	}
+
+	/**
+	 * Used for accessing the Javadoc information.
+	 */
+	private final JavadocDao dao;
+
+	/**
+	 * <p>
+	 * Persists the state of the interactions the bot is having with its users.
+	 * Each room is kept separate so they don't interfere with each other.
+	 * </p>
+	 * <p>
+	 * Key = room ID<br>
+	 * Value = state information
+	 * </p>
+	 */
+	private final Map<Integer, Conversation> conversations = new HashMap<>();
 
 	/**
 	 * @param dao the Javadoc DAO
@@ -279,22 +273,24 @@ public class JavadocCommand implements Command {
 	 * @return the chat response or null not to respond to the message
 	 */
 	public ChatResponse showChoice(ChatMessage message, int num) {
-		if (prevChoicesPinged == 0) {
-			//no choices were ever printed to the chat, so ignore
+		Conversation conversation = conversations.get(message.getRoomId());
+
+		if (conversation == null) {
+			//no choices were ever printed to the chat in this room, so ignore
 			return null;
 		}
 
-		boolean timedOut = System.currentTimeMillis() - prevChoicesPinged > choiceTimeout;
+		boolean timedOut = System.currentTimeMillis() - conversation.timeLastTouched > choiceTimeout;
 		if (timedOut) {
-			//it's been a while since the choices were printed to the chat, so ignore
+			//it's been a while since the choices were printed to the chat in this room, so ignore
 			return null;
 		}
 
 		//reset the time-out timer
-		prevChoicesPinged = System.currentTimeMillis();
+		conversation.timeLastTouched = System.currentTimeMillis();
 
 		int index = num - 1;
-		if (index < 0 || index >= prevChoices.size()) {
+		if (index < 0 || index >= conversation.choices.size()) {
 			//check to make sure the number corresponds to a choice
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
@@ -306,9 +302,9 @@ public class JavadocCommand implements Command {
 
 		//valid choice entered, print the info
 		ChatBuilder cb = new ChatBuilder();
-		cb.append(prevChoices.get(index));
-		if (prevTargetUser != null) {
-			cb.append(' ').mention(prevTargetUser);
+		cb.append(conversation.choices.get(index));
+		if (conversation.targetUser != null) {
+			cb.append(' ').mention(conversation.targetUser);
 		}
 		ChatCommand newCommand = new ChatCommand(message, name(), cb.toString());
 		return onMessage(newCommand, null);
@@ -409,10 +405,6 @@ public class JavadocCommand implements Command {
 	 * @return the chat response
 	 */
 	private ChatResponse printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, JavadocCommandArguments arguments, ChatCommand message) {
-		prevChoices = new ArrayList<>();
-		prevTargetUser = arguments.getTargetUser();
-		prevChoicesPinged = System.currentTimeMillis();
-
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(message);
 
@@ -445,6 +437,7 @@ public class JavadocCommand implements Command {
 		}
 
 		int count = 1;
+		List<String> choices = new ArrayList<>();
 		for (Map.Entry<ClassInfo, MethodInfo> entry : matchingMethods.entries()) {
 			ClassInfo classInfo = entry.getKey();
 			MethodInfo methodInfo = entry.getValue();
@@ -464,9 +457,13 @@ public class JavadocCommand implements Command {
 			}
 
 			cb.nl().append(count).append(". ").append(signature);
-			prevChoices.add(signature);
+			choices.add(signature);
 			count++;
 		}
+
+		Conversation conversation = new Conversation(choices, arguments.getTargetUser());
+		int roomId = message.getMessage().getRoomId();
+		conversations.put(roomId, conversation);
 
 		return new ChatResponse(cb, SplitStrategy.NEWLINE);
 	}
@@ -481,9 +478,6 @@ public class JavadocCommand implements Command {
 	private ChatResponse printClassChoices(Collection<String> classes, JavadocCommandArguments arguments, ChatCommand message) {
 		List<String> choices = new ArrayList<>(classes);
 		Collections.sort(choices);
-		prevChoices = choices;
-		prevTargetUser = arguments.getTargetUser();
-		prevChoicesPinged = System.currentTimeMillis();
 
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(message);
@@ -494,6 +488,10 @@ public class JavadocCommand implements Command {
 			cb.nl().append(count).append(". ").append(name);
 			count++;
 		}
+
+		Conversation conversation = new Conversation(choices, arguments.getTargetUser());
+		int roomId = message.getMessage().getRoomId();
+		conversations.put(roomId, conversation);
 
 		return new ChatResponse(cb, SplitStrategy.NEWLINE);
 	}
@@ -719,6 +717,36 @@ public class JavadocCommand implements Command {
 			if (count() > 1) {
 				cb.append(" (").append(num).append('/').append(count()).append(')');
 			}
+		}
+	}
+
+	private class Conversation {
+		/**
+		 * The list of suggestions that were posted to the chat room.
+		 */
+		private final List<String> choices;
+
+		/**
+		 * The user that the javadoc response should be directed towards or null
+		 * if not specified.
+		 */
+		private final String targetUser;
+
+		/**
+		 * The last time the list of choices were accessed in some way
+		 * (timestamp).
+		 */
+		private long timeLastTouched = System.currentTimeMillis();
+
+		/**
+		 * @param choices the list of suggestions that were posted to the chat
+		 * room
+		 * @param targetUser the user that the javadoc response should be
+		 * directed towards or null if not specified
+		 */
+		public Conversation(List<String> choices, String targetUser) {
+			this.choices = choices;
+			this.targetUser = targetUser;
 		}
 	}
 }
