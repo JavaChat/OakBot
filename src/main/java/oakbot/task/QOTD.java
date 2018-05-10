@@ -37,7 +37,9 @@ public class QOTD implements ScheduledTask {
 
 		String quote = quoteNode.get("quote").asText();
 		String author = quoteNode.get("author").asText();
-		String permalink = quoteNode.get("permalink").asText();
+
+		JsonNode node = quoteNode.get("permalink");
+		String permalink = (node == null) ? "https://theysaidso.com" : node.asText();
 
 		ChatBuilder cb = new ChatBuilder();
 		cb.italic().append('"').append(quote).append('"').italic();
