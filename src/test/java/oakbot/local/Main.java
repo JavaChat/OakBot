@@ -55,6 +55,7 @@ import oakbot.listener.FatCatListener;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
+import oakbot.listener.MornListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
 
@@ -114,6 +115,7 @@ public class Main {
 			}
 			listeners.add(new AfkListener(afkCommand));
 			listeners.add(new WaveListener(props.getBotUserName(), 1000, mentionListener));
+			listeners.add(new MornListener(props.getBotUserName(), 1000, mentionListener));
 			listeners.add(new WelcomeListener(database, props.getWelcomeMessages()));
 			listeners.add(new FatCatListener(fatCatCommand));
 
