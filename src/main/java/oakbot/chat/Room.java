@@ -3,6 +3,7 @@ package oakbot.chat;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -16,6 +17,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,10 +71,12 @@ public class Room implements IRoom {
 	private final String chatDomain;
 	private final boolean canPost;
 	private final Http http;
+	private final WebSocketContainer webSocketContainer;
 	private final ChatClient chatClient;
-	private final Session session;
+	private Session session;
 	private final ObjectMapper mapper = new ObjectMapper();
 	private Instant timeOfLastReceivedMessagePostedEvent = Instant.now();
+	private final Timer websocketReconnectTimer;
 
 	private final Map<Class<? extends Event>, List<Consumer<Event>>> listeners;
 	{
@@ -105,7 +110,9 @@ public class Room implements IRoom {
 		this.roomId = roomId;
 		chatDomain = "https://chat." + domain;
 		this.http = http;
+		this.webSocketContainer = webSocketContainer;
 		this.chatClient = chatClient;
+		websocketReconnectTimer = new Timer(true);
 
 		Response response = http.get(chatDomain + "/rooms/" + roomId);
 
@@ -135,41 +142,71 @@ public class Room implements IRoom {
 		/*
 		 * Create the web socket connection.
 		 */
-		{
-			String webSocketUrl = getWebSocketUrl();
+		connectToWebsocket();
 
-			//@formatter:off
-			ClientEndpointConfig config = ClientEndpointConfig.Builder.create()
-				.configurator(new Configurator() {
-					@Override
-					public void beforeRequest(Map<String, List<String>> headers) {
-						headers.put("Origin", Arrays.asList(chatDomain));
-					}
-				})
-			.build();
-			//@formatter:on
+		/**
+		 * Create a timer that recreates the websocket connection once per day.
+		 * This is an attempt to fix the issue where every couple days, the bot
+		 * will stop responding to messages.
+		 */
+		long period = Duration.ofDays(1).toMillis();
+		websocketReconnectTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				synchronized (Room.this) {
+					logger.info("[room=" + roomId + "]: Recreating websocket connection.");
 
-			logger.info("Connecting to web socket [room=" + roomId + "]: " + webSocketUrl);
-
-			try {
-				session = webSocketContainer.connectToServer(new Endpoint() {
-					@Override
-					public void onOpen(Session session, EndpointConfig config) {
-						session.addMessageHandler(String.class, Room.this::handleWebSocketMessage);
+					try {
+						session.close();
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "[room=" + roomId + "]: Problem closing websocket session.", e);
 					}
 
-					@Override
-					public void onError(Session session, Throwable t) {
-						logger.log(Level.SEVERE, "Problem with web socket [room=" + roomId + "]. Leaving room.", t);
+					try {
+						connectToWebsocket();
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "[room=" + roomId + "]: Could not recreate websocket session. Leaving the room.", e);
 						leave();
 					}
-				}, config, new URI(webSocketUrl));
-			} catch (DeploymentException | URISyntaxException e) {
-				throw new IOException(e);
+				}
 			}
+		}, period, period);
+	}
 
-			logger.info("Web socket connection successful [room=" + roomId + "]: " + webSocketUrl);
+	private void connectToWebsocket() throws IOException {
+		String webSocketUrl = getWebSocketUrl();
+
+		//@formatter:off
+		ClientEndpointConfig config = ClientEndpointConfig.Builder.create()
+			.configurator(new Configurator() {
+				@Override
+				public void beforeRequest(Map<String, List<String>> headers) {
+					headers.put("Origin", Arrays.asList(chatDomain));
+				}
+			})
+		.build();
+		//@formatter:on
+
+		logger.info("Connecting to web socket [room=" + roomId + "]: " + webSocketUrl);
+
+		try {
+			session = webSocketContainer.connectToServer(new Endpoint() {
+				@Override
+				public void onOpen(Session session, EndpointConfig config) {
+					session.addMessageHandler(String.class, Room.this::handleWebSocketMessage);
+				}
+
+				@Override
+				public void onError(Session session, Throwable t) {
+					logger.log(Level.SEVERE, "Problem with web socket [room=" + roomId + "]. Leaving room.", t);
+					leave();
+				}
+			}, config, new URI(webSocketUrl));
+		} catch (DeploymentException | URISyntaxException e) {
+			throw new IOException(e);
 		}
+
+		logger.info("Web socket connection successful [room=" + roomId + "]: " + webSocketUrl);
 	}
 
 	@Override
@@ -648,7 +685,10 @@ public class Room implements IRoom {
 
 	@Override
 	public void close() throws IOException {
-		session.close();
+		synchronized (this) {
+			websocketReconnectTimer.cancel();
+			session.close();
+		}
 	}
 
 	private static class EventParsers {
