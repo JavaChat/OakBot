@@ -48,6 +48,7 @@ import oakbot.command.ShutdownCommand;
 import oakbot.command.SummonCommand;
 import oakbot.command.TagCommand;
 import oakbot.command.UnsummonCommand;
+import oakbot.command.WaduCommand;
 import oakbot.command.WikiCommand;
 import oakbot.command.define.DefineCommand;
 import oakbot.command.http.HttpCommand;
@@ -62,6 +63,7 @@ import oakbot.command.urban.UrbanCommand;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.filter.GrootFilter;
 import oakbot.filter.UpsidedownTextFilter;
+import oakbot.filter.WaduFilter;
 import oakbot.listener.AfkListener;
 import oakbot.listener.FatCatListener;
 import oakbot.listener.JavadocListener;
@@ -156,6 +158,7 @@ public class Main {
 
 		UpsidedownTextFilter upsidedownTextFilter = new UpsidedownTextFilter();
 		GrootFilter grootFilter = new GrootFilter();
+		WaduFilter waduFilter = new WaduFilter();
 
 		List<Listener> listeners = new ArrayList<>();
 		{
@@ -207,6 +210,7 @@ public class Main {
 			commands.add(afkCommand);
 			commands.add(new RolloverCommand(upsidedownTextFilter));
 			commands.add(new GrootCommand(grootFilter));
+			commands.add(new WaduCommand(waduFilter));
 			commands.add(new CatCommand(props.getCatKey()));
 			commands.add(fatCatCommand);
 
@@ -234,6 +238,7 @@ public class Main {
 		List<ChatResponseFilter> filters = new ArrayList<>();
 		{
 			filters.add(grootFilter);
+			filters.add(waduFilter);
 			filters.add(upsidedownTextFilter); //should be last
 		}
 
