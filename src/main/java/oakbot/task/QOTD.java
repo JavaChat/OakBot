@@ -42,9 +42,16 @@ public class QOTD implements ScheduledTask {
 		String permalink = (node == null) ? "https://theysaidso.com" : node.asText();
 
 		ChatBuilder cb = new ChatBuilder();
-		cb.italic().append('"').append(quote).append('"').italic();
-		cb.append(" -").append(author);
-		cb.append(' ').link("(source)", permalink);
+		boolean quoteHasNewlines = (quote.indexOf('\n') >= 0);
+		if (quoteHasNewlines) {
+			cb.append(quote).nl();
+			cb.append('-').append(author);
+			cb.append(" (source: ").append(permalink).append(')');
+		} else {
+			cb.italic().append('"').append(quote).append('"').italic();
+			cb.append(" -").append(author);
+			cb.append(' ').link("(source)", permalink);
+		}
 
 		bot.broadcast(new ChatResponse(cb, SplitStrategy.WORD));
 	}
