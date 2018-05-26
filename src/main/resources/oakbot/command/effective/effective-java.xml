@@ -1,0 +1,361 @@
+<!--
+All text in this file is from the book Effective Java, Third Edition, by Joshua Bloch.
+-->
+<items>
+	<item number="1" page="5">
+		<title>Consider static factory methods instead of constructors</title>
+		<summary>Static factory methods in public constructors both have their uses, and it pays to understand their relative merits. Often status factories are preferable, so will void the reflex to provide public constructors without first considering static factory.</summary>
+	</item>
+	<item number="2" page="10">
+		<title>Consider static factory methods instead of constructors</title>
+		<summary>Static factory methods in public constructors both have their uses, and it pays to understand their relative merits. Often status factories are preferable, so will void the reflex to provide public constructors without first considering static factory.</summary>
+	</item>
+	<item number="3" page="17">
+		<title>Enforce the singleton property with a private constructor or an enum type</title>
+	</item>
+	<item number="4" page="19">
+		<title>Enforce noninstantiability with a private constructor</title>
+	</item>
+	<item number="5" page="20">
+		<title>Prefer dependency injection to hardwiring resources</title>
+		<summary>Do not use a singleton or static utility class to implement a class that depends on one or more underlying resource is this behavior effects that of the class, and do not have the class create these resources directly. Instead, pass the resources, or factories to create them, into the constructor (or static factory or builder). This practice, known as dependency injection, will greatly enhance the flexibility, reusability, and testability of a class.  </summary>
+	</item>
+	<item number="6" page="22">
+		<title>Avoid creating unnecessary objects</title>
+	</item>
+	<item number="7" page="26">
+		<title>Eliminate obsolete object references</title>
+		<summary></summary>
+	</item>
+	<item number="8" page="29">
+		<title>Avoid finalizers and cleaners</title>
+		<summary>Don't use cleaners, or in releases prior to Java 9, finalizers, except as a safety net or to terminate noncritical native resources. Even then, beware of the indeterminacy and performance consequences.</summary>
+	</item>
+	<item number="9" page="34">
+		<title>Prefer `try`-with-resources to `try-finally`</title>
+		<summary>Always use `try`-with-resources in preference to `try-finally` when working with resources that must be closed. The resulting code is shorter and clearer, and the exceptions that it generates are more useful. The `try`-with-resources statement makes it easy to write correct code using resources that must be closed, which was practically impossible using `try-finally`.</summary>
+	</item>
+	<item number="10" page="37">
+		<title>Obey the general contract when overriding `equals`</title>
+		<summary>Don't override the `equals` method unless you have to: in many cases, the implementation inherited from `Object` does exactly what you want. If you do not override `equals`, make sure to compare all of the classes significant fields and to compare them in a manner that preserves all five provisions of the equals contract.</summary>
+	</item>
+	<item number="11" page="50">
+		<title>Always override hashCode when you override `equals`</title>
+		<summary>You must override `hashCode` every time you override `equals`, or your program will not run correctly. Your `hashCode` method must obey the general contract specified in `Object` and must do a reasonable job assigning unequal `hashCode` to unequal instances. This is easy to achieve, if slightly tedious, using the recipe on page 51. As mentioned in Item 10, the AutoValue framework provides a fine alternative to writing `equals` and `hashCode` methods manually, and IDEs also provide some of this functionality.</summary>
+	</item>
+	<item number="12" page="55">
+		<title>Always override `toString`</title>
+		<summary>Override `Object`'s `toString` implementation in every instantiable class you right, unless a superclass has already done so. It makes classes much more pleasant to use and aids in debugging. The `toString` method should return a concise, useful description of the object, in an aesthetically pleasing format.</summary>
+	</item>
+	<item number="13" page="58">
+		<title>Override `clone` judiciously</title>
+		<summary>Given all the problems associated with `Cloneable`, new interfaces should not extend it, and new extendible classes should not implement it. While it's less harmful for final classes to implement `Cloneable`, they should be viewed as a performance optimization, reserved for the rare cases where it is justified (Item 67). As a rule, copy functionality is best provided by constructors or factories. A notable exception to this rule is arrays, which are best copied with the clone method.</summary>
+	</item>
+	<item number="14" page="66">
+		<title>Consider implementing `Comparable`</title>
+		<summary>Whenever you implement a value class that has a sensible ordering, you should have the class implement the `Comparable` interface so that its instances can be easily sorted, searched, and used in comparison-based collections. When comparing field values in the implementations of the `compareTo` methods, avoid the use of the &lt; and &gt; operators. Instead, use the static compare methods in the boxed primitive classes or the comparator construction methods in the `Comparator` interface.</summary>
+	</item>
+	<item number="15" page="73">
+		<title>Minimize the accessibility of classes and members</title>
+		<summary>You should reduce accessibility of program elements as much as possible (within reason). After carefully designing a minimal public API, you should prevent any stray classes, interfaces, or members from becoming part of the API. With the exception of public static final fields, which service constants, public classes should have no public fields. Ensure that objects referenced by public static final fields are immutable.</summary>
+	</item>
+	<item number="16" page="78">
+		<title>In public classes, use accessor methods, not public fields</title>
+		<summary>Public classes should never expose mutable fields. It is less harmful, though still questionable, for public classes to expose immutable fields. It is, however, sometimes desirable for a package-private or private nested classes to expose fields, whether mutable or immutable.</summary>
+	</item>
+	<item number="17" page="80">
+		<title>Minimize mutability</title>
+	</item>
+	<item number="18" page="87">
+		<title>Favor composition over inheritance</title>
+		<summary>Inheritance is powerful, but it is problematic because it violates in encapsulation. It is appropriate only when a genuine subtype relationship exists between the subclass and the superclass. Even then, inheritance made lead to fragility if the subclass is in a different package from the superclass and the superclass is not designed for inheritance. To avoid this fragility, use composition and forwarding instead of inheritance, especially if an appropriate interface to implement a wrapper class exists. Not only are wrapper classes more robust than subclasses, they are also more powerful.</summary>
+	</item>
+	<item number="19" page="93">
+		<title>Design and document for inheritance or else prohibit it</title>
+		<summary>Designing a class for inheritance is hard work. You must document all of its self-use patterns, and once you've documented them, you must commit them for the life of the class. If you fail to do this, subclasses may become dependent on implementation details of the superclass and may break if the implementation of the superclass changes. To allow others to write *efficient* subclasses, you may also have to export one or more protected methods. Unless you know there is a real need for subclasses you are probably better off prohibiting inheritance by declaring your class final or ensuring that there are no inaccessible constructors.</summary>
+	</item>
+	<item number="20" page="99">
+		<title>Prefer interfaces to abstract classes</title>
+		<summary>An interface is generally the best way to define a type that permits multiple implementations. If you export a nontrivial interface, you should strongly consider providing a skeletal implementation to go with it. To the extent possible, you should provide the skeletal implementation the default methods on the interface so that all implementors of the interface can make use of it. That said, restrictions on interfaces typically mandate that a skeletal implementation take the form of an abstract class.</summary>
+	</item>
+	<item number="21" page="104">
+		<title>Design interfaces for posterity</title>
+		<summary>While it may be possible to correct some interface flaws after an interface is released, you cannot count on it.</summary>
+	</item>
+	<item number="22" page="107">
+		<title>Use interfaces only to define types</title>
+		<summary>Interfaces should be used only to define types. They should not be used merely to export constants.</summary>
+	</item>
+	<item number="23" page="109">
+		<title>Prefer class hierarchies to tagged classes</title>
+		<summary>Tagged classes are seldom appropriate. If you're tempted to write a class with an explicit tag field, think about whether the tag could be eliminated and the class replaced by a hierarchy. When you encounter an existing class with a tagg field, consider refactoring it into a hierarchy.</summary>
+	</item>
+	<item number="24" page="112">
+		<title>Favor static member classes over nonstatic</title>
+		<summary>There are four different kinds of nested classes, and each has its place. If a nested class needs to be visible outside of a single method or is too long to fit comfortably inside a method, use a member class. If each instance of a member class needs a reference to its enclosing instance, make it nonstatic; otherwise, make it static. Assuming the class belongs inside a method, if you need to create instances from only one location and there is a preexisting type that characterizes the class, make it an anonymous class; otherwise, make it a local class.</summary>
+	</item> 
+	<item number="25" page="115">
+		<title>Limit source files to a single top-level class</title>
+		<summary>Never put multiple top level classes or interfaces in a single source file. Following this rule guarantees that you can't have multiple definitions for a single class at compile time. This in turn guarantees that the class files generated by compilation, and the behavior of the resulting program, are independent of the order in which the source files are passed to the compiler.</summary>
+	</item>
+	<item number="26" page="117">
+		<title>Don't use raw types</title>
+		<summary>Using raw types types can lead to exceptions at runtime, so don't use them. They are provided only for compatibility and interoperability with legacy code that predates the introduction of generics.</summary>
+	</item>
+	<item number="27" page="123">
+		<title>Eliminate unchecked warnings</title>
+		<summary>Unchecked warnings are important. Don't ignore them. Every unchecked warning represents the potential for a `ClassCastException` at runtime. Do your best to eliminate these warnings. If you can't eliminate an unchecked warning and you can prove that the code that provoked it is typesafe, suppress the warning with a `@SuppressWarnings("unchecked")` annotation in the narrowest possible scope. Record the rationale for your decision to suppress the warning in a comment.</summary>
+	</item>
+	<item number="28" page="126">
+		<title>Prefer lists to arrays</title>
+		<summary>Arrays and generics have very different type rules. Arrays are covariant and reified; generics are invariant erased. As a consequence, arrays provide runtime type safety but not compile-time type safety, and vice versa for generics. As a rule, arrays and generics don't mix well. If you find yourself mixing them and getting compile time errors or warnings, your first impulse should be to replace the arrays with lists.</summary>
+	</item>
+	<item number="29" page="130">
+		<title>Favor generic types</title>
+		<summary>Generic types are safer and easier to use than types that require casts in client code. When you design new types, make sure that they can be used without such casts. This will often mean making the types generic. If you have any existing types that should be generic but aren't, generify them. This will make life easier for new users of these types without breaking existing clients (Item 26).</summary>
+	</item> 
+	<item number="30" page="135">
+		<title>Favor generic methods</title>
+		<summary>Generic methods, like generic types, are safer and easier to use than methods requiring their clients to put explicit casts on input parameters and return values. Like types, you should make sure that your methods can be used with without casts, which often means making them generic. And like types, you should generify existing methods whose use requires casts. This makes life easier for new users without breaking existing clients (Item 26).</summary>
+	</item>
+	<item number="31" page="139">
+		<title>Use bounded wildcards to increase API flexibility</title>
+		<summary>Using wildcard types in your APIs, well tricky, makes the APIs far more flexible. If you write a library that will be widely used, the proper use of wildcard types should be considered mandatory. Remember the basic rule: producer-`extends`, consumer-`super` (PECS). Also remember that all comparables and comparators are consumers.</summary>
+	</item>
+	<item number="32" page="146">
+		<title>Combine generics and varargs judiciously</title>
+		<summary>Varargs and generics do not interact well because the varargs facility is a leaky abstractions built atop arrays, and arrays have different type rules from generics. Though generic varargs parameters are not typesafe, they are legal. If you choose to write a method with a generic (or parameterized) varargs parameter, first ensure that the method is typesafe, and then annotate it with `@SafeVarargs` so it is not unpleasant to use.</summary>
+	</item> 
+	<item number="33" page="151">
+		<title>Consider typesafe heterogeneous containers</title>
+		<summary>The normal use of generics, exemplified by the collections APIs, restricts you to a fixed number of type parameters per container. You can get around this restriction by placing the type parameter on the key rather than the container. You can use `Class` objects as keys for such typesafe heterogeneous containers. A `Class` object used in this fashion is called a type token. You can also use a custom key type. For example, you could have a `DatabaseRow` type representing a database row (the container), and a generic type `Column&lt;T&gt;` at its key.</summary>
+	</item>
+	<item number="34" page="157">
+		<title>Use `enums` instead of `int` constants</title>
+		<summary></summary>
+	</item>
+	<item number="35" page="168">
+		<title>Use instance fields instead of ordinals</title>
+		<summary></summary>
+	</item>
+	<item number="36" page="169">
+		<title>Use `EnumSet` instead of bit fields</title>
+		<summary></summary>
+	</item>
+	<item number="37" page="171">
+		<title>Use `EnumMap` instead of ordinal indexing</title>
+		<summary></summary>
+	</item>
+	<item number="38" page="176">
+		<title>Emulate extensible enums with interfaces</title>
+		<summary></summary>
+	</item>
+	<item number="39" page="180">
+		<title>Prefer annotations to naming patterns</title>
+		<summary></summary>
+	</item>
+	<item number="40" page="188">
+		<title>Consistently use the `Override` annotation</title>
+		<summary></summary>
+	</item> 
+	<item number="41" page="191">
+		<title>Use marker interfaces to define types</title>
+		<summary></summary>
+	</item>
+	<item number="42" page="193">
+		<title>Prefer lambdas to anonymous classes</title>
+		<summary></summary>
+	</item>
+	<item number="43" page="197">
+		<title>Prefer method references to lambdas</title>
+		<summary></summary>
+	</item>
+	<item number="44" page="199">
+		<title>Favor the use of standard functional interfaces</title>
+		<summary></summary>
+	</item>
+	<item number="45" page="203">
+		<title>Use streams judiciously</title>
+		<summary></summary>
+	</item>
+	<item number="46" page="210">
+		<title>Prefer side-effect-free functions in streams</title>
+		<summary></summary>
+	</item>
+	<item number="47" page="216">
+		<title>Prefer Collection to Stream as a return type</title>
+		<summary></summary>
+	</item>
+	<item number="48" page="222">
+		<title>Use caution when making streams parallel</title>
+		<summary></summary>
+	</item>
+	<item number="49" page="227">
+		<title>Check parameters for validity</title>
+		<summary></summary>
+	</item>
+	<item number="50" page="231">
+		<title>Make defensive copies when needed</title>
+		<summary></summary>
+	</item>
+	<item number="51" page="236">
+		<title>Design method signatures carefully</title>
+		<summary></summary>
+	</item>
+	<item number="52" page="238">
+		<title>Use overloading judiciously</title>
+		<summary></summary>
+	</item>
+	<item number="53" page="245">
+		<title>Use varargs judiciously</title>
+		<summary></summary>
+	</item> 
+	<item number="54" page="247">
+		<title>Return empty collections or arrays, not nulls</title>
+		<summary></summary>
+	</item>
+	<item number="55" page="249">
+		<title>Return optionals judiciously</title>
+		<summary></summary>
+	</item>
+	<item number="56" page="254">
+		<title>Write doc comments for all exposed API elements</title>
+		<summary></summary>
+	</item>
+	<item number="57" page="261">
+		<title>Minimize the scope of local variables</title>
+		<summary></summary>
+	</item>
+	<item number="58" page="264">
+		<title>Prefer for each loops to traditional for loops</title>
+		<summary></summary>
+	</item>
+	<item number="59" page="267">
+		<title>Know and use the libraries</title>
+		<summary></summary>
+	</item>
+	<item number="60" page="270">
+		<title>Avoid `float` and `double` if exact answers are required</title>
+		<summary></summary>
+	</item>
+	<item number="61" page="273">
+		<title>Prefer primitive types to boxed primitives</title>
+		<summary></summary>
+	</item>
+	<item number="62" page="276">
+		<title>Avoid strings where other types are more appropriate</title>
+		<summary></summary>
+	</item>
+	<item number="63" page="273">
+		<title>Beware the performance of string concatenation</title>
+		<summary></summary>
+	</item>
+	<item number="64" page="280">
+		<title>Refer to objects by their interfaces</title>
+		<summary></summary>
+	</item>
+	<item number="65" page="282">
+		<title>Prefer interfaces to reflection</title>
+		<summary></summary>
+	</item>
+	<item number="66" page="285">
+		<title>Use native methods judiciously</title>
+		<summary></summary>
+	</item>
+	<item number="67" page="286">
+		<title>Optimize judiciously</title>
+		<summary></summary>
+	</item>
+	<item number="68" page="289">
+		<title>Adhere to generally accepted naming conventions</title>
+		<summary></summary>
+	</item>
+	<item number="69" page="293">
+		<title>Use exceptions only for exceptional conditions</title>
+		<summary></summary>
+	</item>
+	<item number="70" page="296">
+		<title>Use checked exceptions for recoverable conditions and runtime exceptions for programming errors</title>
+		<summary></summary>
+	</item>
+	<item number="71" page="298">
+		<title>Avoid unnecessary use of checked exceptions</title>
+		<summary></summary>
+	</item>
+	<item number="72" page="300">
+		<title>Favor the use of standard exceptions</title>
+		<summary></summary>
+	</item>
+	<item number="73" page="302">
+		<title>Throw exceptions appropriate to the abstraction</title>
+		<summary></summary>
+	</item>
+	<item number="74" page="304">
+		<title>Document all exceptions thrown by each method</title>
+		<summary></summary>
+	</item>
+	<item number="75" page="306">
+		<title>Include failure-capture information in detail messages</title>
+		<summary></summary>
+	</item>
+	<item number="76" page="308">
+		<title>Strive for failure atomicity</title>
+		<summary></summary>
+	</item>
+	<item number="77" page="310">
+		<title>Don't ignore exceptions</title>
+		<summary></summary>
+	</item>
+	<item number="78" page="311">
+		<title>Synchronize access to shared mutable data</title>
+		<summary></summary>
+	</item>
+	<item number="79" page="317">
+		<title>Avoid excessive synchronization</title>
+		<summary></summary>
+	</item>
+	<item number="80" page="323">
+		<title>Prefer executors, tasks, and streams to threads</title>
+		<summary></summary>
+	</item>
+	<item number="81" page="325">
+		<title>Prefer concurrency utilities to `wait` and `notify`</title>
+		<summary></summary>
+	</item>
+	<item number="82" page="330">
+		<title>Document thread safety</title>
+		<summary></summary>
+	</item>
+	<item number="83" page="333">
+		<title>Use lazy initialization judiciously</title>
+		<summary></summary>
+	</item>
+	<item number="84" page="336">
+		<title>Don't depend on the thread scheduler</title>
+		<summary></summary>
+	</item>
+	<item number="85" page="339">
+		<title>Prefer alternatives to Java serialization</title>
+		<summary></summary>
+	</item>
+	<item number="86" page="343">
+		<title>Implement `Serializable` with great caution</title>
+		<summary></summary>
+	</item>
+	<item number="87" page="346">
+		<title>Consider using a custom serialized form</title>
+		<summary></summary>
+	</item>
+	<item number="88" page="353">
+		<title>Write `readObject` methods defensively</title>
+		<summary></summary>
+	</item>
+	<item number="89" page="359">
+		<title>For instance control, prefer enum types to `readResolve`</title>
+		<summary></summary>
+	</item>
+	<item number="90" page="363">
+		<title>Consider serialization proxies instead of serialized instances</title>
+		<summary></summary>
+	</item>
+</items>

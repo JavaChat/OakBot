@@ -51,6 +51,7 @@ import oakbot.command.UnsummonCommand;
 import oakbot.command.WaduCommand;
 import oakbot.command.WikiCommand;
 import oakbot.command.define.DefineCommand;
+import oakbot.command.effective.EffectiveJavaCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
 import oakbot.command.javadoc.JavadocDao;
@@ -190,6 +191,7 @@ public class Main {
 			}
 
 			commands.add(new HttpCommand());
+			commands.add(new EffectiveJavaCommand());
 			commands.add(new WikiCommand());
 			commands.add(new TagCommand());
 			commands.add(new UrbanCommand());
