@@ -149,7 +149,7 @@ public class Room implements IRoom {
 		 * This is an attempt to fix the issue where every couple days, the bot
 		 * will stop responding to messages.
 		 */
-		long period = Duration.ofDays(1).toMillis();
+		long period = Duration.ofHours(8).toMillis();
 		websocketReconnectTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
