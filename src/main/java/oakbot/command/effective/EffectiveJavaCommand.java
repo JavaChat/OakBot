@@ -32,9 +32,9 @@ public class EffectiveJavaCommand implements Command {
 	private final List<Item> items;
 
 	public EffectiveJavaCommand() {
-		String xmlFile = "effective-java.xml";
+		//NOTE: The XML file is checked for correctness in EffectiveJavaXmlTest.
 		Leaf document;
-		try (InputStream in = getClass().getResourceAsStream(xmlFile)) {
+		try (InputStream in = getClass().getResourceAsStream("effective-java.xml")) {
 			document = new Leaf(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in));
 		} catch (IOException | SAXException | ParserConfigurationException ignored) {
 			/*
@@ -76,13 +76,9 @@ public class EffectiveJavaCommand implements Command {
 		}
 
 		items = new ArrayList<>(itemsByNumber.size());
-		for (int i = 1; true; i++) {
+		for (int i = 1; i <= itemsByNumber.size(); i++) {
 			Item item = itemsByNumber.get(i);
-			if (item == null) {
-				break;
-			}
-
-			items.add(itemsByNumber.remove(i));
+			items.add(item);
 		}
 	}
 
@@ -106,9 +102,10 @@ public class EffectiveJavaCommand implements Command {
 		//@formatter:off
 		return new ChatBuilder()
 			.append(description()).nl()
-			.append("Usage: ").append(trigger).append(name()).append(" [ item_number | search_term ]").nl()
+			.append("Usage: ").append(trigger).append(name()).append(" [ \"!list\" | \"!random\" | item_number | search_term ]").nl()
 			.append("Examples:").nl()
-			.append(trigger).append(name()).append(" (displays a random item)").nl()
+			.append(trigger).append(name()).append(" !list (lists all items)").nl()
+			.append(trigger).append(name()).append(" !random (displays a random item)").nl()
 			.append(trigger).append(name()).append(" 5 (displays item #5)").nl()
 			.append(trigger).append(name()).append(" string (searches for items containing the word \"string\")")
 		.toString();
@@ -120,9 +117,23 @@ public class EffectiveJavaCommand implements Command {
 		String content = chatCommand.getContent();
 
 		/**
-		 * Random item.
+		 * Display the help text.
 		 */
 		if (content.isEmpty()) {
+			return reply(helpText(context.getTrigger()), chatCommand);
+		}
+
+		/**
+		 * Display all the items.
+		 */
+		if ("!list".equalsIgnoreCase(content)) {
+			return displayItems(chatCommand, items);
+		}
+
+		/**
+		 * Display a random item.
+		 */
+		if ("!random".equalsIgnoreCase(content)) {
 			int itemNumber = ThreadLocalRandom.current().nextInt(items.size());
 			Item item = items.get(itemNumber);
 			return displayItem(chatCommand, item);
@@ -143,7 +154,7 @@ public class EffectiveJavaCommand implements Command {
 			Item item = items.get(itemNumber - 1);
 			return displayItem(chatCommand, item);
 		} catch (NumberFormatException e) {
-			//not an item number
+			//user did not enter an item number
 		}
 
 		/**
@@ -155,7 +166,7 @@ public class EffectiveJavaCommand implements Command {
 			//@formatter:off
 			boolean matchFound =
 				item.title.toLowerCase().contains(content) ||
-				(item.summary != null && item.summary.toLowerCase().contains(content));
+				item.summary.toLowerCase().contains(content);
 			//@formatter:on
 
 			if (matchFound) {
@@ -180,12 +191,7 @@ public class EffectiveJavaCommand implements Command {
 		/**
 		 * Multiple items found.
 		 */
-		ChatBuilder cb = new ChatBuilder();
-		cb.reply(chatCommand);
-		for (Item item : searchResults) {
-			cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title)).nl();
-		}
-		return new ChatResponse(cb, SplitStrategy.NEWLINE);
+		return displayItems(chatCommand, searchResults);
 	}
 
 	private ChatResponse displayItem(ChatCommand chatCommand, Item item) {
@@ -196,6 +202,15 @@ public class EffectiveJavaCommand implements Command {
 		cb.nl().append("(source: Effective Java, Third Edition by Joshua Bloch, p.").append(item.page).append(")");
 
 		return new ChatResponse(cb, SplitStrategy.WORD);
+	}
+
+	private ChatResponse displayItems(ChatCommand chatCommand, List<Item> items) {
+		ChatBuilder cb = new ChatBuilder();
+		cb.reply(chatCommand);
+		for (Item item : items) {
+			cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title)).nl();
+		}
+		return new ChatResponse(cb, SplitStrategy.NEWLINE);
 	}
 
 	private static String removeMarkdown(String s) {
