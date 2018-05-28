@@ -48,14 +48,20 @@ public class EffectiveJavaCommand implements Command {
 		List<Leaf> itemElements = document.select("/items/item");
 		for (Leaf itemElement : itemElements) {
 			int number = Integer.parseInt(itemElement.attribute("number"));
-			if (itemsByNumber.containsKey(number)) {
-				throw new RuntimeException("Duplicate item number in " + xmlFile + ": " + number);
-			}
-
 			int page = Integer.parseInt(itemElement.attribute("page"));
-			String title = itemElement.selectFirst("title").text();
-			Leaf summaryElement = itemElement.selectFirst("summary");
-			String summary = (summaryElement == null) ? null : summaryElement.text();
+			String title = itemElement.selectFirst("title").text().trim();
+
+			String summary;
+			{
+				Leaf summaryElement = itemElement.selectFirst("summary");
+				summary = summaryElement.text().trim();
+
+				/**
+				 * Remove any XML indentation whitespace at the beginning of
+				 * each line.
+				 */
+				summary = summary.replaceAll("(\r\n|\r|\n)\\s+", "$1");
+			}
 
 			//@formatter:off
 			Item item = new Item.Builder()
@@ -73,9 +79,6 @@ public class EffectiveJavaCommand implements Command {
 		for (int i = 1; true; i++) {
 			Item item = itemsByNumber.get(i);
 			if (item == null) {
-				if (!itemsByNumber.isEmpty()) {
-					throw new RuntimeException("Item number " + i + " is missing in " + xmlFile + ".");
-				}
 				break;
 			}
 
@@ -189,8 +192,7 @@ public class EffectiveJavaCommand implements Command {
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(chatCommand);
 		cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title));
-		String summary = (item.summary == null) ? "(summary not entered yet)" : item.summary;
-		cb.nl().append(removeMarkdown(summary));
+		cb.nl().append(removeMarkdown(item.summary));
 		cb.nl().append("(source: Effective Java, Third Edition by Joshua Bloch, p.").append(item.page).append(")");
 
 		return new ChatResponse(cb, SplitStrategy.WORD);
@@ -226,26 +228,16 @@ public class EffectiveJavaCommand implements Command {
 			}
 
 			public Builder title(String title) {
-				this.title = (title != null && title.isEmpty()) ? null : title;
+				this.title = title;
 				return this;
 			}
 
 			public Builder summary(String summary) {
-				this.summary = (summary != null && summary.isEmpty()) ? null : summary;
+				this.summary = summary;
 				return this;
 			}
 
 			public Item build() {
-				if (number <= 0) {
-					throw new IllegalArgumentException("Valid item number required.");
-				}
-				if (page <= 0) {
-					throw new IllegalArgumentException("Valid page number required.");
-				}
-				if (title == null) {
-					throw new IllegalArgumentException("Title required.");
-				}
-
 				return new Item(this);
 			}
 		}

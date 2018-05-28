@@ -1,5 +1,6 @@
 <!--
 All text in this file is from the book Effective Java, Third Edition, by Joshua Bloch.
+The titles and summaries may contain the following two Markdown metacharacters: * `
 -->
 <items>
 	<item number="1" page="5">
@@ -12,9 +13,11 @@ All text in this file is from the book Effective Java, Third Edition, by Joshua 
 	</item>
 	<item number="3" page="17">
 		<title>Enforce the singleton property with a private constructor or an enum type</title>
+		<summary>This approach is similar to the public field approach, but it is more concise, provides the serialization machinery for free, and provides an ironclad guarantee against multiple instantiation, even in the face of sophisticated serialization or reflection attacks. This approach may feel a bit unnatural, but a single-element enum type is often the best way to implement a singleton.</summary>
 	</item>
 	<item number="4" page="19">
 		<title>Enforce noninstantiability with a private constructor</title>
+		<summary>It guarantees the class will never be instantiated under any circumstances. This idiom is mildly counter-intuitive because the constructor is provided expressly so that it cannot be invoked. It is therefore wise to include a comment.</summary>
 	</item>
 	<item number="5" page="20">
 		<title>Prefer dependency injection to hardwiring resources</title>
@@ -22,10 +25,11 @@ All text in this file is from the book Effective Java, Third Edition, by Joshua 
 	</item>
 	<item number="6" page="22">
 		<title>Avoid creating unnecessary objects</title>
+		<summary>It is often appropriate to reuse a single object instead of creating a new functionally equivalent object each time it is needed. Reuse can be both faster and more stylish. An object can always be reused if it is immutable (Item 17).</summary>
 	</item>
 	<item number="7" page="26">
 		<title>Eliminate obsolete object references</title>
-		<summary></summary>
+		<summary>Memory leaks in garbage collected languages (more properly known as (unintentional object retentions*) are insidious. If an object reference is unintentionally retained, not only is that object excluded from garbage collection, but so too are any objects referenced by that object, and so on. Even if only a few object references are unintentionally retained, many, many objects may be prevented from being garbage collected, with potentially large effects on performance.</summary>
 	</item>
 	<item number="8" page="29">
 		<title>Avoid finalizers and cleaners</title>
@@ -65,6 +69,7 @@ All text in this file is from the book Effective Java, Third Edition, by Joshua 
 	</item>
 	<item number="17" page="80">
 		<title>Minimize mutability</title>
+		<summary>Immutable classes are easier to design, implement, and use than mutable classes. They are less prone to error and are more secure.</summary>
 	</item>
 	<item number="18" page="87">
 		<title>Favor composition over inheritance</title>
@@ -192,7 +197,7 @@ All text in this file is from the book Effective Java, Third Edition, by Joshua 
 	</item>
 	<item number="49" page="227">
 		<title>Check parameters for validity</title>
-		<summary>Each time you write a method or constructor, you should think about what restrictions exist on its parameters. You should document these restrictions and enforce them with explicit checks at the beginning of the method body. It is important to get into the habit of doing this. The modest work that it entails will be paid back with interest the first time a validity check fails./summary>
+		<summary>Each time you write a method or constructor, you should think about what restrictions exist on its parameters. You should document these restrictions and enforce them with explicit checks at the beginning of the method body. It is important to get into the habit of doing this. The modest work that it entails will be paid back with interest the first time a validity check fails.</summary>
 	</item>
 	<item number="50" page="231">
 		<title>Make defensive copies when needed</title>
@@ -246,116 +251,123 @@ All text in this file is from the book Effective Java, Third Edition, by Joshua 
 		<title>Avoid strings where other types are more appropriate</title>
 		<summary>Avoid the natural tendency to represent objects as strings when better datatypes exist or can be written. Used inappropriately, strings are more cumbersome, less flexible, slower, and more error prone than other types. Types for which strings are commonly misused include primitive types, enums, and aggregate types.</summary>
 	</item>
-	<item number="63" page="273">
+	<item number="63" page="279">
 		<title>Beware the performance of string concatenation</title>
 		<summary>Don't use the string concatenation operator to combine more than a few strings unless performance is irrelevant. Use `StringBuilder`'s `append` method instead. Alternatively, use a character array, or process the strings one at a time instead of combining them.</summary>
 	</item>
 	<item number="64" page="280">
 		<title>Refer to objects by their interfaces</title>
-		<summary></summary>
+		<summary>In practice, it should be apparent whether a given object has an appropriate interface. If it does, your program will be more flexible and stylish if you use the interface to refer to the object. If there is no appropriate interface, just use the least specific class in the class hierarchy that provides the required functionality.</summary>
 	</item>
 	<item number="65" page="282">
 		<title>Prefer interfaces to reflection</title>
-		<summary></summary>
+		<summary>Reflection is a powerful facility that is required for certain sophisticated system programming tasks, but it has many disadvantages. If you are writing a program that has to work with classes unknown at compile time, you should, if at all possible, use reflection only to instantiate objects, and access the objects using some interface or superclass that is known at compile time.</summary>
 	</item>
 	<item number="66" page="285">
 		<title>Use native methods judiciously</title>
-		<summary></summary>
+		<summary>Think twice before using native methods. It is rare that you need to use them for improved performance. If you must use native method to access low level resources or native libraries, use as little native code as possible and tested thoroughly. A single bug in the native code can corrupt your entire application.</summary>
 	</item>
 	<item number="67" page="286">
 		<title>Optimize judiciously</title>
-		<summary></summary>
+		<summary>Do not strive to write fast programs--strive to write good ones; speed will follow. But do you think about performance while you were designing systems, especially while you're designing APIs, wired-level protocols, and persistent formats. When you finished building the system, measure its performance. If it's fast enough, you're done. If not, locate the source of the problem with the aid of a profiler and go to work optimizing the relative parts of the system.</summary>
 	</item>
 	<item number="68" page="289">
 		<title>Adhere to generally accepted naming conventions</title>
-		<summary></summary>
+		<summary>Internalize the standard naming conventions and learn to use them as second nature. The typographical conventions are straightforward and largely unambiguous; the grammatical conventions or more complex and looser. To quote from *The Java Language Specification*, "These conventions should not be followed slavishly if long held conventional usage dictates otherwise". Use common sense.</summary>
 	</item>
 	<item number="69" page="293">
 		<title>Use exceptions only for exceptional conditions</title>
-		<summary></summary>
+		<summary>Exceptions are designed for exceptional conditions. Don't use them for ordinary control flow, and don't write APIs that force others to do so.</summary>
 	</item>
 	<item number="70" page="296">
 		<title>Use checked exceptions for recoverable conditions and runtime exceptions for programming errors</title>
-		<summary></summary>
+		<summary>Throw checked exceptions for recoverable conditions and unchecked exceptions for programming errors. When in doubt, throw unchecked exceptions. Don't define any throwables that are neither checked exceptions nor runtime exceptions. Provide methods on your checked exceptions to aid in recovery.</summary>
 	</item>
 	<item number="71" page="298">
 		<title>Avoid unnecessary use of checked exceptions</title>
-		<summary></summary>
+		<summary>When used sparingly, checked exceptions can increase the reliability of programs; when overused, they make APIs painful to use. If callers won't be able to recover from failures, throw unchecked exceptions. If recovery may be possible and you want to *force* callers to handle exceptional conditions, first consider returning an optional. Only if this would provide insufficient information in the case of failure should you throw a checked exception.</summary>
 	</item>
 	<item number="72" page="300">
 		<title>Favor the use of standard exceptions</title>
-		<summary></summary>
+		<summary>
+			`IllegalArgumentException`: Non-null parameter value is inappropriate.
+			`IllegalStateException`: Object state is inappropriate for method invocation.
+			`NullPointerException`: Parameter value is null where prohibited.
+			`IndexOutOfBoundsException`: Index parameter value is out of range.
+			`ConcurrentModificationException`: Concurrent modification of an object has been detected where it is prohibited.
+			`UnsupportedOperationException`: Object does not support method.
+		</summary>
 	</item>
 	<item number="73" page="302">
 		<title>Throw exceptions appropriate to the abstraction</title>
-		<summary></summary>
+		<summary>If it isn't feasible to prevent or to handle exceptions from lower layers, use exception translation, unless the lower-level method happens to guarantee that all of its exceptions are appropriate to the higher level. Chaining provides the best of both worlds: it allows you to throw an appropriate higher level exception, while capturing the underlying cause for failure analysis (Item 75). </summary>
 	</item>
 	<item number="74" page="304">
 		<title>Document all exceptions thrown by each method</title>
-		<summary></summary>
+		<summary>Document every exception that can be thrown by each method that you write. This is true for unchecked as well as checked exceptions, and for abstract as well as concrete methods. This documentation should take the form of `@throws` tags in doc comments. Declare each checked exception individually in a method's `throws` clause, but do not declare unchecked exceptions. If you fail to document the exceptions that your methods can throw, it will be difficult or impossible for others to make effective use of your classes and interfaces.</summary>
 	</item>
 	<item number="75" page="306">
 		<title>Include failure-capture information in detail messages</title>
-		<summary></summary>
+		<summary>As suggested in Item 70, it may be appropriate for an exception to provide accessor methods for its failure capture information. It is more important to provide such accessor methods on checked exceptions than unchecked, because the failure-capture information could be useful in recovering from the failure. It is rare (although not inconceivable) that a programmer might want programmatic access to the details of an unchecked exception. Even for unchecked exceptions, however, it seems advisable to provide these accessors on general principle (Item 12, page 57).</summary>
 	</item>
 	<item number="76" page="308">
 		<title>Strive for failure atomicity</title>
-		<summary></summary>
+		<summary>As a rule, any generated exception that is part of a method's specification should leave the object in the same state it was prior to the method invocation. Where this rule is violated, the API documentation should clearly indicate what state the object will be left in. Unfortunately, plenty of existing API documentation fails to live up to this ideal.</summary>
 	</item>
 	<item number="77" page="310">
 		<title>Don't ignore exceptions</title>
-		<summary></summary>
+		<summary>The advice in this item applies equally to checked and unchecked exceptions. Whether an exception represents a predictable exceptional condition or a programming error, ignoring it with an empty `catch` block will result in a program that continues silently in the face of error. The program might then fail at an arbitrary time in the future, at a point in the code that bears no apparent relation to the source of the problem. Properly handling an exception can avert failure entirely. Merely letting an exception propagate outward can at least cause the program to fail swiftly, preserving information to aid in debugging the failure.</summary>
 	</item>
 	<item number="78" page="311">
 		<title>Synchronize access to shared mutable data</title>
-		<summary></summary>
+		<summary>When multiple threads share mutable data, each thread that reads or writes the data must perform synchronization. In the absence of synchronization, there is no guarantee that one thread's changes will be visible to another thread. The penalties for failing to synchronize shared mutable data are liveness and safety failures. These failures are among the most difficult to debug. They can be intermittent and timing-dependant, and program failure can vary radically from one VM to another. If you need only inter-thread communication, and not mutual exclusion, the `volatile` modifier is an acceptable form of synchronization, but it can be tricky to use correctly.</summary>
 	</item>
 	<item number="79" page="317">
 		<title>Avoid excessive synchronization</title>
-		<summary></summary>
+		<summary>To avoid deadlock and data corruption, never call an alien method from within a synchronized region. More generally, keep the amount of work that you do from within synkronized regions to a minimum. When you are designing a mutable class, think about whether it should do its own synchronization. In the multicore era, it is more important than ever not to oversynchronize. Synchronize your class internally only if there is a good reason to do so, and document your decision clearly (Item 82).</summary>
 	</item>
 	<item number="80" page="323">
 		<title>Prefer executors, tasks, and streams to threads</title>
-		<summary></summary>
+		<summary>You should generally refrain from working directly with threads. When you work directly with threads, a `Thread` serves as both a unit of work and the mechanism for executing it. In the executor framework, the unit of work and the execution mechanism are separate...If you think in terms of tasks and let and executor service execute them for you, you gain the flexibility to select an appropriate execution policy to meet your needs and to change the policy if your needs change. In essence, the Executor Framework does for execution what the Collections Framework did for aggregation.</summary>
 	</item>
 	<item number="81" page="325">
 		<title>Prefer concurrency utilities to `wait` and `notify`</title>
-		<summary></summary>
+		<summary>Using `wait` and `notify` directly is like programming in "concurrency assembly language," as compared to the higher level language provided by `java.util.concurrent`. There is seldom, if ever, a reason to use `wait` and `notify` in new code. If you maintain code that uses `wait` and `notify`, make sure that it always invokes `wait` from within a `while` loop using the standard idiom. The `notifyAll` method should generally be used in preference to `notify`. If `notify` is used, great care must be taken to ensure liveliness.</summary>
 	</item>
 	<item number="82" page="330">
 		<title>Document thread safety</title>
-		<summary></summary>
+		<summary>Every class should clearly document its thread safety properties with a carefully worded prose description or a thread safety annotation. The `synchronized` modifier plays no part in this documentation. Conditionally thread-safe classes must document which method invocation sequences require external synchronization in which lock to acquire when executing the sequences. If you write an unconditionally thread-safe class, consider using a private lock object in place of synchronized methods. This protects you against synchronization interference by clients and subclasses and gives you more flexibility to adopt a sophisticated approach to concurrency control in a later release.</summary>
 	</item>
 	<item number="83" page="333">
 		<title>Use lazy initialization judiciously</title>
-		<summary></summary>
+		<summary>You should initialize most fields normally, not lazily. If you must initialize a field lazily in order to achieve your performance goals or to break a harmful initialization circularity, then use the appropriate lazy initialization technique. For instance fields, it is the double-check idiom; for static fields, the lazy initialization holder class idiom. For instance fields that can tolerate repeated initialization, you may also consider the single-check idiom.</summary>
 	</item>
 	<item number="84" page="336">
 		<title>Don't depend on the thread scheduler</title>
-		<summary></summary>
+		<summary>Do not depend on the thread scheduler for the correctness of your program. The resulting program will be neither robust nor portable. As a corollary, do not rely on `Thread.yield` or thread priorities. These facilities are merely hints to the scheduler. Thread priorities may be used sparingly to improve the quality of service of an already working program, but they should never be used to "fix" a program that barely works.</summary>
 	</item>
 	<item number="85" page="339">
 		<title>Prefer alternatives to Java serialization</title>
-		<summary></summary>
+		<summary>Serialization is dangerous and should be avoided. If you are designing a system from scratch, use a cross-platform structured-data representation such as JSON or protobuf instead. Do not deserialize untrusted data. If you must do so, use object deserialization filtering, but be aware that it is not guaranteed to thwart all attacks. Avoid writing serializable classes. If you must do so, exercise great caution.</summary>
 	</item>
 	<item number="86" page="343">
 		<title>Implement `Serializable` with great caution</title>
-		<summary></summary>
+		<summary>The ease of implementing `Serializable` is specious. Unless a classe is to be used only in a protected environment where versions will never have to interoperate and servers will never be exposed to untrusted data, implementing `Serializable` is a serious commitment that should be made with great care. Extra caution is warranted if a class permits inheritance.</summary>
 	</item>
 	<item number="87" page="346">
 		<title>Consider using a custom serialized form</title>
-		<summary></summary>
+		<summary>If you have decided that a class should be serializable (Item 86), think hard about what the serialized form should be. Use the default serialized form *only* if it is a reasonable description of the logical state of the object; otherwise design a custom serialized form that aptly describe the object. You should allocate as much time to designing the serialized form of the class as you allocate to designing an exported method (Item 51). Just as you can't eliminate exported methods from future versions, you can't eliminate fields from the serialized form; they must be preserved forever to ensure serialization compatibility. Choosing the wrong serialized form can have a permanent, negative impact on the complexity and performance of a class.</summary>
 	</item>
 	<item number="88" page="353">
 		<title>Write `readObject` methods defensively</title>
-		<summary></summary>
+		<summary>Anytime you write a `readObject` method, adopt the mind-set that you are writing a public constructor that must produce a valid instance regardless of what byte stream it is given. Do not assume that the byte stream represents an actual serialized instance.</summary>
 	</item>
 	<item number="89" page="359">
 		<title>For instance control, prefer enum types to `readResolve`</title>
-		<summary></summary>
+		<summary>Use enum types to enforce instance control invariants wherever possible. If this is not possible and you need a class to be both serializable and instance-controlled, you must provide a `readResolve` method and ensure that all of the class's instance fields are either primitive or transient.</summary>
 	</item>
 	<item number="90" page="363">
 		<title>Consider serialization proxies instead of serialized instances</title>
-		<summary></summary>
+		<summary>Consider the serialization proxy pattern whenever you find yourself having to write a `readObject` or `writeObject` method on a class that is not extendable by its clients. This pattern is perhaps the easiest way to robustly serialize objects with nontrivial invariants.</summary>
 	</item>
 </items>
