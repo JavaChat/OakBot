@@ -145,7 +145,7 @@ public class Room implements IRoom {
 		connectToWebsocket();
 
 		/**
-		 * Create a timer that recreates the websocket connection once per day.
+		 * Create a timer that recreates the websocket connection periodically.
 		 * This is an attempt to fix the issue where every couple days, the bot
 		 * will stop responding to messages.
 		 */
