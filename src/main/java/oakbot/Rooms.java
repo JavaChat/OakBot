@@ -73,11 +73,29 @@ public class Rooms {
 	}
 
 	/**
+	 * Determines if a room is a home room.
+	 * @param roomId the room
+	 * @return true if it's a home room, false if not
+	 */
+	public boolean isHomeRoom(Integer roomId) {
+		return homeRooms.contains(roomId);
+	}
+
+	/**
 	 * Gets the rooms the bot will not post inactivity messages to.
 	 * @return the room IDs
 	 */
 	public List<Integer> getQuietRooms() {
 		return Collections.unmodifiableList(quietRooms);
+	}
+
+	/**
+	 * Determines if a room is a quiet room.
+	 * @param roomId the room
+	 * @return true if it's a quiet room, false if not
+	 */
+	public boolean isQuietRoom(Integer roomId) {
+		return quietRooms.contains(roomId);
 	}
 
 	/**

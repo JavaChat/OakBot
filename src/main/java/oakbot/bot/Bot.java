@@ -3,12 +3,14 @@ package oakbot.bot;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -275,7 +277,7 @@ public class Bot {
 			return;
 		}
 
-		inactiveRoomTasks.resetTimer(room);
+		inactiveRoomTasks.touch(message);
 
 		List<ChatResponse> replies = new ArrayList<>();
 		boolean isUserAdmin = admins.contains(message.getUserId());
@@ -468,7 +470,7 @@ public class Bot {
 		}
 
 		rooms.add(roomId);
-		inactiveRoomTasks.resetTimer(room);
+		inactiveRoomTasks.addRoom(room);
 
 		return room;
 	}
@@ -485,9 +487,9 @@ public class Bot {
 			return;
 		}
 
-		room.leave();
+		inactiveRoomTasks.removeRoom(room);
 		rooms.remove(roomId);
-		inactiveRoomTasks.cancelTimer(room);
+		room.leave();
 	}
 
 	/**
@@ -612,83 +614,178 @@ public class Bot {
 	}
 
 	private class InactiveRoomTasks {
-		//@formatter:off
-		private final String[] messages = {
-			"*farts*",
-			"*picks nose*",
-			"*reads a book*",
-			"*dreams of electric sheep*"
-		};
-		//@formatter:on
-
-		private final long waitTime, leaveRoomAfter;
-		private final Map<IRoom, TimerTask> tasks = new HashMap<>();
+		private final long postMessageAfter, leaveRoomAfter;
+		private final Map<Integer, LocalDateTime> timeOfLastMessage = new HashMap<>();
+		private final Map<IRoom, TimerTask> fillTheSilenceTasks = new IdentityHashMap<>();
+		private final Map<IRoom, TimerTask> leaveRoomTasks = new IdentityHashMap<>();
 
 		/**
-		 * @param waitTime how long to wait in between messages (in
-		 * milliseconds)
-		 * @param leaveRoomAfter how long to wait before the bot leaves the room
-		 * (in milliseconds)
+		 * @param postMessageAfter how long the room has to be silent before
+		 * posting a message (in milliseconds)
+		 * @param leaveRoomAfter how long the room has to be silent before the
+		 * bot to leaves the room (in milliseconds)
 		 */
-		public InactiveRoomTasks(long waitTime, long leaveRoomAfter) {
-			this.waitTime = waitTime;
+		public InactiveRoomTasks(long postMessageAfter, long leaveRoomAfter) {
+			this.postMessageAfter = postMessageAfter;
 			this.leaveRoomAfter = leaveRoomAfter;
 		}
 
-		public void resetTimer(IRoom room) {
+		public void addRoom(IRoom room) {
 			int roomId = room.getRoomId();
-			if (rooms.getQuietRooms().contains(roomId)) {
-				return;
+			boolean quiet = rooms.isQuietRoom(roomId);
+			boolean home = rooms.isHomeRoom(roomId);
+
+			synchronized (this) {
+				/*
+				 * Do not post messages to quiet rooms.
+				 */
+				if (!quiet) {
+					scheduleFillTheSilenceTask(room, postMessageAfter);
+				}
+
+				/*
+				 * Never leave home rooms.
+				 */
+				if (!home) {
+					scheduleLeaveRoomTask(room, leaveRoomAfter);
+				}
 			}
 
-			cancelTimer(room);
+		}
 
-			TimerTask task = new TimerTask() {
-				private long taskStarted = System.currentTimeMillis();
+		/**
+		 * Records the time of the latest message that was posted in a room.
+		 * @param message the message that was posted
+		 */
+		public void touch(ChatMessage message) {
+			Integer roomId = message.getRoomId();
+			LocalDateTime timestamp = message.getTimestamp();
+			synchronized (this) {
+				timeOfLastMessage.put(roomId, timestamp);
+			}
+		}
 
-				@Override
-				public void run() {
-					boolean isHomeRoom = rooms.getHomeRooms().contains(roomId);
-					if (!isHomeRoom) {
-						long sinceLastMessage = System.currentTimeMillis() - taskStarted;
-						if (sinceLastMessage > leaveRoomAfter) {
-							leaveRoom();
-							return;
-						}
+		private class FillTheSilenceTask extends TimerTask {
+			//@formatter:off
+			private final String[] messages = {
+				"*farts*",
+				"*picks nose*",
+				"*reads a book*",
+				"*dreams of electric sheep*"
+			};
+			//@formatter:on
+
+			private final IRoom room;
+
+			public FillTheSilenceTask(IRoom room) {
+				this.room = room;
+			}
+
+			@Override
+			public void run() {
+				synchronized (InactiveRoomTasks.this) {
+					/**
+					 * Synchronize this whole method to account for the edge
+					 * case where a room's LeaveRoomTask causes the bot to leave
+					 * the room while the same room's FillTheSilenceTask is
+					 * running concurrently (or a user makes the bot leave a
+					 * room while these tasks are running). In that case, the
+					 * FillTheSilenceTask should not be allowed to post a
+					 * message to the room that the bot just left.
+					 */
+
+					if (!connection.isInRoom(room.getRoomId())) {
+						return;
+					}
+
+					LocalDateTime timestamp = timeOfLastMessage.get(room.getRoomId());
+					long roomInactiveFor = (timestamp == null) ? postMessageAfter : timestamp.until(LocalDateTime.now(), ChronoUnit.MILLIS);
+					if (roomInactiveFor < postMessageAfter) {
+						scheduleFillTheSilenceTask(room, postMessageAfter - roomInactiveFor);
+						return;
 					}
 
 					String message = Command.random(messages);
 					try {
 						sendMessage(room, message);
 					} catch (Exception e) {
-						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
+						logger.log(Level.SEVERE, "Could not post message to room " + room.getRoomId() + ".", e);
 					}
+					scheduleFillTheSilenceTask(room, postMessageAfter);
 				}
+			}
+		}
 
-				private void leaveRoom() {
+		private class LeaveRoomTask extends TimerTask {
+			private final IRoom room;
+
+			public LeaveRoomTask(IRoom room) {
+				this.room = room;
+			}
+
+			@Override
+			public void run() {
+				synchronized (InactiveRoomTasks.this) {
+					/**
+					 * Synchronize this whole method to account for the edge
+					 * case where a room's LeaveRoomTask causes the bot to leave
+					 * the room while the same room's FillTheSilenceTask is
+					 * running concurrently (or a user makes the bot leave a
+					 * room while these tasks are running). In that case, the
+					 * FillTheSilenceTask should not be allowed to post a
+					 * message to the room that the bot just left.
+					 */
+
+					if (!connection.isInRoom(room.getRoomId())) {
+						return;
+					}
+
+					LocalDateTime timestamp = timeOfLastMessage.get(room.getRoomId());
+					long roomInactiveFor = (timestamp == null) ? leaveRoomAfter : timestamp.until(LocalDateTime.now(), ChronoUnit.MILLIS);
+					if (roomInactiveFor < leaveRoomAfter) {
+						scheduleLeaveRoomTask(room, leaveRoomAfter - roomInactiveFor);
+						return;
+					}
+
 					try {
 						sendMessage(room, "*quietly closes the door behind him*");
 					} catch (Exception e) {
-						logger.log(Level.SEVERE, "Could not post message to room " + roomId + ".", e);
+						logger.log(Level.SEVERE, "Could not post message to room " + room.getRoomId() + ".", e);
 					}
 
 					try {
-						leave(roomId);
+						leave(room.getRoomId());
 					} catch (IOException e) {
-						logger.log(Level.SEVERE, "Could not leave room " + roomId + ".", e);
+						logger.log(Level.SEVERE, "Could not leave room " + room.getRoomId() + ".", e);
 					}
 				}
-			};
-
-			tasks.put(room, task);
-			timer.scheduleAtFixedRate(task, waitTime, waitTime);
+			}
 		}
 
-		public void cancelTimer(IRoom room) {
-			TimerTask task = tasks.remove(room);
+		private void scheduleFillTheSilenceTask(IRoom room, long delay) {
+			TimerTask newTask = new FillTheSilenceTask(room);
+			fillTheSilenceTasks.put(room, newTask);
+			timer.schedule(newTask, delay);
+		}
+
+		private void scheduleLeaveRoomTask(IRoom room, long delay) {
+			TimerTask newTask = new LeaveRoomTask(room);
+			leaveRoomTasks.put(room, newTask);
+			timer.schedule(newTask, delay);
+		}
+
+		public synchronized void removeRoom(IRoom room) {
+			TimerTask task = fillTheSilenceTasks.remove(room);
 			if (task != null) {
 				task.cancel();
 			}
+
+			task = leaveRoomTasks.remove(room);
+			if (task != null) {
+				task.cancel();
+			}
+
+			timeOfLastMessage.remove(room.getRoomId());
 		}
 	}
 
