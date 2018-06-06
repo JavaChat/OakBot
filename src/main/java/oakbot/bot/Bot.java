@@ -2,7 +2,6 @@ package oakbot.bot;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -170,7 +169,6 @@ public class Bot {
 				for (ScheduledTask task : scheduledTasks) {
 					scheduleTask(task);
 				}
-				scheduleNextRoomCheck();
 
 				while (true) {
 					ChatMessage message;
@@ -594,23 +592,6 @@ public class Bot {
 	 */
 	public void stop() {
 		newMessages.add(CLOSE_MESSAGE);
-	}
-
-	private void scheduleNextRoomCheck() {
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				Instant now = Instant.now();
-				for (IRoom room : connection.getRooms()) {
-					long hours = ChronoUnit.HOURS.between(room.getTimeOfLastReceivedMessagePostedEvent(), now);
-					if (hours > 5) {
-						logger.info("No \"message posted\" events have been received in over " + hours + " for room " + room.getRoomId());
-					}
-				}
-
-				scheduleNextRoomCheck();
-			}
-		}, Duration.ofHours(6).toMillis());
 	}
 
 	private class InactiveRoomTasks {

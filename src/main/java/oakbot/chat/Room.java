@@ -75,7 +75,6 @@ public class Room implements IRoom {
 	private final ChatClient chatClient;
 	private Session session;
 	private final ObjectMapper mapper = new ObjectMapper();
-	private Instant timeOfLastReceivedMessagePostedEvent = Instant.now();
 	private final Timer websocketReconnectTimer;
 
 	private final Map<Class<? extends Event>, List<Consumer<Event>>> listeners;
@@ -224,11 +223,6 @@ public class Room implements IRoom {
 		return canPost;
 	}
 
-	@Override
-	public Instant getTimeOfLastReceivedMessagePostedEvent() {
-		return timeOfLastReceivedMessagePostedEvent;
-	}
-
 	private String getWebSocketUrl() throws IOException {
 		//@formatter:off
 		Response response = http.post(chatDomain + "/ws-auth",
@@ -333,7 +327,6 @@ public class Room implements IRoom {
 			switch (eventType) {
 			case MESSAGE_POSTED:
 				event = EventParsers.messagePosted(eventNode);
-				timeOfLastReceivedMessagePostedEvent = Instant.now();
 				break;
 			case MESSAGE_EDITED:
 				event = EventParsers.messageEdited(eventNode);

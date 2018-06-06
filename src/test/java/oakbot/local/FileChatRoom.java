@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,8 +37,6 @@ public class FileChatRoom implements IRoom {
 	private final List<ChatMessage> messages = new ArrayList<>();
 
 	private Consumer<MessagePostedEvent> listener;
-
-	private Instant timeOfLastReceivedMessagePostedEvent;
 
 	public FileChatRoom(int roomId, int humanUserId, String humanUsername, int botUserId, String botUsername, AtomicLong eventId, AtomicLong messageId, Path inputFile, FileChatClient connection) throws IOException {
 		this.roomId = roomId;
@@ -159,8 +156,6 @@ public class FileChatRoom implements IRoom {
 		.build();
 		//@formatter:on
 
-		timeOfLastReceivedMessagePostedEvent = Instant.now();
-
 		//indent additional lines for readability
 		content = content.replaceAll("\r\n|\r|\n", "$0  ");
 		System.out.println(roomId + " > " + username + " > " + content);
@@ -219,11 +214,6 @@ public class FileChatRoom implements IRoom {
 	@Override
 	public RoomInfo getRoomInfo() throws IOException {
 		return new RoomInfo(roomId, "name", "description", Arrays.asList("one", "two", "three"));
-	}
-
-	@Override
-	public Instant getTimeOfLastReceivedMessagePostedEvent() {
-		return timeOfLastReceivedMessagePostedEvent;
 	}
 
 	@Override

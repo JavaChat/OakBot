@@ -2,7 +2,6 @@ package oakbot.chat;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -33,13 +32,6 @@ public interface IRoom extends Closeable {
 	 * @return true if the user can post messages, false if not
 	 */
 	boolean canPost();
-
-	/**
-	 * Gets the time that the room last received a "message posted" event (for
-	 * debugging).
-	 * @return the time
-	 */
-	Instant getTimeOfLastReceivedMessagePostedEvent();
 
 	/**
 	 * Adds a listener which receives all events.
