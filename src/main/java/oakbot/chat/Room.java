@@ -158,13 +158,28 @@ public class Room implements IRoom {
 					try {
 						session.close();
 					} catch (IOException e) {
-						logger.log(Level.SEVERE, "[room=" + roomId + "]: Problem closing websocket session.", e);
+						logger.log(Level.SEVERE, "[room=" + roomId + "]: Problem closing existing websocket session.", e);
 					}
 
-					try {
-						connectToWebsocket();
-					} catch (IOException e) {
-						logger.log(Level.SEVERE, "[room=" + roomId + "]: Could not recreate websocket session. Leaving the room.", e);
+					boolean connected = false;
+					int tries = 0;
+					while (!connected && tries < 3) {
+						try {
+							tries++;
+							connectToWebsocket();
+							connected = true;
+						} catch (IOException e) {
+							logger.log(Level.SEVERE, "[room=" + roomId + "]: Could not recreate websocket session. Trying again in 10 seconds.", e);
+							try {
+								Thread.sleep(10000);
+							} catch (InterruptedException e1) {
+								break;
+							}
+						}
+					}
+
+					if (!connected) {
+						logger.severe("[room=" + roomId + "]: Could not recreate websocket session after " + tries + " tries. Leaving the room.");
 						leave();
 					}
 				}
