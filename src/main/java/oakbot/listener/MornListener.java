@@ -15,7 +15,7 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class MornListener implements Listener {
-	private final long timeBetweenReplies = TimeUnit.MINUTES.toMillis(5);
+	private final long timeBetweenReplies = TimeUnit.MINUTES.toMillis(10);
 	private final long hesitation;
 	private final String botUsername;
 	private final MentionListener mentionListener;
@@ -63,72 +63,79 @@ public class MornListener implements Listener {
 
 	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
-		String content = message.getContent().getContent().toLowerCase().replaceAll("[!\\.]", "");
+		List<String> mentions = message.getContent().getMentions();
 		boolean mentioned = message.getContent().isMentioned(botUsername);
+		if (!mentions.isEmpty() && !mentioned) {
+			/*
+			 * Message isn't directed toward the bot.
+			 */
+			return null;
+		}
 
+		String content = removeMentionsAndPunctuation(message.getContent().getContent());
+		String reply = null;
+		for (String[] response : responses) {
+			if (content.equalsIgnoreCase(response[0])) {
+				reply = response[1];
+				break;
+			}
+		}
+		if (reply == null) {
+			return null;
+		}
+
+		/*
+		 * Always reply if the bot is mentioned.
+		 */
 		if (mentioned) {
-			String reply = null;
-			for (String[] response : responses) {
-				if (content.endsWith(response[0])) {
-					reply = response[1];
-					break;
-				}
-			}
-			if (reply == null) {
-				return null;
-			}
-
 			mentionListener.ignoreNextMessage();
 
 			/*
 			 * Wait for a moment to make it seem less robotic.
 			 */
-			try {
-				Thread.sleep(hesitation);
-			} catch (InterruptedException e) {
-				//empty
-			}
+			hesitate();
 
 			return Listener.reply(reply, message);
-		} else {
-			String reply = null;
-			for (String[] response : responses) {
-				if (content.equals(response[0])) {
-					reply = response[1];
-					break;
-				}
-			}
-			if (reply == null) {
-				return null;
-			}
-
-			int roomId = message.getRoomId();
-			Long lastReply = lastReplies.get(roomId);
-			if (lastReply == null) {
-				lastReply = 0L;
-			}
-
-			/*
-			 * Do not respond if the bot was not mentioned and it responded
-			 * recently.
-			 */
-			long now = System.currentTimeMillis();
-			if (now - lastReply < timeBetweenReplies) {
-				return null;
-			}
-
-			lastReplies.put(roomId, now);
-
-			/*
-			 * Wait for a moment to make it seem less robotic.
-			 */
-			try {
-				Thread.sleep(hesitation);
-			} catch (InterruptedException e) {
-				//empty
-			}
-
-			return new ChatResponse(reply);
 		}
+
+		int roomId = message.getRoomId();
+		Long lastReply = lastReplies.get(roomId);
+		if (lastReply == null) {
+			lastReply = 0L;
+		}
+
+		/*
+		 * Do not respond if the bot was not mentioned and it responded
+		 * recently.
+		 */
+		long now = System.currentTimeMillis();
+		if (now - lastReply < timeBetweenReplies) {
+			return null;
+		}
+
+		lastReplies.put(roomId, now);
+
+		/*
+		 * Wait for a moment to make it seem less robotic.
+		 */
+		hesitate();
+
+		return new ChatResponse(reply);
+	}
+
+	private void hesitate() {
+		try {
+			Thread.sleep(hesitation);
+		} catch (InterruptedException ignored) {
+		}
+	}
+
+	private static String removeMentionsAndPunctuation(String message) {
+		//@formatter:off
+		return message
+		.replaceAll("@[a-zA-Z0-9]+", "") //remove mentions
+		.replaceAll("[!,\\.]", "") //remove punctuation
+		.trim(); //trim for good measure
+		//@formatter:on
 	}
 }
