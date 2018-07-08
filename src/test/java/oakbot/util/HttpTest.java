@@ -19,6 +19,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,6 +30,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  */
 @SuppressWarnings("resource")
 public class HttpTest {
+	@Before
+	public void before() {
+		Sleeper.unitTest = true;
+		Sleeper.timeSlept = 0;
+	}
+
+	@After
+	public void after() {
+		Sleeper.unitTest = false;
+	}
+
 	/**
 	 * Make sure it generates the Response object properly.
 	 */
@@ -132,10 +145,9 @@ public class HttpTest {
 		CloseableHttpClient client = mock(CloseableHttpClient.class);
 		when(client.execute(any(HttpUriRequest.class))).thenReturn(response1, response2);
 
-		HttpSleepless http = new HttpSleepless(client);
+		Http http = new Http(client);
 		http.get("uri");
-		assertEquals(2000, http.timeSlept);
-
+		assertEquals(2000, Sleeper.timeSlept);
 	}
 
 	/**
@@ -150,10 +162,10 @@ public class HttpTest {
 		CloseableHttpClient client = mock(CloseableHttpClient.class);
 		when(client.execute(any(HttpUriRequest.class))).thenReturn(response1, response2);
 
-		HttpSleepless http = new HttpSleepless(client);
+		Http http = new Http(client);
 
 		http.get("uri");
-		assertEquals(5000, http.timeSlept);
+		assertEquals(5000, Sleeper.timeSlept);
 	}
 
 	/**
@@ -166,31 +178,13 @@ public class HttpTest {
 		CloseableHttpClient client = mock(CloseableHttpClient.class);
 		when(client.execute(any(HttpUriRequest.class))).thenReturn(response);
 
-		HttpSleepless http = new HttpSleepless(client);
+		Http http = new Http(client);
 
 		try {
 			http.get("uri");
 			fail();
 		} catch (IOException e) {
-			assertEquals(8000, http.timeSlept);
-		}
-	}
-
-	/**
-	 * Create a version of the {@link Http} class that does not actually call
-	 * {@link Thread#sleep} so that the unit test does not take forever to run.
-	 * @author Michael Angstadt
-	 */
-	private static class HttpSleepless extends Http {
-		private long timeSlept;
-
-		public HttpSleepless(CloseableHttpClient client) {
-			super(client);
-		}
-
-		@Override
-		void sleep(long ms) {
-			timeSlept += ms;
+			assertEquals(8000, Sleeper.timeSlept);
 		}
 	}
 

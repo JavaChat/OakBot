@@ -39,6 +39,7 @@ import oakbot.command.learn.LearnedCommands;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.Listener;
 import oakbot.task.ScheduledTask;
+import oakbot.util.Sleeper;
 
 /**
  * A Stackoverflow chat bot.
@@ -158,7 +159,7 @@ public class Bot {
 			 * rooms.
 			 */
 			try {
-				Thread.sleep(2000);
+				Sleeper.sleep(2000);
 			} catch (InterruptedException e) {
 				//ignore
 			}

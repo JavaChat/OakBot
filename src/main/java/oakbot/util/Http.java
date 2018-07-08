@@ -120,7 +120,7 @@ public class Http implements Closeable {
 			if (sleep > 0) {
 				logger.info("Sleeping for " + sleep + "ms before resending the request...");
 				try {
-					sleep(sleep);
+					Sleeper.sleep(sleep);
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e);
 				}
@@ -200,16 +200,6 @@ public class Http implements Closeable {
 	@Override
 	public void close() throws IOException {
 		client.close();
-	}
-
-	/**
-	 * Calls {@link Thread#sleep}. This method is here so unit tests can
-	 * override it so that they don't take forever to run.
-	 * @param ms the amount of time to sleep (in milliseconds)
-	 * @throws InterruptedException
-	 */
-	void sleep(long ms) throws InterruptedException {
-		Thread.sleep(ms);
 	}
 
 	/**

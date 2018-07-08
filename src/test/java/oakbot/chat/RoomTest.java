@@ -45,6 +45,7 @@ import oakbot.chat.event.MessageStarredEvent;
 import oakbot.chat.event.MessagesMovedEvent;
 import oakbot.chat.event.UserEnteredEvent;
 import oakbot.chat.event.UserLeftEvent;
+import oakbot.util.Sleeper;
 
 /**
  * @author Michael Angstadt
@@ -991,10 +992,14 @@ public class RoomTest {
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		Room room1 = chatClient.joinRoom(1);
 
-		long start = System.currentTimeMillis();
-		assertEquals(1, room1.sendMessage("one"));
-		long elapsed = System.currentTimeMillis() - start;
-		assertTrue(elapsed >= 2000);
+		Sleeper.unitTest = true;
+		Sleeper.timeSlept = 0;
+		try {
+			assertEquals(1, room1.sendMessage("one"));
+			assertEquals(2000, Sleeper.timeSlept);
+		} finally {
+			Sleeper.unitTest = false;
+		}
 
 		verifyNumberOfRequestsSent(httpClient, 5);
 	}

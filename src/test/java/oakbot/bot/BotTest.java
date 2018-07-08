@@ -41,6 +41,7 @@ import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommands;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.Listener;
+import oakbot.util.Sleeper;
 
 /**
  * @author Michael Angstadt
@@ -69,10 +70,15 @@ public class BotTest {
 		chatClient = spy(new ChatClientMock(chatServer));
 
 		runAfter = true;
+
+		Sleeper.unitTest = true;
+		Sleeper.timeSlept = 0;
 	}
 
 	@After
 	public void after() throws Exception {
+		Sleeper.unitTest = false;
+
 		if (!runAfter) {
 			return;
 		}
