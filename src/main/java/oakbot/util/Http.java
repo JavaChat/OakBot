@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,7 +39,7 @@ public class Http implements Closeable {
 	 * @param client the HTTP client object to wrap
 	 */
 	public Http(CloseableHttpClient client) {
-		this.client = client;
+		this.client = Objects.requireNonNull(client);
 	}
 
 	/**
@@ -60,8 +61,13 @@ public class Http implements Closeable {
 	/**
 	 * Sends an HTTP POST request.
 	 * @param uri the URI
-	 * @param parameters the parameters to include in the request body (key,
-	 * value, key, value, etc)
+	 * @param parameters the parameters to include in the request body. The
+	 * items in this vararg consist of alternating key/value pairs. For example,
+	 * the first item is the name of the first parameter, the second item is the
+	 * value of the first parameter, the third item is the name of the second
+	 * parameter, and so on. Therefore, this vararg must contain an even number
+	 * of arguments. Names may not be null. Null values will output the string
+	 * "null".
 	 * @return the response
 	 * @throws IOException if there's a problem sending the request
 	 * @throws IllegalArgumentException if there is an odd number of arguments
@@ -77,7 +83,9 @@ public class Http implements Closeable {
 		if (parameters.length > 0) {
 			List<NameValuePair> params = new ArrayList<>(parameters.length / 2);
 			for (int i = 0; i < parameters.length; i += 2) {
-				params.add(new BasicNameValuePair(parameters[i].toString(), parameters[i + 1].toString()));
+				String name = parameters[i].toString();
+				String value = Objects.toString(parameters[i + 1]);
+				params.add(new BasicNameValuePair(name, value));
 			}
 			request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
 		}
@@ -90,10 +98,17 @@ public class Http implements Closeable {
 	}
 
 	/**
-	 * Sends an HTTP request. If an HTTP 409 response is returned, this method
-	 * will automatically sleep the requested amount of time, and then resend
-	 * the request.
-	 * @param request the request
+	 * <p>
+	 * Sends an HTTP request.
+	 * </p>
+	 * <p>
+	 * SO Chat returns an HTTP 409 response if the client sends too many
+	 * requests too quickly. This method automatically handles such responses by
+	 * sleeping the requested amount of time, and then re-sending the request.
+	 * It will do this up to five times before giving up, at which point an
+	 * {@code IOException} will be thrown.
+	 * </p>
+	 * @param request the request to send
 	 * @return the response
 	 * @throws IOException if there was a problem sending the request
 	 */
@@ -105,7 +120,7 @@ public class Http implements Closeable {
 			if (sleep > 0) {
 				logger.info("Sleeping for " + sleep + "ms before resending the request...");
 				try {
-					Thread.sleep(sleep);
+					sleep(sleep);
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e);
 				}
@@ -158,8 +173,8 @@ public class Http implements Closeable {
 	/**
 	 * Parses the wait time out of an HTTP 409 response. An HTTP 409 response
 	 * indicates that the bot is sending messages too quickly.
-	 * @param response the response body (e.g. "You can perform this action
-	 * again in 2 seconds")
+	 * @param body the response body (e.g. "You can perform this action again in
+	 * 2 seconds")
 	 * @return the amount of time (in milliseconds) the bot must wait before the
 	 * chat system will accept the request, or null if this value could not be
 	 * parsed from the response body
@@ -185,6 +200,16 @@ public class Http implements Closeable {
 	@Override
 	public void close() throws IOException {
 		client.close();
+	}
+
+	/**
+	 * Calls {@link Thread#sleep}. This method is here so unit tests can
+	 * override it so that they don't take forever to run.
+	 * @param ms the amount of time to sleep (in milliseconds)
+	 * @throws InterruptedException
+	 */
+	void sleep(long ms) throws InterruptedException {
+		Thread.sleep(ms);
 	}
 
 	/**
@@ -231,9 +256,16 @@ public class Http implements Closeable {
 			try {
 				return mapper.readTree(body);
 			} catch (JsonProcessingException e) {
+				/*
+				 * This exception must explicitly be caught and thrown because
+				 * it extends IOException and we do not want this method to
+				 * throw IOException.
+				 */
 				throw e;
 			} catch (IOException e) {
-				//should never be thrown
+				/*
+				 * Should never be thrown because we're reading from a String.
+				 */
 				throw new RuntimeException(e);
 			}
 		}
