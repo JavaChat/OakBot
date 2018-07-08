@@ -3,7 +3,6 @@ package oakbot.chat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,23 +33,23 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 /**
- * Builds mock implementations of {@link CloseableHttpClient} objects
+ * Builds mock implementations of {@link CloseableHttpClient} objects.
  * @author Michael Angstadt
  */
 public class MockHttpClientBuilder {
-	private final List<Req> expectedRequests = new ArrayList<>();
+	private final List<ExpectedRequest> expectedRequests = new ArrayList<>();
 	private final List<HttpResponse> responses = new ArrayList<>();
 
 	/**
 	 * Adds the requests/responses involved in joining a room.
-	 * @param roomId
-	 * @param fkey
-	 * @param webSocketUrl
-	 * @param timestamp
+	 * @param roomId the room ID
+	 * @param fkey the fkey of the room
+	 * @param webSocketUrl the web socket URL of the room
+	 * @param timestamp the timestamp of the most recent message in the chat
+	 * room
 	 * @return this
-	 * @throws IOException
 	 */
-	public MockHttpClientBuilder joinRoom(int roomId, String fkey, String webSocketUrl, long timestamp) throws IOException {
+	public MockHttpClientBuilder joinRoom(int roomId, String fkey, String webSocketUrl, long timestamp) {
 		//@formatter:off	
 		return
 			 request("GET", "https://chat.stackoverflow.com/rooms/" + roomId)
@@ -74,7 +73,8 @@ public class MockHttpClientBuilder {
 	}
 
 	/**
-	 * Adds an expected request.
+	 * Adds an expected request. A call to {@link #response} should be made
+	 * right after this to specify the response that should be returned.
 	 * @param method the expected method (e.g. "GET")
 	 * @param uri the expected URI
 	 * @param params the name/value pairs of the expected parameters (only
@@ -82,7 +82,7 @@ public class MockHttpClientBuilder {
 	 * @return this
 	 */
 	public MockHttpClientBuilder request(String method, String uri, String... params) {
-		expectedRequests.add(new Req(method, uri, params));
+		expectedRequests.add(new ExpectedRequest(method, uri, params));
 		return this;
 	}
 
@@ -115,7 +115,6 @@ public class MockHttpClientBuilder {
 	/**
 	 * Builds the final {@link CloseableHttpClient} mock object.
 	 * @return the mock object
-	 * @throws IOException
 	 */
 	public CloseableHttpClient build() {
 		if (expectedRequests.size() != responses.size()) {
@@ -125,8 +124,8 @@ public class MockHttpClientBuilder {
 		CloseableHttpClient client = mock(CloseableHttpClient.class);
 
 		try {
-			doAnswer(new Answer<HttpResponse>() {
-				protected int requestCount = 0;
+			when(client.execute(any(HttpUriRequest.class))).then(new Answer<HttpResponse>() {
+				private int requestCount = 0;
 
 				@Override
 				public HttpResponse answer(InvocationOnMock invocation) throws Throwable {
@@ -134,22 +133,22 @@ public class MockHttpClientBuilder {
 						fail("The unit test only expected " + expectedRequests.size() + " HTTP requests to be sent, but an extra one was generated.");
 					}
 
-					HttpRequest request = (HttpRequest) invocation.getArguments()[0];
-					Req expectedRequest = expectedRequests.get(requestCount);
+					HttpRequest actualRequest = (HttpRequest) invocation.getArguments()[0];
+					ExpectedRequest expectedRequest = expectedRequests.get(requestCount);
 
-					assertEquals(expectedRequest.method, request.getRequestLine().getMethod());
-					assertEquals(expectedRequest.uri, request.getRequestLine().getUri());
+					assertEquals(expectedRequest.method, actualRequest.getRequestLine().getMethod());
+					assertEquals(expectedRequest.uri, actualRequest.getRequestLine().getUri());
 
-					if (request instanceof HttpPost) {
-						HttpPost post = (HttpPost) request;
-						String body = EntityUtils.toString(post.getEntity());
+					if (actualRequest instanceof HttpPost) {
+						HttpPost actualPostRequest = (HttpPost) actualRequest;
+						String body = EntityUtils.toString(actualPostRequest.getEntity());
 						Set<NameValuePair> params = new HashSet<>(URLEncodedUtils.parse(body, Consts.UTF_8));
 						assertEquals(expectedRequest.params, params);
 					}
 
 					return responses.get(requestCount++);
 				}
-			}).when(client).execute(any(HttpUriRequest.class));
+			});
 		} catch (IOException e) {
 			//never thrown because it is a mock object
 			throw new RuntimeException(e);
@@ -159,10 +158,10 @@ public class MockHttpClientBuilder {
 	}
 
 	/**
-	 * Represents an expected request.
+	 * Represents a request that the test is expecting the code to send out.
 	 * @author Michael Angstadt
 	 */
-	private static class Req {
+	private static class ExpectedRequest {
 		private final String method;
 		private final String uri;
 		private final Set<NameValuePair> params;
@@ -173,7 +172,7 @@ public class MockHttpClientBuilder {
 		 * @param params the name/value pairs of the expected parameters (only
 		 * applicable for "POST" requests).
 		 */
-		public Req(String method, String uri, String... params) {
+		public ExpectedRequest(String method, String uri, String... params) {
 			if ("GET".equals(method) && params.length > 0) {
 				throw new IllegalArgumentException("GET requests cannot have parameters.");
 			}

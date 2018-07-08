@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -71,11 +70,13 @@ public class Room implements IRoom {
 	private final String chatDomain;
 	private final boolean canPost;
 	private final Http http;
-	private final WebSocketContainer webSocketContainer;
 	private final ChatClient chatClient;
-	private Session session;
-	private final ObjectMapper mapper = new ObjectMapper();
+
+	private final WebSocketContainer webSocketContainer;
+	private Session webSocketSession;
 	private final Timer websocketReconnectTimer;
+
+	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final Map<Class<? extends Event>, List<Consumer<Event>>> listeners;
 	{
@@ -156,7 +157,7 @@ public class Room implements IRoom {
 					logger.info("[room=" + roomId + "]: Recreating websocket connection.");
 
 					try {
-						session.close();
+						webSocketSession.close();
 					} catch (IOException e) {
 						logger.log(Level.SEVERE, "[room=" + roomId + "]: Problem closing existing websocket session.", e);
 					}
@@ -204,7 +205,7 @@ public class Room implements IRoom {
 		logger.info("Connecting to web socket [room=" + roomId + "]: " + webSocketUrl);
 
 		try {
-			session = webSocketContainer.connectToServer(new Endpoint() {
+			webSocketSession = webSocketContainer.connectToServer(new Endpoint() {
 				@Override
 				public void onOpen(Session session, EndpointConfig config) {
 					session.addMessageHandler(String.class, Room.this::handleWebSocketMessage);
@@ -318,21 +319,18 @@ public class Room implements IRoom {
 		 * socket.
 		 */
 		List<JsonNode> remainingEventNodes = new ArrayList<>(eventsByType.values());
-		Collections.sort(remainingEventNodes, new Comparator<JsonNode>() {
-			@Override
-			public int compare(JsonNode a, JsonNode b) {
-				JsonNode idNode = a.get("id");
-				long id1 = (idNode == null) ? 0 : idNode.asLong();
+		remainingEventNodes.sort((a, b) -> {
+			JsonNode idNode = a.get("id");
+			long id1 = (idNode == null) ? 0 : idNode.asLong();
 
-				idNode = b.get("id");
-				long id2 = (idNode == null) ? 0 : idNode.asLong();
+			idNode = b.get("id");
+			long id2 = (idNode == null) ? 0 : idNode.asLong();
 
-				/*
-				 * Don't just return "id1-id2" because this could result in a
-				 * value that won't fit into an integer.
-				 */
-				return (id1 < id2) ? -1 : (id1 > id2) ? 1 : 0;
-			}
+			/*
+			 * Don't just return "id1 - id2" because this could result in a
+			 * value that won't fit into an integer.
+			 */
+			return (id1 < id2) ? -1 : (id1 > id2) ? 1 : 0;
 		});
 
 		for (JsonNode eventNode : remainingEventNodes) {
@@ -621,7 +619,7 @@ public class Room implements IRoom {
 		Response response = http.get(chatDomain + "/rooms/pingable/" + roomId);
 
 		if (response.getStatusCode() == 404) {
-			throw notFound(response, "getting pingable users");
+			throw notFound(response, "get pingable users");
 		}
 
 		JsonNode root = response.getBodyAsJson();
@@ -645,7 +643,7 @@ public class Room implements IRoom {
 		Response response = http.get(chatDomain + "/rooms/thumbs/" + roomId);
 
 		if (response.getStatusCode() == 404) {
-			throw notFound(response, "getting room info");
+			throw notFound(response, "get room info");
 		}
 
 		JsonNode root = response.getBodyAsJson();
@@ -695,7 +693,7 @@ public class Room implements IRoom {
 	public void close() throws IOException {
 		synchronized (this) {
 			websocketReconnectTimer.cancel();
-			session.close();
+			webSocketSession.close();
 		}
 	}
 
@@ -1174,7 +1172,7 @@ public class Room implements IRoom {
 			}
 
 			/*
-			 * This field is not present for "message starred" events".
+			 * This field is not present for "message starred" events.
 			 */
 			value = element.get("user_id");
 			if (value != null) {
@@ -1182,7 +1180,7 @@ public class Room implements IRoom {
 			}
 
 			/*
-			 * This field is not present for "message starred" events".
+			 * This field is not present for "message starred" events.
 			 */
 			value = element.get("user_name");
 			if (value != null) {

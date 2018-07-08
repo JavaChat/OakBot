@@ -23,9 +23,8 @@ public final class ResponseSamples {
 	 * Gets the HTML of the login page.
 	 * @param fkey the fkey to populate the page with.
 	 * @return the HTML page
-	 * @throws IOException
 	 */
-	public static String loginPage(String fkey) throws IOException {
+	public static String loginPage(String fkey) {
 		String html = readFile("users-login.html");
 		return html.replace("${fkey}", fkey);
 	}
@@ -36,9 +35,8 @@ public final class ResponseSamples {
 	 * @param canPost true if the user is allowed to post messages to the room,
 	 * false if not
 	 * @return the HTML page
-	 * @throws IOException
 	 */
-	public static String chatRoom(String fkey) throws IOException {
+	public static String chatRoom(String fkey) {
 		String html = readFile("rooms-1.html");
 		return html.replace("${fkey}", fkey);
 	}
@@ -48,9 +46,8 @@ public final class ResponseSamples {
 	 * post to.
 	 * @param fkey the fkey to populate the page with
 	 * @return the chat room HTML
-	 * @throws IOException
 	 */
-	public static String protectedChatRoom(String fkey) throws IOException {
+	public static String protectedChatRoom(String fkey) {
 		String html = readFile("rooms-15-protected.html");
 		return html.replace("${fkey}", fkey);
 	}
@@ -519,7 +516,7 @@ public final class ResponseSamples {
 		}
 	}
 
-	private static String readFile(String file) throws IOException {
+	private static String readFile(String file) {
 		URI uri;
 		try {
 			uri = ResponseSamples.class.getResource(file).toURI();
@@ -528,7 +525,15 @@ public final class ResponseSamples {
 		}
 
 		Path path = Paths.get(uri);
-		return new String(Files.readAllBytes(path));
+		try {
+			return new String(Files.readAllBytes(path));
+		} catch (IOException e) {
+			/*
+			 * Should never be thrown because the file names are hard coded and
+			 * are on the classpath.
+			 */
+			throw new RuntimeException(e);
+		}
 	}
 
 	private ResponseSamples() {

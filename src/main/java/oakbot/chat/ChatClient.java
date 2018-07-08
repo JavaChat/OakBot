@@ -35,9 +35,8 @@ public class ChatClient implements IChatClient {
 
 	/**
 	 * Creates a web socket connection to Stack Overflow Chat.
-	 * @param httpClient the HTTP client (used to interact to the chat room)
-	 * @param webSocketClient the web socket client (used to listen for new
-	 * messages)
+	 * @param httpClient the HTTP client
+	 * @param webSocketClient the web socket client (listens for new messages)
 	 */
 	public ChatClient(CloseableHttpClient httpClient, WebSocketContainer webSocketClient) {
 		this(httpClient, webSocketClient, "stackoverflow.com");
@@ -45,9 +44,8 @@ public class ChatClient implements IChatClient {
 
 	/**
 	 * Creates a web socket connection to a Stack Exchange chat network.
-	 * @param httpClient the HTTP client (used to interact to the chat room)
-	 * @param webSocketClient the web socket client (used to listen for new
-	 * messages)
+	 * @param httpClient the HTTP client
+	 * @param webSocketClient the web socket client (listens for new messages)
 	 * @param domain the Stack Exchange website to connect to (e.g.
 	 * "stackoverflow.com")
 	 */
