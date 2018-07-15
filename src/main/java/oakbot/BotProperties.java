@@ -19,7 +19,7 @@ import oakbot.util.PropertiesWrapper;
 public class BotProperties extends PropertiesWrapper {
 	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey, adventOfCodeSession;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, healthMonitor;
-	private final int botUserId;
+	private final Integer botUserId;
 	private final Integer hideOneboxesAfter;
 	private final Path javadocPath;
 	private final boolean javadocCache;
