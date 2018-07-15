@@ -144,6 +144,7 @@ public class Main {
 		}
 
 		setupLogging();
+
 		BotProperties props = loadProperties(settings);
 
 		Database database = new JsonDatabase(db);
@@ -285,6 +286,18 @@ public class Main {
 		.build();
 		//@formatter:on
 
+		/*
+		 * Don't catch unhandled exceptions until the bot has started. Any
+		 * exceptions that are thrown during the initial boot up process should
+		 * be dumped to the console.
+		 */
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread thread, Throwable thrown) {
+				logger.log(Level.SEVERE, "Uncaught exception thrown.", thrown);
+			}
+		});
+
 		bot.connect(arguments.quiet()).join();
 
 		logger.info("Terminating.");
@@ -299,14 +312,6 @@ public class Main {
 		try (InputStream in = Files.newInputStream(file)) {
 			LogManager.getLogManager().readConfiguration(in);
 		}
-
-		//log uncaught exceptions
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread thread, Throwable thrown) {
-				logger.log(Level.SEVERE, "Uncaught exception thrown.", thrown);
-			}
-		});
 	}
 
 	private static BotProperties loadProperties(Path file) throws IOException {
