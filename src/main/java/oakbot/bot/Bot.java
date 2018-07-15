@@ -48,7 +48,7 @@ import oakbot.util.Sleeper;
 public class Bot {
 	private static final Logger logger = Logger.getLogger(Bot.class.getName());
 
-	private final String email, password, userName, trigger, greeting;
+	private final String userName, trigger, greeting;
 	private final Integer userId;
 	private final IChatClient connection;
 	private final BlockingQueue<ChatMessage> newMessages = new LinkedBlockingQueue<>();
@@ -89,8 +89,6 @@ public class Bot {
 
 	private Bot(Builder builder) {
 		connection = builder.connection;
-		email = builder.email;
-		password = builder.password;
 		userName = builder.userName;
 		userId = builder.userId;
 		hideOneboxesAfter = builder.hideOneboxesAfter;
@@ -139,10 +137,6 @@ public class Bot {
 	 * @throws IOException if there's a network problem
 	 */
 	public Thread connect(boolean quiet) throws InvalidCredentialsException, IOException {
-		//login
-		logger.info("Logging in as " + email + "...");
-		connection.login(email, password);
-
 		//connect to each room
 		List<Integer> rooms = new ArrayList<>(this.rooms.getRooms());
 		for (Integer room : rooms) {
@@ -807,7 +801,7 @@ public class Bot {
 	 */
 	public static class Builder {
 		private IChatClient connection;
-		private String email, password, userName, trigger = "=", greeting;
+		private String userName, trigger = "=", greeting;
 		private Integer userId, hideOneboxesAfter;
 		private Rooms rooms = new Rooms(Arrays.asList(1), Collections.emptyList());
 		private Integer maxRooms;
@@ -821,12 +815,6 @@ public class Bot {
 		private Statistics stats;
 		private Database database;
 		private UnknownCommandHandler unknownCommandHandler;
-
-		public Builder login(String email, String password) {
-			this.email = email;
-			this.password = password;
-			return this;
-		}
 
 		public Builder connection(IChatClient connection) {
 			this.connection = connection;

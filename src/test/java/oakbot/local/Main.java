@@ -18,6 +18,7 @@ import oakbot.JsonDatabase;
 import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.bot.Bot;
+import oakbot.chat.IChatClient;
 import oakbot.command.AboutCommand;
 import oakbot.command.AdventOfCodeApi;
 import oakbot.command.AdventOfCodeCommand;
@@ -185,7 +186,7 @@ public class Main {
 		}
 
 		//@formatter:off
-		FileChatClient connection = new FileChatClient(
+		IChatClient connection = new FileChatClient(
 			props.getBotUserId(), props.getBotUserName(),
 			props.getAdmins().get(0), "Michael"
 		);
@@ -193,12 +194,11 @@ public class Main {
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
-			.login(props.getLoginEmail(), props.getLoginPassword())
+			.connection(connection)
 			.commands(commands)
 			.learnedCommands(learnedCommands)
 			.listeners(listeners)
 			.responseFilters(filters)
-			.connection(connection)
 			.admins(props.getAdmins())
 			.bannedUsers(props.getBannedUsers())
 			.user(props.getBotUserName(), props.getBotUserId())

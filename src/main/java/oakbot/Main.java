@@ -250,17 +250,18 @@ public class Main {
 		websocketClient.setDefaultMaxSessionIdleTimeout(0);
 		websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
 
+		logger.info("Logging in as " + props.getLoginEmail() + "...");
 		IChatClient connection = new ChatClient(httpClient, websocketClient);
+		connection.login(props.getLoginEmail(), props.getLoginPassword());
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()
-			.login(props.getLoginEmail(), props.getLoginPassword())
+			.connection(connection)
 			.commands(commands)
 			.learnedCommands(learnedCommands)
 			.listeners(listeners)
 			.tasks(tasks)
 			.responseFilters(filters)
-			.connection(connection)
 			.admins(props.getAdmins())
 			.bannedUsers(props.getBannedUsers())
 			.user(props.getBotUserName(), props.getBotUserId())

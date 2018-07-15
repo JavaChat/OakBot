@@ -93,19 +93,6 @@ public class BotTest {
 		new Bot.Builder().build();
 	}
 
-	@Test(expected = InvalidCredentialsException.class)
-	public void bad_login() throws Exception {
-		runAfter = false;
-
-		//@formatter:off
-		Bot bot = bot()
-			.login("user@example.com", "bad")
-		.build();
-		//@formatter:on
-
-		bot.connect(false);
-	}
-
 	@Test
 	public void connect_greeting_broadcast() throws Exception {
 		/**
