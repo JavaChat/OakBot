@@ -29,7 +29,6 @@ import oakbot.bot.BotContext.JoinRoomCallback;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.IChatClient;
 import oakbot.chat.IRoom;
-import oakbot.chat.InvalidCredentialsException;
 import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.RoomPermissionException;
 import oakbot.chat.event.MessageEditedEvent;
@@ -134,10 +133,9 @@ public class Bot {
 	 * message, false to broadcast the greeting message
 	 * @return the thread that the bot is running in. This thread will terminate
 	 * when the bot terminates
-	 * @throws InvalidCredentialsException if the login credentials are bad
 	 * @throws IOException if there's a network problem
 	 */
-	public Thread connect(boolean quiet) throws InvalidCredentialsException, IOException {
+	public Thread connect(boolean quiet) throws IOException {
 		//connect to each room
 		List<Integer> rooms = new ArrayList<>(this.rooms.getRooms());
 		for (Integer room : rooms) {
