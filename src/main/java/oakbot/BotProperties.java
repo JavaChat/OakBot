@@ -26,61 +26,69 @@ public class BotProperties extends PropertiesWrapper {
 	private final Map<Integer, String> welcomeMessages, adventOfCodeLeaderboards;
 
 	/**
-	 * @param properties the properties file to pull the settings from
+	 * @param properties the properties to parse
 	 */
 	public BotProperties(Properties properties) {
 		super(properties);
 
-		loginEmail = get("login.email");
-		password = get("login.password");
-		botUserName = get("bot.userName");
-		botUserId = getInteger("bot.userId");
+		loginEmail = get("account.email");
+		password = get("account.password");
+		botUserName = get("account.userName");
+		botUserId = getInteger("account.userId");
+
 		trigger = get("trigger", "=");
-		homeRooms = getIntegerList("homeRooms", Arrays.asList(1)); //default to "Sandbox"
-		quietRooms = getIntegerList("quietRooms");
-		admins = getIntegerList("admins");
-		bannedUsers = getIntegerList("bannedUsers");
-		healthMonitor = getIntegerList("healthMonitor");
-		javadocPath = getFile("javadoc.folder");
-		javadocCache = getBoolean("javadoc.cache", true);
 		greeting = get("greeting");
-		dictionaryKey = get("dictionary.key");
-		aboutHost = get("about.host");
-		catKey = get("cat.key");
-		reactKey = get("react.key");
 		hideOneboxesAfter = getInteger("hideOneboxesAfter");
+
+		homeRooms = getIntegerList("rooms.home", Arrays.asList(1)); //default to "Sandbox"
+		quietRooms = getIntegerList("rooms.quiet");
+		healthMonitor = getIntegerList("rooms.healthMonitor");
+
+		admins = getIntegerList("users.admins");
+		bannedUsers = getIntegerList("users.banned");
+
+		javadocPath = getFile("commands.javadoc.folder");
+		javadocCache = getBoolean("commands.javadoc.cache", true);
+
+		dictionaryKey = get("commands.define.key");
+		aboutHost = get("commands.about.host");
+		catKey = get("commands.cat.key");
+		reactKey = get("commands.react.key");
+
+		adventOfCodeSession = get("commands.advent.session");
+		adventOfCodeLeaderboards = new HashMap<>();
+		{
+			Pattern p = Pattern.compile("^commands\\.advent\\.(\\d+)\\.id$");
+			for (String key : keySet()) {
+				Matcher m = p.matcher(key);
+				if (!m.find()) {
+					continue;
+				}
+
+				Integer roomId = Integer.valueOf(m.group(1));
+				String id = get(key);
+				if (id != null && !id.isEmpty()) {
+					adventOfCodeLeaderboards.put(roomId, id);
+				}
+			}
+		}
 
 		welcomeMessages = new HashMap<>();
 		{
-			Pattern p = Pattern.compile("^welcome\\.(\\d+)\\.message$");
+			Pattern p = Pattern.compile("^listeners\\.welcome\\.(\\d+)\\.message$");
 			for (String key : keySet()) {
 				Matcher m = p.matcher(key);
-				if (m.find()) {
-					Integer roomId = Integer.valueOf(m.group(1));
-					String message = get(key);
-					if (message != null) {
-						welcomeMessages.put(roomId, message);
-					}
+				if (!m.find()) {
+					continue;
+				}
+
+				Integer roomId = Integer.valueOf(m.group(1));
+				String message = get(key);
+				if (message != null) {
+					welcomeMessages.put(roomId, message);
 				}
 			}
 		}
-
-		adventOfCodeLeaderboards = new HashMap<>();
-		{
-			Pattern p = Pattern.compile("^advent\\.(\\d+)\\.id$");
-			for (String key : keySet()) {
-				Matcher m = p.matcher(key);
-				if (m.find()) {
-					Integer roomId = Integer.valueOf(m.group(1));
-					String id = get(key);
-					if (id != null && !id.isEmpty()) {
-						adventOfCodeLeaderboards.put(roomId, id);
-					}
-				}
-			}
-		}
-
-		adventOfCodeSession = get("advent.session");
 	}
 
 	/**
