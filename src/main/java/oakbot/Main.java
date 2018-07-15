@@ -3,7 +3,6 @@ package oakbot;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -291,11 +290,8 @@ public class Main {
 		 * exceptions that are thrown during the initial boot up process should
 		 * be dumped to the console.
 		 */
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread thread, Throwable thrown) {
-				logger.log(Level.SEVERE, "Uncaught exception thrown.", thrown);
-			}
+		Thread.setDefaultUncaughtExceptionHandler((thread, thrown) -> {
+			logger.log(Level.SEVERE, "Uncaught exception thrown.", thrown);
 		});
 
 		bot.connect(arguments.quiet()).join();
