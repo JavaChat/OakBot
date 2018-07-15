@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.sun.nio.file.SensitivityWatchEventModifier;
 
 /**
  * Stores metadata in memory to allow for faster lookup times.
@@ -143,7 +142,7 @@ public class JavadocDaoCached implements JavadocDao {
 			setDaemon(true);
 
 			watcher = FileSystems.getDefault().newWatchService();
-			dir.register(watcher, new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY }, SensitivityWatchEventModifier.HIGH);
+			dir.register(watcher, new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY });
 			this.dir = dir;
 		}
 

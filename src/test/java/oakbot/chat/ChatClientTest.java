@@ -8,13 +8,17 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.logging.LogManager;
 
@@ -207,7 +211,14 @@ public class ChatClientTest {
 
 		WebSocketContainer ws = mock(WebSocketContainer.class);
 		Session session = mock(Session.class);
-		doReturn(session).when(ws).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417023460")));
+
+		//@formatter:off
+		when(ws.connectToServer(
+			any(Endpoint.class),
+			any(ClientEndpointConfig.class),
+			eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417041460)))
+		)).thenReturn(session);
+		//@formatter:on
 
 		try (ChatClient client = new ChatClient(httpClient, ws)) {
 			client.login("email", "password");
@@ -265,7 +276,14 @@ public class ChatClientTest {
 
 		WebSocketContainer ws = mock(WebSocketContainer.class);
 		Session session = mock(Session.class);
-		doReturn(session).when(ws).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=0")));
+
+		//@formatter:off
+		when(ws.connectToServer(
+			any(Endpoint.class),
+			any(ClientEndpointConfig.class),
+			eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=0"))
+		)).thenReturn(session);
+		//@formatter:on
 
 		try (ChatClient client = new ChatClient(httpClient, ws)) {
 			client.login("email", "password");
@@ -310,7 +328,14 @@ public class ChatClientTest {
 
 		WebSocketContainer ws = mock(WebSocketContainer.class);
 		Session session = mock(Session.class);
-		doReturn(session).when(ws).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417023460")));
+
+		//@formatter:off
+		when(ws.connectToServer(
+			any(Endpoint.class),
+			any(ClientEndpointConfig.class),
+			eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417041460)))
+		)).thenReturn(session);
+		//@formatter:on
 
 		try (ChatClient client = new ChatClient(httpClient, ws)) {
 			client.login("email", "password");
@@ -336,5 +361,17 @@ public class ChatClientTest {
 	private static void verifyNumberOfRequestsSent(CloseableHttpClient httpClient, int requests) throws IOException {
 		verify(httpClient, times(requests)).execute(any(HttpUriRequest.class));
 		verify(httpClient).close();
+	}
+
+	/**
+	 * This conversion is needed for the unit test to run on other machines. I
+	 * think it has something to do with the default timezone.
+	 * @param messageTs the timestamp of the chat message
+	 * @return the value that will be put in the web socket URL
+	 */
+	private static long webSocketTimestamp(long messageTs) {
+		Instant instant = Instant.ofEpochSecond(messageTs);
+		LocalDateTime dt = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+		return dt.toEpochSecond(ZoneOffset.UTC);
 	}
 }

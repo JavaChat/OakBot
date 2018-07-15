@@ -19,6 +19,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -72,7 +73,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -100,7 +101,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -147,7 +148,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -213,7 +214,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -279,7 +280,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -326,7 +327,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -373,7 +374,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -420,7 +421,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -507,7 +508,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -594,7 +595,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -634,7 +635,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -674,7 +675,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -723,7 +724,7 @@ public class RoomTest {
 		//@formatter:on
 
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
-		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
+		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=" + webSocketTimestamp(1417023460));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
 		chatClient.login("email", "password");
@@ -1671,5 +1672,16 @@ public class RoomTest {
 	private static LocalDateTime timestamp(long ts) {
 		Instant instant = Instant.ofEpochSecond(ts);
 		return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+	}
+
+	/**
+	 * This conversion is needed for the unit test to run on other machines. I
+	 * think it has something to do with the default timezone.
+	 * @param messageTs the timestamp of the chat message
+	 * @return the value that will be put in the web socket URL
+	 */
+	private static long webSocketTimestamp(long messageTs) {
+		LocalDateTime dt = timestamp(messageTs);
+		return dt.toEpochSecond(ZoneOffset.UTC);
 	}
 }
