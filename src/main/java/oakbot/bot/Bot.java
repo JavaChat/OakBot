@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
@@ -88,11 +89,11 @@ public class Bot {
 	private final Map<Long, PostedMessage> postedMessages = new HashMap<>();
 
 	private Bot(Builder builder) {
-		connection = builder.connection;
+		connection = Objects.requireNonNull(builder.connection);
 		userName = builder.userName;
-		userId = builder.userId;
+		userId = Objects.requireNonNull(builder.userId);
 		hideOneboxesAfter = builder.hideOneboxesAfter;
-		trigger = builder.trigger;
+		trigger = Objects.requireNonNull(builder.trigger);
 		greeting = builder.greeting;
 		rooms = builder.rooms;
 		maxRooms = builder.maxRooms;
