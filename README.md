@@ -5,7 +5,7 @@
 
 OakBot is a chat bot for [Stack Overflow Chat](http://chat.stackoverflow.com) that's written in Java.  It is named after the first name given to the Java programming language before it became "Java".
  
-OakBot is most active in the [Java](https://chat.stackoverflow.com/rooms/139) and [Java and Android era](https://chat.stackoverflow.com/rooms/19132) chat rooms.
+OakBot is most active in the [Java](https://chat.stackoverflow.com/rooms/139) chat room.
 
 # Requirements
 
