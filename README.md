@@ -49,6 +49,7 @@ Argument | Description
 -------- | -----------
 --settings=PATH | The properties file that contains the bot's configuration settings, such as login credentials (defaults to "bot.properties").
 --db=PATH | The path to a JSON file for storing all persistant data (defaults to "db.json").
+--mock | Runs the bot using a mock chat connection for testing purposes.<br><br>A text file will be created in the root of the project for each chat room the bot is configured to connect to. These files are used to "send" messages to the mock chat rooms. To send a message, type your message into the text file and save it.<br><br>Messages are entered one per line. Multi-line messages can be entered by ending each line with a backslash until you reach the last line. You should only append onto the end of the file; do not delete anything. These files are re-created every time the program runs.<br><br>All messages that are sent to the mock chat room are displayed in stdout (this includes your messages and the bot's responses).
 --quiet | If specified, the bot will not output a greeting message when it starts up.
 --version | Prints the version of this program.
 --help | Prints descriptions of each argument.

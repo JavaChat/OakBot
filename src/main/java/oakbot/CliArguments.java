@@ -17,6 +17,7 @@ public class CliArguments {
 		OptionParser parser = new OptionParser();
 		parser.accepts("settings").withRequiredArg();
 		parser.accepts("db").withRequiredArg();
+		parser.accepts("mock");
 		parser.accepts("quiet");
 		parser.accepts("version");
 		parser.accepts("help");
@@ -42,6 +43,10 @@ public class CliArguments {
 
 	public boolean quiet() {
 		return options.has("quiet");
+	}
+
+	public boolean mock() {
+		return options.has("mock");
 	}
 
 	private Path path(String name) {

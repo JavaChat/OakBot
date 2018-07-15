@@ -1,4 +1,4 @@
-package oakbot.local;
+package oakbot.chat.mock;
 
 import java.io.IOException;
 import java.nio.file.Files;

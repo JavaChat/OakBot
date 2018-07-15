@@ -29,6 +29,7 @@ import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import oakbot.bot.Bot;
 import oakbot.chat.ChatClient;
 import oakbot.chat.IChatClient;
+import oakbot.chat.mock.FileChatClient;
 import oakbot.command.AboutCommand;
 import oakbot.command.AdventOfCodeApi;
 import oakbot.command.AdventOfCodeCommand;
@@ -129,6 +130,8 @@ public class Main {
 			System.out.println(Main.VERSION);
 			return;
 		}
+
+		boolean mock = arguments.mock();
 
 		Path settings = arguments.settings();
 		if (settings == null) {
@@ -247,15 +250,20 @@ public class Main {
 			filters.add(upsidedownTextFilter); //should be last
 		}
 
-		CloseableHttpClient httpClient = HttpClients.createDefault();
+		IChatClient connection;
+		if (mock) {
+			connection = new FileChatClient(props.getBotUserId(), props.getBotUserName(), props.getAdmins().get(0), "Michael");
+		} else {
+			CloseableHttpClient httpClient = HttpClients.createDefault();
 
-		ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
-		websocketClient.setDefaultMaxSessionIdleTimeout(0);
-		websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
+			ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
+			websocketClient.setDefaultMaxSessionIdleTimeout(0);
+			websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
 
-		logger.info("Logging in as " + props.getLoginEmail() + "...");
-		IChatClient connection = new ChatClient(httpClient, websocketClient);
-		connection.login(props.getLoginEmail(), props.getLoginPassword());
+			logger.info("Logging in as " + props.getLoginEmail() + "...");
+			connection = new ChatClient(httpClient, websocketClient);
+			connection.login(props.getLoginEmail(), props.getLoginPassword());
+		}
 
 		//@formatter:off
 		Bot bot = new Bot.Builder()

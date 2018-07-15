@@ -34,18 +34,20 @@ public class ChatClient implements IChatClient {
 	private final Map<Integer, Room> rooms = new LinkedHashMap<>();
 
 	/**
-	 * Creates a web socket connection to Stack Overflow Chat.
+	 * Creates a connection to Stack Overflow Chat. Note that the connection is
+	 * not established until {@link #login} is called.
 	 * @param httpClient the HTTP client
-	 * @param webSocketClient the web socket client (listens for new messages)
+	 * @param webSocketClient the web socket client
 	 */
 	public ChatClient(CloseableHttpClient httpClient, WebSocketContainer webSocketClient) {
 		this(httpClient, webSocketClient, "stackoverflow.com");
 	}
 
 	/**
-	 * Creates a web socket connection to a Stack Exchange chat network.
+	 * Creates a connection to a Stack Exchange chat network. Note that the
+	 * connection is not established until {@link #login} is called.
 	 * @param httpClient the HTTP client
-	 * @param webSocketClient the web socket client (listens for new messages)
+	 * @param webSocketClient the web socket client
 	 * @param domain the Stack Exchange website to connect to (e.g.
 	 * "stackoverflow.com")
 	 */
