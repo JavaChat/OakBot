@@ -56,7 +56,7 @@ public class ChatClientTest {
 			//expected
 		}
 
-		verifyHttpClient(httpClient, 1);
+		verifyNumberOfRequestsSent(httpClient, 1);
 	}
 
 	@Test
@@ -84,7 +84,7 @@ public class ChatClientTest {
 			//expected
 		}
 
-		verifyHttpClient(httpClient, 2);
+		verifyNumberOfRequestsSent(httpClient, 2);
 	}
 
 	@Test
@@ -109,7 +109,7 @@ public class ChatClientTest {
 			client.login("email@example.com", "password");
 		}
 
-		verifyHttpClient(httpClient, 2);
+		verifyNumberOfRequestsSent(httpClient, 2);
 	}
 
 	@Test
@@ -125,7 +125,7 @@ public class ChatClientTest {
 			assertNull(client.getRoom(1));
 		}
 
-		verifyHttpClient(httpClient, 0);
+		verifyNumberOfRequestsSent(httpClient, 0);
 	}
 
 	@Test
@@ -146,7 +146,7 @@ public class ChatClientTest {
 			//expected
 		}
 
-		verifyHttpClient(httpClient, 1);
+		verifyNumberOfRequestsSent(httpClient, 1);
 	}
 
 	@Test
@@ -167,7 +167,7 @@ public class ChatClientTest {
 			//expected
 		}
 
-		verifyHttpClient(httpClient, 1);
+		verifyNumberOfRequestsSent(httpClient, 1);
 	}
 
 	@Test
@@ -221,7 +221,7 @@ public class ChatClientTest {
 		}
 
 		verify(session).close();
-		verifyHttpClient(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 4);
 	}
 
 	@Test
@@ -263,7 +263,7 @@ public class ChatClientTest {
 		}
 
 		verify(session).close();
-		verifyHttpClient(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 4);
 	}
 
 	@Test
@@ -316,10 +316,10 @@ public class ChatClientTest {
 		}
 
 		verify(session).close();
-		verifyHttpClient(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 4);
 	}
 
-	private static void verifyHttpClient(CloseableHttpClient httpClient, int requests) throws IOException {
+	private static void verifyNumberOfRequestsSent(CloseableHttpClient httpClient, int requests) throws IOException {
 		verify(httpClient, times(requests)).execute(any(HttpUriRequest.class));
 		verify(httpClient).close();
 	}
