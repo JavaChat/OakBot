@@ -18,7 +18,7 @@ import oakbot.util.PropertiesWrapper;
  */
 public class BotProperties extends PropertiesWrapper {
 	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey, adventOfCodeSession;
-	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers;
+	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, healthMonitor;
 	private final int botUserId;
 	private final Integer hideOneboxesAfter;
 	private final Path javadocPath;
@@ -40,6 +40,7 @@ public class BotProperties extends PropertiesWrapper {
 		quietRooms = getIntegerList("quietRooms");
 		admins = getIntegerList("admins");
 		bannedUsers = getIntegerList("bannedUsers");
+		healthMonitor = getIntegerList("healthMonitor");
 		javadocPath = getFile("javadoc.folder");
 		javadocCache = getBoolean("javadoc.cache", true);
 		greeting = get("greeting");
@@ -152,6 +153,15 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public List<Integer> getBannedUsers() {
 		return bannedUsers;
+	}
+
+	/**
+	 * Gets the rooms that the bot will cough in if the server has security
+	 * updates available.
+	 * @return the room IDs
+	 */
+	public List<Integer> getHealthMonitor() {
+		return healthMonitor;
 	}
 
 	/**

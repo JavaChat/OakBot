@@ -13,7 +13,6 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -230,7 +229,11 @@ public class Main {
 		{
 			tasks.add(new QOTD());
 			tasks.add(new FOTD());
-			tasks.add(new HealthMonitor(Arrays.asList(139)));
+
+			List<Integer> healthMonitor = props.getHealthMonitor();
+			if (!healthMonitor.isEmpty()) {
+				tasks.add(new HealthMonitor(props.getHealthMonitor()));
+			}
 
 			if (aocApi != null && !aocDefaultLeaderboards.isEmpty()) {
 				tasks.add(new AdventOfCodeTask(aocDefaultLeaderboards, aocApi));
