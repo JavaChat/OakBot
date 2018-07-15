@@ -32,6 +32,7 @@ public class ChatClient implements IChatClient {
 	private final WebSocketContainer webSocketClient;
 	private final String domain, chatDomain;
 	private final Map<Integer, Room> rooms = new LinkedHashMap<>();
+	private boolean loggedIn = false;
 
 	/**
 	 * Creates a connection to Stack Overflow Chat. Note that the connection is
@@ -83,10 +84,15 @@ public class ChatClient implements IChatClient {
 		 * Note: The authenticated session info is stored in the HttpClient's
 		 * cookie store.
 		 */
+		loggedIn = true;
 	}
 
 	@Override
 	public Room joinRoom(int roomId) throws RoomNotFoundException, IOException {
+		if (!loggedIn) {
+			throw new IllegalStateException("Client is not authenticated. Call the \"login\" method first.");
+		}
+
 		synchronized (rooms) {
 			Room room = rooms.get(roomId);
 			if (room != null) {

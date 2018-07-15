@@ -63,15 +63,7 @@ public class ChatClientTest {
 	public void login_bad_credentials() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
-			.request("GET", "https://stackoverflow.com/users/login")
-			.response(200, ResponseSamples.loginPage("0123456789abcdef0123456789abcdef"))
-		
-			.request("POST", "https://stackoverflow.com/users/login",
-				"fkey", "0123456789abcdef0123456789abcdef",
-				"email", "email@example.com",
-				"password", "password"
-			)
-			.response(200, "")
+			.login("0123456789abcdef0123456789abcdef", "email@example.com", "password", false)
 		.build();
 		//@formatter:on
 
@@ -91,15 +83,7 @@ public class ChatClientTest {
 	public void login() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
-			.request("GET", "https://stackoverflow.com/users/login")
-			.response(200, ResponseSamples.loginPage("0123456789abcdef0123456789abcdef"))
-		
-			.request("POST", "https://stackoverflow.com/users/login",
-				"fkey", "0123456789abcdef0123456789abcdef",
-				"email", "email@example.com",
-				"password", "password"
-			)
-			.response(302, "")
+			.login("0123456789abcdef0123456789abcdef", "email@example.com", "password", true)
 		.build();
 		//@formatter:on
 
@@ -110,6 +94,20 @@ public class ChatClientTest {
 		}
 
 		verifyNumberOfRequestsSent(httpClient, 2);
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void joinRoom_not_logged_in() throws Exception {
+		//@formatter:off
+		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+		.build();
+		//@formatter:on
+
+		WebSocketContainer ws = mock(WebSocketContainer.class);
+
+		try (ChatClient client = new ChatClient(httpClient, ws)) {
+			client.joinRoom(1);
+		}
 	}
 
 	@Test
@@ -132,6 +130,8 @@ public class ChatClientTest {
 	public void joinRoom_not_found() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
+				
 			.request("GET", "https://chat.stackoverflow.com/rooms/1")
 			.response(404, "")
 		.build();
@@ -140,19 +140,21 @@ public class ChatClientTest {
 		WebSocketContainer ws = mock(WebSocketContainer.class);
 
 		try (ChatClient client = new ChatClient(httpClient, ws)) {
+			client.login("email", "password");
 			client.joinRoom(1);
 			fail();
 		} catch (RoomNotFoundException e) {
 			//expected
 		}
 
-		verifyNumberOfRequestsSent(httpClient, 1);
+		verifyNumberOfRequestsSent(httpClient, 3);
 	}
 
 	@Test
 	public void joinRoom_no_fkey() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.request("GET", "https://chat.stackoverflow.com/rooms/1")
 			.response(200, "garbage data")
 		.build();
@@ -161,19 +163,22 @@ public class ChatClientTest {
 		WebSocketContainer ws = mock(WebSocketContainer.class);
 
 		try (ChatClient client = new ChatClient(httpClient, ws)) {
+			client.login("email", "password");
 			client.joinRoom(1);
 			fail();
 		} catch (IOException e) {
 			//expected
 		}
 
-		verifyNumberOfRequestsSent(httpClient, 1);
+		verifyNumberOfRequestsSent(httpClient, 3);
 	}
 
 	@Test
 	public void joinRoom() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
+			
 			.request("GET", "https://chat.stackoverflow.com/rooms/1")
 			.response(200, ResponseSamples.chatRoom("0123456789abcdef0123456789abcdef"))
 			
@@ -205,6 +210,8 @@ public class ChatClientTest {
 		doReturn(session).when(ws).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417023460")));
 
 		try (ChatClient client = new ChatClient(httpClient, ws)) {
+			client.login("email", "password");
+
 			Room room = client.joinRoom(1);
 			assertEquals(1, room.getRoomId());
 			assertEquals("0123456789abcdef0123456789abcdef", room.getFkey());
@@ -221,13 +228,15 @@ public class ChatClientTest {
 		}
 
 		verify(session).close();
-		verifyNumberOfRequestsSent(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 6);
 	}
 
 	@Test
 	public void joinRoom_that_has_no_messages() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
+				
 			.request("GET", "https://chat.stackoverflow.com/rooms/1")
 			.response(200, ResponseSamples.chatRoom("0123456789abcdef0123456789abcdef"))
 			
@@ -259,17 +268,20 @@ public class ChatClientTest {
 		doReturn(session).when(ws).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=0")));
 
 		try (ChatClient client = new ChatClient(httpClient, ws)) {
+			client.login("email", "password");
 			client.joinRoom(1);
 		}
 
 		verify(session).close();
-		verifyNumberOfRequestsSent(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 6);
 	}
 
 	@Test
 	public void leave_room() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
+				
 			.request("GET", "https://chat.stackoverflow.com/rooms/1")
 			.response(200, ResponseSamples.chatRoom("0123456789abcdef0123456789abcdef"))
 			
@@ -301,6 +313,8 @@ public class ChatClientTest {
 		doReturn(session).when(ws).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417023460")));
 
 		try (ChatClient client = new ChatClient(httpClient, ws)) {
+			client.login("email", "password");
+
 			Room room = client.joinRoom(1);
 			assertEquals(1, room.getRoomId());
 			assertEquals("0123456789abcdef0123456789abcdef", room.getFkey());
@@ -316,7 +330,7 @@ public class ChatClientTest {
 		}
 
 		verify(session).close();
-		verifyNumberOfRequestsSent(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 6);
 	}
 
 	private static void verifyNumberOfRequestsSent(CloseableHttpClient httpClient, int requests) throws IOException {

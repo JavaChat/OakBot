@@ -66,6 +66,7 @@ public class RoomTest {
 	public void webSocket_ignore_bad_data() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -74,6 +75,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		chatClient.joinRoom(1);
 
 		wsRoom1.send("not JSON"); //not JSON
@@ -85,13 +87,14 @@ public class RoomTest {
 		wsRoom1.send("{\"r1\": { \"e\": [ {\"event_type\": \"invalid\"} ] } }"); //"event_type" field is not an integer
 		wsRoom1.send("{\"r1\": { \"e\": [ {\"event_type\": 9001} ] } }"); //"event_type" field has an unknown value
 
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_MessagePostedEvent() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -100,6 +103,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -130,13 +134,14 @@ public class RoomTest {
 		assertEquals("User", event.getMessage().getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_MessagePostedEvent_reply() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -145,6 +150,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -194,13 +200,14 @@ public class RoomTest {
 		assertEquals("User", editedEvent.getMessage().getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_MessagePostedEvent_mention() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -209,6 +216,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -258,13 +266,14 @@ public class RoomTest {
 		assertEquals("User", editedEvent.getMessage().getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_MessageEditedEvent() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -273,6 +282,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -303,13 +313,14 @@ public class RoomTest {
 		assertEquals("User", event.getMessage().getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_MessageStarredEvent() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -318,6 +329,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -348,13 +360,14 @@ public class RoomTest {
 		assertNull(event.getMessage().getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_MessageDeletedEvent() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -363,6 +376,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -393,13 +407,14 @@ public class RoomTest {
 		assertEquals("User", event.getMessage().getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_MessagesMovedEvent_out() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -408,6 +423,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -478,13 +494,14 @@ public class RoomTest {
 
 		assertFalse(messagesIt.hasNext());
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_MessagesMovedEvent_in() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -493,6 +510,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -563,13 +581,14 @@ public class RoomTest {
 
 		assertFalse(messagesIt.hasNext());
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_UserEnteredEvent() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -578,6 +597,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -601,13 +621,14 @@ public class RoomTest {
 		assertEquals("User", event.getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_UserLeftEvent() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -616,6 +637,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -639,13 +661,14 @@ public class RoomTest {
 		assertEquals("User", event.getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_ignore_events_from_other_rooms() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -654,6 +677,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -686,13 +710,14 @@ public class RoomTest {
 		assertEquals("User", event.getMessage().getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void webSocket_listen_for_all_events() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 		.build();
 		//@formatter:on
@@ -701,6 +726,7 @@ public class RoomTest {
 		MockWebSocketServer wsRoom1 = new MockWebSocketServer(wsContainer, "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417005460");
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<Event> events = new ArrayList<>();
@@ -758,13 +784,14 @@ public class RoomTest {
 		}
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void getMessages() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("POST", "https://chat.stackoverflow.com/chats/1/events",
@@ -783,6 +810,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 		List<ChatMessage> messages = room.getMessages(3);
 
@@ -828,13 +856,14 @@ public class RoomTest {
 		assertEquals("User", message.getUsername());
 
 		assertFalse(it.hasNext());
-		verifyNumberOfRequestsSent(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 6);
 	}
 
 	@Test
 	public void getMessages_bad_responses() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("POST", "https://chat.stackoverflow.com/chats/1/events",
@@ -877,6 +906,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		try {
@@ -897,13 +927,14 @@ public class RoomTest {
 		assertEquals(Arrays.asList(), room.getMessages(3));
 		assertEquals(Arrays.asList(), room.getMessages(3));
 
-		verifyNumberOfRequestsSent(httpClient, 8);
+		verifyNumberOfRequestsSent(httpClient, 10);
 	}
 
 	@Test
 	public void sendMessage() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
@@ -917,16 +948,18 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 		assertEquals(1, room.sendMessage("one"));
 
-		verifyNumberOfRequestsSent(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 6);
 	}
 
 	@Test
 	public void sendMessage_split_strategy() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 			
 			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
@@ -954,6 +987,7 @@ public class RoomTest {
 		doReturn(session).when(wsContainer).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417023460")));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		//split up into 2 posts
@@ -962,13 +996,14 @@ public class RoomTest {
 		//do not split because it has a newline
 		assertEquals(Arrays.asList(3L), room.sendMessage("Java is an island of Indonesia. With a population of over 141 million (the island itself) or 145 million (the administrative region), Java is home to 56.7 percent of the Indonesian population and is the most populous island on Earth.\nThe Indonesian capital city, Jakarta, is located on western Java. Much of Indonesian history took place on Java. It was the center of powerful Hindu-Buddhist empires, the Islamic sultanates, and the core of the colonial Dutch East Indies. Java was also the center of the Indonesian struggle for independence during the 1930s and 1940s. Java dominates Indonesia politically, economically and culturally.", SplitStrategy.WORD));
 
-		verifyNumberOfRequestsSent(httpClient, 6);
+		verifyNumberOfRequestsSent(httpClient, 8);
 	}
 
 	@Test
 	public void sendMessage_posting_too_fast() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 			
 			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
@@ -990,6 +1025,7 @@ public class RoomTest {
 		doReturn(session).when(wsContainer).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417023460")));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room1 = chatClient.joinRoom(1);
 
 		Sleeper.unitTest = true;
@@ -1001,13 +1037,15 @@ public class RoomTest {
 			Sleeper.unitTest = false;
 		}
 
-		verifyNumberOfRequestsSent(httpClient, 5);
+		verifyNumberOfRequestsSent(httpClient, 7);
 	}
 
 	@Test
 	public void sendMessage_permission_problem() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
+			
 			.request("GET", "https://chat.stackoverflow.com/rooms/1")
 			.response(200, ResponseSamples.protectedChatRoom("0123456789abcdef0123456789abcdef")) //room is protected
 			
@@ -1033,6 +1071,7 @@ public class RoomTest {
 		doReturn(session).when(wsContainer).connectToServer(any(Endpoint.class), any(ClientEndpointConfig.class), eq(new URI("wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247?l=1417023460")));
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 		try {
 			room.sendMessage("one");
@@ -1041,13 +1080,14 @@ public class RoomTest {
 			//expected
 		}
 
-		verifyNumberOfRequestsSent(httpClient, 3);
+		verifyNumberOfRequestsSent(httpClient, 5);
 	}
 
 	@Test
 	public void sendMessage_bad_responses() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("POST", "https://chat.stackoverflow.com/chats/1/messages/new",
@@ -1079,6 +1119,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		try {
@@ -1098,13 +1139,14 @@ public class RoomTest {
 		assertEquals(0, room.sendMessage("one"));
 		assertEquals(0, room.sendMessage("one"));
 
-		verifyNumberOfRequestsSent(httpClient, 7);
+		verifyNumberOfRequestsSent(httpClient, 9);
 	}
 
 	@Test
 	public void editMessage() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("POST", "https://chat.stackoverflow.com/messages/20157247",
@@ -1148,6 +1190,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		room.editMessage(20157247, "edited");
@@ -1179,13 +1222,14 @@ public class RoomTest {
 
 		room.editMessage(20157247, "edited");
 
-		verifyNumberOfRequestsSent(httpClient, 9);
+		verifyNumberOfRequestsSent(httpClient, 11);
 	}
 
 	@Test
 	public void deleteMessage() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("POST", "https://chat.stackoverflow.com/messages/20157247/delete",
@@ -1223,6 +1267,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		room.deleteMessage(20157247);
@@ -1251,13 +1296,14 @@ public class RoomTest {
 
 		room.deleteMessage(20157247);
 
-		verifyNumberOfRequestsSent(httpClient, 9);
+		verifyNumberOfRequestsSent(httpClient, 11);
 	}
 
 	@Test
 	public void getPingableUsers() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("GET", "https://chat.stackoverflow.com/rooms/pingable/1"	)
@@ -1271,6 +1317,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<PingableUser> users = room.getPingableUsers();
@@ -1291,13 +1338,14 @@ public class RoomTest {
 
 		assertFalse(it.hasNext());
 
-		verifyNumberOfRequestsSent(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 6);
 	}
 
 	@Test
 	public void getPingableUsers_bad_responses() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 			
 			.request("GET", "https://chat.stackoverflow.com/rooms/pingable/1"	)
@@ -1320,6 +1368,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		try {
@@ -1340,13 +1389,14 @@ public class RoomTest {
 		assertEquals(0, room.getPingableUsers().size());
 		assertEquals(1, room.getPingableUsers().size());
 
-		verifyNumberOfRequestsSent(httpClient, 8);
+		verifyNumberOfRequestsSent(httpClient, 10);
 	}
 
 	@Test
 	public void getUserInfo() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("POST", "https://chat.stackoverflow.com/user/info",
@@ -1363,6 +1413,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		List<UserInfo> users = room.getUserInfo(Arrays.asList(13379, 4258326));
@@ -1391,13 +1442,14 @@ public class RoomTest {
 
 		assertFalse(it.hasNext());
 
-		verifyNumberOfRequestsSent(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 6);
 	}
 
 	@Test
 	public void getUserInfo_bad_responses() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("POST", "https://chat.stackoverflow.com/user/info",
@@ -1429,6 +1481,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		try {
@@ -1453,13 +1506,14 @@ public class RoomTest {
 		assertNull(user.getLastPost());
 		assertNull(user.getLastSeen());
 
-		verifyNumberOfRequestsSent(httpClient, 7);
+		verifyNumberOfRequestsSent(httpClient, 9);
 	}
 
 	@Test
 	public void getRoomInfo() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 
 			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1")
@@ -1476,6 +1530,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		RoomInfo info = room.getRoomInfo();
@@ -1484,13 +1539,14 @@ public class RoomTest {
 		assertEquals("Sandbox", info.getName());
 		assertEquals(Arrays.asList("one", "two"), info.getTags());
 
-		verifyNumberOfRequestsSent(httpClient, 4);
+		verifyNumberOfRequestsSent(httpClient, 6);
 	}
 
 	@Test
 	public void getRoomInfo_bad_responses() throws Exception {
 		//@formatter:off
 		CloseableHttpClient httpClient = new MockHttpClientBuilder()
+			.login("0123456789abcdef0123456789abcdef", "email", "password", true)
 			.joinRoom(1, "0123456789abcdef0123456789abcdef", "wss://chat.sockets.stackexchange.com/events/1/37516a6eb3464228bf48a33088b3c247", 1417023460)
 			
 			.request("GET", "https://chat.stackoverflow.com/rooms/thumbs/1")
@@ -1513,6 +1569,7 @@ public class RoomTest {
 		WebSocketContainer wsContainer = mock(WebSocketContainer.class);
 
 		ChatClient chatClient = new ChatClient(httpClient, wsContainer);
+		chatClient.login("email", "password");
 		Room room = chatClient.joinRoom(1);
 
 		try {
@@ -1547,7 +1604,7 @@ public class RoomTest {
 		assertNull(info.getName());
 		assertEquals(Arrays.asList(), info.getTags());
 
-		verifyNumberOfRequestsSent(httpClient, 8);
+		verifyNumberOfRequestsSent(httpClient, 10);
 	}
 
 	/**

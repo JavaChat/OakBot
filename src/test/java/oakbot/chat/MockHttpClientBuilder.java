@@ -41,6 +41,29 @@ public class MockHttpClientBuilder {
 	private final List<HttpResponse> responses = new ArrayList<>();
 
 	/**
+	 * Adds the requests/responses involved in logging into Stack Overflow.
+	 * @param fkey the fkey shown on the login page
+	 * @param email the user's email address
+	 * @param password the user's password
+	 * @param success true if the login should be successful, false if not
+	 * @return this
+	 */
+	public MockHttpClientBuilder login(String fkey, String email, String password, boolean success) {
+		//@formatter:off
+		return 
+			 request("GET", "https://stackoverflow.com/users/login")
+			.response(200, ResponseSamples.loginPage(fkey))
+		
+			.request("POST", "https://stackoverflow.com/users/login",
+				"fkey", fkey,
+				"email", email,
+				"password", password
+			)
+			.response(success ? 302 : 200, "");
+		//@formatter:on
+	}
+
+	/**
 	 * Adds the requests/responses involved in joining a room.
 	 * @param roomId the room ID
 	 * @param fkey the fkey of the room
