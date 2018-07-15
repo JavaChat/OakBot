@@ -3,7 +3,6 @@ package oakbot;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -312,7 +311,7 @@ public class Main {
 
 	private static BotProperties loadProperties(Path file) throws IOException {
 		Properties properties = new Properties();
-		try (Reader reader = Files.newBufferedReader(file, Charset.forName("UTF-8"))) {
+		try (Reader reader = Files.newBufferedReader(file)) {
 			properties.load(reader);
 		}
 		return new BotProperties(properties);
