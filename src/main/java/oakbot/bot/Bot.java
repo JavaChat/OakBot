@@ -563,7 +563,7 @@ public class Bot {
 	}
 
 	/**
-	 * Sends a message to all the chat rooms the bot is logged into.
+	 * Sends a message to all the non-quiet chat rooms the bot is logged into.
 	 * @param message the message to send
 	 * @throws IOException if there's a problem sending the message
 	 */
@@ -572,13 +572,15 @@ public class Bot {
 	}
 
 	/**
-	 * Sends a message to all the chat rooms the bot is logged into.
+	 * Sends a message to all the non-quiet chat rooms the bot is logged into.
 	 * @param message the message to send
 	 * @throws IOException if there's a problem sending the message
 	 */
 	public void broadcast(ChatResponse message) throws IOException {
 		for (IRoom room : connection.getRooms()) {
-			sendMessage(room, message);
+			if (!rooms.isQuietRoom(room.getRoomId())) {
+				sendMessage(room, message);
+			}
 		}
 	}
 
