@@ -39,6 +39,7 @@ import oakbot.command.learn.LearnedCommands;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.Listener;
 import oakbot.task.ScheduledTask;
+import oakbot.util.ChatBuilder;
 import oakbot.util.Sleeper;
 
 /**
@@ -226,9 +227,9 @@ public class Bot {
 		if (message.getUserId() == userId) {
 			//message was posted by this bot
 
-			PostedMessage originalMessage;
+			PostedMessage postedMessage;
 			synchronized (postedMessages) {
-				originalMessage = postedMessages.remove(message.getMessageId());
+				postedMessage = postedMessages.remove(message.getMessageId());
 			}
 
 			/*
@@ -240,20 +241,23 @@ public class Bot {
 			 * message itself has asked to be edited (e.g. a javadoc
 			 * description).
 			 * 
+			 * ===What is a onebox?===
+			 * 
 			 * Stack Overflow Chat converts certain URLs to "oneboxes". Oneboxes
 			 * can be fairly large and can spam the chat. For example, if the
 			 * message is a URL to an image, the image itself will be displayed
 			 * in the chat room. This is nice, but gets annoying if the image is
 			 * large or if it's an animated GIF.
 			 * 
-			 * After giving people some time to see the onebox, edit the message
-			 * so that the onebox no longer displays, but the URL is still
-			 * preserved.
+			 * After giving people some time to see the onebox, the bot will
+			 * edit the message so that the onebox no longer displays, but the
+			 * URL is still preserved.
 			 */
-			if (originalMessage != null && hideOneboxesAfter != null && (message.getContent().isOnebox() || originalMessage.hide())) {
-				long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - originalMessage.getTimePosted());
+			boolean messageIsOnebox = message.getContent().isOnebox();
+			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrDeletable())) {
+				long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - postedMessage.getTimePosted());
 				if (logger.isLoggable(Level.INFO)) {
-					String action = message.getContent().isOnebox() ? "Hiding onebox" : "Condensing message";
+					String action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
 					logger.info(action + " in " + hideIn + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
 				}
 
@@ -261,13 +265,30 @@ public class Bot {
 					@Override
 					public void run() {
 						try {
-							room.editMessage(message.getMessageId(), "> " + originalMessage.getContent());
-							for (Long id : originalMessage.getRelatedMessageIds()) {
+							if (messageIsOnebox) {
+								String content = quote(postedMessage.getOriginalContent());
+								room.editMessage(message.getMessageId(), content);
+								return;
+							}
+
+							String content = postedMessage.getCondensedContent();
+							if (content.isEmpty()) {
+								room.deleteMessage(message.getMessageId());
+							} else {
+								content = quote(content);
+								room.editMessage(message.getMessageId(), content);
+							}
+
+							for (Long id : postedMessage.getRelatedMessageIds()) {
 								room.deleteMessage(id);
 							}
 						} catch (Exception e) {
 							logger.log(Level.SEVERE, "Problem editing chat message [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]", e);
 						}
+					}
+
+					private String quote(String content) {
+						return new ChatBuilder().quote().append(' ').append(content).toString();
 					}
 				}, hideIn);
 			}
@@ -415,14 +436,9 @@ public class Bot {
 		synchronized (postedMessages) {
 			List<Long> messageIds = room.sendMessage(filteredMessage, reply.getSplitStrategy());
 			long now = System.currentTimeMillis();
+			String condensedMessage = reply.getCondensedMessage();
 
-			String hideMessage = reply.getHideMessage();
-			boolean hide = (hideMessage != null);
-			if (!hide) {
-				hideMessage = filteredMessage;
-			}
-
-			PostedMessage postedMessage = new PostedMessage(now, hideMessage, hide, messageIds.subList(1, messageIds.size()));
+			PostedMessage postedMessage = new PostedMessage(now, filteredMessage, condensedMessage, messageIds.subList(1, messageIds.size()));
 			postedMessages.put(messageIds.get(0), postedMessage);
 		}
 	}
@@ -772,33 +788,79 @@ public class Bot {
 		}
 	}
 
+	/**
+	 * Represents a message that was posted to the chat room.
+	 * @author Michael Angstadt
+	 */
 	private static class PostedMessage {
 		private final long timePosted;
-		private final String content;
-		private final boolean hide;
+		private final String originalContent, condensedContent;
 		private final List<Long> relatedMessageIds;
 
-		public PostedMessage(long timePosted, String content, boolean hide, List<Long> relatedMessageIds) {
+		/**
+		 * @param timePosted the time the message was posted
+		 * @param originalContent the original message that the bot sent to the
+		 * chat room
+		 * @param condensedContent the text that the message should be changed
+		 * to after the amount of time specified in the "hideOneboxesAfter"
+		 * setting
+		 * @param relatedMessageIds the IDs of the other messages that are
+		 * connected to this one, due to the chat client having to split up the
+		 * original message due to length limitations
+		 */
+		public PostedMessage(long timePosted, String originalContent, String condensedContent, List<Long> relatedMessageIds) {
 			this.timePosted = timePosted;
-			this.content = content;
-			this.hide = hide;
+			this.originalContent = originalContent;
+			this.condensedContent = condensedContent;
 			this.relatedMessageIds = relatedMessageIds;
 		}
 
+		/**
+		 * Gets the time the message was posted.
+		 * @return the time the message was posted
+		 */
 		public long getTimePosted() {
 			return timePosted;
 		}
 
-		public String getContent() {
-			return content;
+		/**
+		 * Gets the content of the original message that the bot sent to the
+		 * chat room. This is used for when a message was converted to a onebox.
+		 * @return the original content
+		 */
+		public String getOriginalContent() {
+			return originalContent;
 		}
 
-		public boolean hide() {
-			return hide;
+		/**
+		 * Gets the text that the message should be changed to after the amount
+		 * of time specified in the "hideOneboxesAfter" setting.
+		 * @return the new content, empty string to delete the message, or null
+		 * to leave the message alone
+		 */
+		public String getCondensedContent() {
+			return condensedContent;
 		}
 
+		/**
+		 * Gets the IDs of the other messages that are connected to this one,
+		 * due to the chat client having to split up the original message due to
+		 * length limitations.
+		 * @return
+		 */
 		public List<Long> getRelatedMessageIds() {
 			return relatedMessageIds;
+		}
+
+		/**
+		 * Determines if the message has requested that it be condensed or
+		 * deleted after the amount of time specified in the "hideOneboxesAfter"
+		 * setting. Does not include messages that were converted to oneboxes.
+		 * @return true to condense or delete the message, false to leave it
+		 * alone
+		 */
+		public boolean isCondensableOrDeletable() {
+			return condensedContent != null;
 		}
 	}
 
