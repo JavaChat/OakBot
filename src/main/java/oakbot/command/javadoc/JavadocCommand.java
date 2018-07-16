@@ -464,7 +464,7 @@ public class JavadocCommand implements Command {
 		int roomId = message.getMessage().getRoomId();
 		conversations.put(roomId, conversation);
 
-		return new ChatResponse(cb, SplitStrategy.NEWLINE);
+		return new ChatResponse(cb, SplitStrategy.NEWLINE, false, true);
 	}
 
 	/**
@@ -492,7 +492,7 @@ public class JavadocCommand implements Command {
 		int roomId = message.getMessage().getRoomId();
 		conversations.put(roomId, conversation);
 
-		return new ChatResponse(cb, SplitStrategy.NEWLINE);
+		return new ChatResponse(cb, SplitStrategy.NEWLINE, false, true);
 	}
 
 	private ChatResponse printClass(ClassInfo info, JavadocCommandArguments arguments, ChatCommand message) {
