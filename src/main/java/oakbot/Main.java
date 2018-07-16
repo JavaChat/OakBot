@@ -259,7 +259,7 @@ public class Main {
 			websocketClient.setDefaultMaxSessionIdleTimeout(0);
 			websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
 
-			logger.info("Logging in as " + props.getLoginEmail() + "...");
+			System.out.println("Logging in as " + props.getLoginEmail() + "...");
 			connection = new ChatClient(httpClient, websocketClient);
 			connection.login(props.getLoginEmail(), props.getLoginPassword());
 		}
@@ -293,7 +293,13 @@ public class Main {
 			logger.log(Level.SEVERE, "Uncaught exception thrown.", thrown);
 		});
 
-		bot.connect(arguments.quiet()).join();
+		System.out.println("Joining rooms...");
+
+		Thread t = bot.connect(arguments.quiet());
+
+		System.out.println("Bot has launched successfully. To move this process to the background, press Ctrl+Z then type \"bg\".");
+
+		t.join();
 
 		logger.info("Terminating.");
 	}

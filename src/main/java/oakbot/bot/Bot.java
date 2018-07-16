@@ -128,7 +128,8 @@ public class Bot {
 	}
 
 	/**
-	 * Starts the chat bot.
+	 * Starts the chat bot. The bot will join the rooms in the current thread
+	 * before launching its own thread.
 	 * @param quiet true to start the bot without broadcasting the greeting
 	 * message, false to broadcast the greeting message
 	 * @return the thread that the bot is running in. This thread will terminate
@@ -137,8 +138,22 @@ public class Bot {
 	 */
 	public Thread connect(boolean quiet) throws IOException {
 		//connect to each room
+		boolean first = true;
 		List<Integer> rooms = new ArrayList<>(this.rooms.getRooms());
 		for (Integer room : rooms) {
+			if (!first) {
+				/*
+				 * Insert a pause between joining each room in an attempt to
+				 * resolve an issue where the bot chooses to ignore all messages
+				 * in certain rooms.
+				 */
+				try {
+					Sleeper.sleep(2000);
+				} catch (InterruptedException e) {
+					//ignore
+				}
+			}
+
 			try {
 				join(room, quiet);
 			} catch (Exception e) {
@@ -146,16 +161,7 @@ public class Bot {
 				this.rooms.remove(room);
 			}
 
-			/*
-			 * Insert a pause between joining each room in an attempt to resolve
-			 * an issue where the bot chooses to ignore all messages in certain
-			 * rooms.
-			 */
-			try {
-				Sleeper.sleep(2000);
-			} catch (InterruptedException e) {
-				//ignore
-			}
+			first = false;
 		}
 
 		Thread thread = new Thread(() -> {
