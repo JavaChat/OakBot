@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Michael Angstadt
  */
 public class MethodInfo {
+	private ClassInfo classInfo;
 	private final String name, description, urlAnchor, since;
 	private final Set<String> modifiers;
 	private final List<ParameterInfo> parameters;
@@ -50,6 +51,30 @@ public class MethodInfo {
 		sb.append(String.join("-", fullNames));
 		sb.append('-');
 		urlAnchor = sb.toString();
+	}
+
+	/**
+	 * Gets the class that the method belongs to.
+	 * @return the class
+	 */
+	public ClassInfo getClassInfo() {
+		return classInfo;
+	}
+
+	/**
+	 * <p>
+	 * Sets the class that this method belongs to. This field cannot be set in
+	 * the Builder class because the {@link ClassInfo} object isn't done being
+	 * created when this MethodInfo instance is built.
+	 * </p>
+	 * <p>
+	 * This method is package-private because it should not be called by the
+	 * client. It should only be called by the {@link ClassInfo} constructor.
+	 * </p>
+	 * @param classInfo the class
+	 */
+	void setClassInfo(ClassInfo classInfo) {
+		this.classInfo = classInfo;
 	}
 
 	/**

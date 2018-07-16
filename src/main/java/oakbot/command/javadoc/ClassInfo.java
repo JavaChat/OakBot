@@ -34,7 +34,12 @@ public class ClassInfo {
 		description = builder.description;
 		modifiers = builder.modifiers.build();
 		interfaces = builder.interfaces.build();
+
 		methods = builder.methods.build();
+		for (MethodInfo methodInfo : methods.values()) {
+			methodInfo.setClassInfo(this);
+		}
+
 		deprecated = builder.deprecated;
 		zipFile = builder.zipFile;
 	}

@@ -198,11 +198,11 @@ public class JavadocCommand implements Command {
 
 		if (matchingMethods.exactSignature != null) {
 			//an exact match was found!
-			return printMethod(matchingMethods.exactSignature, info, arguments, message);
+			return printMethod(matchingMethods.exactSignature, arguments, message);
 		}
 
 		if (matchingMethods.matchingName.size() == 1 && arguments.getParameters() == null) {
-			return printMethod(matchingMethods.matchingName.get(0), info, arguments, message);
+			return printMethod(matchingMethods.matchingName.get(0), arguments, message);
 		}
 
 		//print the methods with the same name
@@ -243,15 +243,13 @@ public class JavadocCommand implements Command {
 		if (exactMatches.size() == 1) {
 			//a single, exact match was found!
 			MethodInfo method = exactMatches.values().iterator().next();
-			ClassInfo classInfo = exactMatches.keySet().iterator().next();
-			return printMethod(method, classInfo, arguments, message);
+			return printMethod(method, arguments, message);
 		}
 
 		if (matchingNames.size() == 1 && arguments.getParameters() == null) {
 			//user did not specify parameters and there is method with a matching name
 			MethodInfo method = matchingNames.values().iterator().next();
-			ClassInfo classInfo = matchingNames.keySet().iterator().next();
-			return printMethod(method, classInfo, arguments, message);
+			return printMethod(method, arguments, message);
 		}
 
 		//multiple matches were found
@@ -315,12 +313,11 @@ public class JavadocCommand implements Command {
 	/**
 	 * Prints the Javadoc info of a particular method.
 	 * @param methodinfo the method
-	 * @param classInfo the class that the method belongs to
 	 * @param arguments the command arguments
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printMethod(MethodInfo methodInfo, ClassInfo classInfo, JavadocCommandArguments arguments, ChatCommand message) {
+	private ChatResponse printMethod(MethodInfo methodInfo, JavadocCommandArguments arguments, ChatCommand message) {
 		ChatBuilder cb = new ChatBuilder();
 
 		String username = arguments.getTargetUser();
@@ -333,7 +330,7 @@ public class JavadocCommand implements Command {
 		int paragraph = arguments.getParagraph();
 		if (paragraph == 1) {
 			//print library name
-			JavadocZipFile zipFile = classInfo.getZipFile();
+			JavadocZipFile zipFile = methodInfo.getClassInfo().getZipFile();
 			if (zipFile != null) {
 				String name = zipFile.getName();
 				if (name != null && !name.equalsIgnoreCase("java")) {
@@ -359,7 +356,7 @@ public class JavadocCommand implements Command {
 			//print signature
 			if (deprecated) cb.strike();
 			String signature = methodInfo.getSignatureString();
-			String url = classInfo.getUrl(false);
+			String url = methodInfo.getClassInfo().getUrl(false);
 			if (url == null) {
 				cb.bold().code(signature).bold();
 			} else {
@@ -379,15 +376,15 @@ public class JavadocCommand implements Command {
 		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
 
-		return new ChatResponse(cb, SplitStrategy.WORD, false, buildHideMessage(classInfo, methodInfo));
+		return new ChatResponse(cb, SplitStrategy.WORD, false, buildHideMessage(methodInfo));
 	}
 
-	private String buildHideMessage(ClassInfo classInfo, MethodInfo methodInfo) {
+	private String buildHideMessage(MethodInfo methodInfo) {
 		ChatBuilder sig = new ChatBuilder();
 
 		if (methodInfo.isDeprecated()) sig.strike();
 		String signature = methodInfo.getSignatureString();
-		String url = classInfo.getUrl(false);
+		String url = methodInfo.getClassInfo().getUrl(false);
 		if (url == null) {
 			sig.bold().code(signature).bold();
 		} else {
