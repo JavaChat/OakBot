@@ -1,4 +1,4 @@
-package oakbot.chat;
+package oakbot.bot;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -6,7 +6,7 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
-import oakbot.bot.ChatCommand;
+import oakbot.chat.ChatMessage;
 
 /**
  * @author Michael Angstadt
