@@ -78,7 +78,8 @@ public interface Command {
 	 * @param array the array
 	 * @return the random element
 	 */
-	static <T> T random(@SuppressWarnings("unchecked") T... array) {
+	@SafeVarargs
+	static <T> T random(T... array) {
 		int index = random.nextInt(array.length);
 		return array[index];
 	}
