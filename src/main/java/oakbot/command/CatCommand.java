@@ -9,21 +9,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import com.google.common.net.UrlEscapers;
 
@@ -31,7 +23,7 @@ import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.util.ChatBuilder;
-import oakbot.util.XPathWrapper;
+import oakbot.util.Leaf;
 
 /**
  * Displays a random cat picture.
@@ -42,37 +34,6 @@ import oakbot.util.XPathWrapper;
 public class CatCommand implements Command {
 	private static final Logger logger = Logger.getLogger(CatCommand.class.getName());
 
-	private final DocumentBuilder docBuilder;
-	{
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setNamespaceAware(false);
-		factory.setIgnoringElementContentWhitespace(true);
-		try {
-			docBuilder = factory.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			//shouldn't be thrown
-			throw new RuntimeException(e);
-		}
-
-		docBuilder.setErrorHandler(new ErrorHandler() {
-			@Override
-			public void warning(SAXParseException exception) throws SAXException {
-				//ignore
-			}
-
-			@Override
-			public void error(SAXParseException exception) throws SAXException {
-				//ignore
-			}
-
-			@Override
-			public void fatalError(SAXParseException exception) throws SAXException {
-				//ignore
-			}
-		});
-	}
-
-	private final XPathWrapper xpath = new XPathWrapper();
 	private final String requestUrl;
 
 	public CatCommand(String key) {
@@ -140,13 +101,13 @@ public class CatCommand implements Command {
 	private String nextCat(CloseableHttpClient client) throws IOException, SAXException {
 		HttpGet request = new HttpGet(requestUrl);
 		try (CloseableHttpResponse response = client.execute(request)) {
-			Document document;
+			Leaf document;
 			try (InputStream in = response.getEntity().getContent()) {
-				document = docBuilder.parse(in);
+				document = Leaf.parse(in);
 			}
 
-			Element urlElement = xpath.element("/response/data/images/image/url", document);
-			return urlElement.getTextContent();
+			Leaf urlElement = document.selectFirst("/response/data/images/image/url");
+			return urlElement.text();
 		}
 	}
 

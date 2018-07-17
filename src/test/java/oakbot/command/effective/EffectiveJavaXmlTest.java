@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.junit.Test;
 
 import oakbot.util.Leaf;
@@ -30,7 +28,7 @@ public class EffectiveJavaXmlTest {
 
 	public EffectiveJavaXmlTest() throws Exception {
 		try (InputStream in = getClass().getResourceAsStream("effective-java.xml")) {
-			document = new Leaf(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in));
+			document = Leaf.parse(in);
 		}
 	}
 

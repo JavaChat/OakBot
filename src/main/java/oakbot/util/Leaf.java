@@ -1,10 +1,15 @@
 package oakbot.util;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -16,11 +21,21 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
- * Represents an XML document or an element in an XML document. This class acts
- * as a wrapper around Java's XML API to make it easier to interact with XML
- * documents.
+ * <p>
+ * Represents an XML document or an element in an XML document.
+ * </p>
+ * <p>
+ * This class acts as a wrapper around Java's XML API to make it easier to
+ * interact with XML documents. It works well when you just need to interact
+ * with the elements of an XML document, along with their attributes and inner
+ * text. It cannot be used when you need to deal with non-element node types,
+ * such as {@code Text}.
+ * </p>
  * @author Michael Angstadt
  */
 public class Leaf {
@@ -45,11 +60,56 @@ public class Leaf {
 	}
 
 	/**
+	 * Parses an XML document using a bare-bones {@link DocumentBuilder}.
+	 * @param in the input stream
+	 * @return the parsed document
+	 * @throws SAXException if there's a problem parsing the XML
+	 * @throws IOException if there's a problem reading from the input stream
+	 */
+	public static Leaf parse(InputStream in) throws SAXException, IOException {
+		DocumentBuilder builder;
+		try {
+			builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		} catch (ParserConfigurationException ignored) {
+			//will never be thrown
+			throw new RuntimeException(ignored);
+		}
+
+		builder.setErrorHandler(new ErrorHandler() {
+			@Override
+			public void warning(SAXParseException ignored) throws SAXException {
+				//ignore warnings
+			}
+
+			@Override
+			public void error(SAXParseException e) throws SAXException {
+				throw e;
+			}
+
+			@Override
+			public void fatalError(SAXParseException e) throws SAXException {
+				throw e;
+			}
+		});
+
+		return new Leaf(builder.parse(in));
+	}
+
+	/**
 	 * Gets all child elements.
 	 * @return the child elements
 	 */
 	public List<Leaf> children() {
 		return leavesFrom(node.getChildNodes());
+	}
+
+	/**
+	 * Gets the parent element.
+	 * @return the parent element or null if it has no parent
+	 */
+	public Leaf parent() {
+		Node parent = node.getParentNode();
+		return (parent == null) ? null : new Leaf((Element) node.getParentNode(), xpath);
 	}
 
 	/**

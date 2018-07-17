@@ -5,18 +5,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import oakbot.util.XPathWrapper;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import oakbot.util.Leaf;
 
 /**
  * Parses {@link ClassInfo} objects from XML documents.
  * @author Michael Angstadt
  */
 public class ClassInfoXmlParser {
-	private final XPathWrapper xpath = new XPathWrapper();
-
 	/**
 	 * Parses a {@link ClassInfo} object out of the XML data.
 	 * @param document the XML document
@@ -25,7 +20,7 @@ public class ClassInfoXmlParser {
 	 * @throws IllegalArgumentException if the given XML document does not have
 	 * a root {@literal <class>} element.
 	 */
-	public static ClassInfo parse(Document document, JavadocZipFile zipFile) {
+	public static ClassInfo parse(Leaf document, JavadocZipFile zipFile) {
 		ClassInfoXmlParser parser = new ClassInfoXmlParser();
 		ClassInfo.Builder builder = parser.parse(document);
 		builder.zipFile(zipFile);
@@ -39,60 +34,60 @@ public class ClassInfoXmlParser {
 	 * @throws IllegalArgumentException if the given XML document does not have
 	 * a root {@literal <class>} element.
 	 */
-	public ClassInfo.Builder parse(Document document) {
+	public ClassInfo.Builder parse(Leaf document) {
 		ClassInfo.Builder builder = new ClassInfo.Builder();
 
-		Element classElement = xpath.element("/class", document);
+		Leaf classElement = document.selectFirst("/class");
 		if (classElement == null) {
 			throw new IllegalArgumentException("XML file does not have a root <class> element.");
 		}
 
 		//class name
-		ClassName className = parseClassName(classElement.getAttribute("name"));
+		ClassName className = parseClassName(classElement.attribute("name"));
 		builder.name(className);
 
 		//modifiers
-		String value = classElement.getAttribute("modifiers");
+		String value = classElement.attribute("modifiers");
 		if (!value.isEmpty()) {
 			builder.modifiers(Arrays.asList(value.split("\\s+")));
 		}
 
 		//super class
-		value = classElement.getAttribute("extends");
+		value = classElement.attribute("extends");
 		if (!value.isEmpty()) {
 			builder.superClass(parseClassName(value));
 		}
 
 		//interfaces
-		value = classElement.getAttribute("implements");
+		value = classElement.attribute("implements");
 		if (!value.isEmpty()) {
 			builder.interfaces(parseClassNames(value));
 		}
 
 		//deprecated
-		value = classElement.getAttribute("deprecated");
+		value = classElement.attribute("deprecated");
 		builder.deprecated(value.isEmpty() ? false : Boolean.parseBoolean(value));
 
 		//since
-		value = classElement.getAttribute("since");
+		value = classElement.attribute("since");
 		if (!value.isEmpty()) {
 			builder.since(value);
 		}
 
 		//description
-		Element element = xpath.element("/class/description", document);
+		Leaf element = document.selectFirst("/class/description");
 		if (element != null) {
-			builder.description(element.getTextContent());
+			builder.description(element.text());
 		}
 
 		//constructors
-		for (Element constructorElement : xpath.elements("/class/constructor", document)) {
+		for (Leaf constructorElement : document.select("/class/constructor")) {
 			MethodInfo info = parseConstructor(constructorElement, className.getSimpleName());
 			builder.method(info);
 		}
 
 		//methods
-		for (Element methodElement : xpath.elements("/class/method", document)) {
+		for (Leaf methodElement : document.select("/class/method")) {
 			MethodInfo method = parseMethod(methodElement);
 			if (method != null) {
 				builder.method(method);
@@ -136,36 +131,36 @@ public class ClassInfoXmlParser {
 		return Arrays.stream(split).map(ClassInfoXmlParser::parseClassName).collect(Collectors.toList());
 	}
 
-	private MethodInfo parseConstructor(Element element, String simpleName) {
+	private MethodInfo parseConstructor(Leaf element, String simpleName) {
 		MethodInfo.Builder builder = new MethodInfo.Builder();
 
 		//name
 		builder.name(simpleName);
 
 		//modifiers
-		String value = element.getAttribute("modifiers");
+		String value = element.attribute("modifiers");
 		if (!value.isEmpty()) {
 			builder.modifiers(Arrays.asList(value.split("\\s+")));
 		}
 
 		//since
-		value = element.getAttribute("since");
+		value = element.attribute("since");
 		if (!value.isEmpty()) {
 			builder.since(value);
 		}
 
 		//description
-		Element descriptionElement = xpath.element("description", element);
+		Leaf descriptionElement = element.selectFirst("description");
 		if (descriptionElement != null) {
-			builder.description(descriptionElement.getTextContent());
+			builder.description(descriptionElement.text());
 		}
 
 		//deprecated
-		value = element.getAttribute("deprecated");
+		value = element.attribute("deprecated");
 		builder.deprecated(value.isEmpty() ? false : Boolean.parseBoolean(value));
 
 		//parameters
-		for (Element parameterElement : xpath.elements("parameter", element)) {
+		for (Leaf parameterElement : element.select("parameter")) {
 			ParameterInfo parameter = parseParameter(parameterElement);
 			builder.parameter(parameter);
 		}
@@ -173,46 +168,46 @@ public class ClassInfoXmlParser {
 		return builder.build();
 	}
 
-	private MethodInfo parseMethod(Element element) {
+	private MethodInfo parseMethod(Leaf element) {
 		MethodInfo.Builder builder = new MethodInfo.Builder();
 
 		//name
-		String name = element.getAttribute("name");
+		String name = element.attribute("name");
 		if (name.isEmpty()) {
 			return null;
 		}
 		builder.name(name);
 
 		//modifiers
-		String value = element.getAttribute("modifiers");
+		String value = element.attribute("modifiers");
 		if (!value.isEmpty()) {
 			builder.modifiers(Arrays.asList(value.split("\\s+")));
 		}
 
 		//since
-		value = element.getAttribute("since");
+		value = element.attribute("since");
 		if (!value.isEmpty()) {
 			builder.since(value);
 		}
 
 		//description
-		Element descriptionElement = xpath.element("description", element);
+		Leaf descriptionElement = element.selectFirst("description");
 		if (descriptionElement != null) {
-			builder.description(descriptionElement.getTextContent());
+			builder.description(descriptionElement.text());
 		}
 
 		//return value
-		value = element.getAttribute("returns");
+		value = element.attribute("returns");
 		if (!value.isEmpty()) {
 			builder.returnValue(parseClassName(value));
 		}
 
 		//deprecated
-		value = element.getAttribute("deprecated");
+		value = element.attribute("deprecated");
 		builder.deprecated(value.isEmpty() ? false : Boolean.parseBoolean(value));
 
 		//parameters
-		for (Element parameterElement : xpath.elements("parameter", element)) {
+		for (Leaf parameterElement : element.select("parameter")) {
 			ParameterInfo parameter = parseParameter(parameterElement);
 			if (parameter != null) {
 				builder.parameter(parameter);
@@ -222,9 +217,9 @@ public class ClassInfoXmlParser {
 		return builder.build();
 	}
 
-	private ParameterInfo parseParameter(Element element) {
+	private ParameterInfo parseParameter(Leaf element) {
 		//type
-		String type = element.getAttribute("type");
+		String type = element.attribute("type");
 
 		//is it an array?
 		boolean array = type.endsWith("[]");
@@ -248,7 +243,7 @@ public class ClassInfoXmlParser {
 		ClassName className = parseClassName(type);
 
 		//name
-		String name = element.getAttribute("name");
+		String name = element.attribute("name");
 
 		return new ParameterInfo(className, name, array, varargs, generic);
 	}

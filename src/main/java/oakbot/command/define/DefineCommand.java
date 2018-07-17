@@ -11,19 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import java.util.stream.Collectors;
 
 import org.apache.http.client.utils.URIBuilder;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
@@ -34,7 +28,7 @@ import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
-import oakbot.util.XPathWrapper;
+import oakbot.util.Leaf;
 
 /**
  * Gets word definitions from urbandictionary.com
@@ -43,37 +37,6 @@ import oakbot.util.XPathWrapper;
 public class DefineCommand implements Command {
 	private static final Logger logger = Logger.getLogger(DefineCommand.class.getName());
 
-	private final DocumentBuilder docBuilder;
-	{
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setNamespaceAware(false);
-		factory.setIgnoringElementContentWhitespace(true);
-		try {
-			docBuilder = factory.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			//shouldn't be thrown
-			throw new RuntimeException(e);
-		}
-
-		docBuilder.setErrorHandler(new ErrorHandler() {
-			@Override
-			public void warning(SAXParseException exception) throws SAXException {
-				//ignore
-			}
-
-			@Override
-			public void error(SAXParseException exception) throws SAXException {
-				//ignore
-			}
-
-			@Override
-			public void fatalError(SAXParseException exception) throws SAXException {
-				//ignore
-			}
-		});
-	}
-
-	private final XPathWrapper xpath = new XPathWrapper();
 	private final String apiKey;
 
 	public DefineCommand(String apiKey) {
@@ -109,7 +72,7 @@ public class DefineCommand implements Command {
 			return reply("Please specify the word you'd like to define.", chatCommand);
 		}
 
-		Document response;
+		Leaf response;
 		try {
 			Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
 			URIBuilder b = new URIBuilder("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/" + escaper.escape(word));
@@ -117,7 +80,7 @@ public class DefineCommand implements Command {
 
 			String url = b.toString();
 			try (InputStream in = get(url)) {
-				response = docBuilder.parse(in);
+				response = Leaf.parse(in);
 			}
 		} catch (IOException | SAXException | URISyntaxException e) {
 			logger.log(Level.SEVERE, "Problem getting word from dictionary.", e);
@@ -154,18 +117,20 @@ public class DefineCommand implements Command {
 		return new ChatResponse(cb.toString().trim(), SplitStrategy.NEWLINE);
 	}
 
-	private List<Definition> parseResponse(String word, Document response) {
+	private List<Definition> parseResponse(String word, Leaf response) {
 		List<Definition> definitions = new ArrayList<>();
-		for (Node entryNode : xpath.nodelist("/entry_list/entry", response)) {
-			String ew = xpath.string("ew", entryNode);
+		for (Leaf entryNode : response.select("/entry_list/entry")) {
+			Leaf leaf = entryNode.selectFirst("ew");
+			String ew = (leaf == null) ? null : leaf.text();
 			if (!word.equalsIgnoreCase(ew)) {
 				//ignore similar words
 				continue;
 			}
 
-			String type = xpath.string("fl", entryNode);
-			for (Node dtNode : xpath.nodelist("def/dt", entryNode)) {
-				String definitionText = getDefinition(dtNode);
+			leaf = entryNode.selectFirst("fl");
+			String type = (leaf == null) ? null : leaf.text();
+			for (Leaf dtNode : entryNode.select("def/dt")) {
+				String definitionText = getDefinition(dtNode.node());
 				if (definitionText == null || definitionText.isEmpty()) {
 					continue;
 				}
@@ -220,12 +185,14 @@ public class DefineCommand implements Command {
 		return String.join("; ", list);
 	}
 
-	private List<String> parseSuggestions(Document document) {
-		Iterable<Element> elements = xpath.elements("/entry_list/suggestion", document);
-
-		List<String> suggestions = new ArrayList<>();
-		elements.forEach((e) -> suggestions.add(e.getTextContent()));
-		return suggestions;
+	private List<String> parseSuggestions(Leaf document) {
+		//@formatter:off
+		return
+			 document.select("/entry_list/suggestion")
+			.stream()
+			.map(e -> e.text())
+			.collect(Collectors.toList());
+		//@formatter:on
 	}
 
 	private static String orList(List<String> list) {
@@ -253,14 +220,14 @@ public class DefineCommand implements Command {
 		return sb.toString();
 	}
 
-	public String getExample(Node dtNode) {
-		Node viNode = xpath.node("vi", dtNode);
+	public String getExample(Leaf dtNode) {
+		Leaf viNode = dtNode.selectFirst("vi");
 		if (viNode == null) {
 			return null;
 		}
 
 		StringBuilder sb = new StringBuilder();
-		for (Node child : children(viNode)) {
+		for (Node child : children(viNode.node())) {
 			if ("aq".equals(child.getNodeName())) {
 				//don't include the author of the example (for user-contributed content)
 				continue;

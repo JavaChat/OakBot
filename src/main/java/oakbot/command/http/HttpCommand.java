@@ -8,12 +8,7 @@ import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.http.client.utils.URIBuilder;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import oakbot.bot.BotContext;
@@ -22,22 +17,27 @@ import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
-import oakbot.util.XPathWrapper;
+import oakbot.util.Leaf;
 
 /**
  * Displays descriptions of HTTP response status codes.
  * @author Michael Angstadt
  */
 public class HttpCommand implements Command {
-	private final Document document;
-	private final XPathWrapper xpath = new XPathWrapper();
+	private final Leaf document;
 
 	public HttpCommand() {
 		try (InputStream in = getClass().getResourceAsStream("http.xml")) {
-			this.document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
-		} catch (IOException | SAXException | ParserConfigurationException e) {
-			//these should never be thrown because the XML is on the classpath
-			throw new RuntimeException(e);
+			document = Leaf.parse(in);
+		} catch (IOException | SAXException ignored) {
+			/*
+			 * These exceptions should never be thrown because the XML file is
+			 * on the classpath and is not coming from user input.
+			 * 
+			 * TODO The XML file is also is checked for correctness in
+			 * HttpCommandXMLTest.
+			 */
+			throw new RuntimeException(ignored);
 		}
 	}
 
@@ -74,10 +74,10 @@ public class HttpCommand implements Command {
 		}
 
 		boolean isStatusCode = true;
-		Element element = xpath.element("/http/statusCode[@code='" + code + "']", document);
+		Leaf element = document.selectFirst("/http/statusCode[@code='" + code + "']");
 		if (element == null) {
 			isStatusCode = false;
-			element = xpath.element("/http/method[@name='" + code + "']", document);
+			element = document.selectFirst("/http/method[@name='" + code + "']");
 			if (element == null) {
 				String reply = code.matches("\\d+") ? "Status code not recognized." : "Method not recognized.";
 				return reply(reply, chatCommand);
@@ -101,8 +101,8 @@ public class HttpCommand implements Command {
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(chatCommand);
 		if (paragraph == 1) {
-			String name = element.getAttribute("name");
-			String section = element.getAttribute("section");
+			String name = element.attribute("name");
+			String section = element.attribute("section");
 			String url = rfcUrl(defaultRfc, section);
 
 			ChatBuilder linkText = new ChatBuilder();
@@ -118,7 +118,7 @@ public class HttpCommand implements Command {
 			cb.append(": ");
 		}
 
-		String description = element.getTextContent().trim();
+		String description = element.text().trim();
 		description = processSectionAnnotations(description, defaultRfc);
 
 		String paragraphs[] = description.split("\n\n");
@@ -182,15 +182,18 @@ public class HttpCommand implements Command {
 		return uri.toString();
 	}
 
-	private static String getDefaultRfc(Element element) {
+	private static String getDefaultRfc(Leaf element) {
 		while (true) {
-			String rfc = element.getAttribute("rfc");
+			String rfc = element.attribute("rfc");
 			if (!rfc.isEmpty()) {
 				return rfc;
 			}
 
-			element = (Element) element.getParentNode();
-			//"element" should never become null because the root <http> element has a "rfc" attribute
+			/*
+			 * A null parent will never be returned become null because the root
+			 * <http> element has a "rfc" attribute
+			 */
+			element = element.parent();
 		}
 	}
 }

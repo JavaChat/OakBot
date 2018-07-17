@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.xml.sax.SAXException;
 
 import oakbot.bot.BotContext;
@@ -32,14 +29,16 @@ public class EffectiveJavaCommand implements Command {
 	private final List<Item> items;
 
 	public EffectiveJavaCommand() {
-		//NOTE: The XML file is checked for correctness in EffectiveJavaXmlTest.
 		Leaf document;
 		try (InputStream in = getClass().getResourceAsStream("effective-java.xml")) {
-			document = new Leaf(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in));
-		} catch (IOException | SAXException | ParserConfigurationException ignored) {
+			document = Leaf.parse(in);
+		} catch (IOException | SAXException ignored) {
 			/*
 			 * These exceptions should never be thrown because the XML file is
 			 * on the classpath and is not coming from user input.
+			 * 
+			 * The XML file is also is checked for correctness in
+			 * EffectiveJavaXmlTest.
 			 */
 			throw new RuntimeException(ignored);
 		}
