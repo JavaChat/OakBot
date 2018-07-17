@@ -34,8 +34,7 @@ public class GrootCommand implements Command {
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		int roomId = chatCommand.getMessage().getRoomId();
-		boolean enabled = filter.isEnabled(roomId);
-		filter.setEnabled(roomId, !enabled);
+		filter.toggle(roomId);
 		return null;
 	}
 }

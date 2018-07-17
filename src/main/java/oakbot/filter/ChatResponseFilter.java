@@ -19,13 +19,21 @@ public abstract class ChatResponseFilter {
 	protected Set<Integer> enabledRooms = new HashSet<>();
 
 	/**
-	 * Determines if the filter is enabled. It only processes messages if it is
-	 * enabled.
-	 * @param roomId the roomID
+	 * Determines if the filter is enabled in a given room.
+	 * @param roomId the room ID
 	 * @return true if enabled, false if not
 	 */
 	public boolean isEnabled(int roomId) {
 		return globallyEnabled ? true : enabledRooms.contains(roomId);
+	}
+
+	/**
+	 * Toggles the filter in a given room.
+	 * @param roomId the room ID
+	 */
+	public void toggle(int roomId) {
+		boolean enabled = isEnabled(roomId);
+		setEnabled(roomId, !enabled);
 	}
 
 	/**
@@ -50,7 +58,7 @@ public abstract class ChatResponseFilter {
 	}
 
 	/**
-	 * Performs the filter operation. This method should not be responsible for
+	 * Performs the filter operation. This method is not responsible for
 	 * checking if the filter is enabled or not.
 	 * @param message the message to filter
 	 * @return the filtered message
