@@ -265,18 +265,16 @@ public class Bot {
 					@Override
 					public void run() {
 						try {
-							if (messageIsOnebox) {
-								String content = quote(postedMessage.getOriginalContent());
-								room.editMessage(message.getMessageId(), content);
-								return;
-							}
-
-							String content = postedMessage.getCondensedContent();
-							if (content.isEmpty()) {
+							String condensedContent = postedMessage.getCondensedContent();
+							if (condensedContent == null) {
+								//it's a onebox
+								condensedContent = quote(postedMessage.getOriginalContent());
+								room.editMessage(message.getMessageId(), condensedContent);
+							} else if (condensedContent.isEmpty()) {
 								room.deleteMessage(message.getMessageId());
 							} else {
-								content = quote(content);
-								room.editMessage(message.getMessageId(), content);
+								condensedContent = quote(condensedContent);
+								room.editMessage(message.getMessageId(), condensedContent);
 							}
 
 							for (Long id : postedMessage.getRelatedMessageIds()) {
