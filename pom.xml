@@ -38,8 +38,26 @@
 				</configuration>
 			</plugin>
 			
-			<!-- This will build a shaded, executable JAR. -->
-			<!-- To build, run: mvn package -->
+			<!--
+			Turn off logging when the unit tests are run.
+			Source: http://bpossolo.blogspot.com/2013/04/configuring-javautillogging-for-unit.html
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<java.util.logging.config.file>
+							src/test/resources/logging.properties
+						</java.util.logging.config.file>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			
+			<!--
+			This will build a shaded, executable JAR.
+			To build, run: mvn package 
+			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>

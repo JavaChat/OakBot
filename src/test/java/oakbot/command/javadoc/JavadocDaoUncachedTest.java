@@ -10,9 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.LogManager;
 
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -28,12 +26,6 @@ public class JavadocDaoUncachedTest {
 	private final JavadocDaoUncached dao;
 	{
 		dao = new JavadocDaoUncached(root);
-	}
-
-	@BeforeClass
-	public static void beforeClass() {
-		//turn off logging
-		LogManager.getLogManager().reset();
 	}
 
 	@Test

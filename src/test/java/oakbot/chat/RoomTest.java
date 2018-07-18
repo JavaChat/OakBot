@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.LogManager;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
@@ -35,7 +34,6 @@ import javax.websocket.WebSocketContainer;
 
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import oakbot.chat.event.Event;
@@ -53,12 +51,6 @@ import oakbot.util.Sleeper;
  */
 @SuppressWarnings("resource")
 public class RoomTest {
-	@BeforeClass
-	public static void beforeClass() {
-		//turn off logging
-		LogManager.getLogManager().reset();
-	}
-
 	/**
 	 * Anything that is not JSON or that doesn't have the proper JSON fields
 	 * should be silently ignored.

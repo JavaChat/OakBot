@@ -6,9 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.LogManager;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import oakbot.bot.ChatCommand;
@@ -20,12 +18,6 @@ import oakbot.util.ChatCommandBuilder;
  */
 public class UrbanCommandTest {
 	private final ChatCommandBuilder chatCommandBuilder = new ChatCommandBuilder(new UrbanCommand().name());
-
-	@BeforeClass
-	public static void beforeClass() {
-		//turn off logging
-		LogManager.getLogManager().reset();
-	}
 
 	@Test
 	public void no_word() {

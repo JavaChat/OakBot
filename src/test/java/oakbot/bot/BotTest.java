@@ -22,11 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.logging.LogManager;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import oakbot.bot.BotContext.JoinRoomCallback;
@@ -54,12 +52,6 @@ public class BotTest {
 	private ChatClientMock chatClient;
 
 	private boolean runAfter;
-
-	@BeforeClass
-	public static void beforeClass() {
-		//turn off logging
-		LogManager.getLogManager().reset();
-	}
 
 	@Before
 	public void before() {

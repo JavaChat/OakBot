@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Arrays;
-import java.util.logging.LogManager;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
@@ -29,19 +28,12 @@ import javax.websocket.WebSocketContainer;
 
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
  * @author Michael Angstadt
  */
 public class ChatClientTest {
-	@BeforeClass
-	public static void beforeClass() {
-		//turn off logging
-		LogManager.getLogManager().reset();
-	}
-
 	@Test
 	public void login_no_fkey() throws Exception {
 		//@formatter:off
