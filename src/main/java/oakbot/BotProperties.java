@@ -17,7 +17,7 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
-	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey, adventOfCodeSession;
+	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey, tenorKey, adventOfCodeSession;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, healthMonitor;
 	private final Integer botUserId;
 	private final Integer hideOneboxesAfter;
@@ -54,6 +54,7 @@ public class BotProperties extends PropertiesWrapper {
 		aboutHost = get("commands.about.host");
 		catKey = get("commands.cat.key");
 		reactKey = get("commands.react.key");
+		tenorKey = get("commands.facepalm.key");
 
 		adventOfCodeSession = get("commands.advent.session");
 		adventOfCodeLeaderboards = new HashMap<>();
@@ -227,6 +228,14 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public String getReactKey() {
 		return reactKey;
+	}
+
+	/**
+	 * Gets the API key for <a href="https://tenor.com">tenor.com</a>.
+	 * @return the key or null if not defined
+	 */
+	public String getTenorKey() {
+		return tenorKey;
 	}
 
 	/**

@@ -35,6 +35,7 @@ import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
 import oakbot.command.Command;
 import oakbot.command.EightBallCommand;
+import oakbot.command.FacepalmCommand;
 import oakbot.command.FatCatCommand;
 import oakbot.command.GrootCommand;
 import oakbot.command.HelpCommand;
@@ -224,6 +225,11 @@ public class Main {
 			String reactKey = props.getReactKey();
 			if (reactKey != null) {
 				commands.add(new ReactCommand(reactKey));
+			}
+
+			String tenorKey = props.getTenorKey();
+			if (tenorKey != null) {
+				commands.add(new FacepalmCommand(tenorKey));
 			}
 		}
 

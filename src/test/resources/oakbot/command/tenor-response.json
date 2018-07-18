@@ -1,0 +1,122 @@
+{
+  "results": [
+    {
+      "tags": [],
+      "url": "https://tenor.com/xttI.gif",
+      "media": [
+        {
+          "nanomp4": {
+            "url": "https://media.tenor.com/videos/1c2f87c85bd282501a1a12a43bbea2a0/mp4",
+            "dims": [
+              150,
+              114
+            ],
+            "duration": 2.6,
+            "preview": "https://media.tenor.com/images/b6b72f3db46ee36a330f742d9fe03ba8/tenor.png",
+            "size": 28800
+          },
+          "nanowebm": {
+            "url": "https://media.tenor.com/videos/c3fc2a10ceddebf3aed7abe98fbff2af/webm",
+            "dims": [
+              150,
+              114
+            ],
+            "preview": "https://media.tenor.com/images/b6b72f3db46ee36a330f742d9fe03ba8/tenor.png",
+            "size": 19706
+          },
+          "tinygif": {
+            "url": "https://media.tenor.com/images/7e45bbaa8859d5cf8721f78974f480d4/tenor.gif",
+            "dims": [
+              220,
+              168
+            ],
+            "preview": "https://media.tenor.com/images/9cee3e3f95c9967b321700730be4dcfc/raw",
+            "size": 65835
+          },
+          "tinymp4": {
+            "url": "https://media.tenor.com/videos/ec0473bd159323fd0094dff36ca21af1/mp4",
+            "dims": [
+              320,
+              244
+            ],
+            "duration": 2.6,
+            "preview": "https://media.tenor.com/images/0f92f82389579cb2adbc6faded714170/tenor.png",
+            "size": 76795
+          },
+          "tinywebm": {
+            "url": "https://media.tenor.com/videos/3198a0bb78c3a51eb858f8411aff6e12/webm",
+            "dims": [
+              320,
+              244
+            ],
+            "preview": "https://media.tenor.com/images/0f92f82389579cb2adbc6faded714170/tenor.png",
+            "size": 36216
+          },
+          "webm": {
+            "url": "https://media.tenor.com/videos/7d9548b4e06eb333d09b0953dcf82fcc/webm",
+            "dims": [
+              640,
+              490
+            ],
+            "preview": "https://media.tenor.com/images/e2d612a014deadf198cfe3dd03b22e40/raw",
+            "size": 55319
+          },
+          "gif": {
+            "url": "https://media.tenor.com/images/2a3525fb779e2b04a3060b4671a55dcd/tenor.gif",
+            "dims": [
+              498,
+              381
+            ],
+            "preview": "https://media.tenor.com/images/e2d612a014deadf198cfe3dd03b22e40/raw",
+            "size": 2200206
+          },
+          "mp4": {
+            "url": "https://media.tenor.com/videos/5f5abdb55b708ac26ddaf8b54054f844/mp4",
+            "dims": [
+              640,
+              490
+            ],
+            "duration": 2.6,
+            "preview": "https://media.tenor.com/images/e2d612a014deadf198cfe3dd03b22e40/raw",
+            "size": 113800
+          },
+          "loopedmp4": {
+            "url": "https://media.tenor.com/videos/7dd0987ce36808194c596da08104c815/mp4",
+            "dims": [
+              640,
+              490
+            ],
+            "duration": 7.8,
+            "preview": "https://media.tenor.com/images/e2d612a014deadf198cfe3dd03b22e40/raw"
+          },
+          "mediumgif": {
+            "url": "https://media.tenor.com/images/56266ee246ba406c705c8a932c23df7e/tenor.gif",
+            "dims": [
+              498,
+              380
+            ],
+            "preview": "https://media.tenor.com/images/7d531a984baa71d72a69a4eceb82b905/tenor.gif",
+            "size": 590285
+          },
+          "nanogif": {
+            "url": "https://media.tenor.com/images/63e4b30add00c083f6878190539ed0b9/tenor.gif",
+            "dims": [
+              117,
+              90
+            ],
+            "preview": "https://media.tenor.com/images/703fe4dd3e6aacd92ee3853a208d85e1/raw",
+            "size": 22901
+          }
+        }
+      ],
+      "created": 1465587567.438549,
+      "shares": 1,
+      "itemurl": "https://tenor.com/view/facepalm-gif-5555792",
+      "composite": null,
+      "hasaudio": false,
+      "title": "bernie facepalm",
+      "id": "5555792"
+    }
+  ],
+  "next": "1.592314958572"
+}
