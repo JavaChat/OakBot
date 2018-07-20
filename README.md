@@ -2,6 +2,7 @@
 
 [![](https://travis-ci.org/JavaChat/OakBot.svg?branch=master)](https://travis-ci.org/JavaChat/OakBot)
 [![codecov.io](http://codecov.io/github/JavaChat/OakBot/coverage.svg?branch=master)](http://codecov.io/github/JavaChat/OakBot?branch=master)
+[![Known Vulnerabilities](https://snyk.io/test/github/JavaChat/OakBot/badge.svg)](https://snyk.io/test/github/JavaChat/OakBot)
 
 OakBot is a chat bot for [Stack Overflow Chat](http://chat.stackoverflow.com) that's written in Java.  It is named after the first name given to the Java programming language before it became "Java".
  
