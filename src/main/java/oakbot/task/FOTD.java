@@ -25,6 +25,8 @@ import oakbot.util.ChatBuilder;
 public class FOTD implements ScheduledTask {
 	private static final Logger logger = Logger.getLogger(FOTD.class.getName());
 
+	private final String url = "http://www.refdesk.com";
+
 	@Override
 	public long nextRun() {
 		LocalDateTime now = LocalDateTime.now();
@@ -40,13 +42,20 @@ public class FOTD implements ScheduledTask {
 		String response = getResponse();
 		String fact = parseFact(response);
 		if (fact == null) {
-			logger.warning("Unable to parse FOTD.");
+			logger.warning("Unable to parse FOTD from " + url + ".");
 			return;
 		}
 
 		fact = ChatBuilder.toMarkdown(fact, false);
 		ChatBuilder cb = new ChatBuilder(fact);
-		cb.append(' ').link("(source)", "http://www.refdesk.com");
+
+		boolean isMultiline = fact.contains("\n");
+		if (isMultiline) {
+			cb.nl().append("Source: " + url);
+		} else {
+			cb.append(' ').link("(source)", url);
+		}
+
 		bot.broadcast(new ChatResponse(cb, SplitStrategy.WORD));
 	}
 
@@ -62,8 +71,8 @@ public class FOTD implements ScheduledTask {
 	 * @throws IOException if there's a network problem
 	 */
 	private String getResponse() throws IOException {
-		HttpGet request = new HttpGet("http://www.refdesk.com");
 		try (CloseableHttpClient client = HttpClients.createDefault()) {
+			HttpGet request = new HttpGet(url);
 			try (CloseableHttpResponse response = client.execute(request)) {
 				return EntityUtils.toString(response.getEntity());
 			}
