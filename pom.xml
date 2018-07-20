@@ -117,9 +117,9 @@
 			<version>1.11.3</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.7</version>
+		    <groupId>org.apache.commons</groupId>
+		    <artifactId>commons-text</artifactId>
+		    <version>1.4</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.jopt-simple</groupId>

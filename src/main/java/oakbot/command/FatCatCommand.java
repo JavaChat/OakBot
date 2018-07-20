@@ -5,7 +5,7 @@ import static oakbot.command.Command.reply;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import oakbot.Database;
 import oakbot.bot.BotContext;
