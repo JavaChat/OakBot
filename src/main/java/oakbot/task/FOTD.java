@@ -29,7 +29,7 @@ public class FOTD implements ScheduledTask {
 
 	@Override
 	public long nextRun() {
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = now();
 		LocalDateTime next = now.truncatedTo(ChronoUnit.DAYS).withHour(12);
 		if (now.getHour() >= 12) {
 			next = next.plusDays(1);
@@ -39,7 +39,7 @@ public class FOTD implements ScheduledTask {
 
 	@Override
 	public void run(Bot bot) throws Exception {
-		String response = getResponse();
+		String response = get(url);
 		String fact = parseFact(response);
 		if (fact == null) {
 			logger.warning("Unable to parse FOTD from " + url + ".");
@@ -56,7 +56,7 @@ public class FOTD implements ScheduledTask {
 			cb.append(' ').link("(source)", url);
 		}
 
-		bot.broadcast(new ChatResponse(cb, SplitStrategy.WORD));
+		broadcast(new ChatResponse(cb, SplitStrategy.WORD), bot);
 	}
 
 	private String parseFact(String html) {
@@ -66,16 +66,38 @@ public class FOTD implements ScheduledTask {
 	}
 
 	/**
-	 * Queries the website for the fact of the day.
-	 * @return the HTML response
+	 * Makes an HTTP GET request to the given URL. This method is
+	 * package-private so it can be overridden in unit tests.
+	 * @param url the URL
+	 * @return the response body
 	 * @throws IOException if there's a network problem
 	 */
-	private String getResponse() throws IOException {
+	String get(String url) throws IOException {
 		try (CloseableHttpClient client = HttpClients.createDefault()) {
 			HttpGet request = new HttpGet(url);
 			try (CloseableHttpResponse response = client.execute(request)) {
 				return EntityUtils.toString(response.getEntity());
 			}
 		}
+	}
+
+	/**
+	 * Gets the current time. This method is package private so unit tests can
+	 * override it.
+	 * @return the current time
+	 */
+	LocalDateTime now() {
+		return LocalDateTime.now();
+	}
+
+	/**
+	 * Broadcasts a message to all chat rooms. This method is package private so
+	 * unit tests can override it.
+	 * @param response the chat message to send
+	 * @param bot the bot instance
+	 * @throws IOException if there's a problem sending the message
+	 */
+	void broadcast(ChatResponse response, Bot bot) throws IOException {
+		bot.broadcast(response);
 	}
 }
