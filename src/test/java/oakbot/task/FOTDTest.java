@@ -12,13 +12,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Scanner;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import oakbot.bot.Bot;
 import oakbot.bot.ChatResponse;
+import oakbot.util.Gobble;
 
 /**
  * @author Michael Angstadt
@@ -29,7 +29,7 @@ public class FOTDTest {
 	@BeforeClass
 	public static void beforeClass() throws Exception {
 		try (InputStream in = FOTDTest.class.getResourceAsStream("refdesk.html")) {
-			refdeskPage = toString(in);
+			refdeskPage = new Gobble(in).asString();
 		}
 	}
 
@@ -115,18 +115,5 @@ public class FOTDTest {
 		task.run(bot);
 
 		verify(task, never()).broadcast(any(ChatResponse.class), eq(bot));
-	}
-
-	/**
-	 * Converts the contents of an {@link InputStream} to a {@link String}.
-	 * @param in the input stream
-	 * @return the string
-	 * @see "https://stackoverflow.com/a/5445161"
-	 */
-	private static String toString(InputStream in) {
-		try (Scanner s = new Scanner(in)) {
-			s.useDelimiter("\\A");
-			return s.hasNext() ? s.next() : "";
-		}
 	}
 }
