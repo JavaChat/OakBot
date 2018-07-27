@@ -2,8 +2,12 @@ package oakbot.command.learn;
 
 import static oakbot.command.Command.reply;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import oakbot.bot.BotContext;
@@ -18,9 +22,11 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class LearnCommand implements Command {
+	private static final Logger logger = Logger.getLogger(LearnCommand.class.getName());
+
 	private final List<Command> hardcodedCommands;
 	private final LearnedCommands learnedCommands;
-	private final Predicate<String> validCommandName = Pattern.compile("[A-Za-z0-9]+").asPredicate();
+	private final Predicate<String> validCommandName = Pattern.compile("^[A-Za-z0-9]+$").asPredicate();
 
 	public LearnCommand(List<Command> hardcodedCommands, LearnedCommands learnedCommands) {
 		this.hardcodedCommands = hardcodedCommands;
@@ -44,10 +50,15 @@ public class LearnCommand implements Command {
 
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+		//example: "/learn test this is a test"
 		ChatMessage message = chatCommand.getMessage();
+
+		//example: "test this is a test"
 		ChatMessage subMessage = new ChatMessage.Builder(message).content(chatCommand.getContent(), chatCommand.isFixedFont()).build();
+
+		//example: "this is a test"
 		ChatCommand subCommand = ChatCommand.fromMessage(subMessage, null);
-		if (subCommand == null) {
+		if (subCommand == null || subCommand.getContent().trim().isEmpty()) {
 			//@formatter:off
 			return new ChatResponse(new ChatBuilder()
 				.reply(chatCommand)
@@ -65,7 +76,31 @@ public class LearnCommand implements Command {
 			return reply("A command with that name already exists.", chatCommand);
 		}
 
-		learnedCommands.add(commandName, subCommand.getContentMarkdown());
+		String commandOutput = null;
+		try {
+			String plainText = context.getOriginalMessageContent(message.getMessageId());
+
+			/*
+			 * Capture the text that comes before the command name, in case the
+			 * user wants to use fixed-width formatting.
+			 */
+			Pattern p = Pattern.compile("^(.*?)" + Pattern.quote(context.getTrigger()) + name() + "\\s+" + Pattern.quote(commandName) + "\\s+(.*?)$", Pattern.DOTALL);
+
+			Matcher m = p.matcher(plainText);
+			if (m.find()) {
+				commandOutput = m.group(1) + m.group(2);
+			} else {
+				logger.severe("Could not parse command output from plaintext chat message. Falling back to manually converting the HTML-encoded message to Markdown: " + plainText);
+			}
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Problem querying SO Chat for original message content. Falling back to manually converting the HTML-encoded message to Markdown.", e);
+		}
+
+		if (commandOutput == null) {
+			commandOutput = subCommand.getContentMarkdown();
+		}
+
+		learnedCommands.add(commandName, commandOutput);
 
 		return reply("Saved.", chatCommand);
 	}

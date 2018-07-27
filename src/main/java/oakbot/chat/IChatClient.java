@@ -52,4 +52,23 @@ public interface IChatClient extends Closeable {
 	 * @return true if the chat client is connected to the room, false if not
 	 */
 	boolean isInRoom(int roomId);
+
+	/**
+	 * <p>
+	 * Queries SO Chat for the original, Markdown-encoded message that the user
+	 * actually typed into the chat room (SO Chat normally returns an
+	 * HTML-encoded version of the message).
+	 * </p>
+	 * <p>
+	 * Note that this will give you EXACTLY what the user typed into the chat.
+	 * For example, if they typed a single space character before their message,
+	 * the space character will NOT appear the HTML-formatted message, but WILL
+	 * appear in the string returned by this method.
+	 * </p>
+	 * @param messageId the message ID
+	 * @return the plain text message
+	 * @throws IOException if there's a network problem or a non-200 response
+	 * was returned
+	 */
+	String getOriginalMessageContent(long messageId) throws IOException;
 }

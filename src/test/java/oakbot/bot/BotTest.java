@@ -980,6 +980,11 @@ public class BotTest {
 		public void close() throws IOException {
 			//empty
 		}
+
+		@Override
+		public String getOriginalMessageContent(long messageId) throws IOException {
+			return null;
+		}
 	}
 
 	private void run(Bot bot, MessagePostedEvent... events) throws Exception {

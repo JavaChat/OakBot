@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import oakbot.chat.ChatMessage;
 import oakbot.chat.IChatClient;
 
 /**
@@ -78,5 +79,17 @@ public class FileChatClient implements IChatClient {
 	@Override
 	public boolean isInRoom(int roomId) {
 		return getRoom(roomId) != null;
+	}
+
+	@Override
+	public String getOriginalMessageContent(long messageId) throws IOException {
+		for (FileChatRoom room : rooms) {
+			for (ChatMessage message : room.getAllMessages()) {
+				if (message.getMessageId() == messageId) {
+					return message.getContent().getContent();
+				}
+			}
+		}
+		return null;
 	}
 }

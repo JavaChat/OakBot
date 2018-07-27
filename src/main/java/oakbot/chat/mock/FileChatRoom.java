@@ -216,6 +216,12 @@ public class FileChatRoom implements IRoom {
 		return new RoomInfo(roomId, "name", "description", Arrays.asList("one", "two", "three"));
 	}
 
+	public List<ChatMessage> getAllMessages() {
+		synchronized (messages) {
+			return new ArrayList<>(messages);
+		}
+	}
+
 	@Override
 	public void leave() {
 		connection.leave(this);

@@ -139,6 +139,17 @@ public class ChatClient implements IChatClient {
 	}
 
 	@Override
+	public String getOriginalMessageContent(long messageId) throws IOException {
+		Http.Response response = http.get(chatDomain + "/message/" + messageId + "?plain=true");
+		int statusCode = response.getStatusCode();
+		if (statusCode != 200) {
+			throw new IOException("HTTP " + statusCode + " response returned: " + response.getBody());
+		}
+
+		return response.getBody();
+	}
+
+	@Override
 	public void close() throws IOException {
 		synchronized (rooms) {
 			//leave all rooms

@@ -176,6 +176,30 @@ public class BotContext {
 	}
 
 	/**
+	 * <p>
+	 * Queries SO Chat for the original, Markdown-encoded message that the user
+	 * actually typed into the chat room (SO Chat normally returns an
+	 * HTML-encoded version of the message).
+	 * </p>
+	 * <p>
+	 * Note that this involves sending an HTTP GET request to the server.
+	 * </p>
+	 * <p>
+	 * Note that this will give you EXACTLY what the user typed into the chat.
+	 * For example, if they typed a single space character before their message,
+	 * the space character will NOT appear the HTML-formatted message, but WILL
+	 * appear in the string returned by this method.
+	 * </p>
+	 * @param messageId the message ID
+	 * @return the plain text message
+	 * @throws IOException if there's a network problem or a non-200 response
+	 * was returned
+	 */
+	public String getOriginalMessageContent(long messageId) throws IOException {
+		return connection.getOriginalMessageContent(messageId);
+	}
+
+	/**
 	 * Used to join a room.
 	 * @author Michael Angstadt
 	 */
