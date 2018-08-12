@@ -5,7 +5,7 @@ The titles and summaries may contain the following two Markdown metacharacters: 
 <items>
 	<item number="1" page="5">
 		<title>Consider static factory methods instead of constructors</title>
-		<summary>Static factory methods and public constructors both have their uses, and it pays to understand their relative merits. Often static factories are preferable, so will avoid the reflex to provide public constructors without first considering static factories.</summary>
+		<summary>Static factory methods and public constructors both have their uses, and it pays to understand their relative merits. Often static factories are preferable, so avoid the reflex to provide public constructors without first considering static factories.</summary>
 	</item>
 	<item number="2" page="10">
 		<title>Consider a builder when faced with many constructor parameters</title>
