@@ -322,9 +322,25 @@ Note: Because servers are free to ignore Range, many implementations will simply
 	<statusCode code="417" name="Expectation Failed" section="6.5.14">
 The 417 (Expectation Failed) status code indicates that the expectation given in the request's Expect header field (#5.1.1#) could not be met by at least one of the inbound servers.
 	</statusCode>
-	
+
 	<statusCode code="418" name="I'm a teapot" section="2.3.2" rfc="2324">
 Any attempt to brew coffee with a teapot should result in the error code "418 I'm a teapot". The resulting entity body MAY be short and stout.
+	</statusCode>
+
+	<statusCode code="421" name="Misdirected Request" section="9.1.2" rfc="7540">
+The 421 (Misdirected Request) status code indicates that the request was directed at a server that is not able to produce a response. This can be sent by a server that is not configured to produce responses for the combination of scheme and authority that are included in the request URI.
+	</statusCode>
+
+	<statusCode code="422" name="Unprocessable Entity" section="11.2" rfc="4918">
+The 422 (Unprocessable Entity) status code means the server understands the content type of the request entity (hence a 415(Unsupported Media Type) status code is inappropriate), and the syntax of the request entity is correct (thus a 400 (Bad Request) status code is inappropriate) but was unable to process the contained instructions.  For example, this error condition may occur if an XML request body contains well-formed (i.e., syntactically correct), but semantically erroneous, XML instructions.
+	</statusCode>
+
+	<statusCode code="423" name="Locked" section="11.3" rfc="4918">
+The 423 (Locked) status code means the source or destination resource of a method is locked.  This response SHOULD contain an appropriate precondition or postcondition code, such as 'lock-token-submitted' or 'no-conflicting-lock'.
+	</statusCode>
+
+	<statusCode code="424" name="Failed Dependency" section="11.4" rfc="4918">
+The 424 (Failed Dependency) status code means that the method could not be performed on the resource because the requested action depended on another action and that action failed.  For example, if a command in a PROPPATCH method fails, then, at minimum, the rest of the commands will also fail with 424 (Failed Dependency).
 	</statusCode>
 
 	<statusCode code="426" name="Upgrade Required" section="6.5.15">
@@ -337,6 +353,26 @@ The 426 (Upgrade Required) status code indicates that the server refuses to perf
     Content-Type: text/plain
 
 This service requires use of the HTTP/3.0 protocol.
+	</statusCode>
+
+	<statusCode code="428" name="Precondition Required" section="3" rfc="6585">
+The 428 status code indicates that the origin server requires the request to be conditional.
+
+Its typical use is to avoid the "lost update" problem, where a client GETs a resource's state, modifies it, and PUTs it back to the server, when meanwhile a third party has modified the state on the server, leading to a conflict.  By requiring requests to be conditional, the server can assure that clients are working with the correct copies.
+	</statusCode>
+
+	<statusCode code="429" name="Too Many Requests" section="4" rfc="6585">
+The 429 status code indicates that the user has sent too many requests in a given amount of time ("rate limiting").
+	</statusCode>
+
+	<statusCode code="431" name="Request Header Fields Too Large" section="5" rfc="6585">
+The 431 status code indicates that the server is unwilling to process the request because its header fields are too large.  The request MAY be resubmitted after reducing the size of the request header fields.
+	</statusCode>
+
+	<statusCode code="451" name="Unavailable For Legal Reasons" section="3" rfc="7725">
+This status code indicates that the server is denying access to the resource as a consequence of a legal demand.
+
+The server in question might not be an origin server.  This type of legal demand typically most directly affects the operations of ISPs and search engines.
 	</statusCode>
 
 	<statusCode code="5XX" name="Server Error" section="6.6">
@@ -369,6 +405,26 @@ The 504 (Gateway Timeout) status code indicates that the server, while acting as
 
 	<statusCode code="505" name="HTTP Version Not Supported" section="6.6.6">
 The 505 (HTTP Version Not Supported) status code indicates that the server does not support, or refuses to support, the major version of HTTP that was used in the request message.  The server is indicating that it is unable or unwilling to complete the request using the same major version as the client, as described in #2.6 7230#, other than with this error message.  The server SHOULD generate a representation for the 505 response that describes why that version is not supported and what other protocols are supported by that server.
+	</statusCode>
+
+	<statusCode code="506" name="Variant Also Negotiates" section="8.1" rfc="2295">
+The 506 status code indicates that the server has an internal configuration error: the chosen variant resource is configured to engage in transparent content negotiation itself, and is therefore not a proper end point in the negotiation process.
+	</statusCode>
+
+	<statusCode code="507" name="Insufficient Storage" section="11.5" rfc="4918">
+The 507 (Insufficient Storage) status code means the method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.  This condition is considered to be temporary.  If the request that received this status code was the result of a user action, the request MUST NOT be repeated until it is requested by a separate user action.
+	</statusCode>
+
+	<statusCode code="508" name="Loop Detected" section="7.2" rfc="5842">
+The 508 (Loop Detected) status code indicates that the server terminated an operation because it encountered an infinite loop while processing a request with "Depth: infinity".  This status indicates that the entire operation failed.
+	</statusCode>
+
+	<statusCode code="510" name="Not Extended" section="7" rfc="2774">
+The policy for accessing the resource has not been met in the request.  The server should send back all the information necessary for the client to issue an extended request. It is outside the scope of this specification to specify how the extensions inform the client.
+	</statusCode>
+
+	<statusCode code="511" name="Network Authentication Required" section="6" rfc="6585">
+The 511 status code indicates that the client needs to authenticate to gain network access.
 	</statusCode>
 
 	<method name="OPTIONS" section="4.3.7">
