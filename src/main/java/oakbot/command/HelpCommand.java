@@ -117,7 +117,7 @@ public class HelpCommand implements Command {
 			}
 		}
 
-		return new ChatResponse(cb, SplitStrategy.NEWLINE);
+		return new ChatResponse(cb, SplitStrategy.NEWLINE, true, "Type " + context.getTrigger() + name() + " to see my commands.");
 	}
 
 	private static int longestStringLength(Collection<String> strings) {
