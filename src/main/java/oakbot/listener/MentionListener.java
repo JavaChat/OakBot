@@ -34,11 +34,6 @@ public class MentionListener implements Listener {
 	}
 
 	@Override
-	public String helpText() {
-		return description();
-	}
-
-	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		if (ignore) {
 			ignore = false;

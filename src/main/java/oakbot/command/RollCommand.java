@@ -31,14 +31,10 @@ public class RollCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append("Rolls a variable-sided die or makes a choice.").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" <TIMES>d<SIDES>").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" choice1 choice2 ... choiceN").nl()
-			.append("Examples").nl()
-			.append("Roll a six-sided die: ").append(trigger).append(name()).nl()
-			.append("Roll two twenty-sided dice: ").append(trigger).append(name()).append(" 2d20").nl()
-			.append("Pick a choice: ").append(trigger).append(name()).append(" java scala c#")
+		return new HelpBuilder(trigger, this)
+			.example("", "Rolls a six-sided die.")
+			.example("2d20", "Rolls two twenty-sided dice.")
+			.example("vi emacs", "Randomly chooses one of the specified keywords.")
 		.toString();
 		//@formatter:on
 	}

@@ -32,7 +32,12 @@ public class UnsummonCommand implements Command {
 
 	@Override
 	public String helpText(String trigger) {
-		return description();
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+			.example("", "Makes Oak leave the current room.")
+			.example("139", "Makes Oak leave the room with ID 139.")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override

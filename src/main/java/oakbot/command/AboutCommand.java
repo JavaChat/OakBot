@@ -38,11 +38,6 @@ public class AboutCommand implements Command {
 	}
 
 	@Override
-	public String helpText(String trigger) {
-		return description();
-	}
-
-	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		RelativeDateFormat relativeDf = new RelativeDateFormat();
 		LocalDateTime built = LocalDateTime.ofInstant(Main.BUILT, ZoneId.systemDefault());

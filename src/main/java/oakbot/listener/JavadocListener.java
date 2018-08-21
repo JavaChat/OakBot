@@ -28,11 +28,6 @@ public class JavadocListener implements Listener {
 	}
 
 	@Override
-	public String helpText() {
-		return null;
-	}
-
-	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		String content = message.getContent().getContent();
 		try {

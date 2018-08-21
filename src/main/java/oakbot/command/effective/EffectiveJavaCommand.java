@@ -18,6 +18,7 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
+import oakbot.command.HelpBuilder;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Leaf;
 
@@ -99,14 +100,12 @@ public class EffectiveJavaCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append(description()).nl()
-			.append("Usage: ").append(trigger).append(name()).append(" [ \"!list\" | \"!random\" | item_number | search_term ]").nl()
-			.append("Examples:").nl()
-			.append(trigger).append(name()).append(" !list (lists all items)").nl()
-			.append(trigger).append(name()).append(" !random (displays a random item)").nl()
-			.append(trigger).append(name()).append(" 5 (displays item #5)").nl()
-			.append(trigger).append(name()).append(" string (searches for items containing the word \"string\")")
+		return new HelpBuilder(trigger, this)
+			.detail("Definitions are retrieved from Merriam-Webster's dictionary API (http://www.dictionaryapi.com/).")
+			.example("!list.", "Lists all items.")
+			.example("!random.", "Displays a random item.")
+			.example("5", "Displays item #5.")
+			.example("string", "Displays all items that contain the keyword \"string\".")
 		.toString();
 		//@formatter:on
 	}

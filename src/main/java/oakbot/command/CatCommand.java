@@ -62,7 +62,11 @@ public class CatCommand implements Command {
 
 	@Override
 	public String helpText(String trigger) {
-		return description();
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+			.detail("Images from thecatapi.com.")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override

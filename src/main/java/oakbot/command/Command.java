@@ -43,7 +43,12 @@ public interface Command {
 	 * description)
 	 * @return the help text
 	 */
-	String helpText(String trigger);
+	default String helpText(String trigger) {
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+		.toString();
+		//@formatter:on
+	}
 
 	/**
 	 * Called when a user invokes this command.

@@ -28,7 +28,11 @@ public class GrootCommand implements Command {
 
 	@Override
 	public String helpText(String trigger) {
-		return description();
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+			.description("Toggles a filter that makes Oak speak in Groot.")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override

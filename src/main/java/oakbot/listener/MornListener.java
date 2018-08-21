@@ -57,11 +57,6 @@ public class MornListener implements Listener {
 	}
 
 	@Override
-	public String helpText() {
-		return description();
-	}
-
-	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		List<String> mentions = message.getContent().getMentions();
 		boolean mentioned = message.getContent().isMentioned(botUsername);

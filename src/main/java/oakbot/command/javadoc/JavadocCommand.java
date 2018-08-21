@@ -28,6 +28,7 @@ import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
+import oakbot.command.HelpBuilder;
 import oakbot.listener.JavadocListener;
 import oakbot.util.ChatBuilder;
 
@@ -118,16 +119,13 @@ public class JavadocCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append("Displays class documentation from the Javadocs.  ")
-			.append("If more than one class or method matches the query, then a list of choices is displayed.  Queries are case-insensitive.").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" CLASS_NAME[#METHOD_NAME[(METHOD_PARAMS)]] [PARAGRAPH_NUM] [[@]TARGET_USER]").nl()
-			.append("Examples:").nl()
-			.append(trigger).append(name()).append(" String").nl()
-			.append(trigger).append(name()).append(" java.lang.String#indexOf").nl()
-			.append(trigger).append(name()).append(" java.lang.String#indexOf 2").nl()
-			.append(trigger).append(name()).append(" java.lang.String#indexOf NoobUser").nl()
-			.append(trigger).append(name()).append(" java.lang.String#substring(int)").nl()
+		return new HelpBuilder(trigger, this)
+			.detail("If more than one class or method matches the query, then a list of choices is displayed. Queries are case-insensitive.")
+			.example("String", "Searches for all classes named \"String\".")
+			.example("java.lang.String#substring", "Searches for all methods in the \"java.lang.String\" class called \"substring\".")
+			.example("java.lang.String#substring(int)", "Searches for a method in the \"java.lang.String\" class called \"substring\" that has a single \"int\" parameter.")
+			.example("java.lang.String#substring(int) NoobUser", "Same as above, but directs the response to a specific user.")
+			.example("java.lang.String#substring(int) 2", "Displays the second paragraph of the javadoc description.")
 		.toString();
 		//@formatter:on
 	}

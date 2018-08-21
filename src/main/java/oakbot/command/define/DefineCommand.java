@@ -27,6 +27,7 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
+import oakbot.command.HelpBuilder;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Leaf;
 
@@ -56,11 +57,9 @@ public class DefineCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append("Displays word definitions from the dictionary.  ")
-			.append("Definitions are retrieved from Merriam-Webster's dictionary API (http://www.dictionaryapi.com/).").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" WORD").nl()
-			.append("Example: ").append(trigger).append(name()).append(" steganography")
+		return new HelpBuilder(trigger, this)
+			.detail("Definitions are retrieved from Merriam-Webster's dictionary API (http://www.dictionaryapi.com/).")
+			.example("steganography.", "Displays the definition for \"steganography\".")
 		.toString();
 		//@formatter:on
 	}

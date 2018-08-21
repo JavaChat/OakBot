@@ -48,12 +48,10 @@ public class HelpCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append("Displays the list of available commands, as well as detailed information about specific commands.").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" [COMMAND_NAME]").nl()
-			.append("Examples:").nl()
-			.append(trigger).append(name()).nl()
-			.append(trigger).append(name()).append(" javadoc")
+		return new HelpBuilder(trigger, this)
+			.description("Displays the list of available commands, as well as detailed information about specific commands.")
+			.example("", "Displays the list of available commands")
+			.example("jaba", "Displays the help documentation for a command called \"jaba\".")
 		.toString();
 		//@formatter:on
 	}

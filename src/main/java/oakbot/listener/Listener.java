@@ -28,7 +28,9 @@ public interface Listener {
 	 * queried with the "help" command. SO markdown should not be used.
 	 * @return the help text
 	 */
-	String helpText();
+	default String helpText() {
+		return description();
+	}
 
 	/**
 	 * Called whenever a new message is received.

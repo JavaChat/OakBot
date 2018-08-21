@@ -28,7 +28,11 @@ public class WaduCommand implements Command {
 
 	@Override
 	public String helpText(String trigger) {
-		return description();
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+			.description("Toggles a filter that makes Oak speak in Waku Hek.")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override

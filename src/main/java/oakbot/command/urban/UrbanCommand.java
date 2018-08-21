@@ -21,6 +21,7 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
+import oakbot.command.HelpBuilder;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -45,12 +46,9 @@ public class UrbanCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append("Retrieves definitions from urbandictionary.com").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" WORD [DEFINITION_NUM=1]").nl()
-			.append("Examples:").nl()
-			.append(trigger).append(name()).append(" brah").nl()
-			.append(trigger).append(name()).append(" wut 2")
+		return new HelpBuilder(trigger, this)
+			.example("brah", "Displays the top definition for \"brah\".")
+			.example("brah 2", "Displays the second most popular definition for \"brah\".")
 		.toString();
 		//@formatter:on
 	}

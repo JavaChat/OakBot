@@ -53,11 +53,6 @@ public class WelcomeListener implements Listener {
 	}
 
 	@Override
-	public String helpText() {
-		return description();
-	}
-
-	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		int roomId = message.getRoomId();
 		if (!roomHasWelcomeMessage(roomId)) {

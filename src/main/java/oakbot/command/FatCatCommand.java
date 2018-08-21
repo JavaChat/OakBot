@@ -50,11 +50,11 @@ public class FatCatCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append(trigger).append(name()).append(" : Show a random fat cat. ").nl()
-			.append(trigger).append(name()).append(" list : List all fat cats. ").nl()
-			.append(trigger).append(name()).append(" add URL : Add a fat cat. ").nl()
-			.append(trigger).append(name()).append(" delete URL : Delete a fat cat. ").nl()
+		return new HelpBuilder(trigger, this)
+			.example("", "Show a random fat cat.")
+			.example("list", "List all fat cats.")
+			.example("add URL", "Add a fat cat.")
+			.example("delete URL", "Delete a fat cat.")
 		.toString();
 		//@formatter:on
 	}

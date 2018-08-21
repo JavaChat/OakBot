@@ -6,7 +6,6 @@ import static oakbot.command.Command.reply;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.util.ChatBuilder;
 
 /**
  * Simulates a magic 8-ball.
@@ -61,10 +60,8 @@ public class EightBallCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append("Simulates a magic 8-ball.").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" QUESTION").nl()
-			.append("Example: ").append(trigger).append(name()).append(" Is Java the best?")
+		return new HelpBuilder(trigger, this)
+			.example("Is Java the best?", "")
 		.toString();
 		//@formatter:on
 	}

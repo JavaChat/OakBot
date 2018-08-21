@@ -7,7 +7,6 @@ import com.google.common.net.UrlEscapers;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.util.ChatBuilder;
 
 /**
  * Displays on-boxed Wikipedia pages.
@@ -27,10 +26,8 @@ public class WikiCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append("Displays a one-box for a Wikipedia page.").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" TERM").nl()
-			.append("Example: ").append(trigger).append(name()).append(" functional programming")
+		return new HelpBuilder(trigger, this)
+			.example("James Gosling", "Displays the one-box for the wiki page of James Gosling.")
 		.toString();
 		//@formatter:on
 	}

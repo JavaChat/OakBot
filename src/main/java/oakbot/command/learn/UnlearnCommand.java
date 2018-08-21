@@ -7,6 +7,7 @@ import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
+import oakbot.command.HelpBuilder;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -39,7 +40,11 @@ public class UnlearnCommand implements Command {
 
 	@Override
 	public String helpText(String trigger) {
-		return description() + " Syntax: `" + trigger + name() + " commandName`";
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+			.example("happy", "Deletes the command called \"happy\".")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override

@@ -45,12 +45,17 @@ public class SummonCommand implements Command {
 
 	@Override
 	public String description() {
-		return "Brings the bot to another room.";
+		return "Makes the bot join another room.";
 	}
 
 	@Override
 	public String helpText(String trigger) {
-		return description();
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+			.detail("At least " + minSummonsRequired + " users are needed to summon Oak to a room.")
+			.example("139", "Makes Oak join the room with ID 139.")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override

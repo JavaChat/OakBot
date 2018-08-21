@@ -28,7 +28,11 @@ public class RolloverCommand implements Command {
 
 	@Override
 	public String helpText(String trigger) {
-		return description();
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+			.description("Toggles a filter that makes all the letters in the messages Oak posts look like they are upside down.")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override

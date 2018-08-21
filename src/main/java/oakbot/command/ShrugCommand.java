@@ -22,7 +22,11 @@ public class ShrugCommand implements Command {
 
 	@Override
 	public String helpText(String trigger) {
-		return description();
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+			.description("Displays a \"shrug\" emoticon.")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override

@@ -46,10 +46,8 @@ public class TagCommand implements Command {
 	@Override
 	public String helpText(String trigger) {
 		//@formatter:off
-		return new ChatBuilder()
-			.append("Displays the description of a StackOverflow tag (acts like a Computer Science urban dictionary).").nl()
-			.append("Usage: ").append(trigger).append(name()).append(" TAG").nl()
-			.append("Example: ").append(trigger).append(name()).append(" functional programming")
+		return new HelpBuilder(trigger, this)
+			.example("mvc", "Displays the description of the \"mvc\" tag.")
 		.toString();
 		//@formatter:on
 	}

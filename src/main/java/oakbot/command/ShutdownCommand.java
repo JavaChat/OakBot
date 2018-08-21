@@ -23,11 +23,6 @@ public class ShutdownCommand implements Command {
 	}
 
 	@Override
-	public String helpText(String trigger) {
-		return description();
-	}
-
-	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		if (context.isAuthorAdmin()) {
 			boolean broadcast = chatCommand.getContent().equals("broadcast");

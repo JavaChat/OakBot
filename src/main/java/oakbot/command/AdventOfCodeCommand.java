@@ -38,12 +38,18 @@ public class AdventOfCodeCommand implements Command {
 
 	@Override
 	public String description() {
-		return "Displays an Advent of Code private leaderboard.";
+		return "Displays the scores from an Advent of Code private leaderboard.";
 	}
 
 	@Override
 	public String helpText(String trigger) {
-		return description();
+		//@formatter:off
+		return new HelpBuilder(trigger, this)
+			.detail("Only works during the month of December.")
+			.example("", "Displays the default leaderboard that is assigned to the current room.")
+			.example("12345", "Displays a leaderboard given the leaderboard's ID.")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override
