@@ -117,7 +117,7 @@ public class HelpCommand implements Command {
 			}
 		}
 
-		return new ChatResponse(cb, SplitStrategy.NEWLINE, true, "Type " + context.getTrigger() + name() + " to see my commands.");
+		return new ChatResponse(cb, SplitStrategy.NEWLINE, true, "My commands are also listed here: https://github.com/JavaChat/OakBot/wiki/Commands");
 	}
 
 	private static int longestStringLength(Collection<String> strings) {
