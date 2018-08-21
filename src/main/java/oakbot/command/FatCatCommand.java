@@ -12,6 +12,7 @@ import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
+import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -84,7 +85,7 @@ public class FatCatCommand implements Command {
 		}
 
 		String cat = Command.random(cats);
-		return new ChatResponse(cat);
+		return new ChatResponse(cat, SplitStrategy.NONE, true);
 	}
 
 	private ChatResponse listCats() {
@@ -98,7 +99,7 @@ public class FatCatCommand implements Command {
 			}
 		}
 
-		return new ChatResponse(cb);
+		return new ChatResponse(cb, SplitStrategy.NEWLINE, true);
 	}
 
 	private ChatResponse addCat(ChatCommand chatCommand, BotContext context, String cat) {

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
+import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -79,7 +80,7 @@ public class ReactCommand implements Command {
 
 			int index = random.nextInt(node.size());
 			String imageUrl = node.get(index).get("file").asText();
-			return new ChatResponse(imageUrl);
+			return new ChatResponse(imageUrl, SplitStrategy.NONE, true);
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Problem querying reaction API.", e);
 

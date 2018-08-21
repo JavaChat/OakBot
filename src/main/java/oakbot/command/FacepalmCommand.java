@@ -91,7 +91,7 @@ public class FacepalmCommand implements Command {
 		 */
 		ChatBuilder condensed = new ChatBuilder().append(imageUrl).append(" (via ").link("Tenor", "https://tenor.com").append(")");
 
-		return new ChatResponse(imageUrl, SplitStrategy.NONE, false, condensed);
+		return new ChatResponse(imageUrl, SplitStrategy.NONE, true, condensed);
 	}
 
 	/**
