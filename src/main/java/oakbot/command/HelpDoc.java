@@ -37,6 +37,33 @@ public class HelpDoc {
 	}
 
 	/**
+	 * Gets the detailed description of the command/listener.
+	 * @return the detailed description
+	 */
+	public String getDetail() {
+		return detail;
+	}
+
+	/**
+	 * Gets whether or not to include the summary when the user requests the
+	 * full help documentation of the command/listener.
+	 * @return true to include the summary, false not to
+	 */
+	public boolean isIncludeSummaryWithDetail() {
+		return includeSummaryWithDetail;
+	}
+
+	/**
+	 * Gets the examples for how the command can be invoked (only applicable for
+	 * commands).
+	 * @return the examples (index 0 = command parameters, index 1 =
+	 * description)
+	 */
+	public List<String[]> getExamples() {
+		return examples;
+	}
+
+	/**
 	 * Builds the help message to post when the user requests more detail about
 	 * the command/listener.
 	 * @param trigger the bot's command trigger (only applicable for commands)
