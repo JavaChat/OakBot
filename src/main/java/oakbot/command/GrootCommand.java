@@ -22,16 +22,13 @@ public class GrootCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "I am Groot.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
-			.description("Toggles a filter that makes Oak speak in Groot.")
-		.toString();
+		return new HelpDoc.Builder(this)
+			.summary("I am Groot.")
+			.detail("Toggles a filter that makes Oak speak in Groot.")
+			.includeSummaryWithDetail(false)
+		.build();
 		//@formatter:on
 	}
 

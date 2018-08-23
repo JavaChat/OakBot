@@ -41,18 +41,15 @@ public class HelpCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays this help message.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
-			.description("Displays the list of available commands, as well as detailed information about specific commands.")
+		return new HelpDoc.Builder(this)
+			.summary("Displays this help message.")
+			.detail("Displays the list of available commands, as well as detailed information about specific commands.")
+			.includeSummaryWithDetail(false)
 			.example("", "Displays the list of available commands")
 			.example("jaba", "Displays the help documentation for a command called \"jaba\".")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 
@@ -62,22 +59,22 @@ public class HelpCommand implements Command {
 			return showHelpText(chatCommand, context.getTrigger());
 		}
 
-		Multimap<String, String> commandDescriptions = getCommandDescriptions();
-		Multimap<String, String> listenerDescriptions = getListenerDescriptions();
+		Multimap<String, String> commandSummaries = getCommandSummaries();
+		Multimap<String, String> listenerDescriptions = getListenerSummaries();
 
 		int longestNameLength;
 		{
-			Collection<String> allNames = new ArrayList<>(commandDescriptions.size() + listenerDescriptions.size());
-			allNames.addAll(commandDescriptions.keySet());
+			Collection<String> allNames = new ArrayList<>(commandSummaries.size() + listenerDescriptions.size());
+			allNames.addAll(commandSummaries.keySet());
 			allNames.addAll(listenerDescriptions.keySet());
 			longestNameLength = longestStringLength(allNames);
 		}
 
 		//build message
 		ChatBuilder cb = new ChatBuilder();
-		if (!commandDescriptions.isEmpty()) {
+		if (!commandSummaries.isEmpty()) {
 			cb.fixed().append("Commands=====================").nl();
-			for (Map.Entry<String, String> entry : commandDescriptions.entries()) {
+			for (Map.Entry<String, String> entry : commandSummaries.entries()) {
 				String name = entry.getKey();
 				String description = entry.getValue();
 
@@ -129,17 +126,17 @@ public class HelpCommand implements Command {
 		return longestLength;
 	}
 
-	private Multimap<String, String> getCommandDescriptions() {
-		Multimap<String, String> descriptions = TreeMultimap.create();
+	private Multimap<String, String> getCommandSummaries() {
+		Multimap<String, String> summaries = TreeMultimap.create();
 		for (Command command : commands) {
 			String name = command.name();
 			if (name == null) {
 				continue;
 			}
 
-			descriptions.put(name, command.description());
+			summaries.put(name, command.help().getSummary());
 		}
-		return descriptions;
+		return summaries;
 	}
 
 	private List<String> getLearnedCommandNames() {
@@ -150,17 +147,17 @@ public class HelpCommand implements Command {
 		return names;
 	}
 
-	private Multimap<String, String> getListenerDescriptions() {
-		Multimap<String, String> descriptions = TreeMultimap.create();
+	private Multimap<String, String> getListenerSummaries() {
+		Multimap<String, String> summaries = TreeMultimap.create();
 		for (Listener listener : listeners) {
 			String name = listener.name();
 			if (name == null) {
 				continue;
 			}
 
-			descriptions.put(name, listener.description());
+			summaries.put(name, listener.help().getSummary());
 		}
-		return descriptions;
+		return summaries;
 	}
 
 	private ChatResponse showHelpText(ChatCommand message, String trigger) {
@@ -175,14 +172,14 @@ public class HelpCommand implements Command {
 
 			name = name.toLowerCase();
 			if (name.equals(commandText) || command.aliases().contains(commandText)) {
-				helpTexts.add(command.helpText(trigger));
+				helpTexts.add(command.help().getHelpText(trigger));
 			}
 		}
 
 		for (LearnedCommand command : learnedCommands) {
 			String name = command.name().toLowerCase();
 			if (name.equals(commandText)) {
-				helpTexts.add(command.helpText(trigger));
+				helpTexts.add(command.help().getHelpText(trigger));
 			}
 		}
 
@@ -194,7 +191,7 @@ public class HelpCommand implements Command {
 
 			name = name.toLowerCase();
 			if (name.equals(commandText)) {
-				helpTexts.add(listener.helpText());
+				helpTexts.add(listener.help().getHelpText(trigger));
 			}
 		}
 

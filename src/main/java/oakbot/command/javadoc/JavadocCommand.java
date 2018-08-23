@@ -28,7 +28,7 @@ import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
-import oakbot.command.HelpBuilder;
+import oakbot.command.HelpDoc;
 import oakbot.listener.JavadocListener;
 import oakbot.util.ChatBuilder;
 
@@ -112,21 +112,17 @@ public class JavadocCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays class documentation from the Javadocs.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays class documentation from the Javadocs.")
 			.detail("If more than one class or method matches the query, then a list of choices is displayed. Queries are case-insensitive.")
 			.example("String", "Searches for all classes named \"String\".")
 			.example("java.lang.String#substring", "Searches for all methods in the \"java.lang.String\" class called \"substring\".")
 			.example("java.lang.String#substring(int)", "Searches for a method in the \"java.lang.String\" class called \"substring\" that has a single \"int\" parameter.")
 			.example("java.lang.String#substring(int) JonSkeet", "Same as above, but directs the response to a specific user.")
 			.example("java.lang.String#substring(int) 2", "Displays the second paragraph of the javadoc description.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

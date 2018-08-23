@@ -22,16 +22,13 @@ public class RolloverCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Turns the bot upside down.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
-			.description("Toggles a filter that makes all the letters in the messages Oak posts look like they are upside down.")
-		.toString();
+		return new HelpDoc.Builder(this)
+			.summary("Turns the bot upside down.")
+			.detail("Toggles a filter that makes all the letters in the messages Oak posts look like they are upside down.")
+			.includeSummaryWithDetail(false)
+		.build();
 		//@formatter:on
 	}
 

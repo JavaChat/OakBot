@@ -18,16 +18,6 @@ public class JavadocListener implements Listener {
 	}
 
 	@Override
-	public String name() {
-		return null;
-	}
-
-	@Override
-	public String description() {
-		return null;
-	}
-
-	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		String content = message.getContent().getContent();
 		try {

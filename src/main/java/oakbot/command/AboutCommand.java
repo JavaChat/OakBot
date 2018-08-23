@@ -33,8 +33,12 @@ public class AboutCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays information about this bot.";
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Displays information about this bot.")
+		.build();
+		//@formatter:on
 	}
 
 	@Override

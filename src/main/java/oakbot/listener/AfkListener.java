@@ -31,16 +31,6 @@ public class AfkListener implements Listener {
 	}
 
 	@Override
-	public String name() {
-		return null;
-	}
-
-	@Override
-	public String description() {
-		return null;
-	}
-
-	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		if (isUserAwayAndTypedAfkCommandAgain(message, context.getTrigger())) {
 			return null;

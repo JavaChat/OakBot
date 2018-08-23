@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -29,8 +30,12 @@ public class MentionListener implements Listener {
 	}
 
 	@Override
-	public String description() {
-		return "Sends a reply message when someone mentions the bot's name.";
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Sends a reply message when someone mentions the bot's name.")
+		.build();
+		//@formatter:on
 	}
 
 	@Override

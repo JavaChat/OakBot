@@ -63,16 +63,12 @@ public class FacepalmCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays a facepalm gif.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays a facepalm gif.")
 			.detail("Images from tenor.com.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

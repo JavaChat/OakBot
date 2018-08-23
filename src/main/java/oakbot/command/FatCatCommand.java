@@ -43,19 +43,15 @@ public class FatCatCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays a random fat cat.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays a random fat cat.")
 			.example("", "Shows a random fat cat.")
 			.example("list", "Lists all fat cats.")
 			.example("add URL", "Adds a fat cat.")
 			.example("delete URL", "Deletes a fat cat.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

@@ -17,6 +17,7 @@ import oakbot.chat.ChatMessage;
 import oakbot.chat.IRoom;
 import oakbot.chat.SplitStrategy;
 import oakbot.chat.UserInfo;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -28,6 +29,7 @@ public class WelcomeListener implements Listener {
 	private final Database db;
 	private final Map<Integer, String> welcomeMessagesByRoom;
 	private final Map<Integer, Set<Integer>> welcomedUsersByRoom = new HashMap<>();
+	private final int minReputation = 1000;
 
 	public WelcomeListener(Database db, Map<Integer, String> welcomeMessagesByRoom) {
 		this.db = db;
@@ -48,8 +50,13 @@ public class WelcomeListener implements Listener {
 	}
 
 	@Override
-	public String description() {
-		return "Welcomes new users to the chat room.";
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Welcomes new users to the chat room.")
+			.detail("If a welcome message is defined for this room, users with a reputation less than " + minReputation + " will receive a welcome message the first time they post a message.")
+		.build();
+		//@formatter:on
 	}
 
 	@Override
@@ -159,6 +166,6 @@ public class WelcomeListener implements Listener {
 	 * @return true to give the user a welcome message, false not to
 	 */
 	private boolean shouldUserBeWelcomed(UserInfo userInfo) {
-		return userInfo.getReputation() < 1000;
+		return userInfo.getReputation() < minReputation;
 	}
 }

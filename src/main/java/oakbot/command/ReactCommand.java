@@ -54,16 +54,12 @@ public class ReactCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays a reaction gif.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays a reaction gif.")
 			.detail("Images from replygif.net.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

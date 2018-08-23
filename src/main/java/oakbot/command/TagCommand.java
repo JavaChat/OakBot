@@ -39,16 +39,12 @@ public class TagCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays the description of a StackOverflow tag.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays the description of a StackOverflow tag.")
 			.example("mvc", "Displays the description of the \"mvc\" tag.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

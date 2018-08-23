@@ -7,7 +7,7 @@ import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
-import oakbot.command.HelpBuilder;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -34,16 +34,12 @@ public class UnlearnCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Makes the bot forget a learned command.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Makes the bot forget a learned command.")
 			.example("happy", "Deletes the command called \"happy\".")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

@@ -27,7 +27,7 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
-import oakbot.command.HelpBuilder;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Leaf;
 
@@ -50,17 +50,13 @@ public class DefineCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays word definitions from the dictionary.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays word definitions from the dictionary.")
 			.detail("Definitions are retrieved from Merriam-Webster's dictionary API (http://www.dictionaryapi.com/).")
 			.example("steganography", "Displays the definition for \"steganography\".")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

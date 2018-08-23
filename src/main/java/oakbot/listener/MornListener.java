@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
+import oakbot.command.HelpDoc;
 
 /**
  * Responds to "good morning" messages.
@@ -53,8 +55,15 @@ public class MornListener implements Listener {
 	}
 
 	@Override
-	public String description() {
-		return "Replies to \"good morning\" messages.";
+	public HelpDoc help() {
+		List<String> greetings = responses.stream().map(s -> s[0]).collect(Collectors.toList());
+
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Replies to \"good morning\" messages.")
+			.detail("Responds to the following greetings: " + String.join(",", greetings))
+		.build();
+		//@formatter:on
 	}
 
 	@Override

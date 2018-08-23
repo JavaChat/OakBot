@@ -15,7 +15,7 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
-import oakbot.command.HelpBuilder;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -40,16 +40,12 @@ public class LearnCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Teaches the bot a new command.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Teaches the bot a new command.")
 			.example("happy :)", "Creates a command called \"happy\" which outputs \":)\" when invoked.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

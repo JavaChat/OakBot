@@ -3,6 +3,7 @@ package oakbot.listener;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -11,25 +12,21 @@ import oakbot.util.ChatBuilder;
  */
 public interface Listener {
 	/**
-	 * Gets the listener's name.
-	 * @return the name
+	 * Gets the listener's name to display in the help documentation.
+	 * @return the name or null not to display this listener in the help
+	 * documentation
 	 */
-	String name();
+	default String name() {
+		return null;
+	}
 
 	/**
-	 * Gets the listener's description. This should be a short, one sentence
-	 * description. SO markdown should not be used.
-	 * @return the description
+	 * Gets the listener's help documentation.
+	 * @return the help documentation or null if this listener does not have any
+	 * help documentation
 	 */
-	String description();
-
-	/**
-	 * Gets the listener's help text. This is shown when this listener is
-	 * queried with the "help" command. SO markdown should not be used.
-	 * @return the help text
-	 */
-	default String helpText() {
-		return description();
+	default HelpDoc help() {
+		return null;
 	}
 
 	/**

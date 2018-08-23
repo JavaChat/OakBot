@@ -17,16 +17,6 @@ public class FatCatListener implements Listener {
 	}
 
 	@Override
-	public String name() {
-		return null;
-	}
-
-	@Override
-	public String description() {
-		return null;
-	}
-
-	@Override
 	public ChatResponse onMessage(ChatMessage message, BotContext context) {
 		String reply = command.handleResponse(message);
 		return (reply == null) ? null : Listener.reply(reply, message);

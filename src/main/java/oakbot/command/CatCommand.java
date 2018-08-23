@@ -56,16 +56,12 @@ public class CatCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays a random cat picture. :3";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays a random cat picture. :3")
 			.detail("Images from thecatapi.com.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

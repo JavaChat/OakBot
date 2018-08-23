@@ -26,17 +26,13 @@ public class UnsummonCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Makes the bot leave a room.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Makes the bot leave a room.")
 			.example("", "Makes Oak leave the current room.")
 			.example("139", "Makes Oak leave the room with ID 139.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

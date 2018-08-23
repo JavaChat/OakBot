@@ -22,16 +22,13 @@ public class WaduCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Wadu hek?";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
-			.description("Toggles a filter that makes Oak speak in Waku Hek.")
-		.toString();
+		return new HelpDoc.Builder(this)
+			.summary("Wadu hek?")
+			.detail("Toggles a filter that makes Oak speak in Waku Hek.")
+			.includeSummaryWithDetail(false)
+		.build();
 		//@formatter:on
 	}
 

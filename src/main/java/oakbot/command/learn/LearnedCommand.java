@@ -4,6 +4,7 @@ import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -32,13 +33,12 @@ public class LearnedCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "This command was created at runtime by chat room user. It does not have a help message.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
-		return description();
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("This command was created at runtime by chat room user. It does not have a help message.")
+		.build();
+		//@formatter:on
 	}
 
 	@Override

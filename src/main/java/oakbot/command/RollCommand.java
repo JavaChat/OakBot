@@ -24,18 +24,14 @@ public class RollCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Rolls a variable-sided die or makes a choice.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Rolls a variable-sided die or makes a choice.")
 			.example("", "Rolls a six-sided die.")
 			.example("2d20", "Rolls two twenty-sided dice.")
 			.example("vi emacs", "Randomly chooses one of the specified keywords (\"vi\" or \"emacs\").")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

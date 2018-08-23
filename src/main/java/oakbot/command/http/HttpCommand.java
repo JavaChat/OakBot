@@ -16,7 +16,7 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
-import oakbot.command.HelpBuilder;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Leaf;
 
@@ -48,19 +48,15 @@ public class HttpCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays information about HTTP status codes and methods.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays information about HTTP status codes and methods.")
 			.detail("Descriptions come from the official RFC specifications.")
 			.example("200", "Displays the description for the HTTP 200 status code.")
 			.example("GET", "Displays the description for the HTTP GET method.")
 			.example("200 2", "Displays paragraph 2 from the description of HTTP 200.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

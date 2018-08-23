@@ -53,16 +53,12 @@ public class EightBallCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Simulates a magic 8-ball.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Simulates a magic 8-ball.")
 			.example("Is Java the best?", "")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 

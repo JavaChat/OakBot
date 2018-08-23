@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
+import oakbot.command.HelpDoc;
 
 /**
  * Displays a "wave" emoticon in response to another user's wave emoticon.
@@ -40,8 +41,14 @@ public class WaveListener implements Listener {
 	}
 
 	@Override
-	public String description() {
-		return "Waves back.";
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Waves back at you.")
+			.detail("Responds to any users who post the \"wave\" emoticon: o/ or \\o. Will only wave once every " + TimeUnit.MINUTES.convert(timeBetweenWaves, TimeUnit.MILLISECONDS) + " minutes at most.")
+			.includeSummaryWithDetail(false)
+		.build();
+		//@formatter:on
 	}
 
 	@Override

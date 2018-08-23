@@ -30,25 +30,10 @@ public interface Command {
 	}
 
 	/**
-	 * Gets the command's description. This should be a short, one sentence
-	 * description. SO markdown should not be used.
-	 * @return the description
+	 * Gets the command's help documentation.
+	 * @return the help documentation
 	 */
-	String description();
-
-	/**
-	 * Gets the command's help text. This is shown when this command is queried
-	 * with the "help" command. SO markdown should not be used.
-	 * @param trigger the command trigger (for including examples in the
-	 * description)
-	 * @return the help text
-	 */
-	default String helpText(String trigger) {
-		//@formatter:off
-		return new HelpBuilder(trigger, this)
-		.toString();
-		//@formatter:on
-	}
+	HelpDoc help();
 
 	/**
 	 * Called when a user invokes this command.

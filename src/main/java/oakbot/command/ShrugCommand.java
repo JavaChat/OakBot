@@ -16,16 +16,13 @@ public class ShrugCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "lol idk";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
-			.description("Displays a \"shrug\" emoticon.")
-		.toString();
+		return new HelpDoc.Builder(this)
+			.summary("lol idk")
+			.detail("Displays a \"shrug\" emoticon.")
+			.includeSummaryWithDetail(false)
+		.build();
 		//@formatter:on
 	}
 

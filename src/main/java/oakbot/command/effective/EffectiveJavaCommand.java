@@ -18,7 +18,7 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
-import oakbot.command.HelpBuilder;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Leaf;
 
@@ -93,20 +93,16 @@ public class EffectiveJavaCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays items from the book \"Effective Java, Third Edition\" by Joshua Bloch.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays items from the book \"Effective Java, Third Edition\" by Joshua Bloch.")
 			.detail("Definitions are retrieved from Merriam-Webster's dictionary API (http://www.dictionaryapi.com/).")
 			.example("!list", "Lists all items.")
 			.example("!random", "Displays a random item.")
 			.example("5", "Displays item #5.")
 			.example("string", "Displays all items that contain the keyword \"string\".")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 
@@ -118,7 +114,7 @@ public class EffectiveJavaCommand implements Command {
 		 * Display the help text.
 		 */
 		if (content.isEmpty()) {
-			return reply(helpText(context.getTrigger()), chatCommand);
+			return reply(help().getHelpText(context.getTrigger()), chatCommand);
 		}
 
 		/**

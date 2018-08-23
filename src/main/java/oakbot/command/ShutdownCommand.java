@@ -18,8 +18,12 @@ public class ShutdownCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Terminates the bot (admins only).";
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Terminates the bot (admins only).")
+		.build();
+		//@formatter:on
 	}
 
 	@Override

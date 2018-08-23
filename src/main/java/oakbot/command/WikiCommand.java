@@ -19,16 +19,12 @@ public class WikiCommand implements Command {
 	}
 
 	@Override
-	public String description() {
-		return "Displays a one-box for a Wikipedia page.";
-	}
-
-	@Override
-	public String helpText(String trigger) {
+	public HelpDoc help() {
 		//@formatter:off
-		return new HelpBuilder(trigger, this)
+		return new HelpDoc.Builder(this)
+			.summary("Displays a one-box for a Wikipedia page.")
 			.example("James Gosling", "Displays a one-box for the \"James Gosling\" Wikipedia page.")
-		.toString();
+		.build();
 		//@formatter:on
 	}
 
