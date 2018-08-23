@@ -61,7 +61,7 @@ public class MornListener implements Listener {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Replies to \"good morning\" messages.")
-			.detail("Responds to the following greetings: " + String.join(",", greetings))
+			.detail("Responds to the following greetings: " + String.join(", ", greetings))
 		.build();
 		//@formatter:on
 	}

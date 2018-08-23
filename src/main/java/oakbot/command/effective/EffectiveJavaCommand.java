@@ -97,7 +97,6 @@ public class EffectiveJavaCommand implements Command {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Displays items from the book \"Effective Java, Third Edition\" by Joshua Bloch.")
-			.detail("Definitions are retrieved from Merriam-Webster's dictionary API (http://www.dictionaryapi.com/).")
 			.example("!list", "Lists all items.")
 			.example("!random", "Displays a random item.")
 			.example("5", "Displays item #5.")
