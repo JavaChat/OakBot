@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
@@ -68,14 +69,13 @@ public class MornListener implements Listener {
 		}
 
 		String content = removeMentionsAndPunctuation(message.getContent().getContent());
-		String reply = null;
-		for (String[] response : responses) {
-			if (content.equalsIgnoreCase(response[0])) {
-				reply = response[1];
-				break;
-			}
-		}
-		if (reply == null) {
+
+		Optional<String> reply = responses.stream() //@formatter:off
+			.filter(s -> content.equalsIgnoreCase(s[0]))
+			.map(s -> s[1])
+		.findFirst(); //@formatter:on
+
+		if (!reply.isPresent()) {
 			return null;
 		}
 
@@ -90,7 +90,7 @@ public class MornListener implements Listener {
 			 */
 			hesitate();
 
-			return Listener.reply(reply, message);
+			return Listener.reply(reply.get(), message);
 		}
 
 		int roomId = message.getRoomId();
@@ -115,7 +115,7 @@ public class MornListener implements Listener {
 		 */
 		hesitate();
 
-		return new ChatResponse(reply);
+		return new ChatResponse(reply.get());
 	}
 
 	private void hesitate() {
@@ -126,11 +126,9 @@ public class MornListener implements Listener {
 	}
 
 	private static String removeMentionsAndPunctuation(String message) {
-		//@formatter:off
-		return message
-		.replaceAll("@[a-zA-Z0-9]+", "") //remove mentions
-		.replaceAll("[!,\\.]", "") //remove punctuation
-		.trim(); //trim for good measure
-		//@formatter:on
+		return message //@formatter:off
+			.replaceAll("@[a-zA-Z0-9]+", "") //remove mentions
+			.replaceAll("[!,\\.]", "") //remove punctuation
+		.trim(); //trim for good measure //@formatter:on
 	}
 }
