@@ -26,7 +26,7 @@ public class WaduCommand implements Command {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Wadu hek?")
-			.detail("Toggles a filter that makes Oak speak in Waku Hek.")
+			.detail("Toggles a filter that makes Oak speak in Wadu Hek.")
 			.includeSummaryWithDetail(false)
 		.build();
 		//@formatter:on
