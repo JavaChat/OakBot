@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
@@ -161,39 +162,25 @@ public class HelpCommand implements Command {
 	}
 
 	private ChatResponse showHelpText(ChatCommand message, String trigger) {
-		String commandText = message.getContent().toLowerCase();
+		String commandName = message.getContent();
 		List<String> helpTexts = new ArrayList<>();
 
-		for (Command command : commands) {
-			String name = command.name();
-			if (name == null) {
-				continue;
-			}
+		commands.stream() //@formatter:off
+			.filter(c -> c.name() != null)
+			.filter(c -> c.name().equalsIgnoreCase(commandName) || c.aliases().stream().anyMatch(a -> a.equalsIgnoreCase(commandName)))
+			.map(c -> c.help().getHelpText(trigger))
+		.forEach(helpTexts::add);
 
-			name = name.toLowerCase();
-			if (name.equals(commandText) || command.aliases().contains(commandText)) {
-				helpTexts.add(command.help().getHelpText(trigger));
-			}
-		}
+		StreamSupport.stream(learnedCommands.spliterator(), false)
+			.filter(c -> c.name().equalsIgnoreCase(commandName))
+			.map(c -> c.help().getHelpText(trigger))
+		.forEach(helpTexts::add);
 
-		for (LearnedCommand command : learnedCommands) {
-			String name = command.name().toLowerCase();
-			if (name.equals(commandText)) {
-				helpTexts.add(command.help().getHelpText(trigger));
-			}
-		}
-
-		for (Listener listener : listeners) {
-			String name = listener.name();
-			if (name == null) {
-				continue;
-			}
-
-			name = name.toLowerCase();
-			if (name.equals(commandText)) {
-				helpTexts.add(listener.help().getHelpText(trigger));
-			}
-		}
+		listeners.stream()
+			.filter(l -> l.name() != null)
+			.filter(l -> l.name().equalsIgnoreCase(commandName))
+			.map(l -> l.help().getHelpText(trigger))
+		.forEach(helpTexts::add); //@formatter:on
 
 		if (helpTexts.isEmpty()) {
 			return reply("No command or listener exists with that name.", message);
