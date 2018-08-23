@@ -41,7 +41,7 @@ public class AfkCommand implements Command {
 		return new HelpBuilder(trigger, this)
 			.detail("If the user is mentioned in chat, Oak will post a message saying that the user is away. As soon as the user posts a message, Oak will welcome them back and remove their \"away\" status. \"Away\" status spans all chat rooms the user has joined.")
 			.example("", "Marks the user as \"away\".")
-			.example("Feeding the dog.", "Provides an away message that Oak will post if the user is mentioned in chat.")
+			.example("Feeding the dog.", "Marks the user as \"away\" and provides an away message that Oak will post if the user is mentioned in chat.")
 		.toString();
 		//@formatter:on
 	}

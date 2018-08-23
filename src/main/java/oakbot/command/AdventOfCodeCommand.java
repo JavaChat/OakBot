@@ -47,7 +47,7 @@ public class AdventOfCodeCommand implements Command {
 		return new HelpBuilder(trigger, this)
 			.detail("Only works during the month of December.")
 			.example("", "Displays the default leaderboard that is assigned to the current room.")
-			.example("12345", "Displays a leaderboard given the leaderboard's ID.")
+			.example("12345", "Displays the leaderboard with ID 12345.")
 		.toString();
 		//@formatter:on
 	}

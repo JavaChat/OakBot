@@ -34,7 +34,7 @@ public class RollCommand implements Command {
 		return new HelpBuilder(trigger, this)
 			.example("", "Rolls a six-sided die.")
 			.example("2d20", "Rolls two twenty-sided dice.")
-			.example("vi emacs", "Randomly chooses one of the specified keywords.")
+			.example("vi emacs", "Randomly chooses one of the specified keywords (\"vi\" or \"emacs\").")
 		.toString();
 		//@formatter:on
 	}

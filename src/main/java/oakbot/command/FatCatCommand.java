@@ -51,10 +51,10 @@ public class FatCatCommand implements Command {
 	public String helpText(String trigger) {
 		//@formatter:off
 		return new HelpBuilder(trigger, this)
-			.example("", "Show a random fat cat.")
-			.example("list", "List all fat cats.")
-			.example("add URL", "Add a fat cat.")
-			.example("delete URL", "Delete a fat cat.")
+			.example("", "Shows a random fat cat.")
+			.example("list", "Lists all fat cats.")
+			.example("add URL", "Adds a fat cat.")
+			.example("delete URL", "Deletes a fat cat.")
 		.toString();
 		//@formatter:on
 	}

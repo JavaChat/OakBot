@@ -27,7 +27,7 @@ public class WikiCommand implements Command {
 	public String helpText(String trigger) {
 		//@formatter:off
 		return new HelpBuilder(trigger, this)
-			.example("James Gosling", "Displays the one-box for the wiki page of James Gosling.")
+			.example("James Gosling", "Displays a one-box for the \"James Gosling\" Wikipedia page.")
 		.toString();
 		//@formatter:on
 	}

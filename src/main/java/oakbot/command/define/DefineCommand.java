@@ -59,7 +59,7 @@ public class DefineCommand implements Command {
 		//@formatter:off
 		return new HelpBuilder(trigger, this)
 			.detail("Definitions are retrieved from Merriam-Webster's dictionary API (http://www.dictionaryapi.com/).")
-			.example("steganography.", "Displays the definition for \"steganography\".")
+			.example("steganography", "Displays the definition for \"steganography\".")
 		.toString();
 		//@formatter:on
 	}
