@@ -27,8 +27,8 @@ This command will build the project and package it into an executable, shaded JA
    1. `target/OakBot-VERSION.jar`: The executable, shaded JAR file that contains OakBot's code and dependencies.
    1. `bot.properties`: This file contains configuration data, such as the bot's login credentials. A sample file is located in the root of this project.
    1. `logging.properties` (optional): The configuration file for the Java Logging API.  A sample file is located in the root of this project.
-1. Run OakBot: `java -jar OakBot-VERSION.jar &`  
-   1. The "&" at the end of the command launches the program in the background.  This is useful if you are logged into a server remotely and need to logout after launching OakBot.
+1. Run OakBot: `java -jar OakBot-VERSION.jar`
+1. Once the bot has fully started up, it will instruct you to press `Ctrl+Z`, then type the `bg` command. In Linux, this will move the program into the background and free up the shell.
 
 # db.json
 
@@ -43,6 +43,8 @@ OakBot must be restarted if any of these settings are changed while OakBot is ru
 # Adding/Removing Commands
 
 To add a command, create an instance of the [Command](https://github.com/JavaChat/OakBot/blob/master/src/main/java/oakbot/command/Command.java) interface and add it to the bot in the [main method](https://github.com/JavaChat/OakBot/blob/master/src/main/java/oakbot/Main.java).
+
+All of OakBot's commands are [listed on the wiki](https://github.com/JavaChat/OakBot/wiki/Commands).
 
 # CLI Arguments
 
