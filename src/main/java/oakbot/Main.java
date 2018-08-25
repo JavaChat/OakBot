@@ -57,7 +57,7 @@ import oakbot.command.javadoc.JavadocDao;
 import oakbot.command.javadoc.JavadocDaoCached;
 import oakbot.command.javadoc.JavadocDaoUncached;
 import oakbot.command.learn.LearnCommand;
-import oakbot.command.learn.LearnedCommands;
+import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.command.learn.UnlearnCommand;
 import oakbot.command.urban.UrbanCommand;
 import oakbot.filter.ChatResponseFilter;
@@ -149,7 +149,7 @@ public class Main {
 		Database database = new JsonDatabase(db);
 		Statistics stats = new Statistics(database);
 		Rooms rooms = new Rooms(database, props.getHomeRooms(), props.getQuietRooms());
-		LearnedCommands learnedCommands = new LearnedCommands(database);
+		LearnedCommandsDao learnedCommands = new LearnedCommandsDao(database);
 
 		JavadocCommand javadocCommand = createJavadocCommand(props);
 		AfkCommand afkCommand = new AfkCommand();

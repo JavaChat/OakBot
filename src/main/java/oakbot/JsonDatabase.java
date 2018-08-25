@@ -1,22 +1,23 @@
 package oakbot;
 
+import static com.google.common.collect.Streams.stream;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class JsonDatabase implements Database {
 	private static final Logger logger = Logger.getLogger(JsonDatabase.class.getName());
+
 	private final Path file;
 	private final Map<String, Object> fields = new HashMap<>();
 	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -57,41 +59,40 @@ public class JsonDatabase implements Database {
 			root = mapper.readTree(reader);
 		}
 
-		Iterator<String> it = root.fieldNames();
-		while (it.hasNext()) {
-			String fieldName = it.next();
-			JsonNode field = root.get(fieldName);
-			Object value = parseNode(field);
-			fields.put(fieldName, value);
-		}
+		root.fields().forEachRemaining(field -> { //@formatter:off
+			String name = field.getKey();
+			Object value = parseNode(field.getValue());
+			fields.put(name, value);
+		}); //@formatter:on
 	}
 
 	private Object parseNode(JsonNode node) {
 		if (node.isArray()) {
-			List<Object> list = new ArrayList<Object>();
-			Iterator<JsonNode> it = node.elements();
-			while (it.hasNext()) {
-				JsonNode element = it.next();
-				Object parsedElement = parseNode(element);
-				list.add(parsedElement);
-			}
-			return list;
+			return stream(node) //@formatter:off
+				.map(this::parseNode)
+			.collect(Collectors.toList()); //@formatter:on
 		}
 
 		if (node.isObject()) {
+			/*
+			 * Note: Collectors.toMap() cannot be used here because it throws a
+			 * NPE if any values in the map are null.
+			 */
 			Map<String, Object> map = new HashMap<>();
-			Iterator<String> it = node.fieldNames();
-			while (it.hasNext()) {
-				String fieldName = it.next();
-				JsonNode field = node.get(fieldName);
-				Object parsedElement = parseNode(field);
-				map.put(fieldName, parsedElement);
-			}
+			node.fields().forEachRemaining(field -> {
+				String name = field.getKey();
+				Object value = parseNode(field.getValue());
+				map.put(name, value);
+			});
 			return map;
 		}
 
 		if (node.isInt()) {
 			return node.asInt();
+		}
+
+		if (node.isLong()) {
+			return node.asLong();
 		}
 
 		if (node.isNull()) {
@@ -126,14 +127,7 @@ public class JsonDatabase implements Database {
 			return;
 		}
 
-		StandardOpenOption[] openOptions;
-		if (Files.exists(file)) {
-			openOptions = new StandardOpenOption[] { StandardOpenOption.TRUNCATE_EXISTING };
-		} else {
-			openOptions = new StandardOpenOption[] {};
-		}
-
-		try (Writer writer = Files.newBufferedWriter(file, openOptions)) {
+		try (Writer writer = Files.newBufferedWriter(file, CREATE, TRUNCATE_EXISTING)) {
 			JsonFactory factory = new JsonFactory();
 			try (JsonGenerator generator = factory.createGenerator(writer)) {
 				generator.setPrettyPrinter(new DefaultPrettyPrinter());
@@ -163,10 +157,10 @@ public class JsonDatabase implements Database {
 
 			for (Map.Entry<?, ?> entry : map.entrySet()) {
 				String fieldName = entry.getKey().toString();
-				Object v = entry.getValue();
+				Object fieldValue = entry.getValue();
 
 				generator.writeFieldName(fieldName);
-				write(generator, v);
+				write(generator, fieldValue);
 			}
 
 			generator.writeEndObject();
@@ -193,6 +187,12 @@ public class JsonDatabase implements Database {
 
 		if (value instanceof Integer) {
 			Integer integer = (Integer) value;
+			generator.writeNumber(integer);
+			return;
+		}
+
+		if (value instanceof Long) {
+			Long integer = (Long) value;
 			generator.writeNumber(integer);
 			return;
 		}

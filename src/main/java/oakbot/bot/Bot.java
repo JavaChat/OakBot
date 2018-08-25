@@ -35,7 +35,7 @@ import oakbot.chat.event.MessageEditedEvent;
 import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
-import oakbot.command.learn.LearnedCommands;
+import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.Listener;
 import oakbot.task.ScheduledTask;
@@ -59,7 +59,7 @@ public class Bot {
 	private final Rooms rooms;
 	private final Integer maxRooms;
 	private final List<Command> commands;
-	private final LearnedCommands learnedCommands;
+	private final LearnedCommandsDao learnedCommands;
 	private final List<Listener> listeners;
 	private final List<ChatResponseFilter> responseFilters;
 	private final List<ScheduledTask> scheduledTasks;
@@ -875,7 +875,7 @@ public class Bot {
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
-		private LearnedCommands learnedCommands = new LearnedCommands();
+		private LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
 		private ImmutableList.Builder<ScheduledTask> tasks = ImmutableList.builder();
 		private ImmutableList.Builder<ChatResponseFilter> responseFilters = ImmutableList.builder();
@@ -950,7 +950,7 @@ public class Bot {
 			return this;
 		}
 
-		public Builder learnedCommands(LearnedCommands commands) {
+		public Builder learnedCommands(LearnedCommandsDao commands) {
 			this.learnedCommands = commands;
 			return this;
 		}

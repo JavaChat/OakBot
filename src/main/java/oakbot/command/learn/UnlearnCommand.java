@@ -1,5 +1,7 @@
 package oakbot.command.learn;
 
+import static oakbot.command.Command.reply;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -8,7 +10,6 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
-import oakbot.util.ChatBuilder;
 
 /**
  * Removes a learned command.
@@ -16,9 +17,9 @@ import oakbot.util.ChatBuilder;
  */
 public class UnlearnCommand implements Command {
 	private final List<Command> hardcodedCommands;
-	private final LearnedCommands learnedCommands;
+	private final LearnedCommandsDao learnedCommands;
 
-	public UnlearnCommand(List<Command> hardcodedCommands, LearnedCommands learnedCommands) {
+	public UnlearnCommand(List<Command> hardcodedCommands, LearnedCommandsDao learnedCommands) {
 		this.hardcodedCommands = hardcodedCommands;
 		this.learnedCommands = learnedCommands;
 	}
@@ -47,39 +48,19 @@ public class UnlearnCommand implements Command {
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
 		String commandName = chatCommand.getContent().trim();
 		if (commandName.isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Syntax: ").code(context.getTrigger() + name() + " commandName")
-			);
-			//@formatter:on
+			return reply("You haven't specified the command name.", chatCommand);
 		}
 
 		if (hardcodedCommandExists(commandName)) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("You can only unlearn commands that were added with the \"learn\" command. :P")
-			);
-			//@formatter:on
+			return reply("That command is not a learned command. You can only unlearn commands that were added with the \"learn\" command.", chatCommand);
 		}
 
 		boolean removed = learnedCommands.remove(commandName);
 		if (!removed) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("That command does not exist.")
-			);
-			//@formatter:on
+			return reply("That command does not exist.", chatCommand);
 		}
 
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(chatCommand)
-			.append("Command forgotten.")
-		);
-		//@formatter:on
+		return reply("Command forgotten.", chatCommand);
 	}
 
 	private boolean hardcodedCommandExists(String commandName) {

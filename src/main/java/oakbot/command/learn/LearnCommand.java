@@ -16,7 +16,6 @@ import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
-import oakbot.util.ChatBuilder;
 
 /**
  * Teaches the bot a new command.
@@ -26,10 +25,10 @@ public class LearnCommand implements Command {
 	private static final Logger logger = Logger.getLogger(LearnCommand.class.getName());
 
 	private final List<Command> hardcodedCommands;
-	private final LearnedCommands learnedCommands;
+	private final LearnedCommandsDao learnedCommands;
 	private final Predicate<String> validCommandName = Pattern.compile("^[A-Za-z0-9]+$").asPredicate();
 
-	public LearnCommand(List<Command> hardcodedCommands, LearnedCommands learnedCommands) {
+	public LearnCommand(List<Command> hardcodedCommands, LearnedCommandsDao learnedCommands) {
 		this.hardcodedCommands = hardcodedCommands;
 		this.learnedCommands = learnedCommands;
 	}
@@ -56,16 +55,12 @@ public class LearnCommand implements Command {
 
 		//example: "test this is a test"
 		ChatMessage subMessage = new ChatMessage.Builder(message).content(chatCommand.getContent(), chatCommand.isFixedFont()).build();
-
-		//example: "this is a test"
 		ChatCommand subCommand = ChatCommand.fromMessage(subMessage, null);
-		if (subCommand == null || subCommand.getContent().trim().isEmpty()) {
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Syntax: ").code().append(context.getTrigger()).append(name()).append(" NAME OUTPUT").code()
-			);
-			//@formatter:on
+		if (subCommand == null) {
+			return reply("You haven't specified the command name or its output.", chatCommand);
+		}
+		if (subCommand.getContent().trim().isEmpty()) {
+			return reply("You haven't specified the command output.", chatCommand);
 		}
 
 		String commandName = subCommand.getCommandName();
@@ -101,7 +96,17 @@ public class LearnCommand implements Command {
 			commandOutput = subCommand.getContentMarkdown();
 		}
 
-		learnedCommands.add(commandName, commandOutput);
+		//@formatter:off
+		learnedCommands.add(new LearnedCommand.Builder()
+			.authorUserId(message.getUserId())
+			.authorUsername(message.getUsername())
+			.roomId(message.getRoomId())
+			.messageId(message.getMessageId())
+			.created(message.getTimestamp())
+			.name(commandName)
+			.output(commandOutput)
+		.build());
+		//@formatter:on
 
 		return reply("Saved.", chatCommand);
 	}

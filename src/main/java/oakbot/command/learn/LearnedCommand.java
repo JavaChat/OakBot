@@ -1,26 +1,32 @@
 package oakbot.command.learn;
 
+import java.time.LocalDateTime;
+
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
-import oakbot.util.ChatBuilder;
 
 /**
  * A command that was taught to the bot at runtime using the "learn" command.
  * @author Michael Angstadt
  */
 public class LearnedCommand implements Command {
+	private final String authorUsername;
+	private final Integer authorUserId, roomId;
+	private final Long messageId;
+	private final LocalDateTime created;
 	private final String name, output;
 
-	/**
-	 * @param name the command name
-	 * @param output the text the command will output
-	 */
-	public LearnedCommand(String name, String output) {
-		this.name = name;
-		this.output = output;
+	private LearnedCommand(Builder builder) {
+		authorUsername = builder.authorUsername;
+		authorUserId = builder.authorUserId;
+		roomId = builder.roomId;
+		messageId = builder.messageId;
+		created = builder.created;
+		name = builder.name;
+		output = builder.output;
 	}
 
 	@Override
@@ -28,7 +34,53 @@ public class LearnedCommand implements Command {
 		return name;
 	}
 
-	public String output() {
+	/**
+	 * Gets the username of the person who created the command.
+	 * @return the username or null if never recorded
+	 */
+	public String getAuthorUsername() {
+		return authorUsername;
+	}
+
+	/**
+	 * Gets the ID of the user who created the command.
+	 * @return the user ID or null if never recorded
+	 */
+	public Integer getAuthorUserId() {
+		return authorUserId;
+	}
+
+	/**
+	 * Gets the ID of the room in which the command was created.
+	 * @return roomId the room ID or null if never recorded
+	 */
+	public Integer getRoomId() {
+		return roomId;
+	}
+
+	/**
+	 * Gets the ID of the message which contains the "learn" command which
+	 * created this command.
+	 * @return messageId the message ID or null if never recorded
+	 */
+	public Long getMessageId() {
+		return messageId;
+	}
+
+	/**
+	 * Gets the time that the command was created.
+	 * @return created the creation time or null if never recorded
+	 */
+	public LocalDateTime getCreated() {
+		return created;
+	}
+
+	/**
+	 * Gets the command output.
+	 * @param output the output (will never be null)
+	 * @return this
+	 */
+	public String getOutput() {
 		return output;
 	}
 
@@ -43,10 +95,97 @@ public class LearnedCommand implements Command {
 
 	@Override
 	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.append(output)
-		);
-		//@formatter:on
+		return new ChatResponse(output);
+	}
+
+	/**
+	 * Creates instances of the {@link LearnedCommand} class.
+	 * @author Michael Angstadt
+	 */
+	public static class Builder {
+		private String authorUsername;
+		private Integer authorUserId, roomId;
+		private Long messageId;
+		private LocalDateTime created;
+		private String name, output;
+
+		/**
+		 * Sets the username of the person who created the command.
+		 * @param authorUsername the username
+		 * @return this
+		 */
+		public Builder authorUsername(String authorUsername) {
+			this.authorUsername = authorUsername;
+			return this;
+		}
+
+		/**
+		 * Sets the ID of the user who created the command.
+		 * @param authorUserId the user ID
+		 * @return this
+		 */
+		public Builder authorUserId(Integer authorUserId) {
+			this.authorUserId = authorUserId;
+			return this;
+		}
+
+		/**
+		 * Sets the ID of the room in which the command was created.
+		 * @param roomId the room ID
+		 * @return this
+		 */
+		public Builder roomId(Integer roomId) {
+			this.roomId = roomId;
+			return this;
+		}
+
+		/**
+		 * Sets the ID of the message which contains the "learn" command which
+		 * created this command.
+		 * @param messageId the message ID
+		 * @return this
+		 */
+		public Builder messageId(Long messageId) {
+			this.messageId = messageId;
+			return this;
+		}
+
+		/**
+		 * Sets the time that the command was created.
+		 * @param created the creation time
+		 * @return this
+		 */
+		public Builder created(LocalDateTime created) {
+			this.created = created;
+			return this;
+		}
+
+		/**
+		 * Sets the name of the command.
+		 * @param name the name
+		 * @return this
+		 */
+		public Builder name(String name) {
+			this.name = name;
+			return this;
+		}
+
+		/**
+		 * Sets the command output.
+		 * @param output the output
+		 * @return this
+		 */
+		public Builder output(String output) {
+			this.output = output;
+			return this;
+		}
+
+		/**
+		 * Builds the final {@link LearnedCommand} object.
+		 * @return this
+		 */
+		public LearnedCommand build() {
+			return new LearnedCommand(this);
+		}
 	}
 }

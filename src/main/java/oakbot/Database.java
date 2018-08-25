@@ -1,5 +1,6 @@
 package oakbot;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -43,9 +44,21 @@ public interface Database {
 	 * If the given key already exists in the database, it will be overwritten.
 	 * </p>
 	 * <p>
-	 * The value can be a {@code Map<String,Object>}, a {@code List
-	 * <Object>} or any other {@link Object}. Objects are written to the
-	 * database by calling their {@code toString()} methods.
+	 * This method will properly serialize the following value objects so that
+	 * round-tripping is preserved:
+	 * </p>
+	 * <ul>
+	 * <li>{@code Map<String,Object>}</li>
+	 * <li>{@code List<Object>}</li>
+	 * <li>{@link LocalDateTime}</li>
+	 * <li>{@link Integer}</li>
+	 * <li>{@link Long} (if within the range of a Java int, will be converted to
+	 * an int)</li>
+	 * <li>{@code null}</li>
+	 * </ul>
+	 * <p>
+	 * All other objects are converted to strings using their {@code toString}
+	 * method.
 	 * </p>
 	 * @param key the key
 	 * @param value the value

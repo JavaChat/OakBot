@@ -34,7 +34,7 @@ import oakbot.command.effective.EffectiveJavaCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
 import oakbot.command.learn.LearnCommand;
-import oakbot.command.learn.LearnedCommands;
+import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.command.learn.UnlearnCommand;
 import oakbot.command.urban.UrbanCommand;
 import oakbot.listener.Listener;
@@ -55,7 +55,7 @@ public class CommandsWikiPage {
 	public static void main(String args[]) {
 		Database db = mock(Database.class);
 		String trigger = "/";
-		LearnedCommands learnedCommands = new LearnedCommands();
+		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 
 		List<Listener> listeners = new ArrayList<>();
 		{

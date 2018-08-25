@@ -17,7 +17,7 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.learn.LearnedCommand;
-import oakbot.command.learn.LearnedCommands;
+import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
 
@@ -27,10 +27,10 @@ import oakbot.util.ChatBuilder;
  */
 public class HelpCommand implements Command {
 	private final List<Command> commands;
-	private final LearnedCommands learnedCommands;
+	private final LearnedCommandsDao learnedCommands;
 	private final List<Listener> listeners;
 
-	public HelpCommand(List<Command> commands, LearnedCommands learnedCommands, List<Listener> listeners) {
+	public HelpCommand(List<Command> commands, LearnedCommandsDao learnedCommands, List<Listener> listeners) {
 		this.commands = commands;
 		this.learnedCommands = learnedCommands;
 		this.listeners = listeners;

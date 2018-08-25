@@ -36,7 +36,8 @@ import oakbot.chat.RoomNotFoundException;
 import oakbot.chat.SplitStrategy;
 import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
-import oakbot.command.learn.LearnedCommands;
+import oakbot.command.learn.LearnedCommand;
+import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.Listener;
 import oakbot.util.Sleeper;
@@ -287,8 +288,8 @@ public class BotTest {
 		/**
 		 * Create the learned commands.
 		 */
-		LearnedCommands learnedCommands = new LearnedCommands();
-		learnedCommands.add("foo", "bar");
+		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		learnedCommands.add(new LearnedCommand.Builder().name("foo").output("bar").build());
 
 		/**
 		 * Create the bot.
@@ -355,8 +356,8 @@ public class BotTest {
 		/**
 		 * Create the learned commands.
 		 */
-		LearnedCommands learnedCommands = new LearnedCommands();
-		learnedCommands.add("learned", "reply");
+		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		learnedCommands.add(new LearnedCommand.Builder().name("learned").output("reply").build());
 
 		/**
 		 * Create the listener.
