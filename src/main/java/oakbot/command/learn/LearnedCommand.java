@@ -86,9 +86,16 @@ public class LearnedCommand implements Command {
 
 	@Override
 	public HelpDoc help() {
+		String summary;
+		if (authorUsername == null) {
+			summary = "This is a learned command that was created by chat room user. It does not have a help message.";
+		} else {
+			summary = "This is a learned command that was created by " + authorUsername + " (ID: " + authorUserId + ") at " + created + ". It does not have a help message.";
+		}
+
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("This command was created at runtime by chat room user. It does not have a help message.")
+			.summary(summary)
 		.build();
 		//@formatter:on
 	}
