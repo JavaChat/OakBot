@@ -22,7 +22,6 @@ public class MornListenerTest {
 	public void onMessage() {
 		assertMorn("morn", "morn", false);
 		assertMorn("Morn", "morn", false);
-		assertMorn("morno", "morno", false);
 		assertMorn("morning", "Morning.", false);
 		assertMorn("good morning", "Good morning.", false);
 		assertMorn("Morn!., ", "morn", false);
