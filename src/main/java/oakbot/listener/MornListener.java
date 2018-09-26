@@ -32,7 +32,6 @@ public class MornListener implements Listener {
 	private final List<String[]> responses = Arrays.asList(
 		new String[] {"good morning", "Good morning."},
 		new String[] {"morning", "Morning."},
-		new String[] {"morno", "morno"},
 		new String[] {"morn", "morn"}
 	);
 	//@formatter:on
