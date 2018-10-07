@@ -746,6 +746,47 @@ public class BotTest {
 	}
 
 	@Test
+	public void allowed_user() throws Exception {
+		/**
+		 * Setup the chat rooms.
+		 */
+		chatServer.createRoom(1);
+
+		/*
+		 * Define the chat room events to push.
+		 */
+		MessagePostedEvent event1 = event("Test2", 2);
+		MessagePostedEvent event2 = event("Test100", 100);
+
+		/**
+		 * Create the listener
+		 */
+		Listener listener = mock(Listener.class);
+
+		/**
+		 * Create the bot.
+		 */
+		//@formatter:off
+		Bot bot = bot()
+			.rooms(1)
+			.allowedUsers(2)
+			.listeners(listener)
+		.build();
+		//@formatter:on
+
+		/**
+		 * Run the bot.
+		 */
+		run(bot, event1, event2);
+
+		/*
+		 * Verify.
+		 */
+		verify(listener).onMessage(same(event1.getMessage()), any(BotContext.class));
+		verify(listener, times(0)).onMessage(same(event2.getMessage()), any(BotContext.class));
+	}
+
+	@Test
 	public void onebox() throws Exception {
 		/**
 		 * Setup the chat rooms.

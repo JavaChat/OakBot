@@ -54,7 +54,7 @@ public class Bot {
 	private final IChatClient connection;
 	private final BlockingQueue<ChatMessage> newMessages = new LinkedBlockingQueue<>();
 	private final ChatMessage CLOSE_MESSAGE = new ChatMessage.Builder().build();
-	private final List<Integer> admins, bannedUsers;
+	private final List<Integer> admins, bannedUsers, allowedUsers;
 	private final Integer hideOneboxesAfter;
 	private final Rooms rooms;
 	private final Integer maxRooms;
@@ -99,6 +99,7 @@ public class Bot {
 		maxRooms = builder.maxRooms;
 		admins = builder.admins.build();
 		bannedUsers = builder.bannedUsers.build();
+		allowedUsers = builder.allowedUsers.build();
 		stats = builder.stats;
 		database = builder.database;
 		unknownCommandHandler = builder.unknownCommandHandler;
@@ -210,6 +211,11 @@ public class Bot {
 	private void handleMessage(ChatMessage message) {
 		if (message.getContent() == null) {
 			//user deleted his/her message, ignore
+			return;
+		}
+
+		if (!allowedUsers.isEmpty() && !allowedUsers.contains(message.getUserId())) {
+			//message was posted by a user who is not in the white list, ignore
 			return;
 		}
 
@@ -874,6 +880,7 @@ public class Bot {
 		private Integer maxRooms;
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
+		private ImmutableList.Builder<Integer> allowedUsers = ImmutableList.builder();
 		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
 		private LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
@@ -938,6 +945,15 @@ public class Bot {
 
 		public Builder bannedUsers(Collection<Integer> bannedUsers) {
 			this.bannedUsers.addAll(bannedUsers);
+			return this;
+		}
+
+		public Builder allowedUsers(Integer... allowedUsers) {
+			return allowedUsers(Arrays.asList(allowedUsers));
+		}
+
+		public Builder allowedUsers(Collection<Integer> allowedUsers) {
+			this.allowedUsers.addAll(allowedUsers);
 			return this;
 		}
 

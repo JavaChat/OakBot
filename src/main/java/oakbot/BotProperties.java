@@ -18,7 +18,7 @@ import oakbot.util.PropertiesWrapper;
  */
 public class BotProperties extends PropertiesWrapper {
 	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey, tenorKey, adventOfCodeSession;
-	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, healthMonitor;
+	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, allowedUsers, healthMonitor;
 	private final Integer botUserId;
 	private final Integer hideOneboxesAfter;
 	private final Path javadocPath;
@@ -46,6 +46,7 @@ public class BotProperties extends PropertiesWrapper {
 
 		admins = getIntegerList("users.admins");
 		bannedUsers = getIntegerList("users.banned");
+		allowedUsers = getIntegerList("users.allowed");
 
 		javadocPath = getFile("commands.javadoc.folder");
 		javadocCache = getBoolean("commands.javadoc.cache", true);
@@ -157,11 +158,22 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the users who have been banned from interacting with the bot.
+	 * Gets the users who have been banned from interacting with the bot (black
+	 * list).
 	 * @return the user IDs
 	 */
 	public List<Integer> getBannedUsers() {
 		return bannedUsers;
+	}
+
+	/**
+	 * Gets the users who are allowed to interact with the bot (white list). If
+	 * this list is empty, then anyone can use the bot (minus those listed in
+	 * {@link #getBannedUsers}).
+	 * @return the user IDs
+	 */
+	public List<Integer> getAllowedUsers() {
+		return allowedUsers;
 	}
 
 	/**
