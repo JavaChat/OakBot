@@ -1,5 +1,7 @@
 package oakbot.chat;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -12,13 +14,11 @@ import javax.websocket.WebSocketContainer;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 
-import oakbot.util.ChatUtils;
 import oakbot.util.Http;
-import oakbot.util.Http.Response;
 
 /**
- * A connection to Stack Overflow Chat that uses web sockets to retrieve new
- * messages. This class is thread-safe.
+ * A connection to a Stack Exchange chat site that uses web sockets to retrieve
+ * new messages. This class is thread-safe.
  * @author Michael Angstadt
  * @see <a href="https://chat.stackoverflow.com">chat.stackoverflow.com</a>
  * @see <a href=
@@ -30,7 +30,7 @@ public class ChatClient implements IChatClient {
 
 	private final Http http;
 	private final WebSocketContainer webSocketClient;
-	private final String domain, chatDomain;
+	private final Site site;
 	private final Map<Integer, Room> rooms = new LinkedHashMap<>();
 	private boolean loggedIn = false;
 
@@ -41,42 +41,26 @@ public class ChatClient implements IChatClient {
 	 * @param webSocketClient the web socket client
 	 */
 	public ChatClient(CloseableHttpClient httpClient, WebSocketContainer webSocketClient) {
-		this(httpClient, webSocketClient, "stackoverflow.com");
+		this(httpClient, webSocketClient, Site.STACKOVERFLOW);
 	}
 
 	/**
-	 * Creates a connection to a Stack Exchange chat network. Note that the
+	 * Creates a connection to a Stack Exchange chat site. Note that the
 	 * connection is not established until {@link #login} is called.
 	 * @param httpClient the HTTP client
 	 * @param webSocketClient the web socket client
-	 * @param domain the Stack Exchange website to connect to (e.g.
-	 * "stackoverflow.com")
+	 * @param site the Stack Exchange site to connect to
 	 */
-	public ChatClient(CloseableHttpClient httpClient, WebSocketContainer webSocketClient, String domain) {
+	public ChatClient(CloseableHttpClient httpClient, WebSocketContainer webSocketClient, Site site) {
 		this.http = new Http(httpClient);
-		this.webSocketClient = webSocketClient;
-		this.domain = domain;
-		chatDomain = "https://chat." + domain;
+		this.webSocketClient = requireNonNull(webSocketClient);
+		this.site = requireNonNull(site);
 	}
 
 	@Override
 	public void login(String email, String password) throws InvalidCredentialsException, IOException {
-		Response response = http.get("https://" + domain + "/users/login");
-		String fkey = ChatUtils.parseFkey(response.getBody());
-		if (fkey == null) {
-			throw new IOException("\"fkey\" field not found on login page, cannot login.");
-		}
-
-		//@formatter:off
-		response = http.post("https://" + domain + "/users/login",
-			"email", email,
-			"password", password,
-			"fkey", fkey
-		);
-		//@formatter:on
-
-		int statusCode = response.getStatusCode();
-		if (statusCode != 302) {
+		boolean success = site.login(email, password, http);
+		if (!success) {
 			throw new InvalidCredentialsException();
 		}
 
@@ -99,7 +83,7 @@ public class ChatClient implements IChatClient {
 				return room;
 			}
 
-			room = new Room(roomId, domain, http, webSocketClient, this);
+			room = new Room(roomId, site, http, webSocketClient, this);
 			rooms.put(roomId, room);
 
 			return room;
@@ -140,7 +124,7 @@ public class ChatClient implements IChatClient {
 
 	@Override
 	public String getOriginalMessageContent(long messageId) throws IOException {
-		Http.Response response = http.get(chatDomain + "/message/" + messageId + "?plain=true");
+		Http.Response response = http.get("https://" + site.getChatDomain() + "/message/" + messageId + "?plain=true");
 		int statusCode = response.getStatusCode();
 		if (statusCode != 200) {
 			throw new IOException("HTTP " + statusCode + " response returned: " + response.getBody());
@@ -159,7 +143,7 @@ public class ChatClient implements IChatClient {
 
 				try {
 					//@formatter:off
-					http.post(chatDomain + "/chats/leave/all",
+					http.post("https://" + site.getChatDomain() + "/chats/leave/all",
 						"quiet", "true", //setting this parameter to "false" results in an error
 						"fkey", fkey
 					);

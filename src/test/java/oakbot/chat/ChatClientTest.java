@@ -34,64 +34,6 @@ import org.junit.Test;
  * @author Michael Angstadt
  */
 public class ChatClientTest {
-	@Test
-	public void login_no_fkey() throws Exception {
-		//@formatter:off
-		CloseableHttpClient httpClient = new MockHttpClientBuilder()
-			.request("GET", "https://stackoverflow.com/users/login")
-			.response(200, "garbage data")
-		.build();
-		//@formatter:on
-
-		WebSocketContainer ws = mock(WebSocketContainer.class);
-
-		try (ChatClient client = new ChatClient(httpClient, ws)) {
-			client.login("email@example.com", "password");
-			fail();
-		} catch (IOException e) {
-			//expected
-		}
-
-		verifyNumberOfRequestsSent(httpClient, 1);
-	}
-
-	@Test
-	public void login_bad_credentials() throws Exception {
-		//@formatter:off
-		CloseableHttpClient httpClient = new MockHttpClientBuilder()
-			.login("0123456789abcdef0123456789abcdef", "email@example.com", "password", false)
-		.build();
-		//@formatter:on
-
-		WebSocketContainer ws = mock(WebSocketContainer.class);
-
-		try (ChatClient client = new ChatClient(httpClient, ws)) {
-			client.login("email@example.com", "password");
-			fail();
-		} catch (InvalidCredentialsException e) {
-			//expected
-		}
-
-		verifyNumberOfRequestsSent(httpClient, 2);
-	}
-
-	@Test
-	public void login() throws Exception {
-		//@formatter:off
-		CloseableHttpClient httpClient = new MockHttpClientBuilder()
-			.login("0123456789abcdef0123456789abcdef", "email@example.com", "password", true)
-		.build();
-		//@formatter:on
-
-		WebSocketContainer ws = mock(WebSocketContainer.class);
-
-		try (ChatClient client = new ChatClient(httpClient, ws)) {
-			client.login("email@example.com", "password");
-		}
-
-		verifyNumberOfRequestsSent(httpClient, 2);
-	}
-
 	@Test(expected = IllegalStateException.class)
 	public void joinRoom_not_logged_in() throws Exception {
 		//@formatter:off

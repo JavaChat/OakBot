@@ -49,12 +49,25 @@ public class MockHttpClientBuilder {
 	 * @return this
 	 */
 	public MockHttpClientBuilder login(String fkey, String email, String password, boolean success) {
+		return login(Site.STACKOVERFLOW.getDomain(), fkey, email, password, success);
+	}
+
+	/**
+	 * Adds the requests/responses involved in logging into Stack Overflow.
+	 * @param domain the domain of the website
+	 * @param fkey the fkey shown on the login page
+	 * @param email the user's email address
+	 * @param password the user's password
+	 * @param success true if the login should be successful, false if not
+	 * @return this
+	 */
+	public MockHttpClientBuilder login(String domain, String fkey, String email, String password, boolean success) {
 		//@formatter:off
 		return 
-			 request("GET", "https://stackoverflow.com/users/login")
+			 request("GET", "https://" + domain + "/users/login")
 			.response(200, ResponseSamples.loginPage(fkey))
 		
-			.request("POST", "https://stackoverflow.com/users/login",
+			.request("POST", "https://" + domain + "/users/login",
 				"fkey", fkey,
 				"email", email,
 				"password", password

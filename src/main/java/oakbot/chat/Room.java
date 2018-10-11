@@ -67,7 +67,7 @@ public class Room implements IRoom {
 
 	private final int roomId;
 	private final String fkey;
-	private final String chatDomain;
+	private final String baseUrl;
 	private final boolean canPost;
 	private final Http http;
 	private final ChatClient chatClient;
@@ -96,7 +96,7 @@ public class Room implements IRoom {
 	 * Creates a connection to a specific chat room. This constructor is meant
 	 * to be called by {@link ChatClient#joinRoom}.
 	 * @param roomId the room ID
-	 * @param domain the Stack Exchange domain (e.g. "stackoverflow.com")
+	 * @param site the Stack Exchange site this room belongs to
 	 * @param http the HTTP client
 	 * @param webSocketContainer the object used to create the web socket
 	 * connection
@@ -106,15 +106,15 @@ public class Room implements IRoom {
 	 * @throws RoomNotFoundException if the room does not exist or the user does
 	 * not have permission to view the room
 	 */
-	Room(int roomId, String domain, Http http, WebSocketContainer webSocketContainer, ChatClient chatClient) throws IOException, RoomNotFoundException {
+	Room(int roomId, Site site, Http http, WebSocketContainer webSocketContainer, ChatClient chatClient) throws IOException, RoomNotFoundException {
 		this.roomId = roomId;
-		chatDomain = "https://chat." + domain;
+		baseUrl = "https://" + site.getChatDomain();
 		this.http = http;
 		this.webSocketContainer = webSocketContainer;
 		this.chatClient = chatClient;
 		websocketReconnectTimer = new Timer(true);
 
-		Response response = http.get(chatDomain + "/rooms/" + roomId);
+		Response response = http.get(baseUrl + "/rooms/" + roomId);
 
 		/*
 		 * A 404 response will be returned if the room doesn't exist.
@@ -196,7 +196,7 @@ public class Room implements IRoom {
 			.configurator(new Configurator() {
 				@Override
 				public void beforeRequest(Map<String, List<String>> headers) {
-					headers.put("Origin", Arrays.asList(chatDomain));
+					headers.put("Origin", Arrays.asList(baseUrl));
 				}
 			})
 		.build();
@@ -241,7 +241,7 @@ public class Room implements IRoom {
 
 	private String getWebSocketUrl() throws IOException {
 		//@formatter:off
-		Response response = http.post(chatDomain + "/ws-auth",
+		Response response = http.post(baseUrl + "/ws-auth",
 			"roomid", roomId,
 			"fkey", fkey
 		);
@@ -419,7 +419,7 @@ public class Room implements IRoom {
 		List<Long> messageIds = new ArrayList<>(parts.size());
 		for (String part : parts) {
 			//@formatter:off
-			Response response = http.post(chatDomain + "/chats/" + roomId + "/messages/new",
+			Response response = http.post(baseUrl + "/chats/" + roomId + "/messages/new",
 				"text", part,
 				"fkey", fkey
 			);
@@ -451,7 +451,7 @@ public class Room implements IRoom {
 	@Override
 	public List<ChatMessage> getMessages(int count) throws IOException {
 		//@formatter:off
-		Response response = http.post(chatDomain + "/chats/" + roomId + "/events",
+		Response response = http.post(baseUrl + "/chats/" + roomId + "/events",
 			"mode", "messages",
 			"msgCount", count,
 			"fkey", fkey
@@ -484,7 +484,7 @@ public class Room implements IRoom {
 	@Override
 	public void deleteMessage(long messageId) throws IOException {
 		//@formatter:off
-		Response response = http.post(chatDomain + "/messages/" + messageId + "/delete",
+		Response response = http.post(baseUrl + "/messages/" + messageId + "/delete",
 			"fkey", fkey
 		);
 		//@formatter:on
@@ -513,7 +513,7 @@ public class Room implements IRoom {
 	@Override
 	public void editMessage(long messageId, String updatedMessage) throws IOException {
 		//@formatter:off
-		Response response = http.post(chatDomain + "/messages/" + messageId,
+		Response response = http.post(baseUrl + "/messages/" + messageId,
 			"text", updatedMessage,
 			"fkey", fkey
 		);
@@ -544,7 +544,7 @@ public class Room implements IRoom {
 	@Override
 	public List<UserInfo> getUserInfo(List<Integer> userIds) throws IOException {
 		//@formatter:off
-		Response response = http.post(chatDomain + "/user/info",
+		Response response = http.post(baseUrl + "/user/info",
 			"ids", StringUtils.join(userIds, ","),
 			"roomId", roomId
 		);
@@ -616,7 +616,7 @@ public class Room implements IRoom {
 
 	@Override
 	public List<PingableUser> getPingableUsers() throws IOException {
-		Response response = http.get(chatDomain + "/rooms/pingable/" + roomId);
+		Response response = http.get(baseUrl + "/rooms/pingable/" + roomId);
 
 		if (response.getStatusCode() == 404) {
 			throw notFound(response, "get pingable users");
@@ -640,7 +640,7 @@ public class Room implements IRoom {
 
 	@Override
 	public RoomInfo getRoomInfo() throws IOException {
-		Response response = http.get(chatDomain + "/rooms/thumbs/" + roomId);
+		Response response = http.get(baseUrl + "/rooms/thumbs/" + roomId);
 
 		if (response.getStatusCode() == 404) {
 			throw notFound(response, "get room info");
@@ -669,7 +669,7 @@ public class Room implements IRoom {
 
 		try {
 			//@formatter:off
-			http.post(chatDomain + "/chats/leave/" + roomId,
+			http.post(baseUrl + "/chats/leave/" + roomId,
 				"quiet", "true", //setting this parameter to "false" results in an error
 				"fkey", fkey
 			);

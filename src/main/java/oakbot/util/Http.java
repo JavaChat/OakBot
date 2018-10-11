@@ -104,7 +104,7 @@ public class Http implements Closeable {
 	 * Sends an HTTP request.
 	 * </p>
 	 * <p>
-	 * SO Chat returns an HTTP 409 response if the client sends too many
+	 * The chat system returns an HTTP 409 response if the client sends too many
 	 * requests too quickly. This method automatically handles such responses by
 	 * sleeping the requested amount of time, and then re-sending the request.
 	 * It will do this up to five times before giving up, at which point an

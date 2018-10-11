@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * A connection to Stack Overflow Chat.
+ * A connection to a Stack Exchange chat site.
  * @author Michael Angstadt
  * @see <a href="https://chat.stackoverflow.com">chat.stackoverflow.com</a>
  * @see <a href=
@@ -27,6 +27,8 @@ public interface IChatClient extends Closeable {
 	 * existing {@link IRoom} instance is returned.
 	 * @param roomId the room ID
 	 * @return the connection to the chat room
+	 * @throws IllegalStateException if the user hasn't yet logged in
+	 * successfully (the {@link #login} method must be called first)
 	 * @throws RoomNotFoundException if the room doesn't exist or the user does
 	 * not have permission to view the room
 	 * @throws IOException if there's a problem connecting to the room
@@ -55,15 +57,15 @@ public interface IChatClient extends Closeable {
 
 	/**
 	 * <p>
-	 * Queries SO Chat for the original, Markdown-encoded message that the user
-	 * actually typed into the chat room (SO Chat normally returns an
-	 * HTML-encoded version of the message).
+	 * Queries the chat service for the original, Markdown-encoded message that
+	 * the user actually typed into the chat room (when messages are retrieved
+	 * off the web socket, the messages returned as HTML).
 	 * </p>
 	 * <p>
 	 * Note that this will give you EXACTLY what the user typed into the chat.
-	 * For example, if they typed a single space character before their message,
-	 * the space character will NOT appear the HTML-formatted message, but WILL
-	 * appear in the string returned by this method.
+	 * For example, if they prefixed their message with a single space
+	 * character, the space character will NOT appear the HTML-formatted
+	 * message, but WILL appear in the string returned by this method.
 	 * </p>
 	 * @param messageId the message ID
 	 * @return the plain text message

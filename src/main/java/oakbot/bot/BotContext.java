@@ -177,9 +177,9 @@ public class BotContext {
 
 	/**
 	 * <p>
-	 * Queries SO Chat for the original, Markdown-encoded message that the user
-	 * actually typed into the chat room (SO Chat normally returns an
-	 * HTML-encoded version of the message).
+	 * Queries the chat service for the original, Markdown-encoded message that
+	 * the user actually typed into the chat room (when messages are retrieved
+	 * off the web socket, the messages returned as HTML).
 	 * </p>
 	 * <p>
 	 * Note that this involves sending an HTTP GET request to the server.

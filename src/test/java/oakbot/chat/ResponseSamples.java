@@ -53,6 +53,23 @@ public final class ResponseSamples {
 	}
 
 	/**
+	 * Gets the HTML of the Stack Exchange login form.
+	 * @return the HTML page
+	 */
+	public static String stackExchangeLoginForm() {
+		return readFile("stackexchange-login-form.html");
+	}
+
+	/**
+	 * Gets the Stack Exchange page the user gets sent to when their login
+	 * credentials are submitted.
+	 * @return the HTML page
+	 */
+	public static String stackExchangeLoginRedirectPage() {
+		return readFile("stackexchange-login-redirect-page.html");
+	}
+
+	/**
 	 * Generates the response for requesting a web socket URI.
 	 * @param url the URI of the web socket
 	 * @return the JSON response
