@@ -67,15 +67,12 @@ public class Site {
 	public boolean login(String email, String password, Http http) throws IOException {
 		Response response = http.get("https://" + getDomain() + "/users/login");
 		Document loginPage = response.getBodyAsHtml();
+
 		Elements elements = loginPage.select("input[name=fkey]");
 		if (elements.isEmpty()) {
 			throw new IOException("\"fkey\" field not found on Stack Exchange login page, cannot login.");
 		}
 		String fkey = elements.first().attr("value");
-
-		if (fkey == null) {
-			throw new IOException("\"fkey\" field not found on login page, cannot login.");
-		}
 
 		response = http.post("https://" + getDomain() + "/users/login", //@formatter:off
 			"email", email,
