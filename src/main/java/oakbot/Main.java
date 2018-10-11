@@ -27,6 +27,7 @@ import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import oakbot.bot.Bot;
 import oakbot.chat.ChatClient;
 import oakbot.chat.IChatClient;
+import oakbot.chat.Site;
 import oakbot.chat.mock.FileChatClient;
 import oakbot.command.AboutCommand;
 import oakbot.command.AdventOfCodeApi;
@@ -259,6 +260,8 @@ public class Main {
 		if (mock) {
 			connection = new FileChatClient(props.getBotUserId(), props.getBotUserName(), props.getAdmins().get(0), "Michael");
 		} else {
+			Site site = getSite(props);
+
 			CloseableHttpClient httpClient = HttpClients.createDefault();
 
 			ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
@@ -266,7 +269,7 @@ public class Main {
 			websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
 
 			System.out.println("Logging in as " + props.getLoginEmail() + "...");
-			connection = new ChatClient(httpClient, websocketClient);
+			connection = new ChatClient(httpClient, websocketClient, site);
 			connection.login(props.getLoginEmail(), props.getLoginPassword());
 		}
 
@@ -338,6 +341,22 @@ public class Main {
 		boolean javadocCache = props.getJavadocCache();
 		JavadocDao dao = javadocCache ? new JavadocDaoCached(javadocPath) : new JavadocDaoUncached(javadocPath);
 		return new JavadocCommand(dao);
+	}
+
+	private static Site getSite(BotProperties props) {
+		String domain = props.getSite().toLowerCase();
+		if (domain == null || domain.trim().isEmpty()) {
+			return Site.STACKOVERFLOW;
+		}
+
+		Site sites[] = new Site[] { Site.STACKOVERFLOW, Site.STACKEXCHANGE, Site.META };
+		for (Site site : sites) {
+			if (site.getDomain().equals(domain)) {
+				return site;
+			}
+		}
+
+		return null;
 	}
 
 	private Main() {

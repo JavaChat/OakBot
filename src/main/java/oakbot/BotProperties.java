@@ -17,7 +17,7 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
-	private final String loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey, tenorKey, adventOfCodeSession;
+	private final String site, loginEmail, password, botUserName, trigger, greeting, dictionaryKey, aboutHost, catKey, reactKey, tenorKey, adventOfCodeSession;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, allowedUsers, healthMonitor;
 	private final Integer botUserId;
 	private final Integer hideOneboxesAfter;
@@ -31,6 +31,7 @@ public class BotProperties extends PropertiesWrapper {
 	public BotProperties(Properties properties) {
 		super(properties);
 
+		site = get("account.site");
 		loginEmail = get("account.email");
 		password = get("account.password");
 		botUserName = get("account.userName");
@@ -94,7 +95,15 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the Stack Overflow login email address.
+	 * Gets the site to connect to.
+	 * @return the site (e.g. "stackoverflow.com") or null if not set
+	 */
+	public String getSite() {
+		return site;
+	}
+
+	/**
+	 * Gets the login email address.
 	 * @return the login email address or null if not set
 	 */
 	public String getLoginEmail() {
@@ -102,7 +111,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the Stack Overflow login password.
+	 * Gets the login password.
 	 * @return the login password or null if not set
 	 */
 	public String getLoginPassword() {
@@ -110,7 +119,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the user name associated with the bot's Stack Overflow account.
+	 * Gets the user name associated with the bot's account.
 	 * @return the bot's name
 	 */
 	public String getBotUserName() {
@@ -118,7 +127,7 @@ public class BotProperties extends PropertiesWrapper {
 	}
 
 	/**
-	 * Gets the user ID of the Stack Overflow account.
+	 * Gets the user ID of the account.
 	 * @return the user ID
 	 */
 	public Integer getBotUserId() {
