@@ -19,6 +19,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,11 +43,8 @@ public class HttpTest {
 		Sleeper.unitTest = false;
 	}
 
-	/**
-	 * Make sure it generates the Response object properly.
-	 */
 	@Test
-	public void response() throws Exception {
+	public void response_plaintext() throws Exception {
 		CloseableHttpResponse r = mockResponse(200, "The body");
 		CloseableHttpClient client = mock(CloseableHttpClient.class);
 		when(client.execute(any(HttpUriRequest.class))).thenReturn(r);
@@ -61,11 +60,9 @@ public class HttpTest {
 		} catch (JsonProcessingException e) {
 			//expected
 		}
+		assertNotNull(response.getBodyAsHtml());
 	}
 
-	/**
-	 * Make sure it generates the Response object properly.
-	 */
 	@Test
 	public void response_json() throws Exception {
 		CloseableHttpResponse r = mockResponse(200, "{}");
@@ -78,6 +75,33 @@ public class HttpTest {
 		assertEquals(200, response.getStatusCode());
 		assertEquals("{}", response.getBody());
 		assertNotNull(response.getBodyAsJson());
+		assertNotNull(response.getBodyAsHtml());
+	}
+
+	@Test
+	public void response_html() throws Exception {
+		CloseableHttpResponse r = mockResponse(200, "<html><a href=\"foo.html\">link</a></html>");
+		CloseableHttpClient client = mock(CloseableHttpClient.class);
+		when(client.execute(any(HttpUriRequest.class))).thenReturn(r);
+
+		Http http = new Http(client);
+
+		Http.Response response = http.get("http://www.example.com/test/index.html");
+		assertEquals(200, response.getStatusCode());
+		assertEquals("<html><a href=\"foo.html\">link</a></html>", response.getBody());
+		try {
+			response.getBodyAsJson();
+			fail();
+		} catch (JsonProcessingException e) {
+			//expected
+		}
+
+		/*
+		 * Make sure it resolves relative URLs.
+		 */
+		Document document = response.getBodyAsHtml();
+		Element link = document.select("a").first();
+		assertEquals("http://www.example.com/test/foo.html", link.absUrl("href"));
 	}
 
 	/**

@@ -21,6 +21,8 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -148,7 +150,7 @@ public class Http implements Closeable {
 				continue;
 			}
 
-			Response response = new Response(statusCode, body);
+			Response response = new Response(statusCode, body, request.getURI().toString());
 
 			if (logger.isLoggable(Level.FINE)) {
 				String bodyDebug;
@@ -207,16 +209,19 @@ public class Http implements Closeable {
 	 * @author Michael Angstadt
 	 */
 	public static class Response {
-		private int statusCode;
-		private String body;
+		private final int statusCode;
+		private final String body;
+		private final String requestUri;
 
 		/**
 		 * @param statusCode the status code (e.g. 200)
 		 * @param body the response body
+		 * @param requestUri the request URI that generated this response
 		 */
-		public Response(int statusCode, String body) {
+		public Response(int statusCode, String body, String requestUri) {
 			this.statusCode = statusCode;
 			this.body = body;
+			this.requestUri = requestUri;
 		}
 
 		/**
@@ -258,6 +263,14 @@ public class Http implements Closeable {
 				 */
 				throw new RuntimeException(e);
 			}
+		}
+
+		/**
+		 * Parses the response body as HTML.
+		 * @return the parsed HTML document
+		 */
+		public Document getBodyAsHtml() {
+			return Jsoup.parse(body, requestUri);
 		}
 	}
 }
