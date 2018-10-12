@@ -344,14 +344,14 @@ public class Main {
 	}
 
 	private static Site getSite(BotProperties props) {
-		String domain = props.getSite().toLowerCase();
+		String domain = props.getSite();
 		if (domain == null || domain.trim().isEmpty()) {
 			return Site.STACKOVERFLOW;
 		}
 
 		Site sites[] = new Site[] { Site.STACKOVERFLOW, Site.STACKEXCHANGE, Site.META };
 		for (Site site : sites) {
-			if (site.getDomain().equals(domain)) {
+			if (site.getDomain().equalsIgnoreCase(domain)) {
 				return site;
 			}
 		}
