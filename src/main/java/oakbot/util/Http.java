@@ -3,6 +3,7 @@ package oakbot.util;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -93,7 +94,7 @@ public class Http implements Closeable {
 		}
 
 		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Sending request [method=POST; URI=" + uri + "; params=" + parameters + "]...");
+			logger.fine("Sending request [method=POST; URI=" + uri + "; params=" + Arrays.toString(parameters) + "]...");
 		}
 
 		return send(request);
