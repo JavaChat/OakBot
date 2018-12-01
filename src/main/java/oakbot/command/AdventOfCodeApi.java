@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -126,18 +125,13 @@ public class AdventOfCodeApi {
 
 	/**
 	 * Parses the value of a JSON node as an {@link Instant}.
-	 * @param node the JSON node (must be a string in {@link OffsetDateTime}
-	 * format
+	 * @param node the JSON node (must contain the number of seconds since the
+	 * epoch)
 	 * @return the parsed value
 	 */
 	private static Instant asInstant(JsonNode node) {
-		String text = node.asText();
-
-		//add a colon to the offset
-		text = text.substring(0, text.length() - 2) + ":" + text.substring(text.length() - 2);
-
-		OffsetDateTime offset = OffsetDateTime.parse(text);
-		return offset.toInstant();
+		long ts = node.asLong();
+		return Instant.ofEpochSecond(ts);
 	}
 
 	/**

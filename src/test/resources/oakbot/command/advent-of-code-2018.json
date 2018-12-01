@@ -1,0 +1,114 @@
+{
+	"members": {
+		"55305": {
+			"global_score": 187,
+			"name": "Unihedron",
+			"stars": 2,
+			"id": "55305",
+			"last_star_ts": "1543640570",
+			"local_score": 18,
+			"completion_day_level": {
+				"1": {
+					"1": {
+						"get_star_ts": "1543640433"
+					},
+					"2": {
+						"get_star_ts": "1543640570"
+					}
+				}
+			}
+		},
+		"196939": {
+			"global_score": 0,
+			"completion_day_level": {
+				"1": {
+					"1": {
+						"get_star_ts": "1543690914"
+					},
+					"2": {
+						"get_star_ts": "1543692958"
+					}
+				}
+			},
+			"id": "196939",
+			"stars": 2,
+			"name": "geisterfurz007",
+			"local_score": 16,
+			"last_star_ts": "1543692958"
+		},
+		"213234": {
+			"stars": 0,
+			"name": "Neoares",
+			"id": "213234",
+			"last_star_ts": 0,
+			"local_score": 0,
+			"completion_day_level": {},
+			"global_score": 0
+		},
+		"238844": {
+			"id": "238844",
+			"stars": 0,
+			"name": "Zoe",
+			"local_score": 0,
+			"last_star_ts": 0,
+			"completion_day_level": {},
+			"global_score": 0
+		},
+		"256093": {
+			"name": "Mike Angstadt",
+			"stars": 2,
+			"id": "256093",
+			"last_star_ts": "1543640570",
+			"local_score": 18,
+			"completion_day_level": {
+				"1": {
+					"1": {
+						"get_star_ts": "1543640433"
+					},
+					"2": {
+						"get_star_ts": "1543640570"
+					}
+				}
+			},
+			"global_score": 187
+		},
+		"284596": {
+			"completion_day_level": {},
+			"stars": 0,
+			"name": "Jenna Sloan",
+			"id": "284596",
+			"last_star_ts": 0,
+			"local_score": 0,
+			"global_score": 0
+		},
+		"302170": {
+			"global_score": 0,
+			"name": "Patrick Stegmann",
+			"stars": 0,
+			"id": "302170",
+			"local_score": 0,
+			"last_star_ts": 0,
+			"completion_day_level": {}
+		},
+		"371917": {
+			"global_score": 0,
+			"completion_day_level": {},
+			"local_score": 0,
+			"last_star_ts": 0,
+			"name": "nicktar",
+			"stars": 0,
+			"id": "371917"
+		},
+		"376542": {
+			"global_score": 0,
+			"stars": 0,
+			"id": "376542",
+			"name": null,
+			"last_star_ts": 0,
+			"local_score": 0,
+			"completion_day_level": {}
+		}
+	},
+	"event": "2018",
+	"owner_id": "256093"
+}
