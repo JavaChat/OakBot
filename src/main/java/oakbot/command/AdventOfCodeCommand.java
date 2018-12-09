@@ -4,6 +4,7 @@ import static oakbot.command.Command.reply;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,11 @@ public class AdventOfCodeCommand implements Command {
 	@Override
 	public String name() {
 		return "advent";
+	}
+
+	@Override
+	public List<String> aliases() {
+		return Arrays.asList("aoc");
 	}
 
 	@Override
