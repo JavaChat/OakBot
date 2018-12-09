@@ -65,6 +65,7 @@ public class AdventOfCodeApi {
 			String name = nameNode.isNull() ? null : nameNode.asText();
 			int score = member.get("local_score").asInt();
 			int stars = member.get("stars").asInt();
+			int id = member.get("id").asInt();
 
 			Map<Integer, Instant[]> completionTimes = new HashMap<>();
 			Iterator<Map.Entry<String, JsonNode>> fields = member.get("completion_day_level").fields();
@@ -80,7 +81,7 @@ public class AdventOfCodeApi {
 				completionTimes.put(number, new Instant[] { first, second });
 			}
 
-			Player player = new Player(name, score, stars, completionTimes);
+			Player player = new Player(id, name, score, stars, completionTimes);
 
 			boolean isOwner = member.get("id").asText().equals(ownerId);
 			if (isOwner) {
@@ -139,16 +140,22 @@ public class AdventOfCodeApi {
 	 * @author Michael Angstadt
 	 */
 	public static class Player {
+		private final int id;
 		private final String name;
 		private final int score;
 		private final int stars;
 		private final Map<Integer, Instant[]> completionTimes;
 
-		public Player(String name, int score, int stars, Map<Integer, Instant[]> completionTimes) {
+		public Player(int id, String name, int score, int stars, Map<Integer, Instant[]> completionTimes) {
+			this.id = id;
 			this.name = name;
 			this.score = score;
 			this.stars = stars;
 			this.completionTimes = completionTimes;
+		}
+
+		public int getId() {
+			return id;
 		}
 
 		public String getName() {

@@ -137,7 +137,7 @@ public class AdventOfCodeCommandTest {
 		"10. ArcticEcho - 102 (12 stars)\n" +
 		"11. Shady_maniac - 90 (8 stars)\n" +
 		"12. dSolver - 90 (12 stars)\n" +
-		"13. anonymous - 38 (6 stars)\n" +
+		"13. anonymous user #238463 - 38 (6 stars)\n" +
 		"14. Michael Prieto - 31 (5 stars)\n" +
 		"15. Simon - 26 (5 stars)\n" +
 		"16. Jacob Gray - 0 (0 stars)\n";

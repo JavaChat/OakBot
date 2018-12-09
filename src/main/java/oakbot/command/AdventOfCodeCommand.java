@@ -99,7 +99,7 @@ public class AdventOfCodeCommand implements Command {
 		for (Player player : players) {
 			//@formatter:off
 			cb.append(rank).append(". ")
-			.append((player.getName() == null) ? "anonymous" : player.getName())
+			.append((player.getName() == null) ? "anonymous user #" + player.getId() : player.getName())
 			.append(" - ").append(player.getScore())
 			.append(" (").append(player.getStars()).append(" stars)")
 			.nl();

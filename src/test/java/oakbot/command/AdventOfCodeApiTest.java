@@ -25,6 +25,7 @@ public class AdventOfCodeApiTest {
 		assertEquals(9, players.size());
 
 		Player owner = players.get(0);
+		assertEquals(256093, owner.getId());
 		assertEquals("Mike Angstadt", owner.getName());
 		assertEquals(18, owner.getScore());
 		assertEquals(2, owner.getStars());

@@ -68,18 +68,22 @@ public class AdventOfCodeTask implements ScheduledTask {
 					Instant[] completionTime = entry2.getValue();
 
 					if (completionTime[0].isAfter(prevChecked)) {
+						String playerName = (player.getName() == null) ? "anonymous user #" + player.getId() : player.getName();
+
 						//@formatter:off
 						bot.sendMessage(roomId, new ChatResponse(new ChatBuilder()
-							.bold(player.getName())
+							.bold(playerName)
 							.append(" completed part 1 of day ").append(day).append("! \\o/")
 						));
 						//@formatter:on
 					}
 
 					if (completionTime[1] != null && completionTime[1].isAfter(prevChecked)) {
+						String playerName = (player.getName() == null) ? "anonymous user #" + player.getId() : player.getName();
+
 						//@formatter:off
 						bot.sendMessage(roomId, new ChatResponse(new ChatBuilder()
-							.bold(player.getName())
+							.bold(playerName)
 							.append(" completed part 2 of day ").append(day).append("! \\o/")
 						));
 						//@formatter:on
