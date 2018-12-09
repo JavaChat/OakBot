@@ -34,7 +34,7 @@ public class AdventOfCodeCommandTest {
 		leaderboardIds.put(1, "123456");
 		AdventOfCodeCommand command = mock(leaderboardIds, "123456");
 
-		ChatResponse response = command.onMessage(message, null);
+		ChatResponse response = command.onMessage(message, mockBotContext());
 		assertLeaderboardResponse("123456", response);
 	}
 
@@ -70,7 +70,7 @@ public class AdventOfCodeCommandTest {
 		leaderboardIds.put(1, "123456");
 		AdventOfCodeCommand command = mock(leaderboardIds, "098765");
 
-		ChatResponse response = command.onMessage(message, null);
+		ChatResponse response = command.onMessage(message, mockBotContext());
 		assertLeaderboardResponse("098765", response);
 	}
 
@@ -144,5 +144,9 @@ public class AdventOfCodeCommandTest {
 		//@formatter:on
 
 		assertEquals(expected, actual.getMessage());
+	}
+
+	private static BotContext mockBotContext() {
+		return new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 1);
 	}
 }

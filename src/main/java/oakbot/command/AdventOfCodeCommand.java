@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
+import oakbot.chat.SplitStrategy;
 import oakbot.command.AdventOfCodeApi.Player;
 import oakbot.util.ChatBuilder;
 
@@ -61,7 +62,8 @@ public class AdventOfCodeCommand implements Command {
 		}
 
 		String leaderboardId = chatCommand.getContent().trim();
-		if (leaderboardId.isEmpty()) {
+		boolean displayDefaultLeaderboard = leaderboardId.isEmpty();
+		if (displayDefaultLeaderboard) {
 			leaderboardId = defaultLeaderboardIds.get(chatCommand.getMessage().getRoomId());
 		}
 
@@ -123,7 +125,14 @@ public class AdventOfCodeCommand implements Command {
 			prevStars = player.getStars();
 		}
 
-		return new ChatResponse(cb);
+		ChatBuilder condensed = new ChatBuilder();
+		condensed.append("Type ").code().append(context.getTrigger()).append(name());
+		if (!displayDefaultLeaderboard) {
+			condensed.append(" " + leaderboardId);
+		}
+		condensed.code().append(" to see the leaderboard again (or go here: ").append(htmlUrl).append(")");
+
+		return new ChatResponse(cb, SplitStrategy.NONE, true, condensed);
 	}
 
 	/**
