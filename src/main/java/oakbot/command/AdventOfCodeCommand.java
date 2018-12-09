@@ -87,7 +87,12 @@ public class AdventOfCodeCommand implements Command {
 
 		//sort by score descending
 		Collections.sort(players, (a, b) -> {
-			return b.getScore() - a.getScore();
+			int c = b.getScore() - a.getScore();
+			if (c != 0) {
+				return c;
+			}
+
+			return b.getStars() - a.getStars();
 		});
 
 		//output leaderboard
@@ -95,8 +100,17 @@ public class AdventOfCodeCommand implements Command {
 		String htmlUrl = api.getLeaderboardWebsite(leaderboardId);
 		cb.append("Leaderboard owned by ").append(owner.getName()).append(" (").append(htmlUrl).append(")").nl();
 
-		int rank = 1;
+		int rank = 0;
+		int prevScore = -1, prevStars = -1;
 		for (Player player : players) {
+			/*
+			 * Do not increase the rank number if two players have the same
+			 * score & stars.
+			 */
+			if (player.getScore() != prevScore || player.getStars() != prevStars) {
+				rank++;
+			}
+
 			//@formatter:off
 			cb.append(rank).append(". ")
 			.append((player.getName() == null) ? "anonymous user #" + player.getId() : player.getName())
@@ -105,7 +119,8 @@ public class AdventOfCodeCommand implements Command {
 			.nl();
 			//@formatter:on
 
-			rank++;
+			prevScore = player.getScore();
+			prevStars = player.getStars();
 		}
 
 		return new ChatResponse(cb);
