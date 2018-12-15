@@ -124,23 +124,23 @@ public class AdventOfCodeCommandTest {
 
 		//@formatter:off
 		String expected = 
-		"Leaderboard owned by Unihedron (http://adventofcode.com/" + year + "/leaderboard/private/view/" + expectedId + ")\n" +
-		"1. gzgreg - 312 (20 stars)\n" +
-		"2. Unihedron - 306 (20 stars)\n" +
-		"3. geisterfurz007 - 230 (20 stars)\n" +
-		"3. Lazy Zefiris - 230 (20 stars)\n" +
-		"4. Rishav - 227 (18 stars)\n" +
-		"5. asterisk man - 205 (20 stars)\n" +
-		"6. ByteCommander - 201 (18 stars)\n" +
-		"7. Mike Angstadt - 124 (20 stars)\n" +
-		"8. ProgramFOX - 104 (13 stars)\n" +
-		"9. ArcticEcho - 102 (12 stars)\n" +
-		"10. dSolver - 90 (12 stars)\n" +
-		"11. Shady_maniac - 90 (8 stars)\n" +
-		"12. anonymous user #238463 - 38 (6 stars)\n" +
-		"13. Michael Prieto - 31 (5 stars)\n" +
-		"14. Simon - 26 (5 stars)\n" +
-		"15. Jacob Gray - 0 (0 stars)\n";
+		    "    Leaderboard owned by Unihedron (http://adventofcode.com/" + year + "/leaderboard/private/view/" + expectedId + ")\n" +
+	        "    1.  gzgreg         (score: 312) *****|*****|.....|.....|..... 20 stars\n" +
+	        "    2.  Unihedron      (score: 306) *****|*****|.....|.....|..... 20 stars\n" +
+	        "    3.  geisterfurz007 (score: 230) *****|*****|.....|.....|..... 20 stars\n" +
+	        "    3.  Lazy Zefiris   (score: 230) *****|*****|.....|.....|..... 20 stars\n" +
+	        "    4.  Rishav         (score: 227) *****|****.|.....|.....|..... 18 stars\n" +
+	        "    5.  asterisk man   (score: 205) *****|*****|.....|.....|..... 20 stars\n" +
+	        "    6.  ByteCommander  (score: 201) *****|****.|.....|.....|..... 18 stars\n" +
+	        "    7.  Mike Angstadt  (score: 124) *****|*****|.....|.....|..... 20 stars\n" +
+	        "    8.  ProgramFOX     (score: 104) *****|*^...|.....|.....|..... 13 stars\n" +
+	        "    9.  ArcticEcho     (score: 102) *****|*....|.....|.....|..... 12 stars\n" +
+	        "    10. dSolver        (score:  90) *****|*....|.....|.....|..... 12 stars\n" +
+	        "    11. Shady_maniac   (score:  90) **.**|.....|.....|.....|.....  8 stars\n" +
+	        "    12. (user #238463) (score:  38) ***..|.....|.....|.....|.....  6 stars\n" +
+	        "    13. Michael Prieto (score:  31) **^..|.....|.....|.....|.....  5 stars\n" +
+	        "    14. Simon          (score:  26) **.^.|.....|.....|.....|.....  5 stars\n" +
+	        "    15. Jacob Gray     (score:   0) .....|.....|.....|.....|.....  0 stars\n";
 		//@formatter:on
 
 		assertEquals(expected, actual.getMessage());

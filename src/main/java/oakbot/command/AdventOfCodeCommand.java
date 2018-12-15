@@ -2,8 +2,10 @@ package oakbot.command;
 
 import static oakbot.command.Command.reply;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -97,14 +99,39 @@ public class AdventOfCodeCommand implements Command {
 			return b.getStars() - a.getStars();
 		});
 
+		//build names
+		List<String> names = new ArrayList<>(players.size());
+		int lengthOfLongestName = 0;
+		for (Player player : players) {
+			String name = (player.getName() == null) ? "(user #" + player.getId() + ")" : player.getName();
+			if (name.length() > lengthOfLongestName) {
+				lengthOfLongestName = name.length();
+			}
+			names.add(name);
+		}
+
+		//find number of digits in highest score
+		int digitsInHighestScore = 0;
+		{
+			int highestScore = -1;
+			for (Player player : players) {
+				if (player.getScore() > highestScore) {
+					highestScore = player.getScore();
+				}
+			}
+			digitsInHighestScore = numberOfDigits(highestScore);
+		}
+
 		//output leaderboard
 		ChatBuilder cb = new ChatBuilder();
 		String htmlUrl = api.getLeaderboardWebsite(leaderboardId);
-		cb.append("Leaderboard owned by ").append(owner.getName()).append(" (").append(htmlUrl).append(")").nl();
+		cb.fixed().append("Leaderboard owned by ").append(owner.getName()).append(" (").append(htmlUrl).append(")").nl();
 
 		int rank = 0;
 		int prevScore = -1, prevStars = -1;
-		for (Player player : players) {
+		for (int i = 0; i < players.size(); i++) {
+			Player player = players.get(i);
+
 			/*
 			 * Do not increase the rank number if two players have the same
 			 * score & stars.
@@ -113,13 +140,49 @@ public class AdventOfCodeCommand implements Command {
 				rank++;
 			}
 
-			//@formatter:off
-			cb.append(rank).append(". ")
-			.append((player.getName() == null) ? "anonymous user #" + player.getId() : player.getName())
-			.append(" - ").append(player.getScore())
-			.append(" (").append(player.getStars()).append(" stars)")
-			.nl();
-			//@formatter:on
+			cb.fixed();
+
+			//output rank
+			cb.append(rank).append(". ");
+			if (rank < 10) {
+				cb.append(' ');
+			}
+
+			//output name
+			String playerName = names.get(i);
+			cb.append(playerName).append(' ', lengthOfLongestName - playerName.length());
+
+			//output score
+			cb.append(" (score: ");
+			cb.append(' ', digitsInHighestScore - numberOfDigits(player.getScore()));
+			cb.append(player.getScore()).append(") ");
+
+			//output stars
+			Map<Integer, Instant[]> days = player.getCompletionTimes();
+			for (int day = 1; day <= 25; day++) {
+				Instant[] parts = days.get(day);
+				if (parts == null) {
+					//did not finish anything
+					cb.append('.');
+				} else if (parts[1] == null) {
+					//only finished part 1
+					cb.append('^');
+				} else {
+					//finished part 1 and 2
+					cb.append('*');
+				}
+
+				if (day != 25 && day % 5 == 0) {
+					cb.append('|');
+				}
+			}
+
+			//output star count
+			cb.append(' ');
+			if (player.getStars() < 10) {
+				cb.append(' ');
+			}
+			cb.append(player.getStars()).append(" stars").nl();
 
 			prevScore = player.getScore();
 			prevStars = player.getStars();
@@ -133,6 +196,19 @@ public class AdventOfCodeCommand implements Command {
 		condensed.code().append(" to see the leaderboard again (or go here: ").append(htmlUrl).append(")");
 
 		return new ChatResponse(cb, SplitStrategy.NONE, true, condensed);
+	}
+
+	private static int numberOfDigits(int number) {
+		if (number == 0) {
+			return 1;
+		}
+
+		int digits = 0;
+		while (number > 0) {
+			number = number / 10;
+			digits++;
+		}
+		return digits;
 	}
 
 	/**

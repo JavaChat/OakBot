@@ -213,6 +213,19 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
+	 * Appends a raw character multiple times.
+	 * @param c the character to append
+	 * @param repeat the number of times to repeat the character
+	 * @return this
+	 */
+	public ChatBuilder append(char c, int repeat) {
+		for (int i = 0; i < repeat; i++) {
+			append(c);
+		}
+		return this;
+	}
+
+	/**
 	 * Appends a number.
 	 * @param i the number to append
 	 * @return this
