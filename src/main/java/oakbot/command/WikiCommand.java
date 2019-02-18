@@ -35,7 +35,10 @@ public class WikiCommand implements Command {
 			return reply("Please specify the term you'd like to display.", chatCommand);
 		}
 
-		String url = "http://en.wikipedia.org/wiki/" + UrlEscapers.urlPathSegmentEscaper().escape(content);
+		content = content.replace(' ', '_');
+		content = UrlEscapers.urlPathSegmentEscaper().escape(content);
+
+		String url = "http://en.wikipedia.org/wiki/" + content;
 		return new ChatResponse(url);
 	}
 }
