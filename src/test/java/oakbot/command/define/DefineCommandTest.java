@@ -14,111 +14,137 @@ import oakbot.bot.ChatResponse;
 import oakbot.util.ChatCommandBuilder;
 
 public class DefineCommandTest {
-	private final ChatCommandBuilder chatCommandBuilder = new ChatCommandBuilder(new DefineCommand("").name());
-
 	@Test
 	public void no_word() {
-		ChatCommand message = chatCommandBuilder.build(1, "");
-		DefineCommand urban = new DefineCommand("theKey");
-		ChatResponse response = urban.onMessage(message, null);
+		DefineCommand command = new DefineCommand("apiKey");
+		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
+
+		ChatResponse response = command.onMessage(message, null);
 		assertEquals(":1 Please specify the word you'd like to define.", response.getMessage());
 	}
 
 	@Test
 	public void ioexception() throws Exception {
-		ChatCommand message = chatCommandBuilder.build(1, "cool");
-		DefineCommand urban = new DefineCommand("theKey") {
+		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
 				throw new IOException();
 			}
 		};
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("cool")
+		.build(); //@formatter:on
 
-		ChatResponse response = urban.onMessage(message, null);
+		ChatResponse response = command.onMessage(message, null);
 		assertTrue(response.getMessage().startsWith(":1 Sorry"));
 	}
 
 	@Test
 	public void non_xml_response() throws Exception {
-		ChatCommand message = chatCommandBuilder.build(1, "cool");
-		DefineCommand urban = new DefineCommand("theKey") {
+		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=theKey", url);
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
 				return new ByteArrayInputStream("not XML".getBytes());
 			}
 		};
-		ChatResponse response = urban.onMessage(message, null);
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("cool")
+		.build(); //@formatter:on
+
+		ChatResponse response = command.onMessage(message, null);
 		assertTrue(response.getMessage().startsWith(":1 Sorry"));
 	}
 
 	@Test
 	public void not_found() throws Exception {
-		ChatCommand message = chatCommandBuilder.build(1, "cool");
-		DefineCommand urban = new DefineCommand("theKey") {
+		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=theKey", url);
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list/>".getBytes());
 			}
 		};
-		ChatResponse response = urban.onMessage(message, null);
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("cool")
+		.build(); //@formatter:on
+
+		ChatResponse response = command.onMessage(message, null);
 		assertEquals(":1 No definitions found.", response.getMessage());
 	}
 
 	@Test
 	public void not_found_suggestions_one() throws Exception {
-		ChatCommand message = chatCommandBuilder.build(1, "col");
-		DefineCommand urban = new DefineCommand("theKey") {
+		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=theKey", url);
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion></entry_list>".getBytes());
 			}
 		};
-		ChatResponse response = urban.onMessage(message, null);
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("col")
+		.build(); //@formatter:on
+
+		ChatResponse response = command.onMessage(message, null);
 		assertEquals(":1 No definitions found. Did you mean cool?", response.getMessage());
 	}
 
 	@Test
 	public void not_found_suggestions_two() throws Exception {
-		ChatCommand message = chatCommandBuilder.build(1, "col");
-		DefineCommand urban = new DefineCommand("theKey") {
+		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=theKey", url);
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion></entry_list>".getBytes());
 			}
 		};
-		ChatResponse response = urban.onMessage(message, null);
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("col")
+		.build(); //@formatter:on
+
+		ChatResponse response = command.onMessage(message, null);
 		assertEquals(":1 No definitions found. Did you mean cool or cold?", response.getMessage());
 	}
 
 	@Test
 	public void not_found_suggestions_multiple() throws Exception {
-		ChatCommand message = chatCommandBuilder.build(1, "col");
-		DefineCommand urban = new DefineCommand("theKey") {
+		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=theKey", url);
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion><suggestion>colt</suggestion></entry_list>".getBytes());
 			}
 		};
-		ChatResponse response = urban.onMessage(message, null);
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("col")
+		.build(); //@formatter:on
+
+		ChatResponse response = command.onMessage(message, null);
 		assertEquals(":1 No definitions found. Did you mean cool, cold, or colt?", response.getMessage());
 	}
 
 	@Test
 	public void multiple_definitions() throws Exception {
-		ChatCommand message = chatCommandBuilder.build(1, "cool");
-		DefineCommand urban = new DefineCommand("theKey") {
+		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=theKey", url);
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
 				return getClass().getResourceAsStream("cool.xml");
 			}
 		};
-		ChatResponse response = urban.onMessage(message, null);
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("cool")
+		.build(); //@formatter:on
+
+		ChatResponse response = command.onMessage(message, null);
 		//@formatter:off
 		assertEquals(
 			"cool (adjective):\n" +
@@ -199,14 +225,18 @@ public class DefineCommandTest {
 
 	@Test
 	public void encode_parameters() throws Exception {
-		ChatCommand message = chatCommandBuilder.build(1, "grand piano");
-		DefineCommand urban = new DefineCommand("theKey") {
+		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand%20piano?key=theKey", url);
+				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand%20piano?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list/>".getBytes());
 			}
 		};
-		urban.onMessage(message, null);
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("grand piano")
+		.build(); //@formatter:on
+
+		command.onMessage(message, null);
 	}
 }

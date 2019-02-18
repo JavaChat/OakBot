@@ -11,6 +11,7 @@ import java.net.URI;
 import org.junit.Test;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Gobble;
@@ -31,8 +32,8 @@ public class FacepalmCommandTest {
 			}
 		};
 
-		ChatCommandBuilder ccb = new ChatCommandBuilder(command.name());
-		ChatResponse response = command.onMessage(ccb.build(1, ""), mock(BotContext.class));
+		ChatCommand message = new ChatCommandBuilder(command).build();
+		ChatResponse response = command.onMessage(message, mock(BotContext.class));
 
 		assertEquals("https://media.tenor.com/images/7e45bbaa8859d5cf8721f78974f480d4/tenor.gif", response.getMessage());
 		assertEquals("https://media.tenor.com/images/7e45bbaa8859d5cf8721f78974f480d4/tenor.gif (via [Tenor](https://tenor.com))", response.getCondensedMessage());
@@ -48,8 +49,8 @@ public class FacepalmCommandTest {
 			}
 		};
 
-		ChatCommandBuilder ccb = new ChatCommandBuilder(command.name());
-		ChatResponse response = command.onMessage(ccb.build(1, ""), mock(BotContext.class));
+		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
+		ChatResponse response = command.onMessage(message, mock(BotContext.class));
 
 		assertEquals(":1 Sorry, an error occurred. >.>", response.getMessage());
 		assertNull(response.getCondensedMessage());
@@ -65,8 +66,8 @@ public class FacepalmCommandTest {
 			}
 		};
 
-		ChatCommandBuilder ccb = new ChatCommandBuilder(command.name());
-		ChatResponse response = command.onMessage(ccb.build(1, ""), mock(BotContext.class));
+		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
+		ChatResponse response = command.onMessage(message, mock(BotContext.class));
 
 		assertEquals(":1 Sorry, an error occurred. >.>", response.getMessage());
 		assertNull(response.getCondensedMessage());
@@ -82,8 +83,8 @@ public class FacepalmCommandTest {
 			}
 		};
 
-		ChatCommandBuilder ccb = new ChatCommandBuilder(command.name());
-		ChatResponse response = command.onMessage(ccb.build(1, ""), mock(BotContext.class));
+		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
+		ChatResponse response = command.onMessage(message, mock(BotContext.class));
 
 		assertEquals(":1 Sorry, an error occurred. >.>", response.getMessage());
 		assertNull(response.getCondensedMessage());

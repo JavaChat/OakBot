@@ -15,39 +15,30 @@ import org.junit.Test;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.util.ChatCommandBuilder;
 
 public class LearnCommandTest {
-	private final ChatCommandBuilder ccb = new ChatCommandBuilder(new LearnCommand(null, null).name());
-
 	@Test
 	public void onMessage() throws Exception {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		LearnCommand command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		LocalDateTime now = LocalDateTime.now();
 
-		//@formatter:off
-		ChatCommand cc = new ChatCommand(
-			new ChatMessage.Builder()
-				.messageId(1)
-				.roomId(2)
-				.userId(100)
-				.username("Username")
-				.timestamp(now)
-				.content("/learn name <b>command output</b>")
-			.build(),
-			"learn",
-			"name <b>command output</b>"
-		);
-		//@formatter:on
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.roomId(2)
+			.userId(100)
+			.username("Username")
+			.timestamp(now)
+			.content("name <b>command output</b>")
+		.build(); //@formatter:on
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 		when(context.getOriginalMessageContent(1)).thenReturn("/learn name **command output**");
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 Saved.", response.getMessage());
 
 		LearnedCommand learned = learnedCommands.get("name");
@@ -66,13 +57,12 @@ public class LearnCommandTest {
 	public void onMessage_no_command_name() throws Exception {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		LearnCommand command = new LearnCommand(Collections.emptyList(), learnedCommands);
-
-		ChatCommand cc = ccb.build(1, "");
+		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 You haven't specified the command name or its output.", response.getMessage());
 	}
 
@@ -80,13 +70,15 @@ public class LearnCommandTest {
 	public void onMessage_no_command_output() throws Exception {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		LearnCommand command = new LearnCommand(Collections.emptyList(), learnedCommands);
-
-		ChatCommand cc = ccb.build(1, "test");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("test")
+		.build(); //@formatter:on
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 You haven't specified the command output.", response.getMessage());
 	}
 
@@ -94,13 +86,15 @@ public class LearnCommandTest {
 	public void onMessage_bad_command_name() throws Exception {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		LearnCommand command = new LearnCommand(Collections.emptyList(), learnedCommands);
-
-		ChatCommand cc = ccb.build(1, "foo*bar value");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("foo*bar value")
+		.build(); //@formatter:on
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 Tricksy hobbitses. Command names can only contain letters (a-z) and numbers.", response.getMessage());
 	}
 
@@ -111,13 +105,15 @@ public class LearnCommandTest {
 
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		LearnCommand command = new LearnCommand(Arrays.asList(existing), learnedCommands);
-
-		ChatCommand cc = ccb.build(1, "test value");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("test value")
+		.build(); //@formatter:on
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 A command with that name already exists.", response.getMessage());
 	}
 
@@ -129,13 +125,15 @@ public class LearnCommandTest {
 
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		LearnCommand command = new LearnCommand(Arrays.asList(existing), learnedCommands);
-
-		ChatCommand cc = ccb.build(1, "test value");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("test value")
+		.build(); //@formatter:on
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 A command with that name already exists.", response.getMessage());
 	}
 
@@ -144,13 +142,15 @@ public class LearnCommandTest {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("test").output("output").build());
 		LearnCommand command = new LearnCommand(Collections.emptyList(), learnedCommands);
-
-		ChatCommand cc = ccb.build(1, "test value");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("test value")
+		.build(); //@formatter:on
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 A command with that name already exists.", response.getMessage());
 	}
 
@@ -158,14 +158,16 @@ public class LearnCommandTest {
 	public void onMessage_fixed_width() throws Exception {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		LearnCommand command = new LearnCommand(Collections.emptyList(), learnedCommands);
-
-		ChatCommand cc = ccb.build(1, "<pre class='partial'>test **one**</pre>");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("<pre class='partial'>test **one**</pre>")
+		.build(); //@formatter:on
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 		when(context.getOriginalMessageContent(1)).thenReturn("    /learn test **one**");
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 Saved.", response.getMessage());
 
 		LearnedCommand learned = learnedCommands.get("test");
@@ -176,14 +178,16 @@ public class LearnCommandTest {
 	public void onMessage_IOException() throws Exception {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		LearnCommand command = new LearnCommand(Collections.emptyList(), learnedCommands);
-
-		ChatCommand cc = ccb.build(1, "test <b>one</b>");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("test <b>one</b>")
+		.build(); //@formatter:on
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 		when(context.getOriginalMessageContent(1)).thenThrow(new IOException());
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 Saved.", response.getMessage());
 
 		LearnedCommand learned = learnedCommands.get("test");
@@ -194,14 +198,16 @@ public class LearnCommandTest {
 	public void onMessage_regex_fail() throws Exception {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		LearnCommand command = new LearnCommand(Collections.emptyList(), learnedCommands);
-
-		ChatCommand cc = ccb.build(1, "test <b>one</b>");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("test <b>one</b>")
+		.build(); //@formatter:on
 
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 		when(context.getOriginalMessageContent(1)).thenReturn("plaintext message doesn't match");
 
-		ChatResponse response = command.onMessage(cc, context);
+		ChatResponse response = command.onMessage(message, context);
 		assertEquals(":1 Saved.", response.getMessage());
 
 		LearnedCommand learned = learnedCommands.get("test");

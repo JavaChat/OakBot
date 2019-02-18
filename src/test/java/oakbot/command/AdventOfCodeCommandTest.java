@@ -24,15 +24,15 @@ import oakbot.util.ChatCommandBuilder;
  * @author Michael Angstadt
  */
 public class AdventOfCodeCommandTest {
-	private final ChatCommandBuilder chatCommandBuilder = new ChatCommandBuilder(new AdventOfCodeCommand(new HashMap<>(), null).name());
-
 	@Test
 	public void using_default_id() {
-		ChatCommand message = chatCommandBuilder.build(1, 1, "");
-
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		leaderboardIds.put(1, "123456");
 		AdventOfCodeCommand command = mock(leaderboardIds, "123456");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.roomId(1)
+		.build(); //@formatter:on
 
 		ChatResponse response = command.onMessage(message, mockBotContext());
 		assertLeaderboardResponse("123456", response);
@@ -40,8 +40,6 @@ public class AdventOfCodeCommandTest {
 
 	@Test
 	public void no_default_id() {
-		ChatCommand message = chatCommandBuilder.build(1, 1, "");
-
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		AdventOfCodeApi api = new AdventOfCodeApi("") {
 			@Override
@@ -56,6 +54,7 @@ public class AdventOfCodeCommandTest {
 				return true;
 			}
 		};
+		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
 		BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), null);
 		ChatResponse response = command.onMessage(message, context);
@@ -64,11 +63,13 @@ public class AdventOfCodeCommandTest {
 
 	@Test
 	public void override_default_id() {
-		ChatCommand message = chatCommandBuilder.build(1, 1, "098765");
-
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		leaderboardIds.put(1, "123456");
 		AdventOfCodeCommand command = mock(leaderboardIds, "098765");
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("098765")
+		.build(); //@formatter:on
 
 		ChatResponse response = command.onMessage(message, mockBotContext());
 		assertLeaderboardResponse("098765", response);
@@ -76,8 +77,6 @@ public class AdventOfCodeCommandTest {
 
 	@Test
 	public void not_active() {
-		ChatCommand message = chatCommandBuilder.build(1, 1, "");
-
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		AdventOfCodeApi api = new AdventOfCodeApi("") {
 			@Override
@@ -92,6 +91,7 @@ public class AdventOfCodeCommandTest {
 				return false;
 			}
 		};
+		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
 		BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), null);
 		ChatResponse response = command.onMessage(message, context);

@@ -13,26 +13,34 @@ import oakbot.util.ChatCommandBuilder;
  */
 public class WikiCommandTest {
 	private final WikiCommand command = new WikiCommand();
-	private final ChatCommandBuilder ccb = new ChatCommandBuilder(command.name());
 
 	@Test
 	public void empty() {
-		ChatCommand cc = ccb.build(1, "");
-		ChatResponse response = command.onMessage(cc, null);
+		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
+
+		ChatResponse response = command.onMessage(message, null);
 		assertEquals(":1 Please specify the term you'd like to display.", response.getMessage());
 	}
 
 	@Test
 	public void spaces() {
-		ChatCommand cc = ccb.build(1, "John Doe");
-		ChatResponse response = command.onMessage(cc, null);
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("John Doe")
+		.build(); //@formatter:on
+
+		ChatResponse response = command.onMessage(message, null);
 		assertEquals("http://en.wikipedia.org/wiki/John_Doe", response.getMessage());
 	}
 
 	@Test
 	public void url_safe() {
-		ChatCommand cc = ccb.build(1, "I/O");
-		ChatResponse response = command.onMessage(cc, null);
+		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+			.messageId(1)
+			.content("I/O")
+		.build(); //@formatter:on
+
+		ChatResponse response = command.onMessage(message, null);
 		assertEquals("http://en.wikipedia.org/wiki/I%2FO", response.getMessage());
 	}
 }
