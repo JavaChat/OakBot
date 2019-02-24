@@ -2,9 +2,6 @@ package oakbot.listener;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,7 +12,6 @@ import org.junit.Test;
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.bot.UnknownCommandHandler;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -88,10 +84,10 @@ public class CommandListenerTest {
 
 	@Test
 	public void onMessage_unrecognized_with_handler() {
-		UnknownCommandHandler handler = mock(UnknownCommandHandler.class);
-		when(handler.onMessage(any(ChatCommand.class), any(BotContext.class))).thenReturn(new ChatResponse("Unknown command."));
 		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao(), handler);
+		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao(), (message, context) -> {
+			return new ChatResponse("Unknown command.");
+		});
 
 		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
 		ChatResponse response = listener.onMessage(message, context);

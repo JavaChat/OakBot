@@ -2,11 +2,11 @@ package oakbot.listener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
-import oakbot.bot.UnknownCommandHandler;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -20,7 +20,7 @@ import oakbot.command.learn.LearnedCommandsDao;
 public class CommandListener implements Listener {
 	private final List<Command> commands;
 	private final LearnedCommandsDao learnedCommands;
-	private final UnknownCommandHandler unknownCommandHandler;
+	private final BiFunction<ChatCommand, BotContext, ChatResponse> onUnrecognizedCommand;
 
 	/**
 	 * @param commands the commands
@@ -36,10 +36,10 @@ public class CommandListener implements Listener {
 	 * @param unknownCommandHandler how to respond to unrecognized commands or
 	 * null to ignore unrecognized commands
 	 */
-	public CommandListener(List<Command> commands, LearnedCommandsDao learnedCommands, UnknownCommandHandler unknownCommandHandler) {
+	public CommandListener(List<Command> commands, LearnedCommandsDao learnedCommands, BiFunction<ChatCommand, BotContext, ChatResponse> onUnrecognizedCommand) {
 		this.commands = commands;
 		this.learnedCommands = learnedCommands;
-		this.unknownCommandHandler = unknownCommandHandler;
+		this.onUnrecognizedCommand = onUnrecognizedCommand;
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class CommandListener implements Listener {
 
 		List<Command> matchingCommands = getCommands(chatCommand.getCommandName());
 		if (matchingCommands.isEmpty()) {
-			return (unknownCommandHandler == null) ? null : unknownCommandHandler.onMessage(chatCommand, context);
+			return (onUnrecognizedCommand == null) ? null : onUnrecognizedCommand.apply(chatCommand, context);
 		}
 
 		Command command = matchingCommands.get(0); //TODO support multiple ChatResponse objects being returned?

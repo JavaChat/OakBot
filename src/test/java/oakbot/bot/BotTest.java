@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.junit.After;
@@ -884,11 +885,12 @@ public class BotTest {
 		/*
 		 * Create the handler.
 		 */
-		UnknownCommandHandler handler = mock(UnknownCommandHandler.class);
+		@SuppressWarnings("unchecked")
+		BiFunction<ChatCommand, BotContext, ChatResponse> handler = mock(BiFunction.class);
 		ChatCommand expectedChatCommand1 = new ChatCommand(event1.getMessage(), "foobar", "");
-		when(handler.onMessage(eq(expectedChatCommand1), any(BotContext.class))).thenReturn(null);
+		when(handler.apply(eq(expectedChatCommand1), any(BotContext.class))).thenReturn(null);
 		ChatCommand expectedChatCommand2 = new ChatCommand(event2.getMessage(), "foobar", "");
-		when(handler.onMessage(eq(expectedChatCommand2), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
+		when(handler.apply(eq(expectedChatCommand2), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
 
 		CommandListener commandListener = new CommandListener(Collections.emptyList(), new LearnedCommandsDao(), handler);
 
@@ -910,7 +912,7 @@ public class BotTest {
 		/*
 		 * Verify.
 		 */
-		verify(handler, times(2)).onMessage(any(ChatCommand.class), any(BotContext.class));
+		verify(handler, times(2)).apply(any(ChatCommand.class), any(BotContext.class));
 		verify(room1, times(1)).sendMessage(anyString(), any(SplitStrategy.class));
 		verify(room1).sendMessage("reply", SplitStrategy.NONE);
 	}
