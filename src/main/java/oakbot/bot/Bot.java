@@ -34,8 +34,6 @@ import oakbot.chat.RoomPermissionException;
 import oakbot.chat.event.MessageEditedEvent;
 import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
-import oakbot.command.learn.LearnedCommand;
-import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.Listener;
 import oakbot.task.ScheduledTask;
@@ -58,14 +56,11 @@ public class Bot {
 	private final Integer hideOneboxesAfter;
 	private final Rooms rooms;
 	private final Integer maxRooms;
-	private final List<Command> commands;
-	private final LearnedCommandsDao learnedCommands;
 	private final List<Listener> listeners;
 	private final List<ChatResponseFilter> responseFilters;
 	private final List<ScheduledTask> scheduledTasks;
 	private final Statistics stats;
 	private final Database database;
-	private final UnknownCommandHandler unknownCommandHandler;
 	private final Timer timer = new Timer();
 	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(Duration.ofHours(6).toMillis(), Duration.ofDays(3).toMillis());
 
@@ -102,9 +97,6 @@ public class Bot {
 		allowedUsers = builder.allowedUsers.build();
 		stats = builder.stats;
 		database = builder.database;
-		unknownCommandHandler = builder.unknownCommandHandler;
-		commands = builder.commands.build();
-		learnedCommands = builder.learnedCommands;
 		listeners = builder.listeners.build();
 		scheduledTasks = builder.tasks.build();
 		responseFilters = builder.responseFilters.build();
@@ -307,11 +299,6 @@ public class Bot {
 		BotContext context = new BotContext(isUserAdmin, trigger, connection, rooms.getRooms(), rooms.getHomeRooms(), maxRooms);
 
 		replies.addAll(handleListeners(message, context));
-
-		ChatCommand command = ChatCommand.fromMessage(message, trigger);
-		if (command != null) {
-			replies.addAll(handleCommands(command, context));
-		}
 
 		if (context.isShutdown()) {
 			String shutdownMessage = context.getShutdownMessage();
@@ -539,51 +526,6 @@ public class Bot {
 			}
 		}
 		return replies;
-	}
-
-	private List<ChatResponse> handleCommands(ChatCommand chatCommand, BotContext context) {
-		List<Command> commands = getCommands(chatCommand.getCommandName());
-		if (commands.isEmpty()) {
-			if (unknownCommandHandler == null) {
-				return Collections.emptyList();
-			}
-
-			ChatResponse response = unknownCommandHandler.onMessage(chatCommand, context);
-			return (response == null) ? Collections.emptyList() : Arrays.asList(response);
-		}
-
-		List<ChatResponse> replies = new ArrayList<>(commands.size());
-		for (Command command : commands) {
-			try {
-				ChatResponse reply = command.onMessage(chatCommand, context);
-				if (reply != null) {
-					replies.add(reply);
-				}
-			} catch (Exception e) {
-				logger.log(Level.SEVERE, "A command threw an exception responding to a message.", e);
-			}
-		}
-		return replies;
-	}
-
-	/**
-	 * Gets all commands that have a given name.
-	 * @param name the command name
-	 * @return the matching commands
-	 */
-	private List<Command> getCommands(String name) {
-		List<Command> result = new ArrayList<>();
-		for (Command command : commands) {
-			if (command.name().equals(name) || command.aliases().contains(name)) {
-				result.add(command);
-			}
-		}
-		for (LearnedCommand command : learnedCommands) {
-			if (command.name().equals(name) || command.aliases().contains(name)) {
-				result.add(command);
-			}
-		}
-		return result;
 	}
 
 	/**
@@ -881,14 +823,11 @@ public class Bot {
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> allowedUsers = ImmutableList.builder();
-		private ImmutableList.Builder<Command> commands = ImmutableList.builder();
-		private LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
 		private ImmutableList.Builder<ScheduledTask> tasks = ImmutableList.builder();
 		private ImmutableList.Builder<ChatResponseFilter> responseFilters = ImmutableList.builder();
 		private Statistics stats;
 		private Database database;
-		private UnknownCommandHandler unknownCommandHandler;
 
 		public Builder connection(IChatClient connection) {
 			this.connection = connection;
@@ -957,20 +896,6 @@ public class Bot {
 			return this;
 		}
 
-		public Builder commands(Command... commands) {
-			return commands(Arrays.asList(commands));
-		}
-
-		public Builder commands(Collection<Command> commands) {
-			this.commands.addAll(commands);
-			return this;
-		}
-
-		public Builder learnedCommands(LearnedCommandsDao commands) {
-			this.learnedCommands = commands;
-			return this;
-		}
-
 		public Builder listeners(Listener... listeners) {
 			return listeners(Arrays.asList(listeners));
 		}
@@ -1005,11 +930,6 @@ public class Bot {
 
 		public Builder database(Database database) {
 			this.database = database;
-			return this;
-		}
-
-		public Builder unknownCommandHandler(UnknownCommandHandler unknownCommandHandler) {
-			this.unknownCommandHandler = unknownCommandHandler;
 			return this;
 		}
 

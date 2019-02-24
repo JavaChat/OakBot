@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.filter.ChatResponseFilter;
+import oakbot.listener.CommandListener;
 import oakbot.listener.Listener;
 import oakbot.util.Sleeper;
 
@@ -246,6 +248,7 @@ public class BotTest {
 		when(command.onMessage(eq(expectedChatCommand3), any(BotContext.class))).thenReturn(null);
 		ChatCommand expectedChatCommand4 = new ChatCommand(event4.getMessage(), "name", "reply");
 		when(command.onMessage(eq(expectedChatCommand4), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
+		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
 		/**
 		 * Create the bot.
@@ -253,7 +256,7 @@ public class BotTest {
 		//@formatter:off
 		Bot bot = bot()
 			.rooms(1)
-			.commands(command)
+			.listeners(commandListener)
 		.build();
 		//@formatter:on
 
@@ -290,6 +293,7 @@ public class BotTest {
 		 */
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("foo").output("bar").build());
+		CommandListener commandListener = new CommandListener(Collections.<Command> emptyList(), learnedCommands);
 
 		/**
 		 * Create the bot.
@@ -297,7 +301,7 @@ public class BotTest {
 		//@formatter:off
 		Bot bot = bot()
 			.rooms(1)
-			.learnedCommands(learnedCommands)
+			.listeners(commandListener)
 		.build();
 		//@formatter:on
 
@@ -359,6 +363,8 @@ public class BotTest {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("learned").output("reply").build());
 
+		CommandListener commandListener = new CommandListener(Arrays.asList(command), learnedCommands);
+
 		/**
 		 * Create the listener.
 		 */
@@ -398,9 +404,7 @@ public class BotTest {
 		//@formatter:off
 		Bot bot = bot()
 			.rooms(1)
-			.commands(command)
-			.listeners(listener)
-			.learnedCommands(learnedCommands)
+			.listeners(commandListener, listener)
 			.greeting("reply")
 			.responseFilters(filter)
 		.build();
@@ -464,6 +468,8 @@ public class BotTest {
 			return null;
 		});
 
+		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+
 		/**
 		 * Create the bot.
 		 */
@@ -471,7 +477,7 @@ public class BotTest {
 		Bot bot = bot()
 			.greeting("Greetings.")
 			.rooms(1)
-			.commands(command)
+			.listeners(commandListener)
 		.build();
 		//@formatter:on
 
@@ -528,13 +534,15 @@ public class BotTest {
 			return null;
 		});
 
+		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+
 		/**
 		 * Create the bot.
 		 */
 		//@formatter:off
 		Bot bot = bot()
 			.rooms(1, 2)
-			.commands(command)
+			.listeners(commandListener)
 		.build();
 		//@formatter:on
 
@@ -590,13 +598,15 @@ public class BotTest {
 			return null;
 		});
 
+		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+
 		/**
 		 * Create the bot.
 		 */
 		//@formatter:off
 		Bot bot = bot()
 			.rooms(1, 2)
-			.commands(command)
+			.listeners(commandListener)
 		.build();
 		//@formatter:on
 
@@ -880,13 +890,15 @@ public class BotTest {
 		ChatCommand expectedChatCommand2 = new ChatCommand(event2.getMessage(), "foobar", "");
 		when(handler.onMessage(eq(expectedChatCommand2), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
 
+		CommandListener commandListener = new CommandListener(Collections.emptyList(), new LearnedCommandsDao(), handler);
+
 		/**
 		 * Create the bot.
 		 */
 		//@formatter:off
 		Bot bot = bot()
 			.rooms(1)
-			.unknownCommandHandler(handler)
+			.listeners(commandListener)
 		.build();
 		//@formatter:on
 

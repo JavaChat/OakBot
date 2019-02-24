@@ -66,6 +66,7 @@ import oakbot.filter.GrootFilter;
 import oakbot.filter.UpsidedownTextFilter;
 import oakbot.filter.WaduFilter;
 import oakbot.listener.AfkListener;
+import oakbot.listener.CommandListener;
 import oakbot.listener.FatCatListener;
 import oakbot.listener.JavadocListener;
 import oakbot.listener.Listener;
@@ -164,30 +165,9 @@ public class Main {
 		GrootFilter grootFilter = new GrootFilter();
 		WaduFilter waduFilter = new WaduFilter();
 
-		List<Listener> listeners = new ArrayList<>();
-		{
-			MentionListener mentionListener = new MentionListener(props.getBotUserName());
-
-			if (javadocCommand != null) {
-				listeners.add(new JavadocListener(javadocCommand));
-			}
-			listeners.add(new AfkListener(afkCommand));
-			listeners.add(new WaveListener(props.getBotUserName(), 1000, mentionListener));
-			listeners.add(new MornListener(props.getBotUserName(), 1000, mentionListener));
-			listeners.add(new WelcomeListener(database, props.getWelcomeMessages()));
-			listeners.add(new FatCatListener(fatCatCommand));
-
-			/*
-			 * Put mention listener at the bottom so the other listeners have a
-			 * chance to override it.
-			 */
-			listeners.add(mentionListener);
-		}
-
 		List<Command> commands = new ArrayList<>();
 		{
 			commands.add(new AboutCommand(stats, props.getAboutHost()));
-			commands.add(new HelpCommand(commands, learnedCommands, listeners));
 
 			if (javadocCommand != null) {
 				commands.add(javadocCommand);
@@ -234,6 +214,30 @@ public class Main {
 			}
 		}
 
+		List<Listener> listeners = new ArrayList<>();
+		{
+			MentionListener mentionListener = new MentionListener(props.getBotUserName());
+
+			listeners.add(new CommandListener(commands, learnedCommands));
+
+			if (javadocCommand != null) {
+				listeners.add(new JavadocListener(javadocCommand));
+			}
+			listeners.add(new AfkListener(afkCommand));
+			listeners.add(new WaveListener(props.getBotUserName(), 1000, mentionListener));
+			listeners.add(new MornListener(props.getBotUserName(), 1000, mentionListener));
+			listeners.add(new WelcomeListener(database, props.getWelcomeMessages()));
+			listeners.add(new FatCatListener(fatCatCommand));
+
+			/*
+			 * Put mention listener at the bottom so the other listeners have a
+			 * chance to override it.
+			 */
+			listeners.add(mentionListener);
+		}
+
+		commands.add(new HelpCommand(commands, learnedCommands, listeners));
+
 		List<ScheduledTask> tasks = new ArrayList<>();
 		{
 			tasks.add(new QOTD());
@@ -276,8 +280,6 @@ public class Main {
 		//@formatter:off
 		Bot bot = new Bot.Builder()
 			.connection(connection)
-			.commands(commands)
-			.learnedCommands(learnedCommands)
 			.listeners(listeners)
 			.tasks(tasks)
 			.responseFilters(filters)
