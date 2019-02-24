@@ -168,66 +168,58 @@ public class Main {
 		List<Command> commands = new ArrayList<>();
 		{
 			commands.add(new AboutCommand(stats, props.getAboutHost()));
-
-			if (javadocCommand != null) {
-				commands.add(javadocCommand);
+			if (aocApi != null) {
+				commands.add(new AdventOfCodeCommand(aocDefaultLeaderboards, aocApi));
 			}
-
-			commands.add(new HttpCommand());
-			commands.add(new EffectiveJavaCommand());
-			commands.add(new WikiCommand());
-			commands.add(new TagCommand());
-			commands.add(new UrbanCommand());
-
+			commands.add(afkCommand);
+			commands.add(new CatCommand(props.getCatKey()));
 			String dictionaryKey = props.getDictionaryKey();
 			if (dictionaryKey != null) {
 				commands.add(new DefineCommand(dictionaryKey));
 			}
-
-			commands.add(new RollCommand());
+			commands.add(new EffectiveJavaCommand());
 			commands.add(new EightBallCommand());
-			commands.add(new SummonCommand(2));
-			commands.add(new UnsummonCommand());
-			commands.add(new ShutdownCommand());
-			commands.add(new LearnCommand(commands, learnedCommands));
-			commands.add(new UnlearnCommand(commands, learnedCommands));
-			commands.add(new ShrugCommand());
-			commands.add(afkCommand);
-			commands.add(new RolloverCommand(upsidedownTextFilter));
-			commands.add(new GrootCommand(grootFilter));
-			commands.add(new WaduCommand(waduFilter));
-			commands.add(new CatCommand(props.getCatKey()));
-			commands.add(fatCatCommand);
-
-			if (aocApi != null) {
-				commands.add(new AdventOfCodeCommand(aocDefaultLeaderboards, aocApi));
-			}
-
-			String reactKey = props.getReactKey();
-			if (reactKey != null) {
-				commands.add(new ReactCommand(reactKey));
-			}
-
 			String tenorKey = props.getTenorKey();
 			if (tenorKey != null) {
 				commands.add(new FacepalmCommand(tenorKey));
 			}
+			commands.add(fatCatCommand);
+			commands.add(new GrootCommand(grootFilter));
+			commands.add(new HttpCommand());
+			if (javadocCommand != null) {
+				commands.add(javadocCommand);
+			}
+			commands.add(new LearnCommand(commands, learnedCommands));
+			String reactKey = props.getReactKey();
+			if (reactKey != null) {
+				commands.add(new ReactCommand(reactKey));
+			}
+			commands.add(new RollCommand());
+			commands.add(new RolloverCommand(upsidedownTextFilter));
+			commands.add(new ShrugCommand());
+			commands.add(new ShutdownCommand());
+			commands.add(new SummonCommand(2));
+			commands.add(new TagCommand());
+			commands.add(new UnlearnCommand(commands, learnedCommands));
+			commands.add(new UnsummonCommand());
+			commands.add(new UrbanCommand());
+			commands.add(new WaduCommand(waduFilter));
+			commands.add(new WikiCommand());
 		}
 
 		List<Listener> listeners = new ArrayList<>();
 		{
 			MentionListener mentionListener = new MentionListener(props.getBotUserName());
 
+			listeners.add(new AfkListener(afkCommand));
 			listeners.add(new CommandListener(commands, learnedCommands));
-
+			listeners.add(new FatCatListener(fatCatCommand));
 			if (javadocCommand != null) {
 				listeners.add(new JavadocListener(javadocCommand));
 			}
-			listeners.add(new AfkListener(afkCommand));
-			listeners.add(new WaveListener(props.getBotUserName(), 1000, mentionListener));
 			listeners.add(new MornListener(props.getBotUserName(), 1000, mentionListener));
+			listeners.add(new WaveListener(props.getBotUserName(), 1000, mentionListener));
 			listeners.add(new WelcomeListener(database, props.getWelcomeMessages()));
-			listeners.add(new FatCatListener(fatCatCommand));
 
 			/*
 			 * Put mention listener at the bottom so the other listeners have a
