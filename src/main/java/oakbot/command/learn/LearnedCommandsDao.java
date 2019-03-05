@@ -146,4 +146,12 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 	public Iterator<LearnedCommand> iterator() {
 		return commands.iterator();
 	}
+
+	/**
+	 * Gets all of the learned commands.
+	 * @return the learned commands
+	 */
+	public List<LearnedCommand> getCommands() {
+		return commands;
+	}
 }

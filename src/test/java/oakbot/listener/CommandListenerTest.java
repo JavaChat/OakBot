@@ -2,12 +2,16 @@ package oakbot.listener;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.Test;
+
+import com.google.common.collect.Multimap;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
@@ -93,6 +97,82 @@ public class CommandListenerTest {
 		ChatResponse response = listener.onMessage(message, context);
 
 		assertEquals("Unknown command.", response.getMessage());
+	}
+
+	@Test
+	public void checkForDuplicateNames_no_duplicates() {
+		List<Command> commands = Arrays.asList( //@formatter:off
+			new SimpleCommand("one"),
+			new SimpleCommand("two")
+		); //@formatter:on
+
+		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		learnedCommands.add(new LearnedCommand.Builder().name("lone").build());
+		learnedCommands.add(new LearnedCommand.Builder().name("ltwo").build());
+
+		CommandListener listener = new CommandListener(commands, learnedCommands);
+		assertTrue(listener.checkForDuplicateNames().isEmpty());
+	}
+
+	@Test
+	public void checkForDuplicateNames_duplicates() {
+		Command a = new SimpleCommand("one");
+		Command b = new SimpleCommand("two");
+		Command c = new SimpleCommand("TWO");
+		Command d = new SimpleCommand("three", "ONE");
+		List<Command> commands = Arrays.asList(a, b, c, d);
+
+		LearnedCommand e = new LearnedCommand.Builder().name("one").build();
+		LearnedCommand f = new LearnedCommand.Builder().name("ltwo").build();
+		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		learnedCommands.add(e);
+		learnedCommands.add(f);
+
+		CommandListener listener = new CommandListener(commands, learnedCommands);
+		Multimap<String, Command> duplicates = listener.checkForDuplicateNames();
+
+		Collection<Command> dups = duplicates.get("one");
+		assertEquals(3, dups.size());
+		assertTrue(dups.contains(a));
+		assertTrue(dups.contains(d));
+		assertTrue(dups.contains(e));
+
+		dups = duplicates.get("two");
+		assertEquals(2, dups.size());
+		assertTrue(dups.contains(b));
+		assertTrue(dups.contains(c));
+
+		assertEquals(5, duplicates.size());
+	}
+
+	private static class SimpleCommand implements Command {
+		private final String name;
+		private final Collection<String> aliases;
+
+		public SimpleCommand(String name, String... aliases) {
+			this.name = name;
+			this.aliases = Arrays.asList(aliases);
+		}
+
+		@Override
+		public String name() {
+			return name;
+		}
+
+		@Override
+		public Collection<String> aliases() {
+			return aliases;
+		}
+
+		@Override
+		public HelpDoc help() {
+			return null;
+		}
+
+		@Override
+		public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+			return new ChatResponse("response");
+		}
 	}
 
 	private static class UpperCommand implements Command {

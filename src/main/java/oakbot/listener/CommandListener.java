@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
-import oakbot.command.HelpDoc;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 
@@ -42,14 +44,32 @@ public class CommandListener implements Listener {
 		this.onUnrecognizedCommand = onUnrecognizedCommand;
 	}
 
-	@Override
-	public String name() {
-		return null;
-	}
+	/**
+	 * Gets all commands that share a name or alias with at least one other
+	 * command (case insensitive).
+	 * @return the commands with shared names (key = command name, value =
+	 * command classes that share that name)
+	 */
+	public Multimap<String, Command> checkForDuplicateNames() {
+		List<Command> allCommands = new ArrayList<>();
+		allCommands.addAll(this.commands);
+		allCommands.addAll(learnedCommands.getCommands());
 
-	@Override
-	public HelpDoc help() {
-		return null;
+		Multimap<String, Command> byName = ArrayListMultimap.create();
+		for (Command command : allCommands) {
+			byName.put(command.name().toLowerCase(), command);
+			for (String alias : command.aliases()) {
+				byName.put(alias.toLowerCase(), command);
+			}
+		}
+
+		Multimap<String, Command> duplicates = ArrayListMultimap.create();
+
+		byName.asMap().entrySet().stream() //@formatter:off
+			.filter(entry -> entry.getValue().size() > 1)
+		.forEach(entry -> duplicates.putAll(entry.getKey(), entry.getValue())); //@formatter:on
+
+		return duplicates;
 	}
 
 	@Override

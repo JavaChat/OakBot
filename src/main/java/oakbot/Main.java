@@ -11,18 +11,22 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
+
+import com.google.common.collect.Multimap;
 
 import oakbot.bot.Bot;
 import oakbot.chat.ChatClient;
@@ -83,7 +87,7 @@ import oakbot.task.ScheduledTask;
 /**
  * @author Michael Angstadt
  */
-public class Main {
+public final class Main {
 	private static final Logger logger = Logger.getLogger(Main.class.getName());
 
 	public static final String VERSION, URL;
@@ -115,8 +119,8 @@ public class Main {
 		BUILT = built;
 	}
 
-	public static final Path defaultSettings = Paths.get("bot.properties");
-	public static final Path defaultDb = Paths.get("db.json");
+	private static final Path defaultSettings = Paths.get("bot.properties");
+	private static final Path defaultDb = Paths.get("db.json");
 
 	public static void main(String[] args) throws Exception {
 		CliArguments arguments = new CliArguments(args);
@@ -151,6 +155,7 @@ public class Main {
 		Database database = new JsonDatabase(db);
 		Statistics stats = new Statistics(database);
 		Rooms rooms = new Rooms(database, props.getHomeRooms(), props.getQuietRooms());
+
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao(database);
 
 		JavadocCommand javadocCommand = createJavadocCommand(props);
@@ -207,12 +212,14 @@ public class Main {
 			commands.add(new WikiCommand());
 		}
 
+		CommandListener commandListener = new CommandListener(commands, learnedCommands);
+
 		List<Listener> listeners = new ArrayList<>();
 		{
 			MentionListener mentionListener = new MentionListener(props.getBotUserName());
 
 			listeners.add(new AfkListener(afkCommand));
-			listeners.add(new CommandListener(commands, learnedCommands));
+			listeners.add(commandListener);
 			listeners.add(new FatCatListener(fatCatCommand));
 			if (javadocCommand != null) {
 				listeners.add(new JavadocListener(javadocCommand));
@@ -229,6 +236,21 @@ public class Main {
 		}
 
 		commands.add(new HelpCommand(commands, learnedCommands, listeners));
+
+		Multimap<String, Command> duplicateNames = commandListener.checkForDuplicateNames();
+		if (!duplicateNames.isEmpty()) {
+			System.out.println("Warning: Commands that share the same names/aliases have been found.");
+			for (Map.Entry<String, Collection<Command>> entry : duplicateNames.asMap().entrySet()) {
+				String name = entry.getKey();
+				Collection<Command> commandsWithSameName = entry.getValue();
+
+				String list = commandsWithSameName.stream() //@formatter:off
+					.map(c -> c.getClass().getName())
+				.collect(Collectors.joining(", ")); //@formatter:on
+
+				System.out.println("  " + props.getTrigger() + name + ": " + list);
+			}
+		}
 
 		List<ScheduledTask> tasks = new ArrayList<>();
 		{
