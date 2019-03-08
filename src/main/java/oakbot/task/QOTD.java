@@ -1,7 +1,6 @@
 package oakbot.task;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -9,6 +8,10 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,8 +35,28 @@ public class QOTD implements ScheduledTask {
 
 	@Override
 	public void run(Bot bot) throws Exception {
-		JsonNode response = getResponse();
-		JsonNode quoteNode = response.get("contents").get("quotes").get(0);
+		ChatBuilder cb = fromSlashdot();
+		bot.broadcast(new ChatResponse(cb, SplitStrategy.WORD));
+	}
+
+	ChatBuilder fromSlashdot() throws IOException {
+		Document document = Jsoup.parse(httpGet("https://slashdot.org"));
+		Element element = document.selectFirst("blockquote[cite='https://slashdot.org'] p");
+
+		return new ChatBuilder() //@formatter:off
+			.append(element.text())
+			.append(" (").link("source", "https://slashdot.org").append(")"); //@formatter:on
+	}
+
+	ChatBuilder fromTheySaidSo() throws IOException {
+		JsonNode json;
+		{
+			ObjectMapper mapper = new ObjectMapper();
+			String response = httpGet("http://quotes.rest/qod.json");
+			json = mapper.readTree(response);
+		}
+
+		JsonNode quoteNode = json.get("contents").get("quotes").get(0);
 
 		String quote = quoteNode.get("quote").asText();
 		String author = quoteNode.get("author").asText();
@@ -52,24 +75,14 @@ public class QOTD implements ScheduledTask {
 			cb.append(" -").append(author);
 			cb.append(' ').link("(source)", permalink);
 		}
-
-		bot.broadcast(new ChatResponse(cb, SplitStrategy.WORD));
+		return cb;
 	}
 
-	/**
-	 * Queries the quote website for the quote of the day.
-	 * @return the JSON response
-	 * @throws IOException if there's a network problem or a problem parsing the
-	 * response
-	 */
-	private JsonNode getResponse() throws IOException {
-		ObjectMapper mapper = new ObjectMapper();
-		HttpGet request = new HttpGet("http://quotes.rest/qod.json");
+	String httpGet(String url) throws IOException {
+		HttpGet request = new HttpGet(url);
 		try (CloseableHttpClient client = HttpClients.createDefault()) {
 			try (CloseableHttpResponse response = client.execute(request)) {
-				try (InputStream in = response.getEntity().getContent()) {
-					return mapper.readTree(in);
-				}
+				return EntityUtils.toString(response.getEntity());
 			}
 		}
 	}

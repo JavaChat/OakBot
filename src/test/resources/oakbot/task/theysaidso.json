@@ -1,0 +1,25 @@
+{
+    "success": {
+        "total": 1
+    },
+    "contents": {
+        "quotes": [
+            {
+                "quote": "If you like what you do, and you’re lucky enough to be good at it, do it for that reason.",
+                "author": "Phil Grimshaw",
+                "length": "96",
+                "tags": [
+                    "inspire",
+                    "luck",
+                    "reason",
+                    "tso-life"
+                ],
+                "category": "inspire",
+                "title": "Inspiring Quote of the day",
+                "date": "2019-03-08",
+                "id": null
+            }
+        ],
+        "copyright": "2017-19 theysaidso.com"
+    }
+}
