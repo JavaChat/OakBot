@@ -1,6 +1,6 @@
 package oakbot.command;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,10 +20,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
-import oakbot.chat.SplitStrategy;
-import oakbot.util.ChatBuilder;
+import oakbot.bot.PostMessage;
 
 /**
  * Displays reaction gifs of human emotions.
@@ -64,7 +63,7 @@ public class ReactCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("Please specify a human emotion.", chatCommand);
@@ -80,16 +79,16 @@ public class ReactCommand implements Command {
 
 			int index = random.nextInt(node.size());
 			String imageUrl = node.get(index).get("file").asText();
-			return new ChatResponse(imageUrl, SplitStrategy.NONE, true);
+
+			//@formatter:off
+			return ChatActions.create(
+				new PostMessage(imageUrl).bypassFilters(true)
+			);
+			//@formatter:on
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Problem querying reaction API.", e);
 
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Sorry, an error occurred >.> : ").append(e.getMessage())
-			);
-			//@formatter:on
+			return reply("Sorry, an error occurred >.> : " + e.getMessage(), chatCommand);
 		}
 	}
 

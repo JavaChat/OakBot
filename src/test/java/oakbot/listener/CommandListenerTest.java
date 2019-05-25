@@ -1,7 +1,7 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -14,8 +14,8 @@ import org.junit.Test;
 import com.google.common.collect.Multimap;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -34,9 +34,9 @@ public class CommandListenerTest {
 		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("/upper test").build();
-		ChatResponse response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, context);
 
-		assertEquals("TEST", response.getMessage());
+		assertMessage("TEST", response);
 	}
 
 	@Test
@@ -45,9 +45,9 @@ public class CommandListenerTest {
 		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("/capital test").build();
-		ChatResponse response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, context);
 
-		assertEquals("TEST", response.getMessage());
+		assertMessage("TEST", response);
 	}
 
 	@Test
@@ -56,9 +56,9 @@ public class CommandListenerTest {
 		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("upper test").build();
-		ChatResponse response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, context);
 
-		assertNull(response);
+		assertTrue(response.isEmpty());
 	}
 
 	@Test
@@ -70,9 +70,9 @@ public class CommandListenerTest {
 
 		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
 
-		ChatResponse response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, context);
 
-		assertEquals("bar", response.getMessage());
+		assertMessage("bar", response);
 	}
 
 	@Test
@@ -81,22 +81,22 @@ public class CommandListenerTest {
 		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
-		ChatResponse response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, context);
 
-		assertNull(response);
+		assertTrue(response.isEmpty());
 	}
 
 	@Test
 	public void onMessage_unrecognized_with_handler() {
 		Command command = new UpperCommand();
 		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao(), (message, context) -> {
-			return new ChatResponse("Unknown command.");
+			return ChatActions.post("Unknown command.");
 		});
 
 		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
-		ChatResponse response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, context);
 
-		assertEquals("Unknown command.", response.getMessage());
+		assertMessage("Unknown command.", response);
 	}
 
 	@Test
@@ -170,8 +170,8 @@ public class CommandListenerTest {
 		}
 
 		@Override
-		public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
-			return new ChatResponse("response");
+		public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+			return ChatActions.post("response");
 		}
 	}
 
@@ -192,8 +192,8 @@ public class CommandListenerTest {
 		}
 
 		@Override
-		public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
-			return new ChatResponse(chatCommand.getContent().toUpperCase());
+		public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+			return ChatActions.post(chatCommand.getContent().toUpperCase());
 		}
 	}
 }

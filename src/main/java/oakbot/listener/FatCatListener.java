@@ -1,7 +1,10 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActions.doNothing;
+import static oakbot.bot.ChatActions.reply;
+
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 import oakbot.command.FatCatCommand;
 
@@ -17,8 +20,8 @@ public class FatCatListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		String reply = command.handleResponse(message);
-		return (reply == null) ? null : Listener.reply(reply, message);
+		return (reply == null) ? doNothing() : reply(reply, message);
 	}
 }

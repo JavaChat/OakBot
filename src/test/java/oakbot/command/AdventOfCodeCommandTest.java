@@ -1,5 +1,6 @@
 package oakbot.command;
 
+import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -16,8 +17,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.util.ChatCommandBuilder;
 
 /**
@@ -34,7 +35,7 @@ public class AdventOfCodeCommandTest {
 			.roomId(1)
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, mockBotContext());
+		ChatActions response = command.onMessage(message, mockBotContext());
 		assertLeaderboardResponse("123456", response);
 	}
 
@@ -57,8 +58,8 @@ public class AdventOfCodeCommandTest {
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
 		BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), null);
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 Please specify a leaderboard ID (e.g. /advent 123456).", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 Please specify a leaderboard ID (e.g. /advent 123456).", response);
 	}
 
 	@Test
@@ -71,7 +72,7 @@ public class AdventOfCodeCommandTest {
 			.content("098765")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, mockBotContext());
+		ChatActions response = command.onMessage(message, mockBotContext());
 		assertLeaderboardResponse("098765", response);
 	}
 
@@ -94,8 +95,8 @@ public class AdventOfCodeCommandTest {
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
 		BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), null);
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 This command is only active during the month of December.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 This command is only active during the month of December.", response);
 	}
 
 	private static AdventOfCodeCommand mock(Map<Integer, String> leaderboardIds, String expectedLeaderboardId) {
@@ -119,7 +120,7 @@ public class AdventOfCodeCommandTest {
 		};
 	}
 
-	private static void assertLeaderboardResponse(String expectedId, ChatResponse actual) {
+	private static void assertLeaderboardResponse(String expectedId, ChatActions actual) {
 		int year = LocalDateTime.now().getYear();
 
 		//@formatter:off
@@ -143,7 +144,7 @@ public class AdventOfCodeCommandTest {
 	        "    15. Jacob Gray     (score:   0) .....|.....|.....|.....|.....  0 stars\n";
 		//@formatter:on
 
-		assertEquals(expected, actual.getMessage());
+		assertMessage(expected, actual);
 	}
 
 	private static BotContext mockBotContext() {

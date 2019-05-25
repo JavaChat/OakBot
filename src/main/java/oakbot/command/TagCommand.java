@@ -1,6 +1,7 @@
 package oakbot.command;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -20,8 +21,9 @@ import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
@@ -49,7 +51,7 @@ public class TagCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("Please specify the tag name (e.g. \"java\").", chatCommand);
@@ -66,7 +68,7 @@ public class TagCommand implements Command {
 			logger.log(Level.SEVERE, "Error getting tag description.", e);
 
 			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
+			return post(new ChatBuilder()
 				.reply(chatCommand)
 				.append("An error occurred retrieving the tag description: ")
 				.code(e.getMessage())
@@ -81,12 +83,16 @@ public class TagCommand implements Command {
 		}
 
 		String definition = element.text();
+
 		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(chatCommand)
-			.tag(tag)
-			.append(' ').append(definition)
-		, SplitStrategy.WORD);
+		return ChatActions.create(
+			new PostMessage(new ChatBuilder()
+				.reply(chatCommand)
+				.tag(tag)
+				.append(' ').append(definition)
+			)
+			.splitStrategy(SplitStrategy.WORD)
+		);
 		//@formatter:on
 	}
 

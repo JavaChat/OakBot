@@ -1,14 +1,17 @@
 package oakbot.command;
 
+import static oakbot.bot.ChatActions.reply;
 import static oakbot.command.Command.random;
-import static oakbot.command.Command.reply;
 
 import java.util.Arrays;
 import java.util.List;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.LeaveRoom;
+import oakbot.bot.PostMessage;
+import oakbot.util.ChatBuilder;
 
 /**
  * Makes the bot leave a room.
@@ -37,7 +40,7 @@ public class UnsummonCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 
 		int roomToLeave;
@@ -51,7 +54,7 @@ public class UnsummonCommand implements Command {
 			} catch (NumberFormatException e) {
 				return reply("Please specify the room ID.", chatCommand);
 			}
-			inRoomToLeave = roomToLeave == chatCommand.getMessage().getRoomId();
+			inRoomToLeave = (roomToLeave == chatCommand.getMessage().getRoomId());
 		}
 
 		if (!context.getCurrentRooms().contains(roomToLeave)) {
@@ -65,8 +68,6 @@ public class UnsummonCommand implements Command {
 			return reply("That's one of my home rooms, I can't leave it.", chatCommand);
 		}
 
-		context.leaveRoom(roomToLeave);
-
 		String reply;
 		if (inRoomToLeave) {
 			reply = random("*poof*", "Hasta la vista, baby.", "Bye.");
@@ -74,6 +75,11 @@ public class UnsummonCommand implements Command {
 			reply = random("They smelled funny anyway.", "Less for me to worry about.");
 		}
 
-		return reply(reply, chatCommand);
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(new ChatBuilder().reply(chatCommand).append(reply)),
+			new LeaveRoom(roomToLeave)
+		);
+		//@formatter:on
 	}
 }

@@ -1,6 +1,6 @@
 package oakbot.command.learn;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.util.List;
@@ -11,8 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -49,7 +49,7 @@ public class LearnCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		//example: "/learn test this is a test"
 		ChatMessage message = chatCommand.getMessage();
 

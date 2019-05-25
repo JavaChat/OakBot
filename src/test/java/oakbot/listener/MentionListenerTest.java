@@ -1,15 +1,15 @@
 package oakbot.listener;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 
 import org.junit.Test;
 
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 
 /**
@@ -34,8 +34,8 @@ public class MentionListenerTest {
 		//@formatter:on
 
 		MentionListener listener = new MentionListener("OakBot");
-		ChatResponse response = listener.onMessage(chatMessage, context);
-		assertEquals(mentioned, response != null);
+		ChatActions response = listener.onMessage(chatMessage, context);
+		assertEquals(mentioned, !response.isEmpty());
 	}
 
 	@Test
@@ -48,11 +48,11 @@ public class MentionListenerTest {
 
 		MentionListener listener = new MentionListener("OakBot");
 
-		ChatResponse response = listener.onMessage(chatMessage, context);
-		assertNotNull(response);
+		ChatActions response = listener.onMessage(chatMessage, context);
+		assertFalse(response.isEmpty());
 
 		response = listener.onMessage(chatMessage, context);
-		assertNull(response);
+		assertTrue(response.isEmpty());
 	}
 
 	@Test
@@ -66,10 +66,10 @@ public class MentionListenerTest {
 		MentionListener listener = new MentionListener("OakBot");
 		listener.ignoreNextMessage();
 
-		ChatResponse response = listener.onMessage(chatMessage, context);
-		assertNull(response);
+		ChatActions response = listener.onMessage(chatMessage, context);
+		assertTrue(response.isEmpty());
 
 		response = listener.onMessage(chatMessage, context);
-		assertNotNull(response);
+		assertFalse(response.isEmpty());
 	}
 }

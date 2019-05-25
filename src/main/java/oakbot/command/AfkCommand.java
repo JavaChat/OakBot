@@ -1,6 +1,6 @@
 package oakbot.command;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.reply;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 
 /**
  * Marks users as being "afk".
@@ -43,7 +43,7 @@ public class AfkCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String username = chatCommand.getMessage().getUsername();
 		int userId = chatCommand.getMessage().getUserId();
 		String awayMessage = chatCommand.getContentMarkdown();

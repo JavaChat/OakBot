@@ -1,11 +1,11 @@
 package oakbot.command;
 
-import static org.junit.Assert.assertEquals;
+import static oakbot.bot.ChatActionsUtils.assertMessage;
 
 import org.junit.Test;
 
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.util.ChatCommandBuilder;
 
 /**
@@ -18,8 +18,8 @@ public class WikiCommandTest {
 	public void empty() {
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 Please specify the term you'd like to display.", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 Please specify the term you'd like to display.", response);
 	}
 
 	@Test
@@ -29,8 +29,8 @@ public class WikiCommandTest {
 			.content("John Doe")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals("http://en.wikipedia.org/wiki/John_Doe", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage("http://en.wikipedia.org/wiki/John_Doe", response);
 	}
 
 	@Test
@@ -40,7 +40,7 @@ public class WikiCommandTest {
 			.content("I/O")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals("http://en.wikipedia.org/wiki/I%2FO", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage("http://en.wikipedia.org/wiki/I%2FO", response);
 	}
 }

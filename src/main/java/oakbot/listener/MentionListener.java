@@ -1,17 +1,20 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActions.doNothing;
+import static oakbot.bot.ChatActions.post;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
- * Responds when a user mentions the bots name.
+ * Responds when a user mentions the bot's name.
  * @author Michael Angstadt
  */
 public class MentionListener implements Listener {
@@ -39,14 +42,14 @@ public class MentionListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		if (ignore) {
 			ignore = false;
-			return null;
+			return doNothing();
 		}
 
 		if (!message.getContent().isMentioned(botUsername)) {
-			return null;
+			return doNothing();
 		}
 
 		Long prevResponse = prevResponses.get(message.getRoomId());
@@ -57,13 +60,13 @@ public class MentionListener implements Listener {
 		long now = System.currentTimeMillis();
 		long elapsed = now - prevResponse;
 		if (elapsed < cooldown) {
-			return null;
+			return doNothing();
 		}
 
 		prevResponses.put(message.getRoomId(), now);
 
 		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
+		return post(new ChatBuilder()
 			.reply(message)
 			.append("Type ").code().append(context.getTrigger()).append("help").code().append(" to see all my commands.")
 		);

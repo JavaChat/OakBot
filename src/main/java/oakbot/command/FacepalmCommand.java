@@ -1,6 +1,6 @@
 package oakbot.command;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.net.URI;
@@ -20,9 +20,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
-import oakbot.chat.SplitStrategy;
+import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -73,7 +73,7 @@ public class FacepalmCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String imageUrl, response = null;
 		try {
 			response = get(uri);
@@ -91,7 +91,11 @@ public class FacepalmCommand implements Command {
 		 */
 		ChatBuilder condensed = new ChatBuilder().append(imageUrl).append(" (via ").link("Tenor", "https://tenor.com").append(")");
 
-		return new ChatResponse(imageUrl, SplitStrategy.NONE, true, condensed);
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(imageUrl).bypassFilters(true).condensedMessage(condensed)
+		);
+		//@formatter:on
 	}
 
 	/**

@@ -1,6 +1,8 @@
 package oakbot.listener;
 
-import static oakbot.listener.Listener.reply;
+import static oakbot.bot.ChatActions.doNothing;
+import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 import oakbot.command.AfkCommand;
 import oakbot.command.AfkCommand.AfkUser;
@@ -31,9 +33,9 @@ public class AfkListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		if (isUserAwayAndTypedAfkCommandAgain(message, context.getTrigger())) {
-			return null;
+			return doNothing();
 		}
 
 		boolean returned = command.setBack(message.getUserId());
@@ -60,14 +62,14 @@ public class AfkListener implements Listener {
 
 				first = false;
 			}
-			return new ChatResponse(cb);
+			return post(cb);
 		}
 
 		if (returned) {
 			return reply("Welcome back!", message);
 		}
 
-		return null;
+		return doNothing();
 	}
 
 	/**

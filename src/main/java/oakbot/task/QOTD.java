@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import oakbot.bot.Bot;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
@@ -36,7 +36,7 @@ public class QOTD implements ScheduledTask {
 	@Override
 	public void run(Bot bot) throws Exception {
 		ChatBuilder cb = fromSlashdot();
-		bot.broadcast(new ChatResponse(cb, SplitStrategy.WORD));
+		bot.broadcast(new PostMessage(cb).splitStrategy(SplitStrategy.WORD));
 	}
 
 	ChatBuilder fromSlashdot() throws IOException {

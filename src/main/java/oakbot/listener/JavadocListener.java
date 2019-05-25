@@ -1,7 +1,9 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActions.doNothing;
+
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 import oakbot.command.javadoc.JavadocCommand;
 
@@ -18,13 +20,13 @@ public class JavadocListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		String content = message.getContent().getContent();
 		try {
 			int num = Integer.parseInt(content);
 			return command.showChoice(message, num);
 		} catch (NumberFormatException e) {
-			return null;
+			return doNothing();
 		}
 	}
 }

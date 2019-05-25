@@ -1,7 +1,8 @@
 package oakbot.command.urban;
 
+import static oakbot.bot.ChatActionsUtils.assertMessage;
+import static oakbot.bot.ChatActionsUtils.assertMessageStartsWith;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,8 +10,8 @@ import java.io.InputStream;
 
 import org.junit.Test;
 
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.util.ChatCommandBuilder;
 
 /**
@@ -22,8 +23,8 @@ public class UrbanCommandTest {
 		UrbanCommand command = new UrbanCommand();
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 You have to type a word to see its definition... -_-", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 You have to type a word to see its definition... -_-", response);
 	}
 
 	@Test
@@ -39,8 +40,8 @@ public class UrbanCommandTest {
 			.content("cool")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertTrue(response.getMessage().startsWith(":1 Sorry"));
+		ChatActions response = command.onMessage(message, null);
+		assertMessageStartsWith(":1 Sorry", response);
 	}
 
 	@Test
@@ -57,8 +58,8 @@ public class UrbanCommandTest {
 			.content("cool")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertTrue(response.getMessage().startsWith(":1 Sorry"));
+		ChatActions response = command.onMessage(message, null);
+		assertMessageStartsWith(":1 Sorry", response);
 	}
 
 	@Test
@@ -75,8 +76,8 @@ public class UrbanCommandTest {
 			.content("cool")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 No definition found.", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 No definition found.", response);
 	}
 
 	@Test
@@ -93,8 +94,8 @@ public class UrbanCommandTest {
 			.content("cool")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 [**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", response);
 	}
 
 	@Test
@@ -111,16 +112,16 @@ public class UrbanCommandTest {
 			.content("snafu")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
+		ChatActions response = command.onMessage(message, null);
 		//@formatter:off
-		assertEquals(
+		assertMessage(
 			":1 SNAFU (http://snafu.urbanup.com/449743):\n" +
 			"One of a progression of military situational indicators:\r\n" +
 			"\r\n" +
 			"1. SNAFU - Situation Normal, All Fucked Up - Thing are running normally.\r\n" +
 			"2. TARFUN - Things Are Really Fucked Up Now - Houston, we have a problem.\r\n" +
 			"3. FUBAR - Fucked Up Beyond All Recognition - Burn it to the ground and start over from scratch; it's totally destroyed."
-		, response.getMessage());
+		, response);
 		//@formatter:on
 	}
 
@@ -155,8 +156,8 @@ public class UrbanCommandTest {
 			.content("cool 2")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/1030338): A word to use when you don't know what else to say, or when you are not that interested in the conversation. Sometimes, it can be used when you do not have any knowledge of the subject, yet you want to act as if you know-it-all.", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 [**`cool`**](http://cool.urbanup.com/1030338): A word to use when you don't know what else to say, or when you are not that interested in the conversation. Sometimes, it can be used when you do not have any knowledge of the subject, yet you want to act as if you know-it-all.", response);
 	}
 
 	@Test
@@ -173,8 +174,8 @@ public class UrbanCommandTest {
 			.content("cool -1")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 [**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", response);
 	}
 
 	@Test
@@ -191,8 +192,8 @@ public class UrbanCommandTest {
 			.content("cool 9000")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 [**`cool`**](http://cool.urbanup.com/1096252): a simplified way of telling someone to shut the fuck up because you don't give a shit.", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 [**`cool`**](http://cool.urbanup.com/1096252): a simplified way of telling someone to shut the fuck up because you don't give a shit.", response);
 	}
 
 	@Test
@@ -209,8 +210,8 @@ public class UrbanCommandTest {
 			.content("fucked up")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 [**`fucked up`**](Permalink): Definition", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 [**`fucked up`**](Permalink): Definition", response);
 	}
 
 	private static InputStream in(String string) {

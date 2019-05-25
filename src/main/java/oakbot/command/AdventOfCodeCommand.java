@@ -1,6 +1,7 @@
 package oakbot.command;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -14,9 +15,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
-import oakbot.chat.SplitStrategy;
+import oakbot.bot.PostMessage;
 import oakbot.command.AdventOfCodeApi.Player;
 import oakbot.util.ChatBuilder;
 
@@ -58,7 +59,7 @@ public class AdventOfCodeCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		if (!isActive()) {
 			return reply("This command is only active during the month of December.", chatCommand);
 		}
@@ -80,9 +81,10 @@ public class AdventOfCodeCommand implements Command {
 			logger.log(Level.SEVERE, "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.", e);
 
 			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
+			return post(new ChatBuilder()
 				.reply(chatCommand)
-				.append("I couldn't query that leaderboard. It might not exist. Or the user that my adventofcode.com session token belongs to might not have access to that leaderboard. Or the token might have expired. Or you're trolling me. Error message: ").code(e.getMessage())
+				.append("I couldn't query that leaderboard. It might not exist. Or the user that my adventofcode.com session token belongs to might not have access to that leaderboard. Or the token might have expired. Or you're trolling me. Error message: ")
+				.code(e.getMessage())
 			);
 			//@formatter:on
 		}
@@ -195,7 +197,11 @@ public class AdventOfCodeCommand implements Command {
 		}
 		condensed.code().append(" to see the leaderboard again (or go here: ").append(htmlUrl).append(")");
 
-		return new ChatResponse(cb, SplitStrategy.NONE, true, condensed);
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb).bypassFilters(true).condensedMessage(condensed)
+		);
+		//@formatter:on
 	}
 
 	private static int numberOfDigits(int number) {

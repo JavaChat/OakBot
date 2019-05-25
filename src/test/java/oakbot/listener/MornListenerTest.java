@@ -1,14 +1,15 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 
 import org.junit.Test;
 
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 
 /**
@@ -44,11 +45,11 @@ public class MornListenerTest {
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		MornListener listener = new MornListener(botName, 0, mentionListener);
 
-		ChatResponse chatResponse = listener.onMessage(chatMessage, context);
+		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		if (response == null) {
-			assertNull(chatResponse);
+			assertTrue(chatResponse.isEmpty());
 		} else {
-			assertEquals(response, chatResponse.getMessage());
+			assertMessage(response, chatResponse);
 		}
 
 		assertEquals(ignoreNextMentionListenerMessage, mentionListener.ignored);
@@ -66,10 +67,10 @@ public class MornListenerTest {
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		MornListener listener = new MornListener("OakBot", 0, mentionListener);
 
-		ChatResponse chatResponse = listener.onMessage(chatMessage, context);
-		assertEquals("morn", chatResponse.getMessage());
+		ChatActions chatResponse = listener.onMessage(chatMessage, context);
+		assertMessage("morn", chatResponse);
 		chatResponse = listener.onMessage(chatMessage, context);
-		assertNull(chatResponse);
+		assertTrue(chatResponse.isEmpty());
 	}
 
 	@Test
@@ -88,17 +89,17 @@ public class MornListenerTest {
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		MornListener listener = new MornListener("OakBot", 0, mentionListener);
 
-		ChatResponse chatResponse = listener.onMessage(chatMessage1, context);
-		assertEquals("morn", chatResponse.getMessage());
+		ChatActions chatResponse = listener.onMessage(chatMessage1, context);
+		assertMessage("morn", chatResponse);
 
 		chatResponse = listener.onMessage(chatMessage2, context);
-		assertEquals("morn", chatResponse.getMessage());
+		assertMessage("morn", chatResponse);
 
 		chatResponse = listener.onMessage(chatMessage1, context);
-		assertNull(chatResponse);
+		assertTrue(chatResponse.isEmpty());
 
 		chatResponse = listener.onMessage(chatMessage2, context);
-		assertNull(chatResponse);
+		assertTrue(chatResponse.isEmpty());
 	}
 
 	private static class MentionListenerMock extends MentionListener {

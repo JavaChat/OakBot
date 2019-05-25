@@ -1,7 +1,7 @@
 package oakbot.command;
 
 import static com.google.common.base.Strings.repeat;
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.reply;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,8 +13,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommandsDao;
@@ -55,7 +56,7 @@ public class HelpCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		if (!chatCommand.getContent().isEmpty()) {
 			return showHelpText(chatCommand, context.getTrigger());
 		}
@@ -113,7 +114,14 @@ public class HelpCommand implements Command {
 			}
 		}
 
-		return new ChatResponse(cb, SplitStrategy.NEWLINE, true, "My commands are also listed here: https://github.com/JavaChat/OakBot/wiki/Commands");
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb)
+			.splitStrategy(SplitStrategy.NEWLINE)
+			.bypassFilters(true)
+			.condensedMessage("My commands are also listed here: https://github.com/JavaChat/OakBot/wiki/Commands")
+		);
+		//@formatter:on
 	}
 
 	private static int longestStringLength(Collection<String> strings) {
@@ -161,7 +169,7 @@ public class HelpCommand implements Command {
 		return summaries;
 	}
 
-	private ChatResponse showHelpText(ChatCommand message, String trigger) {
+	private ChatActions showHelpText(ChatCommand message, String trigger) {
 		String commandName = message.getContent();
 		List<String> helpTexts = new ArrayList<>();
 
@@ -191,6 +199,11 @@ public class HelpCommand implements Command {
 		for (String helpText : helpTexts) {
 			cb.append(helpText).nl();
 		}
-		return new ChatResponse(cb.toString().trim(), SplitStrategy.NEWLINE);
+
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb.toString().trim()).splitStrategy(SplitStrategy.NEWLINE)
+		);
+		//@formatter:on
 	}
 }

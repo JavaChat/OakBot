@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.Random;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
-import oakbot.util.ChatBuilder;
 
 /**
  * A chat bot command.
@@ -39,24 +38,9 @@ public interface Command {
 	 * Called when a user invokes this command.
 	 * @param chatCommand the command that the user has sent
 	 * @param context the bot context
-	 * @return the response or null not to send a response
+	 * @return the action(s) to perform in response to the message
 	 */
-	ChatResponse onMessage(ChatCommand chatCommand, BotContext context);
-
-	/**
-	 * Utility method for creating a simple reply to a message.
-	 * @param content the message to put in the response
-	 * @param message the message that the response is in reply to
-	 * @return the response
-	 */
-	static ChatResponse reply(String content, ChatCommand message) {
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(message)
-			.append(content)
-		);
-		//@formatter:on
-	}
+	ChatActions onMessage(ChatCommand chatCommand, BotContext context);
 
 	/**
 	 * Random number generator.

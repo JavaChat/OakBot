@@ -1,5 +1,7 @@
 package oakbot.command;
 
+import static oakbot.bot.ChatActions.post;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -7,9 +9,8 @@ import java.time.format.DateTimeFormatter;
 import oakbot.Main;
 import oakbot.Statistics;
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
-import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 import oakbot.util.RelativeDateFormat;
 
@@ -42,7 +43,7 @@ public class AboutCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		RelativeDateFormat relativeDf = new RelativeDateFormat();
 		LocalDateTime built = LocalDateTime.ofInstant(Main.BUILT, ZoneId.systemDefault());
 
@@ -68,6 +69,6 @@ public class AboutCommand implements Command {
 			}
 		}
 
-		return new ChatResponse(cb, SplitStrategy.WORD);
+		return post(cb);
 	}
 }

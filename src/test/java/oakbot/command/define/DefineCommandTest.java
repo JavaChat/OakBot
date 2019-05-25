@@ -1,7 +1,8 @@
 package oakbot.command.define;
 
+import static oakbot.bot.ChatActionsUtils.assertMessage;
+import static oakbot.bot.ChatActionsUtils.assertMessageStartsWith;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,8 +10,8 @@ import java.io.InputStream;
 
 import org.junit.Test;
 
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.util.ChatCommandBuilder;
 
 public class DefineCommandTest {
@@ -19,8 +20,8 @@ public class DefineCommandTest {
 		DefineCommand command = new DefineCommand("apiKey");
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 Please specify the word you'd like to define.", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 Please specify the word you'd like to define.", response);
 	}
 
 	@Test
@@ -36,8 +37,8 @@ public class DefineCommandTest {
 			.content("cool")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertTrue(response.getMessage().startsWith(":1 Sorry"));
+		ChatActions response = command.onMessage(message, null);
+		assertMessageStartsWith(":1 Sorry", response);
 	}
 
 	@Test
@@ -54,8 +55,8 @@ public class DefineCommandTest {
 			.content("cool")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertTrue(response.getMessage().startsWith(":1 Sorry"));
+		ChatActions response = command.onMessage(message, null);
+		assertMessageStartsWith(":1 Sorry", response);
 	}
 
 	@Test
@@ -72,8 +73,8 @@ public class DefineCommandTest {
 			.content("cool")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 No definitions found.", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 No definitions found.", response);
 	}
 
 	@Test
@@ -90,8 +91,8 @@ public class DefineCommandTest {
 			.content("col")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 No definitions found. Did you mean cool?", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 No definitions found. Did you mean cool?", response);
 	}
 
 	@Test
@@ -108,8 +109,8 @@ public class DefineCommandTest {
 			.content("col")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 No definitions found. Did you mean cool or cold?", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 No definitions found. Did you mean cool or cold?", response);
 	}
 
 	@Test
@@ -126,8 +127,8 @@ public class DefineCommandTest {
 			.content("col")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
-		assertEquals(":1 No definitions found. Did you mean cool, cold, or colt?", response.getMessage());
+		ChatActions response = command.onMessage(message, null);
+		assertMessage(":1 No definitions found. Did you mean cool, cold, or colt?", response);
 	}
 
 	@Test
@@ -144,9 +145,9 @@ public class DefineCommandTest {
 			.content("cool")
 		.build(); //@formatter:on
 
-		ChatResponse response = command.onMessage(message, null);
+		ChatActions response = command.onMessage(message, null);
 		//@formatter:off
-		assertEquals(
+		assertMessage(
 			"cool (adjective):\n" +
 			"moderately cold; lacking in warmth\n" +
 			"\n" +
@@ -218,7 +219,7 @@ public class DefineCommandTest {
 			"\n" +
 			"cool (adverb):\n" +
 			"in a casual and nonchalant manner (play it cool)"
-			, response.getMessage()
+			, response
 		);
 		//@formatter:on
 	}

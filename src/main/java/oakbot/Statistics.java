@@ -30,12 +30,8 @@ public class Statistics {
 		}
 	}
 
-	public synchronized void incMessagesRespondedTo(int amount) {
-		if (amount <= 0) {
-			return;
-		}
-
-		responses += amount;
+	public synchronized void incMessagesRespondedTo() {
+		responses++;
 		save();
 	}
 

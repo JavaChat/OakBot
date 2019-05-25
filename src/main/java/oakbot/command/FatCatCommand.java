@@ -1,6 +1,7 @@
 package oakbot.command;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +10,9 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import oakbot.Database;
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
@@ -56,7 +58,7 @@ public class FatCatCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String params[] = chatCommand.getContent().split("\\s+", 2);
 
 		String action = params[0].toLowerCase();
@@ -75,16 +77,21 @@ public class FatCatCommand implements Command {
 		}
 	}
 
-	private ChatResponse showCat(ChatCommand chatCommand) {
+	private ChatActions showCat(ChatCommand chatCommand) {
 		if (cats.isEmpty()) {
 			return reply("Error: No fat cats defined.", chatCommand);
 		}
 
 		String cat = Command.random(cats);
-		return new ChatResponse(cat, SplitStrategy.NONE, true);
+
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cat).bypassFilters(true)
+		);
+		//@formatter:on
 	}
 
-	private ChatResponse listCats() {
+	private ChatActions listCats() {
 		ChatBuilder cb = new ChatBuilder();
 
 		if (cats.isEmpty()) {
@@ -95,17 +102,21 @@ public class FatCatCommand implements Command {
 			}
 		}
 
-		return new ChatResponse(cb, SplitStrategy.NEWLINE, true);
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb).splitStrategy(SplitStrategy.NEWLINE).bypassFilters(true)
+		);
+		//@formatter:on
 	}
 
-	private ChatResponse addCat(ChatCommand chatCommand, BotContext context, String cat) {
+	private ChatActions addCat(ChatCommand chatCommand, BotContext context, String cat) {
 		if (!context.isAuthorAdmin() && chatCommand.getMessage().getUserId() != hans) {
 			return reply("Only Hans can add.", chatCommand);
 		}
 
 		if (cat == null) {
 			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
+			return post(new ChatBuilder()
 				.reply(chatCommand)
 				.append("Specify the URL of the cat you want to add: ")
 				.code()
@@ -134,14 +145,14 @@ public class FatCatCommand implements Command {
 		return reply("Is cat fat? (y/n)", chatCommand);
 	}
 
-	private ChatResponse deleteCat(ChatCommand chatCommand, BotContext context, String cat) {
+	private ChatActions deleteCat(ChatCommand chatCommand, BotContext context, String cat) {
 		if (!context.isAuthorAdmin() && chatCommand.getMessage().getUserId() != hans) {
 			return reply("Only Hans can delete.", chatCommand);
 		}
 
 		if (cat == null) {
 			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
+			return post(new ChatBuilder()
 				.reply(chatCommand)
 				.append("Specify the URL of the cat you want to delete: ")
 				.code()

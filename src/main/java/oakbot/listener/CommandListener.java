@@ -1,5 +1,7 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActions.doNothing;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -8,8 +10,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
@@ -22,7 +24,7 @@ import oakbot.command.learn.LearnedCommandsDao;
 public class CommandListener implements Listener {
 	private final List<Command> commands;
 	private final LearnedCommandsDao learnedCommands;
-	private final BiFunction<ChatCommand, BotContext, ChatResponse> onUnrecognizedCommand;
+	private final BiFunction<ChatCommand, BotContext, ChatActions> onUnrecognizedCommand;
 
 	/**
 	 * @param commands the commands
@@ -38,7 +40,7 @@ public class CommandListener implements Listener {
 	 * @param unknownCommandHandler how to respond to unrecognized commands or
 	 * null to ignore unrecognized commands
 	 */
-	public CommandListener(List<Command> commands, LearnedCommandsDao learnedCommands, BiFunction<ChatCommand, BotContext, ChatResponse> onUnrecognizedCommand) {
+	public CommandListener(List<Command> commands, LearnedCommandsDao learnedCommands, BiFunction<ChatCommand, BotContext, ChatActions> onUnrecognizedCommand) {
 		this.commands = commands;
 		this.learnedCommands = learnedCommands;
 		this.onUnrecognizedCommand = onUnrecognizedCommand;
@@ -73,19 +75,23 @@ public class CommandListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		ChatCommand chatCommand = ChatCommand.fromMessage(message, context.getTrigger());
 		if (chatCommand == null) {
-			return null;
+			return doNothing();
 		}
 
 		List<Command> matchingCommands = getCommands(chatCommand.getCommandName());
 		if (matchingCommands.isEmpty()) {
-			return (onUnrecognizedCommand == null) ? null : onUnrecognizedCommand.apply(chatCommand, context);
+			return (onUnrecognizedCommand == null) ? doNothing() : onUnrecognizedCommand.apply(chatCommand, context);
 		}
 
-		Command command = matchingCommands.get(0); //TODO support multiple ChatResponse objects being returned?
-		return command.onMessage(chatCommand, context);
+		ChatActions actions = new ChatActions();
+		for (Command command : matchingCommands) {
+			actions.addAll(command.onMessage(chatCommand, context));
+		}
+
+		return actions;
 	}
 
 	/**

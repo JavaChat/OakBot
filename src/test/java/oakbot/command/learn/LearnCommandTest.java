@@ -1,5 +1,6 @@
 package oakbot.command.learn;
 
+import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -13,8 +14,8 @@ import java.util.Collections;
 import org.junit.Test;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
 import oakbot.util.ChatCommandBuilder;
 
@@ -38,8 +39,8 @@ public class LearnCommandTest {
 		when(context.getTrigger()).thenReturn("/");
 		when(context.getOriginalMessageContent(1)).thenReturn("/learn name **command output**");
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 Saved.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 Saved.", response);
 
 		LearnedCommand learned = learnedCommands.get("name");
 		assertEquals(new Long(1), learned.getMessageId());
@@ -50,7 +51,7 @@ public class LearnCommandTest {
 		assertEquals("name", learned.name());
 		assertEquals("**command output**", learned.getOutput());
 		assertTrue(learned.aliases().isEmpty());
-		assertEquals("**command output**", learned.onMessage(null, null).getMessage());
+		assertMessage("**command output**", learned.onMessage(null, null));
 	}
 
 	@Test
@@ -62,8 +63,8 @@ public class LearnCommandTest {
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 You haven't specified the command name or its output.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 You haven't specified the command name or its output.", response);
 	}
 
 	@Test
@@ -78,8 +79,8 @@ public class LearnCommandTest {
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 You haven't specified the command output.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 You haven't specified the command output.", response);
 	}
 
 	@Test
@@ -94,8 +95,8 @@ public class LearnCommandTest {
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 Tricksy hobbitses. Command names can only contain letters (a-z) and numbers.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 Tricksy hobbitses. Command names can only contain letters (a-z) and numbers.", response);
 	}
 
 	@Test
@@ -113,8 +114,8 @@ public class LearnCommandTest {
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 A command with that name already exists.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 A command with that name already exists.", response);
 	}
 
 	@Test
@@ -133,8 +134,8 @@ public class LearnCommandTest {
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 A command with that name already exists.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 A command with that name already exists.", response);
 	}
 
 	@Test
@@ -150,8 +151,8 @@ public class LearnCommandTest {
 		BotContext context = mock(BotContext.class);
 		when(context.getTrigger()).thenReturn("/");
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 A command with that name already exists.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 A command with that name already exists.", response);
 	}
 
 	@Test
@@ -167,11 +168,11 @@ public class LearnCommandTest {
 		when(context.getTrigger()).thenReturn("/");
 		when(context.getOriginalMessageContent(1)).thenReturn("    /learn test **one**");
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 Saved.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 Saved.", response);
 
 		LearnedCommand learned = learnedCommands.get("test");
-		assertEquals("    **one**", learned.onMessage(null, null).getMessage());
+		assertMessage("    **one**", learned.onMessage(null, null));
 	}
 
 	@Test
@@ -187,11 +188,11 @@ public class LearnCommandTest {
 		when(context.getTrigger()).thenReturn("/");
 		when(context.getOriginalMessageContent(1)).thenThrow(new IOException());
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 Saved.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 Saved.", response);
 
 		LearnedCommand learned = learnedCommands.get("test");
-		assertEquals("**one**", learned.onMessage(null, null).getMessage());
+		assertMessage("**one**", learned.onMessage(null, null));
 	}
 
 	@Test
@@ -207,10 +208,10 @@ public class LearnCommandTest {
 		when(context.getTrigger()).thenReturn("/");
 		when(context.getOriginalMessageContent(1)).thenReturn("plaintext message doesn't match");
 
-		ChatResponse response = command.onMessage(message, context);
-		assertEquals(":1 Saved.", response.getMessage());
+		ChatActions response = command.onMessage(message, context);
+		assertMessage(":1 Saved.", response);
 
 		LearnedCommand learned = learnedCommands.get("test");
-		assertEquals("**one**", learned.onMessage(null, null).getMessage());
+		assertMessage("**one**", learned.onMessage(null, null));
 	}
 }

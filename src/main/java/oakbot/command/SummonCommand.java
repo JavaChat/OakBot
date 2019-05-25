@@ -1,8 +1,7 @@
 package oakbot.command;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.reply;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,9 +11,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
-import oakbot.bot.BotContext.JoinRoomCallback;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.JoinRoom;
 
 /**
  * Makes the bot join another room.
@@ -55,7 +54,7 @@ public class SummonCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 
 		Integer maxRooms = context.getMaxRooms();
@@ -111,30 +110,16 @@ public class SummonCommand implements Command {
 		}
 
 		pendingSummons.remove(roomToJoin);
-
-		context.joinRoom(roomToJoin, new JoinRoomCallback() {
-			@Override
-			public ChatResponse success() {
-				return reply("Joined.", chatCommand);
-			}
-
-			@Override
-			public ChatResponse ifRoomDoesNotExist() {
-				return reply("That room doesn't exist...", chatCommand);
-			}
-
-			@Override
-			public ChatResponse ifBotDoesNotHavePermission() {
-				return reply("I don't seem to have permission to post there.", chatCommand);
-			}
-
-			@Override
-			public ChatResponse ifOther(IOException thrown) {
-				return reply("Hmm, I can't seem to join that room: " + thrown.getMessage(), chatCommand);
-			}
-		});
-
-		return null;
+		
+		//@formatter:off
+		return ChatActions.create(
+			new JoinRoom(roomToJoin)
+			.onSuccess(() -> reply("Joined.", chatCommand))
+			.ifRoomDoesNotExist(() -> reply("That room doesn't exist...", chatCommand))
+			.ifLackingPermissionToPost(() -> reply("I don't seem to have permission to post there.", chatCommand))
+			.onError((thrown) -> reply("Hmm, I can't seem to join that room: " + thrown.getMessage(), chatCommand))
+		);
+		//@formatter:on
 	}
 
 	private static class Pending {

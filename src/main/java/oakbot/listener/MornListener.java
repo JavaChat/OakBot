@@ -1,5 +1,9 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActions.doNothing;
+import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 
@@ -66,14 +70,14 @@ public class MornListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		List<String> mentions = message.getContent().getMentions();
 		boolean mentioned = message.getContent().isMentioned(botUsername);
 		if (!mentions.isEmpty() && !mentioned) {
 			/*
 			 * Message isn't directed toward the bot.
 			 */
-			return null;
+			return doNothing();
 		}
 
 		String content = removeMentionsAndPunctuation(message.getContent().getContent());
@@ -84,7 +88,7 @@ public class MornListener implements Listener {
 		.findFirst(); //@formatter:on
 
 		if (!reply.isPresent()) {
-			return null;
+			return doNothing();
 		}
 
 		/*
@@ -98,7 +102,7 @@ public class MornListener implements Listener {
 			 */
 			hesitate();
 
-			return Listener.reply(reply.get(), message);
+			return reply(reply.get(), message);
 		}
 
 		int roomId = message.getRoomId();
@@ -113,7 +117,7 @@ public class MornListener implements Listener {
 		 */
 		long now = System.currentTimeMillis();
 		if (now - lastReply < timeBetweenReplies) {
-			return null;
+			return doNothing();
 		}
 
 		lastReplies.put(roomId, now);
@@ -123,7 +127,7 @@ public class MornListener implements Listener {
 		 */
 		hesitate();
 
-		return new ChatResponse(reply.get());
+		return post(reply.get());
 	}
 
 	private void hesitate() {

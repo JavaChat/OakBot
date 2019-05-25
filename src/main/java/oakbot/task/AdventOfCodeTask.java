@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import oakbot.bot.Bot;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.command.AdventOfCodeApi;
 import oakbot.command.AdventOfCodeApi.Player;
 import oakbot.util.ChatBuilder;
@@ -71,7 +71,7 @@ public class AdventOfCodeTask implements ScheduledTask {
 						String playerName = (player.getName() == null) ? "anonymous user #" + player.getId() : player.getName();
 
 						//@formatter:off
-						bot.sendMessage(roomId, new ChatResponse(new ChatBuilder()
+						bot.sendMessage(roomId, new PostMessage(new ChatBuilder()
 							.bold(playerName)
 							.append(" completed part 1 of day ").append(day).append("! \\o/")
 						));
@@ -82,7 +82,7 @@ public class AdventOfCodeTask implements ScheduledTask {
 						String playerName = (player.getName() == null) ? "anonymous user #" + player.getId() : player.getName();
 
 						//@formatter:off
-						bot.sendMessage(roomId, new ChatResponse(new ChatBuilder()
+						bot.sendMessage(roomId, new PostMessage(new ChatBuilder()
 							.bold(playerName)
 							.append(" completed part 2 of day ").append(day).append("! \\o/")
 						));

@@ -1,6 +1,7 @@
 package oakbot.command.urban;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,8 +18,9 @@ import org.apache.http.client.utils.URIBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -50,7 +52,7 @@ public class UrbanCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("You have to type a word to see its definition... -_-", chatCommand);
@@ -90,7 +92,7 @@ public class UrbanCommand implements Command {
 			logger.log(Level.SEVERE, "Problem getting word from Urban Dictionary.", e);
 
 			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
+			return post(new ChatBuilder()
 				.reply(chatCommand)
 				.append("Sorry, an unexpected error occurred: ")
 				.code(e.getMessage())
@@ -114,24 +116,32 @@ public class UrbanCommand implements Command {
 			definition = removeLinks(definition);
 
 			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(chatCommand)
-				.append(urbanWord.getWord())
-				.append(" (").append(urbanWord.getPermalink()).append("):").nl()
-				.append(definition)
-			, SplitStrategy.WORD);
+			return ChatActions.create(
+				new PostMessage(
+					new ChatBuilder()
+					.reply(chatCommand)
+					.append(urbanWord.getWord())
+					.append(" (").append(urbanWord.getPermalink()).append("):").nl()
+					.append(definition)
+				)
+				.splitStrategy(SplitStrategy.WORD)
+			);
 			//@formatter:on
 		}
 
 		definition = encodeLinks(definition);
 
 		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(chatCommand)
-			.link(new ChatBuilder().bold().code(urbanWord.getWord()).bold().toString(), urbanWord.getPermalink())
-			.append(": ")
-			.append(definition)
-		, SplitStrategy.WORD);
+		return ChatActions.create(
+			new PostMessage(
+				new ChatBuilder()
+				.reply(chatCommand)
+				.link(new ChatBuilder().bold().code(urbanWord.getWord()).bold().toString(), urbanWord.getPermalink())
+				.append(": ")
+				.append(definition)
+			)
+			.splitStrategy(SplitStrategy.WORD)
+		);
 		//@formatter:on
 	}
 

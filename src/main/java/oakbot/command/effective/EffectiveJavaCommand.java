@@ -1,6 +1,6 @@
 package oakbot.command.effective;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,8 +14,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.xml.sax.SAXException;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -106,7 +107,7 @@ public class EffectiveJavaCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent();
 
 		/**
@@ -187,23 +188,32 @@ public class EffectiveJavaCommand implements Command {
 		return displayItems(chatCommand, searchResults);
 	}
 
-	private ChatResponse displayItem(ChatCommand chatCommand, Item item) {
+	private ChatActions displayItem(ChatCommand chatCommand, Item item) {
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(chatCommand);
 		cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title));
 		cb.nl().append(removeMarkdown(item.summary));
 		cb.nl().append("(source: Effective Java, Third Edition by Joshua Bloch, p.").append(item.page).append(")");
 
-		return new ChatResponse(cb, SplitStrategy.WORD);
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb).splitStrategy(SplitStrategy.WORD)
+		);
+		//@formatter:on
 	}
 
-	private ChatResponse displayItems(ChatCommand chatCommand, List<Item> items) {
+	private ChatActions displayItems(ChatCommand chatCommand, List<Item> items) {
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(chatCommand);
 		for (Item item : items) {
 			cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title)).nl();
 		}
-		return new ChatResponse(cb, SplitStrategy.NEWLINE);
+
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb).splitStrategy(SplitStrategy.NEWLINE)
+		);
+		//@formatter:on
 	}
 
 	private static String removeMarkdown(String s) {

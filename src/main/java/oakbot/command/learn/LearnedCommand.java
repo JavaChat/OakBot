@@ -1,10 +1,12 @@
 package oakbot.command.learn;
 
+import static oakbot.bot.ChatActions.post;
+
 import java.time.LocalDateTime;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 
@@ -101,8 +103,8 @@ public class LearnedCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
-		return new ChatResponse(output);
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+		return post(output);
 	}
 
 	/**

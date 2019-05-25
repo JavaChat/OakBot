@@ -29,7 +29,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import oakbot.bot.BotContext.JoinRoomCallback;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.IChatClient;
 import oakbot.chat.IRoom;
@@ -91,13 +90,13 @@ public class BotTest {
 
 	@Test
 	public void connect_greeting_broadcast() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
 		IRoom room2 = chatServer.createRoom(2);
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -107,7 +106,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, false);
@@ -121,13 +120,13 @@ public class BotTest {
 
 	@Test
 	public void connect_greeting_quiet() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
 		IRoom room2 = chatServer.createRoom(2);
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -137,7 +136,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, true);
@@ -151,13 +150,13 @@ public class BotTest {
 
 	@Test
 	public void connect_greeting_no_message() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
 		IRoom room2 = chatServer.createRoom(2);
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -166,7 +165,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, false);
@@ -180,7 +179,7 @@ public class BotTest {
 
 	@Test
 	public void listener() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
@@ -191,14 +190,14 @@ public class BotTest {
 		MessagePostedEvent event1 = event("no reply");
 		MessagePostedEvent event2 = event("reply");
 
-		/**
+		/*
 		 * Create the listener
 		 */
 		Listener listener = mock(Listener.class);
-		when(listener.onMessage(same(event1.getMessage()), any(BotContext.class))).thenReturn(null);
-		when(listener.onMessage(same(event2.getMessage()), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
+		when(listener.onMessage(same(event1.getMessage()), any(BotContext.class))).thenReturn(ChatActions.doNothing());
+		when(listener.onMessage(same(event2.getMessage()), any(BotContext.class))).thenReturn(ChatActions.post("reply"));
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -208,7 +207,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1, event2);
@@ -224,7 +223,7 @@ public class BotTest {
 
 	@Test
 	public void command() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
@@ -237,21 +236,21 @@ public class BotTest {
 		MessagePostedEvent event3 = event("=alias command");
 		MessagePostedEvent event4 = event("=name reply");
 
-		/**
+		/*
 		 * Create the command.
 		 */
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("name");
 		when(command.aliases()).thenReturn(Arrays.asList("alias"));
 		ChatCommand expectedChatCommand2 = new ChatCommand(event2.getMessage(), "name", "command");
-		when(command.onMessage(eq(expectedChatCommand2), any(BotContext.class))).thenReturn(null);
+		when(command.onMessage(eq(expectedChatCommand2), any(BotContext.class))).thenReturn(ChatActions.doNothing());
 		ChatCommand expectedChatCommand3 = new ChatCommand(event3.getMessage(), "alias", "command");
-		when(command.onMessage(eq(expectedChatCommand3), any(BotContext.class))).thenReturn(null);
+		when(command.onMessage(eq(expectedChatCommand3), any(BotContext.class))).thenReturn(ChatActions.doNothing());
 		ChatCommand expectedChatCommand4 = new ChatCommand(event4.getMessage(), "name", "reply");
-		when(command.onMessage(eq(expectedChatCommand4), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
+		when(command.onMessage(eq(expectedChatCommand4), any(BotContext.class))).thenReturn(ChatActions.post("reply"));
 		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -261,7 +260,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1, event2, event3, event4);
@@ -278,7 +277,7 @@ public class BotTest {
 
 	@Test
 	public void learned_command() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
@@ -289,14 +288,14 @@ public class BotTest {
 		MessagePostedEvent event1 = event("=ignore");
 		MessagePostedEvent event2 = event("=foo");
 
-		/**
+		/*
 		 * Create the learned commands.
 		 */
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("foo").output("bar").build());
 		CommandListener commandListener = new CommandListener(Collections.<Command> emptyList(), learnedCommands);
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -306,7 +305,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1, event2);
@@ -339,7 +338,7 @@ public class BotTest {
 	}
 
 	private void filter(int num) throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
@@ -350,15 +349,15 @@ public class BotTest {
 		MessagePostedEvent event1 = event("=command");
 		MessagePostedEvent event2 = event("=learned");
 
-		/**
+		/*
 		 * Create the command.
 		 */
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("command");
 		when(command.aliases()).thenReturn(Arrays.asList());
-		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
+		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).thenReturn(ChatActions.post("reply"));
 
-		/**
+		/*
 		 * Create the learned commands.
 		 */
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
@@ -366,13 +365,13 @@ public class BotTest {
 
 		CommandListener commandListener = new CommandListener(Arrays.asList(command), learnedCommands);
 
-		/**
+		/*
 		 * Create the listener.
 		 */
 		Listener listener = mock(Listener.class);
-		when(listener.onMessage(eq(event1.getMessage()), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
+		when(listener.onMessage(eq(event1.getMessage()), any(BotContext.class))).thenReturn(ChatActions.post("reply"));
 
-		/**
+		/*
 		 * Create the filter.
 		 */
 		ChatResponseFilter filter = new ChatResponseFilter() {
@@ -399,7 +398,7 @@ public class BotTest {
 			break;
 		}
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -411,7 +410,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, false, event1, event2);
@@ -426,7 +425,7 @@ public class BotTest {
 
 	@Test
 	public void join_room() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
@@ -446,32 +445,29 @@ public class BotTest {
 		MessagePostedEvent event8 = event("=join 999"); //IOException
 
 		/*
-		 * Create the join callback.
-		 */
-		JoinRoomCallback callback = mock(JoinRoomCallback.class);
-		when(callback.success()).thenReturn(null, new ChatResponse("success"));
-		when(callback.ifRoomDoesNotExist()).thenReturn(null, new ChatResponse("ifRoomDoesNotExist"));
-		when(callback.ifBotDoesNotHavePermission()).thenReturn(null, new ChatResponse("ifBotDoesNotHavePermission"));
-		when(callback.ifOther(any(IOException.class))).thenReturn(null, new ChatResponse("ifOther"));
-
-		/*
 		 * Create the join command.
 		 */
-		Command command = mock(Command.class);
-		when(command.name()).thenReturn("join");
-		when(command.aliases()).thenReturn(Arrays.asList());
-		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).then((invocation) -> {
+		Command joinCommand = mock(Command.class);
+		when(joinCommand.name()).thenReturn("join");
+		when(joinCommand.aliases()).thenReturn(Arrays.asList());
+		when(joinCommand.onMessage(any(ChatCommand.class), any(BotContext.class))).then((invocation) -> {
 			ChatCommand chatCommand = (ChatCommand) invocation.getArguments()[0];
-			BotContext context = (BotContext) invocation.getArguments()[1];
-
 			int roomId = Integer.parseInt(chatCommand.getContent());
-			context.joinRoom(roomId, callback);
-			return null;
+
+			//@formatter:off
+			return ChatActions.create(
+				new JoinRoom(roomId)
+				.onSuccess(() -> ChatActions.post("success"))
+				.ifRoomDoesNotExist(() -> ChatActions.post("ifRoomDoesNotExist"))
+				.ifLackingPermissionToPost(() -> ChatActions.post("ifLackingPermissionToPost"))
+				.onError((e) -> ChatActions.post("onError"))
+			);
+			//@formatter:on
 		});
 
-		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+		CommandListener commandListener = new CommandListener(Arrays.asList(joinCommand), new LearnedCommandsDao());
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -482,7 +478,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1, event2, event3, event4, event5, event6, event7, event8);
@@ -495,16 +491,10 @@ public class BotTest {
 		verify(chatClient, times(2)).joinRoom(4);
 		verify(chatClient, times(2)).joinRoom(999);
 
-		verify(callback, times(2)).success();
-		verify(callback, times(2)).ifRoomDoesNotExist();
-		verify(callback, times(2)).ifBotDoesNotHavePermission();
-		verify(callback, times(2)).ifOther(any(IOException.class));
-
-		verify(room1, times(4)).sendMessage(anyString(), any(SplitStrategy.class));
-		verify(room1).sendMessage("success", SplitStrategy.NONE);
-		verify(room1).sendMessage("ifRoomDoesNotExist", SplitStrategy.NONE);
-		verify(room1).sendMessage("ifBotDoesNotHavePermission", SplitStrategy.NONE);
-		verify(room1).sendMessage("ifOther", SplitStrategy.NONE);
+		verify(room1, times(2)).sendMessage("success", SplitStrategy.NONE);
+		verify(room1, times(2)).sendMessage("ifRoomDoesNotExist", SplitStrategy.NONE);
+		verify(room1, times(2)).sendMessage("ifLackingPermissionToPost", SplitStrategy.NONE);
+		verify(room1, times(2)).sendMessage("onError", SplitStrategy.NONE);
 
 		verify(room2, times(1)).sendMessage(anyString(), any(SplitStrategy.class));
 		verify(room2).sendMessage("Greetings.", SplitStrategy.NONE);
@@ -512,7 +502,7 @@ public class BotTest {
 
 	@Test
 	public void leave_room() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		chatServer.createRoom(1);
@@ -529,15 +519,12 @@ public class BotTest {
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("leave");
 		when(command.aliases()).thenReturn(Arrays.asList());
-		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).then((invocation) -> {
-			BotContext context = (BotContext) invocation.getArguments()[1];
-			context.leaveRoom(2);
-			return null;
-		});
+
+		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).thenReturn(ChatActions.create(new LeaveRoom(2)));
 
 		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -547,7 +534,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1);
@@ -575,7 +562,7 @@ public class BotTest {
 	}
 
 	private void shutdown(boolean postAMessage, boolean broadcastTheMessage) throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
@@ -598,7 +585,7 @@ public class BotTest {
 
 		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -608,7 +595,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		Thread t = bot.connect(true);
@@ -625,7 +612,7 @@ public class BotTest {
 
 	@Test
 	public void content_null() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		chatServer.createRoom(1);
@@ -635,12 +622,12 @@ public class BotTest {
 		 */
 		MessagePostedEvent event1 = event(null);
 
-		/**
+		/*
 		 * Create the listener
 		 */
 		Listener listener = mock(Listener.class);
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -650,7 +637,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1);
@@ -663,7 +650,7 @@ public class BotTest {
 
 	@Test
 	public void admin_user() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		chatServer.createRoom(1);
@@ -674,7 +661,7 @@ public class BotTest {
 		MessagePostedEvent event1 = event("Test", 2);
 		MessagePostedEvent event2 = event("Test", 100);
 
-		/**
+		/*
 		 * Create the listener
 		 */
 		Listener listener = mock(Listener.class);
@@ -689,7 +676,7 @@ public class BotTest {
 			return null;
 		});
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -700,7 +687,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1, event2);
@@ -714,7 +701,7 @@ public class BotTest {
 
 	@Test
 	public void banned_user() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		chatServer.createRoom(1);
@@ -725,12 +712,12 @@ public class BotTest {
 		MessagePostedEvent event1 = event("Test", 2);
 		MessagePostedEvent event2 = event("Test", 100);
 
-		/**
+		/*
 		 * Create the listener
 		 */
 		Listener listener = mock(Listener.class);
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -741,7 +728,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1, event2);
@@ -755,7 +742,7 @@ public class BotTest {
 
 	@Test
 	public void allowed_user() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		chatServer.createRoom(1);
@@ -766,12 +753,12 @@ public class BotTest {
 		MessagePostedEvent event1 = event("Test2", 2);
 		MessagePostedEvent event2 = event("Test100", 100);
 
-		/**
+		/*
 		 * Create the listener
 		 */
 		Listener listener = mock(Listener.class);
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -782,7 +769,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1, event2);
@@ -796,7 +783,7 @@ public class BotTest {
 
 	@Test
 	public void onebox() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
@@ -822,15 +809,13 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Create the listener
 		 */
 		Listener listener = mock(Listener.class);
-		when(listener.onMessage(same(event1.getMessage()), any(BotContext.class))).then((invocation) -> {
-			return new ChatResponse("http://en.wikipedia.org/wiki/Java");
-		});
+		when(listener.onMessage(same(event1.getMessage()), any(BotContext.class))).thenReturn(ChatActions.post("http://en.wikipedia.org/wiki/Java"));
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -849,7 +834,7 @@ public class BotTest {
 			return null;
 		}).when(room1).editMessage(100, "> http://en.wikipedia.org/wiki/Java");
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		long start = System.currentTimeMillis();
@@ -868,7 +853,7 @@ public class BotTest {
 
 	@Test
 	public void unknown_command() throws Exception {
-		/**
+		/*
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
@@ -883,15 +868,15 @@ public class BotTest {
 		 * Create the handler.
 		 */
 		@SuppressWarnings("unchecked")
-		BiFunction<ChatCommand, BotContext, ChatResponse> handler = mock(BiFunction.class);
+		BiFunction<ChatCommand, BotContext, ChatActions> handler = mock(BiFunction.class);
 		ChatCommand expectedChatCommand1 = new ChatCommand(event1.getMessage(), "foobar", "");
 		when(handler.apply(eq(expectedChatCommand1), any(BotContext.class))).thenReturn(null);
 		ChatCommand expectedChatCommand2 = new ChatCommand(event2.getMessage(), "foobar", "");
-		when(handler.apply(eq(expectedChatCommand2), any(BotContext.class))).thenReturn(new ChatResponse("reply"));
+		when(handler.apply(eq(expectedChatCommand2), any(BotContext.class))).thenReturn(ChatActions.post("reply"));
 
 		CommandListener commandListener = new CommandListener(Collections.emptyList(), new LearnedCommandsDao(), handler);
 
-		/**
+		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
@@ -901,7 +886,7 @@ public class BotTest {
 		.build();
 		//@formatter:on
 
-		/**
+		/*
 		 * Run the bot.
 		 */
 		run(bot, event1, event2);

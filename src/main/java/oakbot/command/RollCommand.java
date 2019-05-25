@@ -1,14 +1,15 @@
 package oakbot.command;
 
+import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 import static oakbot.command.Command.random;
-import static oakbot.command.Command.reply;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -36,7 +37,7 @@ public class RollCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		Parameters parameters = parseParameters(chatCommand);
 		if (parameters.choices != null) {
 			String choice = random(parameters.choices);
@@ -49,7 +50,7 @@ public class RollCommand implements Command {
 
 		if (parameters.times <= 0) {
 			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
+			return post(new ChatBuilder()
 				.reply(chatCommand)
 				.italic("rolls nothing")
 			);
@@ -82,7 +83,7 @@ public class RollCommand implements Command {
 			cb.nl().append("Total = ").append(total);
 		}
 
-		return new ChatResponse(cb);
+		return post(cb);
 	}
 
 	private Parameters parseParameters(ChatCommand chatCommand) {

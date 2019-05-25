@@ -1,6 +1,7 @@
 package oakbot.command;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,9 +21,9 @@ import org.xml.sax.SAXException;
 import com.google.common.net.UrlEscapers;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
-import oakbot.chat.SplitStrategy;
+import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Leaf;
 
@@ -66,13 +67,17 @@ public class CatCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		int repeats = 0;
 		try (CloseableHttpClient client = createClient()) {
 			while (repeats < 5) {
 				String catUrl = nextCat(client);
 				if (isCatThere(client, catUrl)) {
-					return new ChatResponse(catUrl, SplitStrategy.NONE, true);
+					//@formatter:off
+					return ChatActions.create(
+						new PostMessage(catUrl).bypassFilters(true)
+					);
+					//@formatter:on
 				}
 
 				repeats++;
@@ -81,7 +86,7 @@ public class CatCommand implements Command {
 			logger.log(Level.SEVERE, "Problem getting cat.", e);
 
 			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
+			return post(new ChatBuilder()
 				.reply(chatCommand)
 				.append("Error getting cat: ")
 				.code(e.getMessage())

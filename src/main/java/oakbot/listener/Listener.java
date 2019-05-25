@@ -1,10 +1,9 @@
 package oakbot.listener;
 
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
-import oakbot.util.ChatBuilder;
 
 /**
  * Listens to each new message and optionally responds to it.
@@ -33,21 +32,7 @@ public interface Listener {
 	 * Called whenever a new message is received.
 	 * @param message the message
 	 * @param context the bot context
+	 * @return the action(s) to perform in response to the message
 	 */
-	ChatResponse onMessage(ChatMessage message, BotContext context);
-
-	/**
-	 * Utility method for creating a simple reply to a message.
-	 * @param content the message to put in the response
-	 * @param message the message that the response is in reply to
-	 * @return the response
-	 */
-	static ChatResponse reply(String content, ChatMessage message) {
-		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(message)
-			.append(content)
-		);
-		//@formatter:on
-	}
+	ChatActions onMessage(ChatMessage message, BotContext context);
 }

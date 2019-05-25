@@ -1,10 +1,10 @@
 package oakbot.command;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.reply;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
 import oakbot.bot.ShutdownException;
 
 /**
@@ -28,7 +28,7 @@ public class ShutdownCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		if (context.isAuthorAdmin()) {
 			String message = "Shutting down. See you later.";
 			boolean broadcast = chatCommand.getContent().equalsIgnoreCase("broadcast");

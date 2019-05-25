@@ -1,6 +1,7 @@
 package oakbot.command.javadoc;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.doNothing;
+import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -23,8 +24,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
@@ -127,7 +129,7 @@ public class JavadocCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent();
 		if (content.isEmpty()) {
 			return reply("Type the name of a Java class (e.g. \"java.lang.String\") or a method (e.g. \"Integer#parseInt\").", chatCommand);
@@ -167,11 +169,11 @@ public class JavadocCommand implements Command {
 		return handleSingleMatch(arguments, info, chatCommand);
 	}
 
-	private ChatResponse handleNoMatch(ChatCommand message) {
+	private ChatActions handleNoMatch(ChatCommand message) {
 		return reply("Sorry, I never heard of that class. :(", message);
 	}
 
-	private ChatResponse handleSingleMatch(JavadocCommandArguments arguments, ClassInfo info, ChatCommand message) {
+	private ChatActions handleSingleMatch(JavadocCommandArguments arguments, ClassInfo info, ChatCommand message) {
 		if (arguments.getMethodName() == null) {
 			//method name not specified, so print the class docs
 			return printClass(info, arguments, message);
@@ -205,7 +207,7 @@ public class JavadocCommand implements Command {
 		return printMethodChoices(map, arguments, message);
 	}
 
-	private ChatResponse handleMultipleMatches(JavadocCommandArguments arguments, Collection<String> matches, ChatCommand message) {
+	private ChatActions handleMultipleMatches(JavadocCommandArguments arguments, Collection<String> matches, ChatCommand message) {
 		if (arguments.getMethodName() == null) {
 			//user is just querying for a class, so print the class choices
 			return printClassChoices(matches, arguments, message);
@@ -266,18 +268,18 @@ public class JavadocCommand implements Command {
 	 * @param num the number
 	 * @return the chat response or null not to respond to the message
 	 */
-	public ChatResponse showChoice(ChatMessage message, int num) {
+	public ChatActions showChoice(ChatMessage message, int num) {
 		Conversation conversation = conversations.get(message.getRoomId());
 
 		if (conversation == null) {
 			//no choices were ever printed to the chat in this room, so ignore
-			return null;
+			return doNothing();
 		}
 
 		boolean timedOut = ChronoUnit.MILLIS.between(conversation.timeLastTouched, Instant.now()) > choiceTimeout;
 		if (timedOut) {
 			//it's been a while since the choices were printed to the chat in this room, so ignore
-			return null;
+			return doNothing();
 		}
 
 		//reset the time-out timer
@@ -286,12 +288,7 @@ public class JavadocCommand implements Command {
 		int index = num - 1;
 		if (index < 0 || index >= conversation.choices.size()) {
 			//check to make sure the number corresponds to a choice
-			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
-				.reply(message)
-				.append("That's not a valid choice.")
-			);
-			//@formatter:on
+			return reply("That's not a valid choice.", message);
 		}
 
 		//valid choice entered, print the info
@@ -311,7 +308,7 @@ public class JavadocCommand implements Command {
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printMethod(MethodInfo methodInfo, JavadocCommandArguments arguments, ChatCommand message) {
+	private ChatActions printMethod(MethodInfo methodInfo, JavadocCommandArguments arguments, ChatCommand message) {
 		ChatBuilder cb = new ChatBuilder();
 
 		String username = arguments.getTargetUser();
@@ -370,7 +367,13 @@ public class JavadocCommand implements Command {
 		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
 
-		return new ChatResponse(cb, SplitStrategy.WORD, false, buildHideMessage(methodInfo));
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb)
+			.splitStrategy(SplitStrategy.WORD)
+			.condensedMessage(buildHideMessage(methodInfo))
+		);
+		//@formatter:on
 	}
 
 	private String buildHideMessage(MethodInfo methodInfo) {
@@ -397,7 +400,7 @@ public class JavadocCommand implements Command {
 	 * @param cb the chat builder
 	 * @return the chat response
 	 */
-	private ChatResponse printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, JavadocCommandArguments arguments, ChatCommand message) {
+	private ChatActions printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, JavadocCommandArguments arguments, ChatCommand message) {
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(message);
 
@@ -458,7 +461,13 @@ public class JavadocCommand implements Command {
 		int roomId = message.getMessage().getRoomId();
 		conversations.put(roomId, conversation);
 
-		return new ChatResponse(cb, SplitStrategy.NEWLINE, false, true);
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb)
+			.splitStrategy(SplitStrategy.NEWLINE)
+			.ephemeral(true)
+		);
+		//@formatter:on
 	}
 
 	/**
@@ -468,7 +477,7 @@ public class JavadocCommand implements Command {
 	 * @param message the original message
 	 * @return the chat response
 	 */
-	private ChatResponse printClassChoices(Collection<String> classes, JavadocCommandArguments arguments, ChatCommand message) {
+	private ChatActions printClassChoices(Collection<String> classes, JavadocCommandArguments arguments, ChatCommand message) {
 		List<String> choices = new ArrayList<>(classes);
 		Collections.sort(choices);
 
@@ -486,10 +495,16 @@ public class JavadocCommand implements Command {
 		int roomId = message.getMessage().getRoomId();
 		conversations.put(roomId, conversation);
 
-		return new ChatResponse(cb, SplitStrategy.NEWLINE, false, true);
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb)
+			.splitStrategy(SplitStrategy.NEWLINE)
+			.ephemeral(true)
+		);
+		//@formatter:on
 	}
 
-	private ChatResponse printClass(ClassInfo info, JavadocCommandArguments arguments, ChatCommand message) {
+	private ChatActions printClass(ClassInfo info, JavadocCommandArguments arguments, ChatCommand message) {
 		ChatBuilder cb = new ChatBuilder();
 
 		String username = arguments.getTargetUser();
@@ -561,7 +576,14 @@ public class JavadocCommand implements Command {
 		String since = info.getSince();
 		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
-		return new ChatResponse(cb, SplitStrategy.WORD, false, buildHideMessage(info));
+
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb)
+			.splitStrategy(SplitStrategy.WORD)
+			.condensedMessage(buildHideMessage(info))
+		);
+		//@formatter:on
 	}
 
 	private String buildHideMessage(ClassInfo info) {

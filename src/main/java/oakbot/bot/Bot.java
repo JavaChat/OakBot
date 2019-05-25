@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,7 +26,6 @@ import com.google.common.collect.ImmutableList;
 import oakbot.Database;
 import oakbot.Rooms;
 import oakbot.Statistics;
-import oakbot.bot.BotContext.JoinRoomCallback;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.IChatClient;
 import oakbot.chat.IRoom;
@@ -252,7 +252,7 @@ public class Bot {
 			 * URL is still preserved.
 			 */
 			boolean messageIsOnebox = message.getContent().isOnebox();
-			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrDeletable())) {
+			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
 				long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - postedMessage.getTimePosted());
 				if (logger.isLoggable(Level.INFO)) {
 					String action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
@@ -264,17 +264,20 @@ public class Bot {
 					public void run() {
 						try {
 							String condensedContent = postedMessage.getCondensedContent();
-							if (condensedContent == null) {
-								//it's a onebox
-								condensedContent = quote(postedMessage.getOriginalContent());
-								room.editMessage(message.getMessageId(), condensedContent);
-							} else if (condensedContent.isEmpty()) {
+
+							if (postedMessage.isEphemeral()) {
 								room.deleteMessage(message.getMessageId());
 							} else {
-								condensedContent = quote(condensedContent);
+								if (condensedContent == null) {
+									//it's a onebox
+									condensedContent = quote(postedMessage.getOriginalContent());
+								} else {
+									condensedContent = quote(condensedContent);
+								}
 								room.editMessage(message.getMessageId(), condensedContent);
 							}
 
+							//if the original content was split up into multiple messages due to length constraints, delete the additional messages
 							for (Long id : postedMessage.getRelatedMessageIds()) {
 								room.deleteMessage(id);
 							}
@@ -294,12 +297,12 @@ public class Bot {
 
 		inactiveRoomTasks.touch(message);
 
-		List<ChatResponse> replies = new ArrayList<>();
 		boolean isUserAdmin = admins.contains(message.getUserId());
 		BotContext context = new BotContext(isUserAdmin, trigger, connection, rooms.getRooms(), rooms.getHomeRooms(), maxRooms);
 
+		ChatActions actions;
 		try {
-			replies.addAll(handleListeners(message, context));
+			actions = handleListeners(message, context);
 		} catch (ShutdownException e) {
 			String shutdownMessage = e.getShutdownMessage();
 			if (shutdownMessage != null) {
@@ -310,7 +313,7 @@ public class Bot {
 						sendMessage(room, shutdownMessage);
 					}
 				} catch (IOException e2) {
-					logger.log(Level.SEVERE, "Problem sending shutdown message.", e2);
+					logger.log(Level.SEVERE, "Problem sending shutdown message before terminating the bot.", e2);
 				}
 			}
 
@@ -320,66 +323,72 @@ public class Bot {
 			return;
 		}
 
-		if (!replies.isEmpty()) {
+		if (!actions.isEmpty()) {
 			if (logger.isLoggable(Level.INFO)) {
 				logger.info("Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
 			}
 
 			if (stats != null) {
-				stats.incMessagesRespondedTo(replies.size());
+				stats.incMessagesRespondedTo();
 			}
 
-			for (ChatResponse reply : replies) {
-				try {
-					sendMessage(room, reply);
-				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem posting message [room=" + room.getRoomId() + "]: " + reply.getMessage(), e);
+			LinkedList<ChatAction> queue = new LinkedList<>(actions.getActions());
+			while (!queue.isEmpty()) {
+				ChatAction action = queue.removeFirst();
+
+				if (action instanceof PostMessage) {
+					PostMessage postMessage = (PostMessage) action;
+
+					try {
+						sendMessage(room, postMessage);
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "Problem posting message [room=" + room.getRoomId() + "]: " + postMessage.message(), e);
+					}
+
+					continue;
 				}
-			}
-		}
 
-		for (Map.Entry<Integer, JoinRoomCallback> entry : context.getRoomsToJoin().entrySet()) {
-			int roomId = entry.getKey();
-			JoinRoomCallback callback = entry.getValue();
+				if (action instanceof JoinRoom) {
+					JoinRoom joinRoom = (JoinRoom) action;
 
-			ChatResponse response = null;
-
-			if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
-				response = callback.ifOther(new IOException("Max rooms reached."));
-			} else {
-				try {
-					IRoom joinedRoom = join(roomId);
-					if (joinedRoom.canPost()) {
-						response = callback.success();
+					ChatActions response;
+					if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
+						response = joinRoom.onError().apply(new IOException("Cannot join room. Max rooms reached."));
 					} else {
-						response = callback.ifBotDoesNotHavePermission();
 						try {
-							leave(roomId);
+							IRoom joinedRoom = join(joinRoom.roomId());
+							if (joinedRoom.canPost()) {
+								response = joinRoom.onSuccess().get();
+							} else {
+								response = joinRoom.ifLackingPermissionToPost().get();
+								try {
+									leave(joinRoom.roomId());
+								} catch (IOException e) {
+									logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
+								}
+							}
+						} catch (RoomNotFoundException e) {
+							response = joinRoom.ifRoomDoesNotExist().get();
 						} catch (IOException e) {
-							logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
+							response = joinRoom.onError().apply(e);
 						}
 					}
-				} catch (RoomNotFoundException e) {
-					response = callback.ifRoomDoesNotExist();
-				} catch (IOException e) {
-					response = callback.ifOther(e);
-				}
-			}
 
-			if (response != null) {
-				try {
-					sendMessage(room, response);
-				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem posting leave message [room=" + room.getRoomId() + "]: " + response, e);
+					queue.addAll(response.getActions());
+					continue;
 				}
-			}
-		}
 
-		for (Integer roomId : context.getRoomsToLeave()) {
-			try {
-				leave(roomId);
-			} catch (IOException e) {
-				logger.log(Level.SEVERE, "Problem leaving room " + roomId, e);
+				if (action instanceof LeaveRoom) {
+					LeaveRoom leaveRoom = (LeaveRoom) action;
+
+					try {
+						leave(leaveRoom.roomId());
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "Problem leaving room " + leaveRoom.roomId(), e);
+					}
+
+					continue;
+				}
 			}
 		}
 
@@ -395,7 +404,7 @@ public class Bot {
 	 * @param message the message to post
 	 * @throws IOException if there's a problem sending the message
 	 */
-	public void sendMessage(int roomId, ChatResponse message) throws IOException {
+	public void sendMessage(int roomId, PostMessage message) throws IOException {
 		IRoom room = connection.getRoom(roomId);
 		if (room != null) {
 			sendMessage(room, message);
@@ -403,15 +412,15 @@ public class Bot {
 	}
 
 	private void sendMessage(IRoom room, String message) throws IOException {
-		sendMessage(room, new ChatResponse(message));
+		sendMessage(room, new PostMessage(message));
 	}
 
-	private void sendMessage(IRoom room, ChatResponse reply) throws IOException {
+	private void sendMessage(IRoom room, PostMessage message) throws IOException {
 		final String filteredMessage;
-		if (reply.isBypassFilters()) {
-			filteredMessage = reply.getMessage();
+		if (message.bypassFilters()) {
+			filteredMessage = message.message();
 		} else {
-			String messageText = reply.getMessage();
+			String messageText = message.message();
 			for (ChatResponseFilter filter : responseFilters) {
 				if (filter.isEnabled(room.getRoomId())) {
 					messageText = filter.filter(messageText);
@@ -425,11 +434,12 @@ public class Bot {
 		}
 
 		synchronized (postedMessages) {
-			List<Long> messageIds = room.sendMessage(filteredMessage, reply.getSplitStrategy());
+			List<Long> messageIds = room.sendMessage(filteredMessage, message.splitStrategy());
 			long now = System.currentTimeMillis();
-			String condensedMessage = reply.getCondensedMessage();
+			String condensedMessage = message.condensedMessage();
+			boolean ephemeral = message.ephemeral();
 
-			PostedMessage postedMessage = new PostedMessage(now, filteredMessage, condensedMessage, messageIds.subList(1, messageIds.size()));
+			PostedMessage postedMessage = new PostedMessage(now, filteredMessage, condensedMessage, ephemeral, messageIds.subList(1, messageIds.size()));
 			postedMessages.put(messageIds.get(0), postedMessage);
 		}
 	}
@@ -513,21 +523,18 @@ public class Bot {
 		return rooms;
 	}
 
-	private List<ChatResponse> handleListeners(ChatMessage message, BotContext context) {
-		List<ChatResponse> replies = new ArrayList<>();
+	private ChatActions handleListeners(ChatMessage message, BotContext context) {
+		ChatActions actions = new ChatActions();
 		for (Listener listener : listeners) {
 			try {
-				ChatResponse reply = listener.onMessage(message, context);
-				if (reply != null) {
-					replies.add(reply);
-				}
+				actions.addAll(listener.onMessage(message, context));
 			} catch (ShutdownException e) {
 				throw e;
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "A listener threw an exception responding to a message.", e);
 			}
 		}
-		return replies;
+		return actions;
 	}
 
 	/**
@@ -536,7 +543,7 @@ public class Bot {
 	 * @throws IOException if there's a problem sending the message
 	 */
 	public void broadcast(String message) throws IOException {
-		broadcast(new ChatResponse(message));
+		broadcast(new PostMessage(message));
 	}
 
 	/**
@@ -544,7 +551,7 @@ public class Bot {
 	 * @param message the message to send
 	 * @throws IOException if there's a problem sending the message
 	 */
-	public void broadcast(ChatResponse message) throws IOException {
+	public void broadcast(PostMessage message) throws IOException {
 		for (IRoom room : connection.getRooms()) {
 			if (!rooms.isQuietRoom(room.getRoomId())) {
 				sendMessage(room, message);
@@ -743,6 +750,7 @@ public class Bot {
 	private static class PostedMessage {
 		private final long timePosted;
 		private final String originalContent, condensedContent;
+		private final boolean ephemeral;
 		private final List<Long> relatedMessageIds;
 
 		/**
@@ -752,14 +760,17 @@ public class Bot {
 		 * @param condensedContent the text that the message should be changed
 		 * to after the amount of time specified in the "hideOneboxesAfter"
 		 * setting
+		 * @param ephemeral true to delete the message after the amount of time
+		 * specified in the "hideOneboxesAfter" setting, false not to
 		 * @param relatedMessageIds the IDs of the other messages that are
 		 * connected to this one, due to the chat client having to split up the
 		 * original message due to length limitations
 		 */
-		public PostedMessage(long timePosted, String originalContent, String condensedContent, List<Long> relatedMessageIds) {
+		public PostedMessage(long timePosted, String originalContent, String condensedContent, boolean ephemeral, List<Long> relatedMessageIds) {
 			this.timePosted = timePosted;
 			this.originalContent = originalContent;
 			this.condensedContent = condensedContent;
+			this.ephemeral = ephemeral;
 			this.relatedMessageIds = relatedMessageIds;
 		}
 
@@ -783,8 +794,7 @@ public class Bot {
 		/**
 		 * Gets the text that the message should be changed to after the amount
 		 * of time specified in the "hideOneboxesAfter" setting.
-		 * @return the new content, empty string to delete the message, or null
-		 * to leave the message alone
+		 * @return the new content or null to leave the message alone
 		 */
 		public String getCondensedContent() {
 			return condensedContent;
@@ -807,8 +817,18 @@ public class Bot {
 		 * @return true to condense or delete the message, false to leave it
 		 * alone
 		 */
-		public boolean isCondensableOrDeletable() {
-			return condensedContent != null;
+		public boolean isCondensableOrEphemeral() {
+			return condensedContent != null || ephemeral;
+		}
+
+		/**
+		 * Determines if the message has requested that it be deleted after the
+		 * amount of time specified in the "hideOneboxesAfter"
+		 * setting. Does not include messages that were converted to oneboxes.
+		 * @return true to delete the message, false not to
+		 */
+		public boolean isEphemeral() {
+			return ephemeral;
 		}
 	}
 

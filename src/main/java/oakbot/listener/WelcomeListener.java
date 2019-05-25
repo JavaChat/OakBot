@@ -1,5 +1,7 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActions.doNothing;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,10 +14,10 @@ import java.util.logging.Logger;
 
 import oakbot.Database;
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
+import oakbot.bot.PostMessage;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.IRoom;
-import oakbot.chat.SplitStrategy;
 import oakbot.chat.UserInfo;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
@@ -60,16 +62,16 @@ public class WelcomeListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		int roomId = message.getRoomId();
 		if (!roomHasWelcomeMessage(roomId)) {
-			return null;
+			return doNothing();
 		}
 
 		int userId = message.getUserId();
 		Set<Integer> userIds = welcomedUsersByRoom.get(roomId);
 		if (hasSeenUserBefore(userId, userIds)) {
-			return null;
+			return doNothing();
 		}
 
 		userIds.add(userId);
@@ -81,25 +83,28 @@ public class WelcomeListener implements Listener {
 			userInfo = room.getUserInfo(Arrays.asList(userId));
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Could not get user info for user " + userId, e);
-			return null;
+			return doNothing();
 		}
 
 		if (userInfo.isEmpty()) {
-			return null;
+			return doNothing();
 		}
 
 		UserInfo first = userInfo.get(0);
 		if (!shouldUserBeWelcomed(first)) {
-			return null;
+			return doNothing();
 		}
 
 		String welcomeMessage = welcomeMessagesByRoom.get(roomId);
 
 		//@formatter:off
-		return new ChatResponse(new ChatBuilder()
-			.reply(message)
-			.append(welcomeMessage),
-		SplitStrategy.NONE, true);
+		return ChatActions.create(
+			new PostMessage(new ChatBuilder()
+				.reply(message)
+				.append(welcomeMessage)
+			)
+			.bypassFilters(true)
+		);
 		//@formatter:on
 	}
 

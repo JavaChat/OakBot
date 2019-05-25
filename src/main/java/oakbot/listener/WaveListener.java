@@ -1,5 +1,8 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActions.doNothing;
+import static oakbot.bot.ChatActions.post;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -7,7 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import oakbot.bot.BotContext;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 
@@ -52,7 +55,7 @@ public class WaveListener implements Listener {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		String content = message.getContent().getContent();
 		boolean mentioned = message.getContent().isMentioned(botUsername);
 
@@ -64,7 +67,7 @@ public class WaveListener implements Listener {
 			 */
 			Matcher m = waveRegex.matcher(content);
 			if (!m.find()) {
-				return null;
+				return doNothing();
 			}
 
 			mentionListener.ignoreNextMessage();
@@ -75,7 +78,7 @@ public class WaveListener implements Listener {
 			 * the emoticon.
 			 */
 			if (!content.equals("o/") && !content.equals("\\o")) {
-				return null;
+				return doNothing();
 			}
 
 			int roomId = message.getRoomId();
@@ -90,7 +93,7 @@ public class WaveListener implements Listener {
 			 */
 			long now = System.currentTimeMillis();
 			if (!context.isAuthorAdmin() && now - lastWave < timeBetweenWaves) {
-				return null;
+				return doNothing();
 			}
 
 			lastWaves.put(roomId, now);
@@ -107,7 +110,7 @@ public class WaveListener implements Listener {
 		}
 
 		String reply = reverse(wave);
-		return new ChatResponse(reply);
+		return post(reply);
 	}
 
 	private String reverse(String wave) {

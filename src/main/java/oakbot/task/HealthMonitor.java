@@ -8,8 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import oakbot.bot.Bot;
-import oakbot.bot.ChatResponse;
-import oakbot.chat.SplitStrategy;
+import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
 
@@ -82,7 +81,7 @@ public class HealthMonitor implements ScheduledTask {
 			for (int roomId : roomIds) {
 				ChatBuilder cb = new ChatBuilder();
 				cb.italic(Command.random(responses));
-				ChatResponse response = new ChatResponse(cb, SplitStrategy.NONE, true);
+				PostMessage response = new PostMessage(cb).bypassFilters(true);
 				try {
 					bot.sendMessage(roomId, response);
 				} catch (Exception e) {

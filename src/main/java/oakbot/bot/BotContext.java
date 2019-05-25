@@ -1,11 +1,8 @@
 package oakbot.bot;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import oakbot.chat.IChatClient;
 import oakbot.chat.IRoom;
@@ -23,8 +20,6 @@ public class BotContext {
 	private final IChatClient connection;
 
 	private final List<Integer> currentRooms, homeRooms;
-	private final Map<Integer, JoinRoomCallback> roomsToJoin = new LinkedHashMap<>(0);
-	private final List<Integer> roomsToLeave = new ArrayList<>(0);
 	private final Integer maxRooms;
 
 	/**
@@ -97,44 +92,6 @@ public class BotContext {
 	}
 
 	/**
-	 * Joins a room once all commands and listeners have had a chance to respond
-	 * to the incoming message.
-	 * @param roomId the room to join
-	 * @param callback what to do if the join operation was successful or a
-	 * failure
-	 */
-	public void joinRoom(int roomId, JoinRoomCallback callback) {
-		roomsToJoin.put(roomId, callback);
-	}
-
-	/**
-	 * Gets the rooms the bot will join once all commands and listeners have had
-	 * a chance to respond to the incoming message.
-	 * @return the join events
-	 */
-	public Map<Integer, JoinRoomCallback> getRoomsToJoin() {
-		return roomsToJoin;
-	}
-
-	/**
-	 * Leaves a room once all commands and listeners have had a chance to
-	 * respond to the incoming message.
-	 * @param roomId the room ID
-	 */
-	public void leaveRoom(int roomId) {
-		roomsToLeave.add(roomId);
-	}
-
-	/**
-	 * Gets the rooms the bot will leave once all commands and listeners have
-	 * had a chance to respond to the incoming message.
-	 * @return the room IDs
-	 */
-	public List<Integer> getRoomsToLeave() {
-		return roomsToLeave;
-	}
-
-	/**
 	 * <p>
 	 * Queries the chat service for the original, Markdown-encoded message that
 	 * the user actually typed into the chat room (when messages are retrieved
@@ -156,36 +113,5 @@ public class BotContext {
 	 */
 	public String getOriginalMessageContent(long messageId) throws IOException {
 		return connection.getOriginalMessageContent(messageId);
-	}
-
-	/**
-	 * Used to join a room.
-	 * @author Michael Angstadt
-	 */
-	public interface JoinRoomCallback {
-		/**
-		 * Gets the message to send if the join was successful.
-		 * @return the message or null not to send a message
-		 */
-		ChatResponse success();
-
-		/**
-		 * Gets the message to send if the room does not exist.
-		 * @return the message or null not to send a message
-		 */
-		ChatResponse ifRoomDoesNotExist();
-
-		/**
-		 * Gets the message to send if the bot cannot post messages to the room.
-		 * @return the message or null not to send a message
-		 */
-		ChatResponse ifBotDoesNotHavePermission();
-
-		/**
-		 * Gets the message to send if another error occurs.
-		 * @param thrown the thrown exception
-		 * @return the message or null not to send a message
-		 */
-		ChatResponse ifOther(IOException thrown);
 	}
 }

@@ -1,6 +1,6 @@
 package oakbot.command.http;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,8 +12,9 @@ import org.apache.http.client.utils.URIBuilder;
 import org.xml.sax.SAXException;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -61,7 +62,7 @@ public class HttpCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String split[] = chatCommand.getContent().split("\\s+");
 		String code = split[0].toUpperCase();
 		if (code.isEmpty()) {
@@ -126,7 +127,11 @@ public class HttpCommand implements Command {
 			cb.append(" (").append(paragraph).append("/").append(paragraphs.length).append(")");
 		}
 
-		return new ChatResponse(cb, SplitStrategy.WORD);
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb).splitStrategy(SplitStrategy.WORD)
+		);
+		//@formatter:on
 	}
 
 	private static String processSectionAnnotations(String description, String defaultRfc) {

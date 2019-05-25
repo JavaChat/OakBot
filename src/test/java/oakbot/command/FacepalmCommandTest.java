@@ -1,7 +1,8 @@
 package oakbot.command;
 
+import static oakbot.bot.ChatActionsUtils.assertMessage;
+import static oakbot.bot.ChatActionsUtils.assertPostMessage;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -11,8 +12,9 @@ import java.net.URI;
 import org.junit.Test;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Gobble;
 
@@ -33,10 +35,16 @@ public class FacepalmCommandTest {
 		};
 
 		ChatCommand message = new ChatCommandBuilder(command).build();
-		ChatResponse response = command.onMessage(message, mock(BotContext.class));
+		ChatActions response = command.onMessage(message, mock(BotContext.class));
 
-		assertEquals("https://media.tenor.com/images/7e45bbaa8859d5cf8721f78974f480d4/tenor.gif", response.getMessage());
-		assertEquals("https://media.tenor.com/images/7e45bbaa8859d5cf8721f78974f480d4/tenor.gif (via [Tenor](https://tenor.com))", response.getCondensedMessage());
+		//@formatter:off
+		assertPostMessage(
+			new PostMessage("https://media.tenor.com/images/7e45bbaa8859d5cf8721f78974f480d4/tenor.gif")
+				.condensedMessage("https://media.tenor.com/images/7e45bbaa8859d5cf8721f78974f480d4/tenor.gif (via [Tenor](https://tenor.com))")
+				.bypassFilters(true),
+			response
+		);
+		//@formatter:on
 	}
 
 	@Test
@@ -50,10 +58,9 @@ public class FacepalmCommandTest {
 		};
 
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
-		ChatResponse response = command.onMessage(message, mock(BotContext.class));
+		ChatActions response = command.onMessage(message, mock(BotContext.class));
 
-		assertEquals(":1 Sorry, an error occurred. >.>", response.getMessage());
-		assertNull(response.getCondensedMessage());
+		assertMessage(":1 Sorry, an error occurred. >.>", response);
 	}
 
 	@Test
@@ -67,10 +74,9 @@ public class FacepalmCommandTest {
 		};
 
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
-		ChatResponse response = command.onMessage(message, mock(BotContext.class));
+		ChatActions response = command.onMessage(message, mock(BotContext.class));
 
-		assertEquals(":1 Sorry, an error occurred. >.>", response.getMessage());
-		assertNull(response.getCondensedMessage());
+		assertMessage(":1 Sorry, an error occurred. >.>", response);
 	}
 
 	@Test
@@ -84,9 +90,8 @@ public class FacepalmCommandTest {
 		};
 
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
-		ChatResponse response = command.onMessage(message, mock(BotContext.class));
+		ChatActions response = command.onMessage(message, mock(BotContext.class));
 
-		assertEquals(":1 Sorry, an error occurred. >.>", response.getMessage());
-		assertNull(response.getCondensedMessage());
+		assertMessage(":1 Sorry, an error occurred. >.>", response);
 	}
 }

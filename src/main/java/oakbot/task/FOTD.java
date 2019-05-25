@@ -14,7 +14,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import oakbot.bot.Bot;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
@@ -56,7 +56,7 @@ public class FOTD implements ScheduledTask {
 			cb.append(' ').link("(source)", url);
 		}
 
-		broadcast(new ChatResponse(cb, SplitStrategy.WORD), bot);
+		broadcast(new PostMessage(cb).splitStrategy(SplitStrategy.WORD), bot);
 	}
 
 	private String parseFact(String html) {
@@ -97,7 +97,7 @@ public class FOTD implements ScheduledTask {
 	 * @param bot the bot instance
 	 * @throws IOException if there's a problem sending the message
 	 */
-	void broadcast(ChatResponse response, Bot bot) throws IOException {
+	void broadcast(PostMessage response, Bot bot) throws IOException {
 		bot.broadcast(response);
 	}
 }

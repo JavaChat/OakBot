@@ -1,6 +1,7 @@
 package oakbot.command.define;
 
-import static oakbot.command.Command.reply;
+import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.XPathWrapper.children;
 
 import java.io.IOException;
@@ -23,8 +24,9 @@ import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 
 import oakbot.bot.BotContext;
+import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -61,7 +63,7 @@ public class DefineCommand implements Command {
 	}
 
 	@Override
-	public ChatResponse onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String word = chatCommand.getContent().trim();
 		if (word.isEmpty()) {
 			return reply("Please specify the word you'd like to define.", chatCommand);
@@ -81,7 +83,7 @@ public class DefineCommand implements Command {
 			logger.log(Level.SEVERE, "Problem getting word from dictionary.", e);
 
 			//@formatter:off
-			return new ChatResponse(new ChatBuilder()
+			return post(new ChatBuilder()
 				.reply(chatCommand)
 				.append("Sorry, an unexpected error occurred while getting the definition: ")
 				.code(e.getMessage())
@@ -109,7 +111,13 @@ public class DefineCommand implements Command {
 			}
 			cb.nl().nl();
 		}
-		return new ChatResponse(cb.toString().trim(), SplitStrategy.NEWLINE);
+
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb.toString().trim())
+			.splitStrategy(SplitStrategy.NEWLINE)
+		);
+		//@formatter:on
 	}
 
 	private List<Definition> parseResponse(String word, Leaf response) {

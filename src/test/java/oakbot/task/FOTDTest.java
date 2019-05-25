@@ -17,7 +17,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import oakbot.bot.Bot;
-import oakbot.bot.ChatResponse;
+import oakbot.bot.PostMessage;
 import oakbot.util.Gobble;
 
 /**
@@ -69,15 +69,15 @@ public class FOTDTest {
 			}
 
 			@Override
-			void broadcast(ChatResponse response, Bot bot) throws IOException {
-				assertEquals("The **fact** [(source)](http://www.refdesk.com)", response.getMessage());
+			void broadcast(PostMessage response, Bot bot) throws IOException {
+				assertEquals("The **fact** [(source)](http://www.refdesk.com)", response.message());
 			}
 		});
 
 		Bot bot = mock(Bot.class);
 		task.run(bot);
 
-		verify(task).broadcast(any(ChatResponse.class), eq(bot));
+		verify(task).broadcast(any(PostMessage.class), eq(bot));
 	}
 
 	@Test
@@ -90,15 +90,15 @@ public class FOTDTest {
 			}
 
 			@Override
-			void broadcast(ChatResponse response, Bot bot) throws IOException {
-				assertEquals("The <b>fact</b>\nline two\nSource: http://www.refdesk.com", response.getMessage());
+			void broadcast(PostMessage response, Bot bot) throws IOException {
+				assertEquals("The <b>fact</b>\nline two\nSource: http://www.refdesk.com", response.message());
 			}
 		});
 
 		Bot bot = mock(Bot.class);
 		task.run(bot);
 
-		verify(task).broadcast(any(ChatResponse.class), eq(bot));
+		verify(task).broadcast(any(PostMessage.class), eq(bot));
 	}
 
 	@Test
@@ -114,6 +114,6 @@ public class FOTDTest {
 		Bot bot = mock(Bot.class);
 		task.run(bot);
 
-		verify(task, never()).broadcast(any(ChatResponse.class), eq(bot));
+		verify(task, never()).broadcast(any(PostMessage.class), eq(bot));
 	}
 }
