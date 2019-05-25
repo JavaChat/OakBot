@@ -589,15 +589,12 @@ public class BotTest {
 		/*
 		 * Create the shutdown command.
 		 */
+		String content = postAMessage ? "Bye." : null;
+		ShutdownException exception = new ShutdownException(content, broadcastTheMessage);
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("shutdown");
 		when(command.aliases()).thenReturn(Arrays.asList());
-		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).then((invocation) -> {
-			BotContext context = (BotContext) invocation.getArguments()[1];
-			String content = postAMessage ? "Bye." : null;
-			context.shutdownBot(content, broadcastTheMessage);
-			return null;
-		});
+		when(command.onMessage(any(ChatCommand.class), any(BotContext.class))).thenThrow(exception);
 
 		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 

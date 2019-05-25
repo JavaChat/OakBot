@@ -22,9 +22,6 @@ public class BotContext {
 	private final String trigger;
 	private final IChatClient connection;
 
-	private boolean shutdown = false, shutdownMessageBroadcast;
-	private String shutdownMessage;
-
 	private final List<Integer> currentRooms, homeRooms;
 	private final Map<Integer, JoinRoomCallback> roomsToJoin = new LinkedHashMap<>(0);
 	private final List<Integer> roomsToLeave = new ArrayList<>(0);
@@ -135,44 +132,6 @@ public class BotContext {
 	 */
 	public List<Integer> getRoomsToLeave() {
 		return roomsToLeave;
-	}
-
-	/**
-	 * Shutdown the bot once all commands and listeners have had a chance to
-	 * respond to the incoming message.
-	 * @param message the message to send before shutting down or null not to
-	 * send a message
-	 * @param broadcast true to broadcast the message to all chat rooms, false
-	 * to only send the message to the room that the shutdown command came from
-	 */
-	public void shutdownBot(String message, boolean broadcast) {
-		shutdown = true;
-		shutdownMessage = message;
-		shutdownMessageBroadcast = broadcast;
-	}
-
-	/**
-	 * Gets whether the bot was told to shutdown.
-	 * @return true to shutdown the bot, false not to
-	 */
-	public boolean isShutdown() {
-		return shutdown;
-	}
-
-	/**
-	 * Gets the bot's shutdown message.
-	 * @return the shutdown message or null not to send a shutdown message
-	 */
-	public String getShutdownMessage() {
-		return shutdownMessage;
-	}
-
-	/**
-	 * Gets whether to broadcast the bot's shutdown message.
-	 * @return true to broadcast, false not to
-	 */
-	public boolean isShutdownMessageBroadcast() {
-		return shutdownMessageBroadcast;
 	}
 
 	/**

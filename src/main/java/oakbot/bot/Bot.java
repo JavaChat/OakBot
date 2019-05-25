@@ -298,19 +298,19 @@ public class Bot {
 		boolean isUserAdmin = admins.contains(message.getUserId());
 		BotContext context = new BotContext(isUserAdmin, trigger, connection, rooms.getRooms(), rooms.getHomeRooms(), maxRooms);
 
-		replies.addAll(handleListeners(message, context));
-
-		if (context.isShutdown()) {
-			String shutdownMessage = context.getShutdownMessage();
+		try {
+			replies.addAll(handleListeners(message, context));
+		} catch (ShutdownException e) {
+			String shutdownMessage = e.getShutdownMessage();
 			if (shutdownMessage != null) {
 				try {
-					if (context.isShutdownMessageBroadcast()) {
+					if (e.isBroadcast()) {
 						broadcast(shutdownMessage);
 					} else {
 						sendMessage(room, shutdownMessage);
 					}
-				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem sending shutdown message.", e);
+				} catch (IOException e2) {
+					logger.log(Level.SEVERE, "Problem sending shutdown message.", e2);
 				}
 			}
 
@@ -521,6 +521,8 @@ public class Bot {
 				if (reply != null) {
 					replies.add(reply);
 				}
+			} catch (ShutdownException e) {
+				throw e;
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "A listener threw an exception responding to a message.", e);
 			}
