@@ -59,7 +59,7 @@ public class AdventOfCodeCommandTest {
 
 		BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), null);
 		ChatActions response = command.onMessage(message, context);
-		assertMessage(":1 Please specify a leaderboard ID (e.g. /advent 123456).", response);
+		assertMessage(":1 Please specify a leaderboard ID (e.g. /aoc 123456).", response);
 	}
 
 	@Test

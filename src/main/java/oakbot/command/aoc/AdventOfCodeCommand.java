@@ -40,12 +40,12 @@ public class AdventOfCodeCommand implements Command {
 
 	@Override
 	public String name() {
-		return "advent";
+		return "aoc";
 	}
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("aoc");
+		return Arrays.asList("advent");
 	}
 
 	@Override
