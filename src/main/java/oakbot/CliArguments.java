@@ -1,8 +1,5 @@
 package oakbot;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -15,8 +12,7 @@ public class CliArguments {
 
 	public CliArguments(String[] args) {
 		OptionParser parser = new OptionParser();
-		parser.accepts("settings").withRequiredArg();
-		parser.accepts("db").withRequiredArg();
+		parser.accepts("context").withRequiredArg();
 		parser.accepts("mock");
 		parser.accepts("quiet");
 		parser.accepts("version");
@@ -25,12 +21,8 @@ public class CliArguments {
 		options = parser.parse(args);
 	}
 
-	public Path settings() {
-		return path("settings");
-	}
-
-	public Path db() {
-		return path("db");
+	public String context() {
+		return (String) options.valueOf("context");
 	}
 
 	public boolean version() {
@@ -49,12 +41,7 @@ public class CliArguments {
 		return options.has("mock");
 	}
 
-	private Path path(String name) {
-		String value = (String) options.valueOf(name);
-		return (value == null) ? null : Paths.get(value);
-	}
-
-	public String printHelp(Path defaultSettings, Path defaultDb) {
+	public String printHelp(String defaultContext) {
 		final String nl = System.getProperty("line.separator");
 
 		//@formatter:off
@@ -65,13 +52,10 @@ public class CliArguments {
 		nl +
 		"Arguments" + nl +
 		"================================================" + nl +
-		"--settings=PATH" + nl +
-		"  The properties file that contains the bot's configuration settings, such as " + nl +
-		"  login credentials (defaults to \"" + defaultSettings + "\")." + nl +
-		nl +
-		"--db=PATH" + nl +
-		"  The path to a JSON file for storing all persistant data." + nl +
-		"  (defaults to \"" + defaultDb + "\")." + nl +
+		"--context=PATH" + nl +
+		"  The path to the Spring application context XML file that contains the bot's" + nl +
+		"  configuration settings and commands (defaults to \"" + defaultContext + "\")." + nl +
+		"  Note: Absolute paths must be prefixed with \"file:\"." + nl +
 		nl +
 		"--mock" + nl +
 		"  Runs the bot using a mock chat connection for testing purposes." + nl +

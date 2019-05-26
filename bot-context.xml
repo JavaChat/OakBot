@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	  xmlns="http://www.springframework.org/schema/beans"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xmlns:context="http://www.springframework.org/schema/context"
+	  xmlns:util="http://www.springframework.org/schema/util"
+	  xmlns:p="http://www.springframework.org/schema/p"
+	  xsi:schemaLocation="
+	    http://www.springframework.org/schema/beans
+	    https://www.springframework.org/schema/beans/spring-beans.xsd
+	    http://www.springframework.org/schema/context
+	    https://www.springframework.org/schema/context/spring-context.xsd
+	    http://www.springframework.org/schema/util
+	    https://www.springframework.org/schema/util/spring-util.xsd">	
+
+	<!-- Spring reference documentation: https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html -->
+	
+	<util:properties id="settings">
+		<!--
+		The website to connect to (each site has its own chat system).
+		Accepted values are: stackoverflow.com, stackexchange.com, meta.stackexchange.com
+		(defaults to: stackoverflow.com) 
+		-->
+		<prop key="account.site">stackoverflow.com</prop>
+		
+		<!--
+		The Stack Overflow login credentials for the bot.
+		-->
+		<prop key="account.email">email@example.com</prop>
+		<prop key="account.password">password</prop>
+		
+		<!--
+		The username of the bot's Stack Overflow account.
+		-->
+		<prop key="account.username">OakBot</prop>
+		
+		<!--
+		The user ID of the bot's Stack Overflow account.
+		The user ID can be found in the URL of the account's profile page.
+		-->
+		<prop key="account.userId">4258326</prop>
+		
+		<!--
+		The string sequence that prefixes all commands (typically a single character).
+		This cannot contain any spaces and should not contain any of the special characters used in Markdown syntax, including: * _ ` - > ( ) [ ]
+		-->
+		<prop key="trigger">=</prop>
+		
+		<!--
+		(optional)
+		The message to post when the bot joins a room. Chat markdown can be used here.
+		-->
+		<prop key="greeting">OakBot Online.</prop>
+		
+		<!--
+   		(optional)
+		Any oneboxes (including images) that the bot posts will be automatically replaced by the onebox's URL after the specified amount of time (in milliseconds).
+		This is mainly here to help prevent the bot from spamming the chat with large images.
+		If this property is not defined, then oneboxes will not be replaced.
+		Note that this value cannot exceed two minutes, which is the maximum amount of time Stack Overflow Chat gives you to edit/delete your posts.
+		-->
+		<prop key="hideOneboxesAfter">110000</prop>
+		
+		<!--
+		The list of rooms the bot cannot be unsummoned from.
+		At least one room must be specified.
+		The bot will join these rooms on startup.
+		This is a comma-separated list of room IDs.
+		A chat room's ID can be found in its URL.
+		-->
+		<prop key="rooms.home">1,139</prop>
+		
+		<!--
+		(optional)
+		The bot will avoid posting things like awkward silence messages (a message that the bot posts when the room is inactive) to these rooms.
+		This is for rooms that like quiet and do not want to receive a lot of "spam".
+		This is a comma-separated list of room IDs.
+		A chat room's ID can be found in its URL.
+		-->
+		<prop key="rooms.quiet">1</prop>
+		
+		<!--
+		(optional)
+		The users that are allowed to run admin-level commands against the bot (notably, the "shutdown" command).
+		This is a comma-separated list of user IDs.
+		A user ID can be found in the URL of the user's profile page.
+		-->
+		<prop key="users.admins">13379</prop>
+		
+		<!--
+		(optional)
+		The users that have been banned from using the bot (black list).
+		The bot will ignore all messages from these users.
+		This is a comma-separated list of user IDs.
+		A user ID can be found in the URL of the user's profile page.
+		-->
+		<prop key="users.banned"></prop>
+		
+		<!--
+		(optional)
+		The users that have been given permission to use the bot (white list).
+		If this property is not empty, the bot will ignore all messages except those that are from the specified users.
+		This is a comma-separated list of user IDs.
+		A user ID can be found in the URL of the user's profile page.
+		-->
+		<prop key="users.allowed"></prop>
+		
+		<!--
+		Enables or disables learned commands.
+		-->
+		<prop key="enableLearnedCommands">true</prop>
+	</util:properties>
+	<context:property-placeholder properties-ref="settings"/>
+	
+	<bean id="database" class="oakbot.JsonDatabase">
+		<constructor-arg>
+			<bean class="java.nio.file.Paths" factory-method="get">
+				<constructor-arg value="db.json" />
+				<constructor-arg><array /></constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
+	<!--
+	Use this bean if you don't want to persist anything to a file:
+	<bean id="database" class="oakbot.MemoryDatabase" />
+	-->
+	
+	<bean id="statistics" class="oakbot.Statistics">
+		<constructor-arg ref="database" />
+	</bean>
+	
+	<!-- /about -->
+	<bean class="oakbot.command.AboutCommand">
+		<constructor-arg ref="statistics" />
+		<constructor-arg><null /></constructor-arg> <!-- who the bot is hosted by (optional, chat markdown can be used) -->
+	</bean>
+
+	<!-- /afk -->
+	<bean id="afkCommand" class="oakbot.command.AfkCommand" />
+	<bean class="oakbot.listener.AfkListener">
+		<constructor-arg ref="afkCommand" />
+	</bean>
+	
+	<!-- /aoc -->
+	<bean class="oakbot.command.aoc.AdventOfCodeCommand">
+		<constructor-arg ref="aocDefaultLeaderboardIds" />
+		<constructor-arg ref="aocApi" />
+	</bean>
+	<util:map id="aocDefaultLeaderboardIds"> <!-- the default leaderboard to show for each room if the user does not specify a leaderboard ID (can be empty) -->
+		<entry key="1" value="123456" />
+	</util:map>
+	<bean id="aocApi" class="oakbot.command.aoc.AdventOfCodeApi">
+		<!--
+		Session token is required in order to query the AoC leaderboards. This value can be retrieved
+		from your own Advent of Code login; just open the site and look at your
+		browser cookies. Whatever user account is associated with this session ID
+		must have access to a leaderboard in order for the bot to view it.
+		-->
+		<constructor-arg value="session token goes here" />
+	</bean>
+	<bean class="oakbot.task.AdventOfCodeTask">
+		<constructor-arg ref="aocDefaultLeaderboardIds" />
+		<constructor-arg ref="aocApi" />
+	</bean>
+
+	<!-- /cat -->
+	<bean class="oakbot.command.CatCommand">
+		<constructor-arg value="" /> <!-- API key for thecatapi.com (can be blank) -->
+	</bean>
+
+	<!-- /define -->
+	<bean class="oakbot.command.define.DefineCommand">
+		<constructor-arg value="" /> <!-- API key for dictionaryapi.com -->
+	</bean>
+
+	<!-- /ej -->
+	<bean class="oakbot.command.effective.EffectiveJavaCommand" />
+
+	<!-- /8ball -->
+	<bean class="oakbot.command.EightBallCommand" />
+
+	<!-- /facepalm -->
+	<bean class="oakbot.command.FacepalmCommand">
+		<constructor-arg value="" /> <!-- API key for tenor.com -->
+	</bean>
+	
+	<!-- /fatcat -->
+	<bean id="fatCatCommand" class="oakbot.command.FatCatCommand">
+		<constructor-arg ref="database" />
+		<!-- TODO: specify admin IDs in constructor -->
+	</bean>
+	<bean class="oakbot.listener.FatCatListener">
+		<constructor-arg ref="fatCatCommand" />
+	</bean>
+
+	<!-- /groot -->
+	<bean class="oakbot.command.GrootCommand">
+		<constructor-arg ref="grootFilter" />
+	</bean>
+	<bean id="grootFilter" class="oakbot.filter.GrootFilter" />
+
+	<!-- /http -->
+	<bean class="oakbot.command.http.HttpCommand" />
+
+	<!-- /javadoc -->
+	<bean id="javadocCommand" class="oakbot.command.javadoc.JavadocCommand">
+		<constructor-arg ref="javadocDao" />
+	</bean>
+	<bean class="oakbot.listener.JavadocListener">
+		<constructor-arg ref="javadocCommand" />
+	</bean>
+	<bean id="javadocDao" class="oakbot.command.javadoc.JavadocDaoUncached">
+		<constructor-arg>
+			<bean class="java.nio.file.Paths" factory-method="get">
+				<constructor-arg value="" /> <!-- path to javadoc ZIP file directory -->
+				<constructor-arg><array /></constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<!-- /react -->
+	<bean class="oakbot.command.ReactCommand">
+		<constructor-arg value="" /> <!-- API key for replygif.net -->
+	</bean>
+
+	<!-- /roll -->
+	<bean class="oakbot.command.RollCommand" />
+
+	<!-- /rollover -->
+	<bean class="oakbot.command.RolloverCommand">
+		<constructor-arg ref="upsidedownTextFilter" />
+	</bean>
+	<bean id="upsidedownTextFilter" class="oakbot.filter.UpsidedownTextFilter" />
+
+	<!-- /shrug -->
+	<bean class="oakbot.command.ShrugCommand" />
+
+	<!-- /shutdown -->
+	<bean class="oakbot.command.ShutdownCommand" />
+
+	<!-- /summon and /unsommon (/join and /leave) -->
+	<bean class="oakbot.command.SummonCommand">
+		<constructor-arg value="2" /> <!-- the number of users who must summon the bot in order for the bot to join the room -->
+	</bean>
+	<bean class="oakbot.command.UnsummonCommand" />
+
+	<!-- /tag -->
+	<bean class="oakbot.command.TagCommand" />
+
+	<!-- /urban -->
+	<bean class="oakbot.command.urban.UrbanCommand" />
+
+	<!-- /wadu -->
+	<bean id="waduFilter" class="oakbot.filter.WaduFilter" />
+	<bean class="oakbot.command.WaduCommand">
+		<constructor-arg ref="waduFilter" />
+	</bean>
+	
+	<!-- /wiki -->
+	<bean class="oakbot.command.WikiCommand" />
+	
+	<!-- mention listener -->
+	<bean id="mentionListener" class="oakbot.listener.MentionListener">
+		<constructor-arg value="${account.username}" />
+	</bean>
+	
+	<!-- morn listener -->
+	<bean class="oakbot.listener.MornListener">
+		<constructor-arg value="${account.username}" />
+		<constructor-arg value="1000" /> <!-- amount of time to wait before responding (milliseconds) -->
+		<constructor-arg ref="mentionListener" />
+	</bean>
+	
+	<!-- wave listener -->
+	<bean class="oakbot.listener.WaveListener">
+		<constructor-arg value="${account.username}" />
+		<constructor-arg value="1000" /> <!-- amount of time to wait before waving back (milliseconds) -->
+		<constructor-arg ref="mentionListener" />
+	</bean>
+	
+	<!-- welcome listener -->
+	<bean class="oakbot.listener.WelcomeListener">
+		<constructor-arg ref="database" />
+		<constructor-arg> <!-- the welcome message to post for new users that join the room (can be empty, markdown can be used) -->
+			<util:map>
+				<entry key="1" value="Welcome to the Sandbox! Use this room to experiment with the features of Stack Overflow Chat." />
+			</util:map>
+		</constructor-arg>
+	</bean>
+	
+	<!-- fact of the day task -->
+	<bean class="oakbot.task.FOTD" />
+	
+	<!-- health monitor task -->
+	<bean class="oakbot.task.HealthMonitor">
+		<constructor-arg> <!-- the rooms to post health warnings in -->
+			<util:list>
+				<value>1</value>
+			</util:list>
+		</constructor-arg>
+	</bean>
+	
+	<!-- quote of the day task -->
+	<bean class="oakbot.task.QOTD" />
+
+</beans>
