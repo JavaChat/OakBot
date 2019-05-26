@@ -56,29 +56,28 @@
 			</plugin>
 			
 			<!--
-			This will build a shaded, executable JAR.
-			To build, run: mvn package 
+			This will build a fat, executable JAR.
+			To build, run: mvn package
+			
+			"maven-shade-plugin" cannot be used because it causes problems with Spring.
+			It builds fine, but when it tries to load the application context XML file, it bombs.
+			See: https://stackoverflow.com/q/28254417
 			-->
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.0.0</version>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>1.2.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
 						<goals>
-							<goal>shade</goal>
+							<goal>repackage</goal>
 						</goals>
-						<configuration>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>oakbot.Main</mainClass>
-								</transformer>
-							</transformers>
-						</configuration>
 					</execution>
 				</executions>
+				<configuration>
+					<mainClass>YOUR.MAIN.CLASS</mainClass>
+				</configuration>
 			</plugin>
 			
 			<!-- for codecov.io -->
