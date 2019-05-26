@@ -9,7 +9,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import oakbot.command.AdventOfCodeCommand;
+import oakbot.command.aoc.AdventOfCodeCommand;
 import oakbot.util.PropertiesWrapper;
 
 /**

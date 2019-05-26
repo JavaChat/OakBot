@@ -9,7 +9,6 @@ import java.util.List;
 
 import oakbot.Database;
 import oakbot.command.AboutCommand;
-import oakbot.command.AdventOfCodeCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
 import oakbot.command.Command;
@@ -29,6 +28,7 @@ import oakbot.command.TagCommand;
 import oakbot.command.UnsummonCommand;
 import oakbot.command.WaduCommand;
 import oakbot.command.WikiCommand;
+import oakbot.command.aoc.AdventOfCodeCommand;
 import oakbot.command.define.DefineCommand;
 import oakbot.command.effective.EffectiveJavaCommand;
 import oakbot.command.http.HttpCommand;

@@ -1,4 +1,4 @@
-package oakbot.command;
+package oakbot.command.aoc;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;

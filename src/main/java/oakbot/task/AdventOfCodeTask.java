@@ -12,8 +12,8 @@ import java.util.logging.Logger;
 
 import oakbot.bot.Bot;
 import oakbot.bot.PostMessage;
-import oakbot.command.AdventOfCodeApi;
-import oakbot.command.AdventOfCodeApi.Player;
+import oakbot.command.aoc.AdventOfCodeApi;
+import oakbot.command.aoc.AdventOfCodeApi.Player;
 import oakbot.util.ChatBuilder;
 
 /**
