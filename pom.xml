@@ -76,7 +76,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<mainClass>YOUR.MAIN.CLASS</mainClass>
+					<mainClass>oakbot.Main</mainClass>
 				</configuration>
 			</plugin>
 			
