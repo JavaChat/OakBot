@@ -151,10 +151,10 @@ public class LearnedCommandsDaoTest {
 		Iterator<LearnedCommand> it = dao.iterator();
 
 		LearnedCommand command = it.next();
-		assertEquals(new Integer(100), command.getAuthorUserId());
+		assertEquals(Integer.valueOf(100), command.getAuthorUserId());
 		assertEquals("Username", command.getAuthorUsername());
-		assertEquals(new Integer(1), command.getRoomId());
-		assertEquals(new Long(1000), command.getMessageId());
+		assertEquals(Integer.valueOf(1), command.getRoomId());
+		assertEquals(Long.valueOf(1000), command.getMessageId());
 		assertEquals(now, command.getCreated());
 		assertEquals("name", command.name());
 		assertTrue(command.aliases().isEmpty());
@@ -163,10 +163,10 @@ public class LearnedCommandsDaoTest {
 		assertTrue(dao.contains("name"));
 
 		command = it.next();
-		assertEquals(new Integer(101), command.getAuthorUserId());
+		assertEquals(Integer.valueOf(101), command.getAuthorUserId());
 		assertEquals("Username2", command.getAuthorUsername());
-		assertEquals(new Integer(2), command.getRoomId());
-		assertEquals(new Long(Integer.MAX_VALUE + 1L), command.getMessageId());
+		assertEquals(Integer.valueOf(2), command.getRoomId());
+		assertEquals(Long.valueOf(Integer.MAX_VALUE + 1L), command.getMessageId());
 		assertEquals(now, command.getCreated());
 		assertEquals("name2", command.name());
 		assertTrue(command.aliases().isEmpty());

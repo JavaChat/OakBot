@@ -43,9 +43,9 @@ public class LearnCommandTest {
 		assertMessage(":1 Saved.", response);
 
 		LearnedCommand learned = learnedCommands.get("name");
-		assertEquals(new Long(1), learned.getMessageId());
-		assertEquals(new Integer(2), learned.getRoomId());
-		assertEquals(new Integer(100), learned.getAuthorUserId());
+		assertEquals(Long.valueOf(1), learned.getMessageId());
+		assertEquals(Integer.valueOf(2), learned.getRoomId());
+		assertEquals(Integer.valueOf(100), learned.getAuthorUserId());
 		assertEquals("Username", learned.getAuthorUsername());
 		assertEquals(now, learned.getCreated());
 		assertEquals("name", learned.name());
