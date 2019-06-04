@@ -292,12 +292,13 @@
 	<bean class="oakbot.task.FOTD" />
 	
 	<!-- health monitor task -->
-	<bean class="oakbot.task.HealthMonitor">
+	<bean class="oakbot.task.LinuxHealthMonitor">
 		<constructor-arg> <!-- the rooms to post health warnings in -->
 			<util:list>
 				<value>1</value>
 			</util:list>
 		</constructor-arg>
+		<constructor-arg value="/usr/lib/update-notifier/apt-check" /> <!-- path to "apt-check" command -->
 	</bean>
 	
 	<!-- quote of the day task -->

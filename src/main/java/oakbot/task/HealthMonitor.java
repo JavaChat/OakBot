@@ -1,7 +1,5 @@
 package oakbot.task;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.List;
 import java.util.logging.Level;
@@ -17,7 +15,7 @@ import oakbot.util.ChatBuilder;
  * available.
  * @author Michael Angstadt
  */
-public class HealthMonitor implements ScheduledTask {
+public abstract class HealthMonitor implements ScheduledTask {
 	private static final Logger logger = Logger.getLogger(HealthMonitor.class.getName());
 
 	private final String[] responses = { "coughs", "sneezes", "clears throat", "expectorates", "sniffles", "wheezes", "groans", "moans" };
@@ -98,28 +96,5 @@ public class HealthMonitor implements ScheduledTask {
 	 * retrieved
 	 * @throws Exception if there is any sort of problem
 	 */
-	private int getNumSecurityUpdates() throws Exception {
-		/*
-		 * The apt-check command returns output in the following format:
-		 * 
-		 * NUM_TOTAL_UPDATES;NUM_SECURITY_UPDATES
-		 * 
-		 * For example, the output "128;68" means there are 128 updates, 68 of
-		 * which are considered to be security updates.
-		 */
-
-		/*
-		 * For some reason, the command output is sent to the error stream, so
-		 * redirect all error output to the standard stream.
-		 */
-		Process process = new ProcessBuilder("/usr/lib/update-notifier/apt-check").redirectErrorStream(true).start();
-
-		String line;
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-			line = reader.readLine();
-		}
-
-		String split[] = line.split(";");
-		return Integer.parseInt(split[1]);
-	}
+	public abstract int getNumSecurityUpdates() throws Exception;
 }
