@@ -57,7 +57,7 @@ public class EffectiveJavaCommand implements Command {
 				Leaf summaryElement = itemElement.selectFirst("summary");
 				summary = summaryElement.text().trim();
 
-				/**
+				/*
 				 * Remove any XML indentation whitespace at the beginning of
 				 * each line.
 				 */
@@ -110,21 +110,21 @@ public class EffectiveJavaCommand implements Command {
 	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
 		String content = chatCommand.getContent();
 
-		/**
+		/*
 		 * Display the help text.
 		 */
 		if (content.isEmpty()) {
 			return reply(help().getHelpText(context.getTrigger()), chatCommand);
 		}
 
-		/**
+		/*
 		 * Display all the items.
 		 */
 		if ("!list".equalsIgnoreCase(content)) {
 			return displayItems(chatCommand, items);
 		}
 
-		/**
+		/*
 		 * Display a random item.
 		 */
 		if ("!random".equalsIgnoreCase(content)) {
@@ -133,7 +133,7 @@ public class EffectiveJavaCommand implements Command {
 			return displayItem(chatCommand, item);
 		}
 
-		/**
+		/*
 		 * Display item by number.
 		 */
 		try {
@@ -151,7 +151,7 @@ public class EffectiveJavaCommand implements Command {
 			//user did not enter an item number
 		}
 
-		/**
+		/*
 		 * Search by keyword.
 		 */
 		content = content.toLowerCase();
@@ -168,21 +168,21 @@ public class EffectiveJavaCommand implements Command {
 			}
 		}
 
-		/**
+		/*
 		 * No search results found.
 		 */
 		if (searchResults.isEmpty()) {
 			return reply("No matches found.", chatCommand);
 		}
 
-		/**
+		/*
 		 * One item found.
 		 */
 		if (searchResults.size() == 1) {
 			return displayItem(chatCommand, searchResults.get(0));
 		}
 
-		/**
+		/*
 		 * Multiple items found.
 		 */
 		return displayItems(chatCommand, searchResults);
