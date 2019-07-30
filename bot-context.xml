@@ -172,6 +172,9 @@
 	<bean class="oakbot.command.define.DefineCommand">
 		<constructor-arg value="" /> <!-- API key for dictionaryapi.com -->
 	</bean>
+	
+	<!-- /ed -->
+	<bean class="oakbot.command.effective.EffectiveDebuggingCommand" />
 
 	<!-- /ej -->
 	<bean class="oakbot.command.effective.EffectiveJavaCommand" />

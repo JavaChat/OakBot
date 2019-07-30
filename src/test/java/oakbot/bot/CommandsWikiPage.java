@@ -30,6 +30,7 @@ import oakbot.command.WaduCommand;
 import oakbot.command.WikiCommand;
 import oakbot.command.aoc.AdventOfCodeCommand;
 import oakbot.command.define.DefineCommand;
+import oakbot.command.effective.EffectiveDebuggingCommand;
 import oakbot.command.effective.EffectiveJavaCommand;
 import oakbot.command.http.HttpCommand;
 import oakbot.command.javadoc.JavadocCommand;
@@ -77,6 +78,7 @@ public class CommandsWikiPage {
 			commands.add(new AfkCommand());
 			commands.add(new CatCommand(null));
 			commands.add(new DefineCommand(null));
+			commands.add(new EffectiveDebuggingCommand());
 			commands.add(new EffectiveJavaCommand());
 			commands.add(new EightBallCommand());
 			commands.add(new FacepalmCommand(""));
