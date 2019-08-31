@@ -1,7 +1,7 @@
 package oakbot.listener;
 
 import static oakbot.bot.ChatActions.doNothing;
-import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,8 +19,17 @@ import oakbot.util.ChatBuilder;
  */
 public class MentionListener implements Listener {
 	private final String botUsername;
-	private final long cooldown = TimeUnit.MINUTES.toMillis(1);
-	private Map<Integer, Long> prevResponses = new HashMap<>();
+	private final long cooldownTimeBetweenResponses = TimeUnit.MINUTES.toMillis(1);
+	private final Map<Integer, Long> timeOfLastResponseByRoom = new HashMap<>();
+	private final Map<String, String> responses = new HashMap<>();
+	{
+		String response = "You're welcome.";
+		responses.put("thank you", response);
+		responses.put("thank u", response);
+		responses.put("thanks", response);
+		responses.put("thx", response);
+		responses.put("ty", response);
+	}
 	private boolean ignore = false;
 
 	public MentionListener(String botUsername) {
@@ -52,25 +61,28 @@ public class MentionListener implements Listener {
 			return doNothing();
 		}
 
-		Long prevResponse = prevResponses.get(message.getRoomId());
+		Long prevResponse = timeOfLastResponseByRoom.get(message.getRoomId());
 		if (prevResponse == null) {
 			prevResponse = 0L;
 		}
 
 		long now = System.currentTimeMillis();
 		long elapsed = now - prevResponse;
-		if (elapsed < cooldown) {
+		if (elapsed < cooldownTimeBetweenResponses) {
 			return doNothing();
 		}
 
-		prevResponses.put(message.getRoomId(), now);
+		timeOfLastResponseByRoom.put(message.getRoomId(), now);
 
-		//@formatter:off
-		return post(new ChatBuilder()
-			.reply(message)
-			.append("Type ").code().append(context.getTrigger()).append("help").code().append(" to see all my commands.")
-		);
-		//@formatter:on
+		String response = respond(message.getContent().getContent());
+		if (response != null) {
+			return reply(response, message);
+		}
+
+		return reply(new ChatBuilder() //@formatter:off
+			.append("Type ").code().append(context.getTrigger()).append("help").code().append(" to see all my commands."),
+			message
+		); //@formatter:on
 	}
 
 	/**
@@ -78,5 +90,16 @@ public class MentionListener implements Listener {
 	 */
 	public void ignoreNextMessage() {
 		ignore = true;
+	}
+
+	private String respond(String content) {
+		String strippedContent = content //@formatter:off
+		.replaceAll("@\\w+", "") //remove mentions
+		.replaceAll("[^a-zA-Z ]", "") //remove everything but letters and spaces
+		.replaceAll("\\s{2,}", " ") //remove duplicate spaces
+		.trim()
+		.toLowerCase(); //@formatter:on
+
+		return responses.get(strippedContent);
 	}
 }

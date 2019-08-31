@@ -1,6 +1,6 @@
 package oakbot.listener;
 
-import static org.junit.Assert.assertEquals;
+import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -19,14 +19,17 @@ public class MentionListenerTest {
 	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@Test
-	public void mentioned() {
-		assertMentioned("Hey @OakBot", true);
-		assertMentioned("Hey @Oak", true);
-		assertMentioned("Hey @OakBott", false);
-		assertMentioned("Hey", false);
+	public void respond() {
+		assertResponse("Hey @OakBot", ":0 Type `/help` to see all my commands.");
+		assertResponse("Hey @Oak", ":0 Type `/help` to see all my commands.");
+		assertResponse("@Oak Thank  you", ":0 You're welcome.");
+		assertResponse("Thanks @Oak", ":0 You're welcome.");
+		assertResponse("@Oak  thx!", ":0 You're welcome.");
+		assertNoResponse("Hey @OakBott");
+		assertNoResponse("Hey");
 	}
 
-	private static void assertMentioned(String message, boolean mentioned) {
+	private static void assertNoResponse(String message) {
 		//@formatter:off
 		ChatMessage chatMessage = new ChatMessage.Builder()
 			.content(message)
@@ -34,8 +37,20 @@ public class MentionListenerTest {
 		//@formatter:on
 
 		MentionListener listener = new MentionListener("OakBot");
-		ChatActions response = listener.onMessage(chatMessage, context);
-		assertEquals(mentioned, !response.isEmpty());
+		ChatActions actions = listener.onMessage(chatMessage, context);
+		assertTrue(actions.isEmpty());
+	}
+
+	private static void assertResponse(String message, String expectedResponse) {
+		//@formatter:off
+		ChatMessage chatMessage = new ChatMessage.Builder()
+			.content(message)
+		.build();
+		//@formatter:on
+
+		MentionListener listener = new MentionListener("OakBot");
+		ChatActions actions = listener.onMessage(chatMessage, context);
+		assertMessage(expectedResponse, actions);
 	}
 
 	@Test
