@@ -18,6 +18,7 @@ import oakbot.command.FatCatCommand;
 import oakbot.command.GrootCommand;
 import oakbot.command.HelpCommand;
 import oakbot.command.HelpDoc;
+import oakbot.command.JuiceBoxCommand;
 import oakbot.command.ReactCommand;
 import oakbot.command.RollCommand;
 import oakbot.command.RolloverCommand;
@@ -87,6 +88,7 @@ public class CommandsWikiPage {
 			commands.add(new HelpCommand(commands, learnedCommands, listeners));
 			commands.add(new HttpCommand());
 			commands.add(new JavadocCommand(null));
+			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));
 			commands.add(new ReactCommand(null));
 			commands.add(new RollCommand());
