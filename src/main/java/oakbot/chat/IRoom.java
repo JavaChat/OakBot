@@ -2,6 +2,7 @@ package oakbot.chat;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -112,6 +113,16 @@ public interface IRoom extends Closeable {
 	 * @throws IOException if there's a problem executing the request
 	 */
 	List<UserInfo> getUserInfo(List<Integer> userIds) throws IOException;
+
+	/**
+	 * Gets information about room users, such as their reputation and username.
+	 * @param userIds the user ID(s)
+	 * @return the user information
+	 * @throws IOException if there's a problem executing the request
+	 */
+	default List<UserInfo> getUserInfo(Integer... userIds) throws IOException {
+		return getUserInfo(Arrays.asList(userIds));
+	}
 
 	/**
 	 * Gets the users in a room that are "pingable". Pingable users receive

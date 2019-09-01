@@ -19,13 +19,14 @@ public class FileChatClient implements IChatClient {
 	private final AtomicLong eventIdCounter = new AtomicLong(), messageIdCounter = new AtomicLong();
 	private final List<FileChatRoom> rooms = new ArrayList<>();
 	private final int botUserId, humanUserId;
-	private final String botUsername, humanUsername;
+	private final String botUsername, humanUsername, humanProfilePicture;
 
-	public FileChatClient(int botUserId, String botUsername, int humanUserId, String humanUsername) {
+	public FileChatClient(int botUserId, String botUsername, int humanUserId, String humanUsername, String humanProfilePicture) {
 		this.botUserId = botUserId;
 		this.botUsername = botUsername;
 		this.humanUserId = humanUserId;
 		this.humanUsername = humanUsername;
+		this.humanProfilePicture = humanProfilePicture;
 	}
 
 	@Override
@@ -39,7 +40,7 @@ public class FileChatClient implements IChatClient {
 		Files.deleteIfExists(inputFile);
 		Files.createFile(inputFile);
 
-		FileChatRoom room = new FileChatRoom(roomId, humanUserId, humanUsername, botUserId, botUsername, eventIdCounter, messageIdCounter, inputFile, this);
+		FileChatRoom room = new FileChatRoom(roomId, humanUserId, humanUsername, humanProfilePicture, botUserId, botUsername, eventIdCounter, messageIdCounter, inputFile, this);
 		rooms.add(room);
 		return room;
 	}

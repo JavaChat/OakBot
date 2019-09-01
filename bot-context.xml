@@ -220,6 +220,9 @@
 			</bean>
 		</constructor-arg>
 	</bean>
+	
+	<!-- /juicebox -->
+	<bean class="oakbot.command.JuiceBoxCommand" />
 
 	<!-- /react -->
 	<bean class="oakbot.command.ReactCommand">

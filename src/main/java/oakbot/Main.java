@@ -148,7 +148,7 @@ public final class Main {
 
 		IChatClient connection;
 		if (mock) {
-			connection = new FileChatClient(botProperties.getBotUserId(), botProperties.getBotUserName(), botProperties.getAdmins().get(0), "Michael");
+			connection = new FileChatClient(botProperties.getBotUserId(), botProperties.getBotUserName(), botProperties.getAdmins().get(0), "Michael", "https://www.gravatar.com/avatar/29d7c49f6f174710788c79011219bae1");
 		} else {
 			Site site = getSite(botProperties);
 

@@ -29,7 +29,7 @@ import oakbot.chat.event.MessagePostedEvent;
 public class FileChatRoom implements IRoom {
 	private final int roomId;
 	private final int humanUserId, botUserId;
-	private final String humanUsername, botUsername;
+	private final String humanUsername, humanProfilePicture, botUsername;
 	private final FileChatClient connection;
 
 	private final Thread fileMonitor;
@@ -38,10 +38,11 @@ public class FileChatRoom implements IRoom {
 
 	private Consumer<MessagePostedEvent> listener;
 
-	public FileChatRoom(int roomId, int humanUserId, String humanUsername, int botUserId, String botUsername, AtomicLong eventId, AtomicLong messageId, Path inputFile, FileChatClient connection) throws IOException {
+	public FileChatRoom(int roomId, int humanUserId, String humanUsername, String humanProfilePicture, int botUserId, String botUsername, AtomicLong eventId, AtomicLong messageId, Path inputFile, FileChatClient connection) throws IOException {
 		this.roomId = roomId;
 		this.humanUserId = humanUserId;
 		this.humanUsername = humanUsername;
+		this.humanProfilePicture = humanProfilePicture;
 		this.botUserId = botUserId;
 		this.botUsername = botUsername;
 		this.connection = connection;
@@ -195,6 +196,7 @@ public class FileChatRoom implements IRoom {
 				.userId(userIds.get(0))
 				.roomId(roomId)
 				.username(humanUsername)
+				.profilePicture(humanProfilePicture)
 				.reputation(500)
 			.build()
 		);
