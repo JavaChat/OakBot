@@ -629,7 +629,7 @@ public class Room implements IRoom {
 				continue;
 			}
 
-			long userId = node.get(0).asLong();
+			int userId = node.get(0).asInt();
 			String username = node.get(1).asText();
 			LocalDateTime lastPost = timestamp(node.get(3).asLong());
 
