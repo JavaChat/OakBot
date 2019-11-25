@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,12 @@ public class AdventOfCodeTask implements ScheduledTask {
 	@Override
 	public long nextRun() {
 		LocalDateTime now = LocalDateTime.now();
-		return (now.getMonth() == Month.DECEMBER) ? interval : 0;
+		if (now.getMonth() != Month.DECEMBER) {
+			LocalDateTime decemberFirst = LocalDateTime.of(now.getYear(), Month.DECEMBER, 1, 0, 0, 0);
+			return now.until(decemberFirst, ChronoUnit.MILLIS);
+		}
+
+		return interval;
 	}
 
 	@Override
