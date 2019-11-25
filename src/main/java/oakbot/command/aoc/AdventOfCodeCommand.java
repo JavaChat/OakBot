@@ -225,6 +225,7 @@ public class AdventOfCodeCommand implements Command {
 	 * @return true if the command is active, false if not
 	 */
 	boolean isActive() {
-		return LocalDateTime.now().getMonth() == Month.DECEMBER;
+		Month month = LocalDateTime.now().getMonth();
+		return month == Month.DECEMBER || month == Month.JANUARY;
 	}
 }
