@@ -70,30 +70,29 @@ public class AdventOfCodeTask implements ScheduledTask {
 
 			for (Player player : leaderboard) {
 				for (Map.Entry<Integer, Instant[]> entry2 : player.getCompletionTimes().entrySet()) {
-					Integer day = entry2.getKey();
 					Instant[] completionTime = entry2.getValue();
+					boolean justFinishedPart1 = completionTime[0].isAfter(prevChecked);
+					boolean justFinishedPart2 = completionTime[1] != null && completionTime[1].isAfter(prevChecked);
 
-					if (completionTime[0].isAfter(prevChecked)) {
-						String playerName = (player.getName() == null) ? "anonymous user #" + player.getId() : player.getName();
-
-						//@formatter:off
-						bot.sendMessage(roomId, new PostMessage(new ChatBuilder()
-							.bold(playerName)
-							.append(" completed part 1 of day ").append(day).append("! \\o/")
-						));
-						//@formatter:on
+					if (!justFinishedPart1 && !justFinishedPart2) {
+						continue;
 					}
 
-					if (completionTime[1] != null && completionTime[1].isAfter(prevChecked)) {
-						String playerName = (player.getName() == null) ? "anonymous user #" + player.getId() : player.getName();
+					Integer day = entry2.getKey();
+					String playerName = (player.getName() == null) ? "anonymous user #" + player.getId() : player.getName();
 
-						//@formatter:off
-						bot.sendMessage(roomId, new PostMessage(new ChatBuilder()
+					if (justFinishedPart1 && justFinishedPart2) {
+						bot.sendMessage(roomId, new PostMessage(new ChatBuilder() //@formatter:off
 							.bold(playerName)
-							.append(" completed part 2 of day ").append(day).append("! \\o/")
-						));
-						//@formatter:on
+							.append(" completed parts 1 and 2 of day ").append(day).append("! \\o/")
+						)); //@formatter:on
 					}
+
+					int part = justFinishedPart1 ? 1 : 2;
+					bot.sendMessage(roomId, new PostMessage(new ChatBuilder() //@formatter:off
+						.bold(playerName)
+						.append(" completed part ").append(part).append(" of day ").append(day).append("! \\o/")
+					)); //@formatter:on
 				}
 			}
 		}
