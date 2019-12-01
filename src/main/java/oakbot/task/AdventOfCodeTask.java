@@ -1,6 +1,5 @@
 package oakbot.task;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -25,12 +24,13 @@ import oakbot.util.ChatBuilder;
 public class AdventOfCodeTask implements ScheduledTask {
 	private static final Logger logger = Logger.getLogger(AdventOfCodeTask.class.getName());
 
-	private final long interval = Duration.ofMinutes(10).toMillis();
+	private final long interval;
 	private final AdventOfCodeApi api;
 	private final Map<Integer, String> defaultLeaderboardIds;
 	private final Map<Integer, Instant> lastChecked = new HashMap<>();
 
-	public AdventOfCodeTask(Map<Integer, String> defaultLeaderboardIds, AdventOfCodeApi api) {
+	public AdventOfCodeTask(long interval, Map<Integer, String> defaultLeaderboardIds, AdventOfCodeApi api) {
+		this.interval = interval;
 		this.defaultLeaderboardIds = defaultLeaderboardIds;
 		this.api = api;
 

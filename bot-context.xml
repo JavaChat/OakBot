@@ -159,6 +159,7 @@
 		<constructor-arg value="session token goes here" />
 	</bean>
 	<bean class="oakbot.task.AdventOfCodeTask">
+		<constructor-arg value="900000" /> <!-- polling interval in milliseconds. AoC asks that this not be less than 15 minutes. -->
 		<constructor-arg ref="aocDefaultLeaderboardIds" />
 		<constructor-arg ref="aocApi" />
 	</bean>
