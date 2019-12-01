@@ -91,8 +91,6 @@ public class AdventOfCodeCommand implements Command {
 			//@formatter:on
 		}
 
-		Player owner = players.get(0);
-
 		//sort by score descending
 		Collections.sort(players, (a, b) -> {
 			int c = b.getScore() - a.getScore();
@@ -129,7 +127,7 @@ public class AdventOfCodeCommand implements Command {
 		//output leaderboard
 		ChatBuilder cb = new ChatBuilder();
 		String htmlUrl = api.getLeaderboardWebsite(leaderboardId);
-		cb.fixed().append("Leaderboard owned by ").append(owner.getName()).append(" (").append(htmlUrl).append(")").nl();
+		cb.fixed().append("Leaderboard URL: ").append(htmlUrl).nl();
 
 		int rank = 0;
 		int prevScore = -1, prevStars = -1;

@@ -125,7 +125,7 @@ public class AdventOfCodeCommandTest {
 
 		//@formatter:off
 		String expected = 
-		    "    Leaderboard owned by Unihedron (http://adventofcode.com/" + year + "/leaderboard/private/view/" + expectedId + ")\n" +
+		    "    Leaderboard URL: http://adventofcode.com/" + year + "/leaderboard/private/view/" + expectedId + "\n" +
 	        "    1.  gzgreg         (score: 312) *****|*****|.....|.....|..... 20 stars\n" +
 	        "    2.  Unihedron      (score: 306) *****|*****|.....|.....|..... 20 stars\n" +
 	        "    3.  geisterfurz007 (score: 230) *****|*****|.....|.....|..... 20 stars\n" +
