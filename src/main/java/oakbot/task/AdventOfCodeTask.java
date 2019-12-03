@@ -81,18 +81,19 @@ public class AdventOfCodeTask implements ScheduledTask {
 					Integer day = entry2.getKey();
 					String playerName = (player.getName() == null) ? "anonymous user #" + player.getId() : player.getName();
 
+					ChatBuilder cb;
 					if (justFinishedPart1 && justFinishedPart2) {
-						bot.sendMessage(roomId, new PostMessage(new ChatBuilder() //@formatter:off
+						cb = new ChatBuilder() //@formatter:off
 							.bold(playerName)
-							.append(" completed parts 1 and 2 of day ").append(day).append("! \\o/")
-						)); //@formatter:on
+							.append(" completed parts 1 and 2 of day ").append(day).append("! \\o/"); //@formatter:on
+					} else {
+						int part = justFinishedPart1 ? 1 : 2;
+						cb = new ChatBuilder() //@formatter:off
+							.bold(playerName)
+							.append(" completed part ").append(part).append(" of day ").append(day).append("! \\o/"); //@formatter:on
 					}
 
-					int part = justFinishedPart1 ? 1 : 2;
-					bot.sendMessage(roomId, new PostMessage(new ChatBuilder() //@formatter:off
-						.bold(playerName)
-						.append(" completed part ").append(part).append(" of day ").append(day).append("! \\o/")
-					)); //@formatter:on
+					bot.sendMessage(roomId, new PostMessage(cb));
 				}
 			}
 		}
