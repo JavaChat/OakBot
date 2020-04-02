@@ -81,6 +81,27 @@ public class FOTDTest {
 	}
 
 	@Test
+	public void run_no_dash() throws Exception {
+		FOTD task = spy(new FOTD() {
+			@Override
+			String get(String url) {
+				assertEquals("http://www.refdesk.com", url);
+				return refdeskPage.replace("${fact}", "The <b>fact</b><br>Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>");
+			}
+
+			@Override
+			void broadcast(PostMessage response, Bot bot) throws IOException {
+				assertEquals("The **fact** [(source)](http://www.refdesk.com)", response.message());
+			}
+		});
+
+		Bot bot = mock(Bot.class);
+		task.run(bot);
+
+		verify(task).broadcast(any(PostMessage.class), eq(bot));
+	}
+
+	@Test
 	public void run_multiline() throws Exception {
 		FOTD task = spy(new FOTD() {
 			@Override

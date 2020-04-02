@@ -60,9 +60,35 @@ public class FOTD implements ScheduledTask {
 	}
 
 	private String parseFact(String html) {
-		Pattern p = Pattern.compile("<!------------FOTD START---------------->(.*?)-\\s*Provided\\s*by", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		Pattern p = Pattern.compile("<!------------FOTD START---------------->(.*?)Provided\\s*by", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(html);
-		return m.find() ? m.group(1).trim().replace("�", "'") : null;
+		if (!m.find()) {
+			return null;
+		}
+
+		String fact = m.group(1);
+
+		/*
+		 * Trim spaces and dashes from the end of the string (in the past,
+		 * there used to be a dash before "provided by").
+		 */
+		for (int i = fact.length() - 1; i >= 0; i--) {
+			char c = fact.charAt(i);
+			if (Character.isWhitespace(c) || c == '-') {
+				continue;
+			}
+
+			fact = fact.substring(0, i + 1);
+			break;
+		}
+
+		//trim whitespace from the beginning of the string
+		fact = fact.trim();
+
+		//fix single quote characters
+		fact = fact.replace("�", "'");
+
+		return fact;
 	}
 
 	/**
