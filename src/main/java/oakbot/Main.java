@@ -19,6 +19,8 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.glassfish.tyrus.client.ClientManager;
@@ -152,7 +154,17 @@ public final class Main {
 		} else {
 			Site site = getSite(botProperties);
 
-			CloseableHttpClient httpClient = HttpClients.createDefault();
+			/*
+			 * 4/2/2020: You cannot just call HttpClients.createDefault(). When
+			 * this method is used, Apache's HTTP library does not properly
+			 * parse the cookies it receives when logging into StackOverflow,
+			 * and thus cannot join any chat rooms.
+			 * 
+			 * Solution found here: https://stackoverflow.com/q/36473478/13379
+			 */
+			CloseableHttpClient httpClient = HttpClients.custom() //@formatter:off
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+			.build(); //@formatter:on
 
 			ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
 			websocketClient.setDefaultMaxSessionIdleTimeout(0);
