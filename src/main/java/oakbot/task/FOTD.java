@@ -26,6 +26,7 @@ public class FOTD implements ScheduledTask {
 	private static final Logger logger = Logger.getLogger(FOTD.class.getName());
 
 	private final String url = "http://www.refdesk.com";
+	private final String archiveUrl = url + "/fotd-arch.html";
 
 	@Override
 	public long nextRun() {
@@ -51,16 +52,16 @@ public class FOTD implements ScheduledTask {
 
 		boolean isMultiline = fact.contains("\n");
 		if (isMultiline) {
-			cb.nl().append("Source: " + url);
+			cb.nl().append("Source: " + archiveUrl);
 		} else {
-			cb.append(' ').link("(source)", url);
+			cb.append(' ').link("(source)", archiveUrl);
 		}
 
 		broadcast(new PostMessage(cb).splitStrategy(SplitStrategy.WORD), bot);
 	}
 
 	private String parseFact(String html) {
-		Pattern p = Pattern.compile("<!------------FOTD START---------------->(.*?)Provided\\s*by", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		Pattern p = Pattern.compile("<!-- FOTD START -->(.*?)Provided\\s*by", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(html);
 		if (!m.find()) {
 			return null;

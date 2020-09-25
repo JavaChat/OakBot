@@ -70,7 +70,7 @@ public class FOTDTest {
 
 			@Override
 			void broadcast(PostMessage response, Bot bot) throws IOException {
-				assertEquals("The **fact** [(source)](http://www.refdesk.com)", response.message());
+				assertEquals("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)", response.message());
 			}
 		});
 
@@ -91,7 +91,7 @@ public class FOTDTest {
 
 			@Override
 			void broadcast(PostMessage response, Bot bot) throws IOException {
-				assertEquals("The **fact** [(source)](http://www.refdesk.com)", response.message());
+				assertEquals("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)", response.message());
 			}
 		});
 
@@ -112,7 +112,7 @@ public class FOTDTest {
 
 			@Override
 			void broadcast(PostMessage response, Bot bot) throws IOException {
-				assertEquals("The <b>fact</b>\nline two\nSource: http://www.refdesk.com", response.message());
+				assertEquals("The <b>fact</b>\nline two\nSource: http://www.refdesk.com/fotd-arch.html", response.message());
 			}
 		});
 
