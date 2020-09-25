@@ -26,6 +26,19 @@ import oakbot.util.Gobble;
 public class FOTDTest {
 	private static String refdeskPage;
 
+	/**
+	 * Live test. Outputs current FOTD to stdout.
+	 */
+	public static void main(String args[]) throws Exception {
+		FOTD fotd = new FOTD() {
+			@Override
+			void broadcast(PostMessage response, Bot bot) {
+				System.out.println(response.message());
+			}
+		};
+		fotd.run(null);
+	}
+
 	@BeforeClass
 	public static void beforeClass() throws Exception {
 		try (InputStream in = FOTDTest.class.getResourceAsStream("refdesk.html")) {

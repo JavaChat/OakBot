@@ -10,6 +10,14 @@ import org.junit.Test;
 import oakbot.util.Gobble;
 
 public class QOTDTest {
+	/**
+	 * Live test. Outputs current QOTD to stdout.
+	 */
+	public static void main(String args[]) throws Exception {
+		QOTD qotd = new QOTD();
+		System.out.println(qotd.fromSlashdot());
+	}
+
 	@Test
 	public void fromSlashdot() throws Exception {
 		QOTD qotd = new QOTD() {
