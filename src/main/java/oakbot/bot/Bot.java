@@ -625,7 +625,15 @@ public class Bot {
 				"*farts*",
 				"*picks nose*",
 				"*reads a book*",
-				"*dreams of electric sheep*"
+				"*dreams of electric sheep*",
+				"*twiddles thumbs*",
+				"*yawns loudly*",
+				"*solves P vs NP*",
+				"*doodles*",
+				"*hums a song*",
+				"*nods off*",
+				"*fights crime*",
+				"*uses java.io.File*"
 			};
 			//@formatter:on
 
