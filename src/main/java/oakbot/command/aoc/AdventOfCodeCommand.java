@@ -105,7 +105,17 @@ public class AdventOfCodeCommand implements Command {
 		List<String> names = new ArrayList<>(players.size());
 		int lengthOfLongestName = 0;
 		for (Player player : players) {
-			String name = (player.getName() == null) ? "(user #" + player.getId() + ")" : player.getName();
+			String name;
+			if (player.getName() == null) {
+				name = "(user #" + player.getId() + ")";
+			} else {
+				/*
+				 * Remove '@' symbols to prevent people from trolling by
+				 * putting chat mentions in their AoC names.
+				 */
+				name = player.getName().replaceAll("@", "");
+			}
+
 			if (name.length() > lengthOfLongestName) {
 				lengthOfLongestName = name.length();
 			}

@@ -79,7 +79,17 @@ public class AdventOfCodeTask implements ScheduledTask {
 					}
 
 					Integer day = entry2.getKey();
-					String playerName = (player.getName() == null) ? "anonymous user #" + player.getId() : player.getName();
+
+					String playerName;
+					if (player.getName() == null) {
+						playerName = "anonymous user #" + player.getId();
+					} else {
+						/*
+						 * Remove '@' symbols to prevent people from trolling by
+						 * putting chat mentions in their AoC names.
+						 */
+						playerName = player.getName().replaceAll("@", "");
+					}
 
 					ChatBuilder cb;
 					if (justFinishedPart1 && justFinishedPart2) {
