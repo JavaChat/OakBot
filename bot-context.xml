@@ -311,4 +311,14 @@
 	<!-- quote of the day task -->
 	<bean class="oakbot.task.QOTD" />
 
+	<!-- fill the silence task -->
+	<bean class="oakbot.inactivity.FillTheSilenceTask">
+		<constructor-arg value="21600000" /> <!-- time in millis (6 hours) -->
+	</bean>
+
+	<!-- leave inactive rooms task -->
+	<bean class="oakbot.inactivity.LeaveRoomTask">
+		<constructor-arg value="259200000" /> <!-- time in millis (3 days) -->
+	</bean>
+
 </beans>

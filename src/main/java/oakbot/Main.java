@@ -19,6 +19,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import oakbot.inactivity.InactivityTask;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -113,6 +114,7 @@ public final class Main {
 		List<Listener> listeners;
 		List<ChatResponseFilter> filters;
 		List<ScheduledTask> tasks;
+		List<InactivityTask> inactivityTasks;
 
 		try (FileSystemXmlApplicationContext context = new FileSystemXmlApplicationContext(contextPath)) {
 			botProperties = new BotProperties((Properties) context.getBean("settings"));
@@ -123,6 +125,7 @@ public final class Main {
 			listeners = new ArrayList<>(context.getBeansOfType(Listener.class).values());
 			filters = new ArrayList<>(context.getBeansOfType(ChatResponseFilter.class).values());
 			tasks = new ArrayList<>(context.getBeansOfType(ScheduledTask.class).values());
+			inactivityTasks = new ArrayList<>(context.getBeansOfType(InactivityTask.class).values());
 		}
 
 		LearnedCommandsDao learnedCommands;
@@ -180,6 +183,7 @@ public final class Main {
 			.connection(connection)
 			.listeners(listeners)
 			.tasks(tasks)
+			.inactivityTasks(inactivityTasks)
 			.responseFilters(filters)
 			.admins(botProperties.getAdmins())
 			.bannedUsers(botProperties.getBannedUsers())

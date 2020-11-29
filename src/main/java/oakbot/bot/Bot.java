@@ -21,8 +21,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 
+import com.google.common.collect.Multimap;
 import oakbot.Database;
 import oakbot.Rooms;
 import oakbot.Statistics;
@@ -35,6 +37,7 @@ import oakbot.chat.event.MessageEditedEvent;
 import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
 import oakbot.filter.ChatResponseFilter;
+import oakbot.inactivity.InactivityTask;
 import oakbot.listener.Listener;
 import oakbot.task.ScheduledTask;
 import oakbot.util.ChatBuilder;
@@ -62,7 +65,8 @@ public class Bot {
 	private final Statistics stats;
 	private final Database database;
 	private final Timer timer = new Timer();
-	private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(Duration.ofHours(6).toMillis(), Duration.ofDays(3).toMillis());
+	//private final InactiveRoomTasks inactiveRoomTasks = new InactiveRoomTasks(Duration.ofHours(6).toMillis(), Duration.ofDays(3).toMillis());
+	private final InactivityTasks inactivityTasks;
 
 	/**
 	 * <p>
@@ -99,6 +103,7 @@ public class Bot {
 		database = builder.database;
 		listeners = builder.listeners.build();
 		scheduledTasks = builder.tasks.build();
+		inactivityTasks = new InactivityTasks(builder.inactivityTasks.build());
 		responseFilters = builder.responseFilters.build();
 	}
 
@@ -295,7 +300,8 @@ public class Bot {
 			return;
 		}
 
-		inactiveRoomTasks.touch(message);
+		//inactiveRoomTasks.touch(message);
+		inactivityTasks.touch(message);
 
 		boolean isUserAdmin = admins.contains(message.getUserId());
 		BotContext context = new BotContext(isUserAdmin, trigger, connection, rooms.getRooms(), rooms.getHomeRooms(), maxRooms);
@@ -485,7 +491,8 @@ public class Bot {
 		}
 
 		rooms.add(roomId);
-		inactiveRoomTasks.addRoom(room);
+		//inactiveRoomTasks.addRoom(room);
+		inactivityTasks.joinRoom(room);
 
 		return room;
 	}
@@ -495,14 +502,15 @@ public class Bot {
 	 * @param roomId the room ID
 	 * @throws IOException if there's a problem leaving the room
 	 */
-	private void leave(int roomId) throws IOException {
+	public void leave(int roomId) throws IOException {
 		logger.info("Leaving room " + roomId + "...");
 		IRoom room = connection.getRoom(roomId);
 		if (room == null) {
 			return;
 		}
 
-		inactiveRoomTasks.removeRoom(room);
+		//inactiveRoomTasks.removeRoom(room);
+		inactivityTasks.leaveRoom(room);
 		rooms.remove(roomId);
 		room.leave();
 	}
@@ -565,6 +573,110 @@ public class Bot {
 	 */
 	public void stop() {
 		newMessages.add(CLOSE_MESSAGE);
+	}
+
+	/**
+	 * Manages all inactivity tasks.
+	 */
+	private class InactivityTasks {
+		private final List<InactivityTask> tasks;
+		private final Map<Integer, LocalDateTime> timeOfLastMessage = new HashMap<>();
+		private final Multimap<Integer, TimerTask> timerTasks = ArrayListMultimap.create();
+
+		public InactivityTasks(List<InactivityTask> tasks) {
+			this.tasks = tasks;
+		}
+
+		private void scheduleTimerTask(InactivityTask task, IRoom room, Duration delay) {
+			TimerTask timerTask = new InactivityTimerTask(task, room);
+			synchronized (this) {
+				timerTasks.put(room.getRoomId(), timerTask);
+			}
+			timer.schedule(timerTask, delay.toMillis());
+		}
+
+		public void joinRoom(IRoom room) {
+			for (InactivityTask task : tasks) {
+				Duration delay = task.getInactivityTime(room, Bot.this);
+				if (delay == null) {
+					return;
+				}
+
+				scheduleTimerTask(task, room, delay);
+			}
+		}
+
+		/**
+		 * Records the time of the latest message that was posted in a room.
+		 * @param message the message that was posted
+		 */
+		public void touch(ChatMessage message) {
+			Integer roomId = message.getRoomId();
+			LocalDateTime timestamp = message.getTimestamp();
+			synchronized (this) {
+				timeOfLastMessage.put(roomId, timestamp);
+			}
+		}
+
+		public void leaveRoom(IRoom room) {
+			Integer roomId = room.getRoomId();
+			synchronized (this) {
+				Collection<TimerTask> roomTasks = timerTasks.removeAll(roomId);
+				roomTasks.stream().forEach(TimerTask::cancel);
+
+				timeOfLastMessage.remove(roomId);
+			}
+		}
+
+		private class InactivityTimerTask extends TimerTask {
+			private final InactivityTask task;
+			private final IRoom room;
+
+			public InactivityTimerTask(InactivityTask task, IRoom room) {
+				this.task = task;
+				this.room = room;
+			}
+
+			@Override
+			public void run() {
+				synchronized (InactivityTasks.this) {
+					try {
+						/**
+						 * Synchronize this whole method to account for the edge
+						 * case where an inactivity task causes the bot to leave
+						 * the room while another inactivity task in the same room is
+						 * running concurrently (or a user makes the bot leave a
+						 * room while these tasks are running).
+						 */
+
+						if (!connection.isInRoom(room.getRoomId())) {
+							return;
+						}
+
+						Duration inactivityTime = task.getInactivityTime(room, Bot.this);
+						if (inactivityTime == null) {
+							return;
+						}
+
+						LocalDateTime lastMessage = timeOfLastMessage.get(room.getRoomId());
+						Duration roomInactiveFor = (lastMessage == null) ? inactivityTime : Duration.between(lastMessage, LocalDateTime.now());
+						boolean runNow = (roomInactiveFor.compareTo(inactivityTime) >= 0);
+						if (runNow) {
+							try {
+								task.run(room, Bot.this);
+							} catch (Exception e) {
+								logger.log(Level.SEVERE, "Problem running inactivity task in room " + room.getRoomId() + ".", e);
+							}
+						}
+
+						Duration nextCheck = runNow ? inactivityTime : inactivityTime.minus(roomInactiveFor);
+						scheduleTimerTask(task, room, nextCheck);
+					} finally {
+						timerTasks.remove(room, this);
+					}
+				}
+			}
+		}
 	}
 
 	private class InactiveRoomTasks {
@@ -855,6 +967,7 @@ public class Bot {
 		private ImmutableList.Builder<Integer> allowedUsers = ImmutableList.builder();
 		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
 		private ImmutableList.Builder<ScheduledTask> tasks = ImmutableList.builder();
+		private ImmutableList.Builder<InactivityTask> inactivityTasks = ImmutableList.builder();
 		private ImmutableList.Builder<ChatResponseFilter> responseFilters = ImmutableList.builder();
 		private Statistics stats;
 		private Database database;
@@ -941,6 +1054,15 @@ public class Bot {
 
 		public Builder tasks(Collection<ScheduledTask> tasks) {
 			this.tasks.addAll(tasks);
+			return this;
+		}
+
+		public Builder inactivityTasks(InactivityTask... tasks) {
+			return inactivityTasks(Arrays.asList(tasks));
+		}
+
+		public Builder inactivityTasks(Collection<InactivityTask> tasks) {
+			this.inactivityTasks.addAll(tasks);
 			return this;
 		}
 
