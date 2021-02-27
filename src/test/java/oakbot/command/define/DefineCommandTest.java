@@ -46,7 +46,7 @@ public class DefineCommandTest {
 		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
+				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
 				return new ByteArrayInputStream("not XML".getBytes());
 			}
 		};
@@ -64,7 +64,7 @@ public class DefineCommandTest {
 		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
+				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list/>".getBytes());
 			}
 		};
@@ -82,7 +82,7 @@ public class DefineCommandTest {
 		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
+				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion></entry_list>".getBytes());
 			}
 		};
@@ -100,7 +100,7 @@ public class DefineCommandTest {
 		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
+				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion></entry_list>".getBytes());
 			}
 		};
@@ -118,7 +118,7 @@ public class DefineCommandTest {
 		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
+				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion><suggestion>colt</suggestion></entry_list>".getBytes());
 			}
 		};
@@ -136,7 +136,7 @@ public class DefineCommandTest {
 		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
+				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
 				return getClass().getResourceAsStream("cool.xml");
 			}
 		};
@@ -229,7 +229,7 @@ public class DefineCommandTest {
 		DefineCommand command = new DefineCommand("apiKey") {
 			@Override
 			InputStream get(String url) throws IOException {
-				assertEquals("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand%20piano?key=apiKey", url);
+				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand%20piano?key=apiKey", url);
 				return new ByteArrayInputStream("<entry_list/>".getBytes());
 			}
 		};
