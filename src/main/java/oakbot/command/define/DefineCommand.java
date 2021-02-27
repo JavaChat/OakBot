@@ -72,7 +72,7 @@ public class DefineCommand implements Command {
 		Leaf response;
 		try {
 			Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
-			URIBuilder b = new URIBuilder("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/" + escaper.escape(word));
+			URIBuilder b = new URIBuilder("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/" + escaper.escape(word));
 			b.addParameter("key", apiKey);
 
 			String url = b.toString();
