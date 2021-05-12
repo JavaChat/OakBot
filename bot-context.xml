@@ -265,6 +265,11 @@
 	
 	<!-- /wiki -->
 	<bean class="oakbot.command.WikiCommand" />
+
+	<!-- dadjoke listener -->
+	<bean class="oakbot.listener.DadJokeListener">
+		<constructor-arg value="Oak" />
+	</bean>
 	
 	<!-- mention listener -->
 	<bean id="mentionListener" class="oakbot.listener.MentionListener">
