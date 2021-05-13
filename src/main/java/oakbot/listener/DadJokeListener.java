@@ -4,6 +4,7 @@ import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
+import oakbot.util.ChatBuilder;
 import oakbot.util.Sleeper;
 
 import java.util.regex.Matcher;
@@ -18,7 +19,7 @@ import static oakbot.bot.ChatActions.reply;
  */
 public class DadJokeListener implements Listener {
 	private final String botName;
-	private final Pattern regex = Pattern.compile("(?i)(I\\s+am|I'm)\\s+(.*?)([.,;!?]|$)");
+	private final Pattern regex = Pattern.compile("(?i)(I\\s+am|I'm)\\s+(.*?)([.,;!?\\n]|$)");
 
 	/**
 	 * @param botName name used in replies
@@ -43,7 +44,11 @@ public class DadJokeListener implements Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, BotContext context) {
-		String content = message.getContent().getContent();
+		if (message.getContent().isOnebox()) {
+			return doNothing();
+		}
+
+		String content = ChatBuilder.toMarkdown(message.getContent().getContent(), message.getContent().isFixedFont());
 		Matcher m = regex.matcher(content);
 		if (!m.find()) {
 			return doNothing();

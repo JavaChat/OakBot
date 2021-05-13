@@ -34,10 +34,15 @@ public class DadJokeListenerTest {
 		assertResponse("I'm tired of coding.", "Hi tired of coding, I'm Oak!");
 		assertResponse("I'm tired of coding", "Hi tired of coding, I'm Oak!");
 		assertResponse("i'm tired of coding.", "Hi tired of coding, I'm Oak!");
+		assertResponse("I&#39;m tired of coding.", "Hi tired of coding, I'm Oak!");
+		assertResponse("I'm <i>tired</i> of coding", "Hi *tired* of coding, I'm Oak!");
 		assertResponse("I am tired of coding.", "Hi tired of coding, I'm Oak!");
 		assertResponse("I'm tired of coding. I need a vacation!", "Hi tired of coding, I'm Oak!");
 		assertResponse("I am tired of coding. I need a vacation!", "Hi tired of coding, I'm Oak!");
+		assertResponse("I am tired of coding\nI need a vacation!", "Hi tired of coding, I'm Oak!");
+		assertResponse("Hello guys, i'm new here\nCan anyone help me with an issue?", "Hi new here, I'm Oak!");
 		assertResponse("is anybody here?? i am confused and need help!", "Hi confused and need help, I'm Oak!");
+		assertResponse("is anybody here?\ni am confused and need help!", "Hi confused and need help, I'm Oak!");
 
 		assertNoResponse("is anybody here??");
 	}
