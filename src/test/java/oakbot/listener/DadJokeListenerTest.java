@@ -7,7 +7,6 @@ import oakbot.chat.ChatMessage;
 import oakbot.util.Sleeper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -77,9 +76,8 @@ public class DadJokeListenerTest {
 	}
 
 	@Test
-	@Ignore //TODO fails
-	public void onMessage_links() {
-		assertResponse("I'm <a href=\"https://www.google.com\">working</a> on a project", "Hi [working](https://www.google.com) on a project, I'm Oak!");
+	public void onMessage_remove_links() {
+		assertResponse("I'm <a href=\"https://www.google.com\">working</a> on a project", "Hi working on a project, I'm Oak!");
 	}
 
 	@Test

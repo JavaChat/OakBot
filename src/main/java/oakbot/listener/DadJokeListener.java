@@ -55,7 +55,9 @@ public class DadJokeListener implements Listener {
 			return doNothing();
 		}
 
-		Optional<String> phrase = findPhrase(message);
+		String messageAsMarkdown = ChatBuilder.toMarkdown(message.getContent().getContent(), message.getContent().isFixedFont());
+		String messageWithoutLinks = removeLinks(messageAsMarkdown);
+		Optional<String> phrase = findPhrase(messageWithoutLinks);
 		if (!phrase.isPresent()) {
 			return doNothing();
 		}
@@ -68,15 +70,18 @@ public class DadJokeListener implements Listener {
 		return reply("Hi " + phrase.get() + ", I'm " + botName + "!", message);
 	}
 
-	private Optional<String> findPhrase(ChatMessage message) {
-		String content = ChatBuilder.toMarkdown(message.getContent().getContent(), message.getContent().isFixedFont());
-
+	private Optional<String> findPhrase(String content) {
 		Matcher m = regex.matcher(content);
-		if (m.find()) {
-			String phrase = m.group(2).trim();
-			return phrase.isEmpty() ? Optional.empty() : Optional.of(phrase);
+		if (!m.find()) {
+			return Optional.empty();
 		}
-		return Optional.empty();
+
+		String phrase = m.group(2).trim();
+		return phrase.isEmpty() ? Optional.empty() : Optional.of(phrase);
+	}
+
+	private String removeLinks(String messageAsMarkdown) {
+		return messageAsMarkdown.replaceAll("\\[(.*?)]\\(.*?\\)", "$1");
 	}
 
 	private int countWords(String phrase) {
