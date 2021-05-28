@@ -2,16 +2,18 @@ package oakbot.listener;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.PostMessage;
 import oakbot.chat.ChatMessage;
 import oakbot.util.Sleeper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Michael Angstadt
@@ -30,20 +32,68 @@ public class DadJokeListenerTest {
 	}
 
 	@Test
-	public void onMessage() {
-		assertResponse("I'm tired of coding.", "Hi tired of coding, I'm Oak!");
-		assertResponse("I'm tired of coding", "Hi tired of coding, I'm Oak!");
-		assertResponse("i'm tired of coding.", "Hi tired of coding, I'm Oak!");
-		assertResponse("I&#39;m tired of coding.", "Hi tired of coding, I'm Oak!");
-		assertResponse("I'm <i>tired</i> of coding", "Hi *tired* of coding, I'm Oak!");
-		assertResponse("I am tired of coding.", "Hi tired of coding, I'm Oak!");
-		assertResponse("I'm tired of coding. I need a vacation!", "Hi tired of coding, I'm Oak!");
-		assertResponse("I am tired of coding. I need a vacation!", "Hi tired of coding, I'm Oak!");
-		assertResponse("I am tired of coding\nI need a vacation!", "Hi tired of coding, I'm Oak!");
-		assertResponse("Hello guys, i'm new here\nCan anyone help me with an issue?", "Hi new here, I'm Oak!");
-		assertResponse("is anybody here?? i am confused and need help!", "Hi confused and need help, I'm Oak!");
-		assertResponse("is anybody here?\ni am confused and need help!", "Hi confused and need help, I'm Oak!");
+	public void onMessage_i_or_i_am() {
+		assertResponse("I'm working on a project.", "Hi working on a project, I'm Oak!");
+		assertResponse("I am working on a project.", "Hi working on a project, I'm Oak!");
+	}
 
+	@Test
+	public void onMessage_case_insensitive() {
+		assertResponse("I'm working on a project.", "Hi working on a project, I'm Oak!");
+		assertResponse("i'm working on a project.", "Hi working on a project, I'm Oak!");
+	}
+
+	@Test
+	public void onMessage_termination() {
+		assertResponse("I'm working on a project", "Hi working on a project, I'm Oak!");
+		assertResponse("I'm working on a project. Please help!", "Hi working on a project, I'm Oak!");
+		assertResponse("I'm working on a project! Please help!", "Hi working on a project, I'm Oak!");
+		assertResponse("I'm working on a project? Please help!", "Hi working on a project, I'm Oak!");
+		assertResponse("I'm working on a project; Please help!", "Hi working on a project, I'm Oak!");
+		assertResponse("I'm working on a project, Please help!", "Hi working on a project, I'm Oak!");
+		assertResponse("I'm working on a project\nPlease help!", "Hi working on a project, I'm Oak!");
+		assertResponse("I'm working on a project and need help", "Hi working on a project, I'm Oak!");
+		assertResponse("I'm mining andesite", "Hi mining andesite, I'm Oak!"); //"and" must be its own word
+	}
+
+	@Test
+	public void onMessage_length() {
+		assertNoResponse("I'm working on a really important project.");
+	}
+
+	@Test
+	public void onMessage_middle_of_sentence() {
+		assertResponse("My boss is an idiot and I'm really mad.", "Hi really mad, I'm Oak!");
+	}
+
+	@Test
+	public void onMessage_html_entities() {
+		assertResponse("I&#39;m working on a project", "Hi working on a project, I'm Oak!");
+	}
+
+	@Test
+	public void onMessage_html_formatting() {
+		assertResponse("I'm <i>working</i> on a project", "Hi *working* on a project, I'm Oak!");
+	}
+
+	@Test
+	@Ignore //TODO fails
+	public void onMessage_links() {
+		assertResponse("I'm <a href=\"https://www.google.com\">working</a> on a project", "Hi [working](https://www.google.com) on a project, I'm Oak!");
+	}
+
+	@Test
+	public void onMessage_empty_phrase() {
+		assertNoResponse("I'm");
+		assertNoResponse("I'm.");
+		assertNoResponse("I'm and");
+	}
+
+	@Test
+	public void onMessage_examples() {
+		assertResponse("is anybody here?? i am confused and need help!", "Hi confused, I'm Oak!");
+		assertResponse("I'm playing around with Java syntax and I got this compiler error", "Hi playing around with Java syntax, I'm Oak!");
+		assertResponse("I'm working on a project and I need to record hystrix metrics and save it in my internal database", "Hi working on a project, I'm Oak!");
 		assertNoResponse("is anybody here??");
 	}
 
@@ -68,6 +118,9 @@ public class DadJokeListenerTest {
 
 		DadJokeListener listener = new DadJokeListener("Oak");
 		ChatActions actions = listener.onMessage(chatMessage, context);
-		assertTrue(actions.isEmpty());
+		if (!actions.isEmpty()) {
+			PostMessage postMessage = (PostMessage)actions.getActions().get(0);
+			fail("The following response was returned when no response was expected: " + postMessage.message());
+		}
 	}
 }
