@@ -78,6 +78,7 @@ public class DadJokeListenerTest {
 	@Test
 	public void onMessage_remove_links() {
 		assertResponse("I'm <a href=\"https://www.google.com\">working</a> on a project", "Hi working on a project, I'm Oak!");
+		assertResponse("I'm working on this https://www.google.com", "Hi working on this, I'm Oak!");
 	}
 
 	@Test
