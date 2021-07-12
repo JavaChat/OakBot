@@ -62,7 +62,7 @@ public class DadJokeListenerTest {
 
 	@Test
 	public void onMessage_middle_of_sentence() {
-		assertResponse("My boss is an idiot and I'm really mad.", "Hi really mad, I'm Oak!");
+		assertNoResponse("My boss is an idiot and I'm really mad.");
 	}
 
 	@Test
