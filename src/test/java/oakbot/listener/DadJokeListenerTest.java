@@ -102,7 +102,7 @@ public class DadJokeListenerTest {
 		assertResponse(":1234 I'm playing around with Java syntax", "Hi playing around with Java syntax, I'm Oak!");
 		assertNoResponse("@Michael abcd I'm working on a project and I need to record hystrix metrics and save it in my internal database");
 		assertNoResponse(":1234 abcd I'm working on a project and blah blah");
-		assertResponse(":1234 Hey! I'm Oak", "Hi Oak, I'm Oak!")
+		assertResponse(":1234 Hey! I'm Oak", "Hi Oak, I'm Oak!");
 	}
 	
 	private static void assertResponse(String message, String response) {
