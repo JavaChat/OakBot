@@ -22,7 +22,8 @@ public class DadJokeListener implements Listener {
 	private final String botName;
 
 	private final Pattern regex = Pattern.compile( //@formatter:off
-		"(?i)(?:^|@[^ ]+|:\\d+|[.?!])\\s*" +
+		"(?i)" +
+		"(?:^|@[^ ]+|:\\d+|[.?!])\\s*" +
 		"(I\\s+am|I'm)\\b" +
 		"(.*?)" +
 		"([.,;!?\\n]|\\band\\b|$)"
