@@ -23,6 +23,7 @@ public class DadJokeListener implements Listener {
 
 	private final Pattern regex = Pattern.compile( //@formatter:off
 		"(?i)" +
+		"(?:^|@[^ ]+|:\\d+|[.?!])\\s*" +
 		"(I\\s+am|I'm)\\b" +
 		"(.*?)" +
 		"([.,;!?\\n]|\\band\\b|$)"
