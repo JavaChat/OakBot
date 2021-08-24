@@ -1,11 +1,11 @@
 package oakbot.inactivity;
 
+import java.time.Duration;
+
 import oakbot.bot.Bot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.IRoom;
 import oakbot.command.Command;
-
-import java.time.Duration;
 
 /**
  * Causes the bot to post messages when a room has been inactive for some
@@ -25,7 +25,8 @@ public class FillTheSilenceTask implements InactivityTask {
 		"*hums a song*",
 		"*nods off*",
 		"*fights crime*",
-		"*uses java.io.File*"
+		"*uses java.io.File*",
+		"*uses java.util.Hashtable*"
 	}; //@formatter:on
 
 	private final Duration inactivityTime; //e.g. 6 hours
