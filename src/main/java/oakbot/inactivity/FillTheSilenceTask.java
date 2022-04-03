@@ -26,7 +26,8 @@ public class FillTheSilenceTask implements InactivityTask {
 		"*nods off*",
 		"*fights crime*",
 		"*uses java.io.File*",
-		"*uses java.util.Hashtable*"
+		"*uses java.util.Hashtable*",
+		"*opens the pod bay doors*"
 	}; //@formatter:on
 
 	private final Duration inactivityTime; //e.g. 6 hours
