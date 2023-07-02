@@ -120,6 +120,26 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	}
 
 	/**
+	 * Gets a file path property value.
+	 * @param key the key
+	 * @return the value or null if not found
+	 */
+	public Path getPath(String key) {
+		return getPath(key, null);
+	}
+
+	/**
+	 * Gets a file path property value.
+	 * @param key the key
+	 * @param defaultValue the value to return if the property does not exist
+	 * @return the value
+	 */
+	public Path getPath(String key, Path defaultValue) {
+		String value = get(key);
+		return (value == null) ? defaultValue : Paths.get(value);
+	}
+
+	/**
 	 * Gets an integer property value.
 	 * @param key the key
 	 * @return the value or null if not found

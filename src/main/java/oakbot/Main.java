@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -104,8 +103,6 @@ public final class Main {
 			contextPath = defaultContextPath;
 		}
 
-		setupLogging();
-
 		BotProperties botProperties;
 		Database database;
 		Statistics stats;
@@ -127,6 +124,8 @@ public final class Main {
 			tasks = new ArrayList<>(context.getBeansOfType(ScheduledTask.class).values());
 			inactivityTasks = new ArrayList<>(context.getBeansOfType(InactivityTask.class).values());
 		}
+
+		setupLogging(botProperties.getLoggingConfig());
 
 		LearnedCommandsDao learnedCommands;
 		if (botProperties.isEnableLearnedCommands()) {
@@ -217,13 +216,12 @@ public final class Main {
 		logger.info("Terminating.");
 	}
 
-	private static void setupLogging() throws IOException {
-		Path file = Paths.get("logging.properties");
-		if (!Files.exists(file)) {
+	private static void setupLogging(Path config) throws IOException {
+		if (!Files.exists(config)) {
 			return;
 		}
 
-		try (InputStream in = Files.newInputStream(file)) {
+		try (InputStream in = Files.newInputStream(config)) {
 			LogManager.getLogManager().readConfiguration(in);
 		}
 	}

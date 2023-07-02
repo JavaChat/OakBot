@@ -43,6 +43,22 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
+	public void getPath() {
+		Properties props = new Properties();
+		props.setProperty("key1", "value1");
+		props.setProperty("key2", " value2 ");
+		props.setProperty("key3", "");
+		props.setProperty("key4", " ");
+
+		PropertiesWrapper wrapper = new PropertiesWrapper(props);
+		assertEquals(Paths.get("value1"), wrapper.getPath("key1"));
+		assertEquals(Paths.get("value2"), wrapper.getPath("key2"));
+		assertNull(wrapper.getPath("key3"));
+		assertNull(wrapper.getPath("key4"));
+		assertNull(wrapper.getPath("does-not-exist"));
+	}
+
+	@Test
 	public void getInteger() {
 		Properties props = new Properties();
 		props.setProperty("key", "1");

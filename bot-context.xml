@@ -16,6 +16,12 @@
 	<!-- Spring reference documentation: https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html -->
 	
 	<util:properties id="settings">
+	    <!--
+	    The path to the logging configuration file.
+		(defaults to: logging.properties)
+	    -->
+	    <prop key="logging.config">logging.properties</prop>
+
 		<!--
 		The website to connect to (each site has its own chat system).
 		Accepted values are: stackoverflow.com, stackexchange.com, meta.stackexchange.com

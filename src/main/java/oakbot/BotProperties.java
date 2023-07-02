@@ -1,5 +1,7 @@
 package oakbot;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -11,6 +13,7 @@ import oakbot.util.PropertiesWrapper;
  * @author Michael Angstadt
  */
 public class BotProperties extends PropertiesWrapper {
+	private final Path loggingConfig;
 	private final String site, loginEmail, password, botUserName, trigger, greeting;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, allowedUsers;
 	private final Integer botUserId, hideOneboxesAfter;
@@ -21,6 +24,8 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public BotProperties(Properties properties) {
 		super(properties);
+
+		loggingConfig = getPath("logging.config", Paths.get("logging.properies"));
 
 		site = get("account.site");
 		loginEmail = get("account.email");
@@ -40,6 +45,14 @@ public class BotProperties extends PropertiesWrapper {
 		allowedUsers = getIntegerList("users.allowed");
 
 		enableLearnedCommands = getBoolean("enableLearnedCommands", true);
+	}
+
+	/**
+	 * Gets the logging configuration file.
+	 * @return the logging configuration file (e.g. "logging.properties")
+	 */
+	public Path getLoggingConfig() {
+		return loggingConfig;
 	}
 
 	/**
