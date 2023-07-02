@@ -28,7 +28,7 @@ public class Site {
 	/**
 	 * stackexchange.com
 	 */
-	public static final Site STACKEXCHANGE = new StackExchangeSite();
+	public static final Site STACKEXCHANGE = new Site("stackexchange.com");
 
 	private final String domain;
 
@@ -45,6 +45,10 @@ public class Site {
 	 */
 	public String getDomain() {
 		return domain;
+	}
+
+	public String getLoginDomain() {
+		return (this == STACKEXCHANGE) ? META.getLoginDomain() : domain;
 	}
 
 	/**
@@ -65,7 +69,7 @@ public class Site {
 	 * @throws IOException if an unexpected error occurs
 	 */
 	public boolean login(String email, String password, Http http) throws IOException {
-		Response response = http.get("https://" + getDomain() + "/users/login");
+		Response response = http.get("https://" + getLoginDomain() + "/users/login");
 		Document loginPage = response.getBodyAsHtml();
 
 		Elements elements = loginPage.select("input[name=fkey]");
@@ -74,7 +78,7 @@ public class Site {
 		}
 		String fkey = elements.first().attr("value");
 
-		response = http.post("https://" + getDomain() + "/users/login", //@formatter:off
+		response = http.post("https://" + getLoginDomain() + "/users/login", //@formatter:off
 			"email", email,
 			"password", password,
 			"fkey", fkey
