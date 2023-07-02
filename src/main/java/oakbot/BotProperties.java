@@ -25,7 +25,7 @@ public class BotProperties extends PropertiesWrapper {
 	public BotProperties(Properties properties) {
 		super(properties);
 
-		loggingConfig = getPath("logging.config", Paths.get("logging.properies"));
+		loggingConfig = getPath("logging.config", Paths.get("logging.properties"));
 
 		site = get("account.site");
 		loginEmail = get("account.email");
