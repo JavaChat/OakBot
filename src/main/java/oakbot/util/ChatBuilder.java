@@ -166,11 +166,21 @@ public class ChatBuilder implements CharSequence {
 	/**
 	 * Appends the "reply to message" syntax. This must go at the beginning of
 	 * the string.
+	 * @param id the ID of the message to reply to
+	 * @return this
+	 */
+	public ChatBuilder reply(long id) {
+		return append(':').append(id).append(' ');
+	}
+
+	/**
+	 * Appends the "reply to message" syntax. This must go at the beginning of
+	 * the string.
 	 * @param message the message to reply to
 	 * @return this
 	 */
 	public ChatBuilder reply(ChatMessage message) {
-		return append(':').append(message.getMessageId()).append(' ');
+		return reply(message.getMessageId());
 	}
 
 	/**

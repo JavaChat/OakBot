@@ -305,6 +305,15 @@
 			</util:map>
 		</constructor-arg>
 	</bean>
+
+	<!-- XKCD explained -->
+	<bean class="oakbot.listener.XkcdComicListener">
+		<constructor-arg ref="xkcdExplainTask" />
+		<constructor-arg value="-2" /> <!-- user ID of the bot user that posts the comics -->
+	</bean>
+	<bean class="oakbot.task.XkcdExplainTask" id="xkcdExplainTask">
+		<constructor-arg value="1800000" /> <!-- 30 minutes - the amount time to wait after the comic is posted to the chat room before crawling explainxkcd.com for the explanation (milliseconds) -->
+	</bean>
 	
 	<!-- fact of the day task -->
 	<bean class="oakbot.task.FOTD" />
