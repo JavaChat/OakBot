@@ -23,8 +23,8 @@ import java.util.logging.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-
 import com.google.common.collect.Multimap;
+
 import oakbot.Database;
 import oakbot.Rooms;
 import oakbot.Statistics;
@@ -366,12 +366,30 @@ public class Bot {
 							if (joinedRoom.canPost()) {
 								response = joinRoom.onSuccess().get();
 							} else {
+								/*
+								 * This block of code runs if the bot is not
+								 * configured to post a greeting message after
+								 * joining a room, and the bot does not have
+								 * permission to post to the room.
+								 */
 								response = joinRoom.ifLackingPermissionToPost().get();
 								try {
 									leave(joinRoom.roomId());
 								} catch (IOException e) {
 									logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
 								}
+							}
+						} catch (RoomPermissionException e) {
+							/*
+							 * Thrown if the bot tries to post a greeting
+							 * message after joining the room, but does not
+							 * have permission to post.
+							 */
+							response = joinRoom.ifLackingPermissionToPost().get();
+							try {
+								leave(joinRoom.roomId());
+							} catch (IOException e2) {
+								logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
 							}
 						} catch (RoomNotFoundException e) {
 							response = joinRoom.ifRoomDoesNotExist().get();
@@ -644,7 +662,8 @@ public class Bot {
 						/**
 						 * Synchronize this whole method to account for the edge
 						 * case where an inactivity task causes the bot to leave
-						 * the room while another inactivity task in the same room is
+						 * the room while another inactivity task in the same
+						 * room is
 						 * running concurrently (or a user makes the bot leave a
 						 * room while these tasks are running).
 						 */
