@@ -43,7 +43,7 @@ public class ChatActionsUtils {
 	}
 
 	private static PostMessage getFirstPostMessage(ChatActions actions) {
-		assertEquals("ChatActions object contains more than one action.", 1, actions.getActions().size());
+		assertEquals("ChatActions object is empty or contains more than one action.", 1, actions.getActions().size());
 		return (PostMessage) actions.getActions().get(0);
 	}
 }
