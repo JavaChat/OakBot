@@ -292,6 +292,18 @@ public class ChatBuilder implements CharSequence {
 	 * @return the content as formatted in Markdown
 	 */
 	public static String toMarkdown(String content, boolean fixedFont) {
+		return toMarkdown(content, fixedFont, null);
+	}
+
+	/**
+	 * Converts HTML-formated content to Markdown syntax.
+	 * @param content the HTML content
+	 * @param fixedFont if the message is formatted with a fixed font
+	 * @param baseUrl the base URL for resolving links with relative URLs. This
+	 * should be set to the URL of the page that the content came from.
+	 * @return the content as formatted in Markdown
+	 */
+	public static String toMarkdown(String content, boolean fixedFont, String baseUrl) {
 		if (content == null) {
 			return null;
 		}
@@ -325,7 +337,11 @@ public class ChatBuilder implements CharSequence {
 				 * syntax (">" character) to an HTML tag.
 				 */
 				ChatBuilder chatBuilder = new ChatBuilder();
-				Jsoup.parse(content).traverse(new NodeVisitor() {
+				if (baseUrl == null) {
+					baseUrl = "";
+				}
+
+				Jsoup.parse(content, baseUrl).traverse(new NodeVisitor() {
 					private boolean inTag = false;
 					private ChatBuilder linkText = null;
 
@@ -391,7 +407,7 @@ public class ChatBuilder implements CharSequence {
 								if (inTag) {
 									chatBuilder.tag(text);
 								} else {
-									String url = element.attr("href");
+									String url = element.absUrl("href");
 									if (url.isEmpty()) {
 										//just in case a <a> tag without a URL sneaks in there
 										chatBuilder.append(text);

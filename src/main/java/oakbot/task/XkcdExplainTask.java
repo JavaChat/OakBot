@@ -118,7 +118,7 @@ public class XkcdExplainTask implements ScheduledTask {
 		String replyMd = new ChatBuilder().reply(messageId).toString();
 
 		String explainationHtml = firstParagraph.html();
-		String explainationMd = ChatBuilder.toMarkdown(explainationHtml, false);
+		String explainationMd = ChatBuilder.toMarkdown(explainationHtml, false, url);
 
 		String readMoreMd = new ChatBuilder().append(" ").link("Read more", url).toString();
 
