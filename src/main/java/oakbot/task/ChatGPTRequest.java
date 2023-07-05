@@ -20,14 +20,12 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import oakbot.listener.ChatGPTListener;
-
 /**
  * Sends a request to the ChatGPT API.
  * @author Michael Angstadt
  */
 public class ChatGPTRequest {
-	private static final Logger logger = Logger.getLogger(ChatGPTListener.class.getName());
+	private static final Logger logger = Logger.getLogger(ChatGPTRequest.class.getName());
 
 	private final ObjectMapper mapper = new ObjectMapper();
 	private final ObjectNode requestRoot;
