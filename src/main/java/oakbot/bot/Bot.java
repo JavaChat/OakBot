@@ -422,6 +422,17 @@ public class Bot {
 	}
 
 	/**
+	 * Gets the latest messages from a room.
+	 * @param roomId the room ID
+	 * @param count the number of messages to retrieve
+	 * @return the messages in chronological order
+	 */
+	public List<ChatMessage> getLatestMessages(int roomId, int count) throws IOException {
+		IRoom room = connection.getRoom(roomId);
+		return room.getMessages(count);
+	}
+
+	/**
 	 * Posts a message to a room. If the bot has not joined the given room, then
 	 * it will not post anything.
 	 * @param roomId the room ID
@@ -531,6 +542,14 @@ public class Bot {
 		inactivityTasks.leaveRoom(room);
 		rooms.remove(roomId);
 		room.leave();
+	}
+
+	public String getUsername() {
+		return userName;
+	}
+
+	public Integer getUserId() {
+		return userId;
 	}
 
 	/**

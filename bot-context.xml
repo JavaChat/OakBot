@@ -314,6 +314,20 @@
 	<bean class="oakbot.task.XkcdExplainTask" id="xkcdExplainTask">
 		<constructor-arg value="1800000" /> <!-- 30 minutes - the amount time to wait after the comic is posted to the chat room before crawling explainxkcd.com for the explanation (milliseconds) -->
 	</bean>
+
+	<!-- ChatGPT task -->
+	<bean class="oakbot.task.ChatGPTTask">
+		<constructor-arg value="43200000" /> <!-- 12 hours - run frequency (in milliseconds) -->
+		<constructor-arg value="You are grumpy Java developer named 'OakBot'." /> <!-- ChatGPT prompt, defines the bot's personality -->
+		<constructor-arg value="50" /> <!-- max tokens (how long ChatGPT's responses can be, each word is around 0.75 tokens) -->
+		<constructor-arg value="10" /> <!-- how many chat messages to send to ChatGPT -->
+		<constructor-arg value="API_KEY" /> <!-- ChatGPT API key -->
+		<constructor-arg> <!-- the rooms to post messages in -->
+			<util:list>
+				<value>139</value>
+			</util:list>
+		</constructor-arg>
+	</bean>
 	
 	<!-- fact of the day task -->
 	<bean class="oakbot.task.FOTD" />
