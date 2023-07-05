@@ -115,16 +115,17 @@ public class XkcdExplainTask implements ScheduledTask {
 			throw new IllegalArgumentException("Unable to locate first paragraph of 'XKCD Explained' for comic " + comicId + ".");
 		}
 
-		String replyMd = new ChatBuilder().reply(messageId).toString();
+		String beginningMd = new ChatBuilder().reply(messageId).bold("XKCD Explained:").append(" ").toString();
 
 		String explainationHtml = firstParagraph.html();
 		String explainationMd = ChatBuilder.toMarkdown(explainationHtml, false, url);
 
-		String readMoreMd = new ChatBuilder().append(" ").link("Read more", url).toString();
+		String readMoreMd = new ChatBuilder().append(" ").link("\\[Read more\\]", url).toString();
 
-		int trimLength = 500 - replyMd.length() - readMoreMd.length(); //max message length is 500
+		final int MAX_MESSAGE_LENGTH = 500;
+		int trimLength = MAX_MESSAGE_LENGTH - beginningMd.length() - readMoreMd.length();
 
 		explainationMd = SplitStrategy.WORD.split(explainationMd, trimLength).get(0);
-		return replyMd + explainationMd + readMoreMd;
+		return beginningMd + explainationMd + readMoreMd;
 	}
 }

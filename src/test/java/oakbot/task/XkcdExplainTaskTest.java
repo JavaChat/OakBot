@@ -32,7 +32,7 @@ public class XkcdExplainTaskTest {
 			}
 		};
 
-		String expected = ":1234 This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often related to how ... [Read more](https://www.explainxkcd.com/wiki/index.php/2796)";
+		String expected = ":1234 **XKCD Explained:** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area ... [\\[Read more\\]](https://www.explainxkcd.com/wiki/index.php/2796)";
 		String actual = task.getExplainationMessage(2796, 1234);
 		assertEquals(expected, actual);
 		assertTrue(actual.length() < 500);
