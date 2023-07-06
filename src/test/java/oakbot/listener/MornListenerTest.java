@@ -16,8 +16,7 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class MornListenerTest {
-	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
-	private final static String botName = "OakBot";
+	private final static BotContext context = new BotContext(false, "/", "OakBot", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@Test
 	public void onMessage() {
@@ -43,7 +42,7 @@ public class MornListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		MornListener listener = new MornListener(botName, 0, mentionListener);
+		MornListener listener = new MornListener(0, mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		if (response == null) {
@@ -65,7 +64,7 @@ public class MornListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		MornListener listener = new MornListener("OakBot", 0, mentionListener);
+		MornListener listener = new MornListener(0, mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		assertMessage("morn", chatResponse);
@@ -87,7 +86,7 @@ public class MornListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		MornListener listener = new MornListener("OakBot", 0, mentionListener);
+		MornListener listener = new MornListener(0, mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage1, context);
 		assertMessage("morn", chatResponse);
@@ -104,10 +103,6 @@ public class MornListenerTest {
 
 	private static class MentionListenerMock extends MentionListener {
 		private boolean ignored = false;
-
-		public MentionListenerMock() {
-			super(botName);
-		}
 
 		@Override
 		public void ignoreNextMessage() {

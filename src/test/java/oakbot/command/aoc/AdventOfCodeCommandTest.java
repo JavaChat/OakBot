@@ -57,7 +57,7 @@ public class AdventOfCodeCommandTest {
 		};
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
-		BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), null);
+		BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), null);
 		ChatActions response = command.onMessage(message, context);
 		assertMessage(":1 Please specify a leaderboard ID (e.g. /aoc 123456).", response);
 	}
@@ -94,7 +94,7 @@ public class AdventOfCodeCommandTest {
 		};
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
-		BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), null);
+		BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), null);
 		ChatActions response = command.onMessage(message, context);
 		assertMessage(":1 This command is only active during the month of December.", response);
 	}
@@ -149,6 +149,6 @@ public class AdventOfCodeCommandTest {
 	}
 
 	private static BotContext mockBotContext() {
-		return new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 1);
+		return new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 1);
 	}
 }

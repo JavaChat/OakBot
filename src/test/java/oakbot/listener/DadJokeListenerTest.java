@@ -18,7 +18,7 @@ import static org.junit.Assert.fail;
  * @author Michael Angstadt
  */
 public class DadJokeListenerTest {
-	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
+	private final static BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@BeforeClass
 	public static void beforeClass() {
@@ -104,7 +104,7 @@ public class DadJokeListenerTest {
 		assertNoResponse(":1234 abcd I'm working on a project and blah blah");
 		assertResponse(":1234 Hey! I'm Oak", "Hi Oak, I'm Oak!");
 	}
-	
+
 	private static void assertResponse(String message, String response) {
 		ChatMessage chatMessage = new ChatMessage.Builder() //@formatter:off
 			.messageId(1)
@@ -127,7 +127,7 @@ public class DadJokeListenerTest {
 		DadJokeListener listener = new DadJokeListener("Oak");
 		ChatActions actions = listener.onMessage(chatMessage, context);
 		if (!actions.isEmpty()) {
-			PostMessage postMessage = (PostMessage)actions.getActions().get(0);
+			PostMessage postMessage = (PostMessage) actions.getActions().get(0);
 			fail("The following response was returned when no response was expected: " + postMessage.message());
 		}
 	}

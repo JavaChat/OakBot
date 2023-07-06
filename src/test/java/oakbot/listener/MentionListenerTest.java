@@ -16,7 +16,7 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class MentionListenerTest {
-	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
+	private final static BotContext context = new BotContext(false, "/", "OakBot", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@Test
 	public void respond() {
@@ -36,7 +36,7 @@ public class MentionListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListener listener = new MentionListener("OakBot");
+		MentionListener listener = new MentionListener();
 		ChatActions actions = listener.onMessage(chatMessage, context);
 		assertTrue(actions.isEmpty());
 	}
@@ -48,7 +48,7 @@ public class MentionListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListener listener = new MentionListener("OakBot");
+		MentionListener listener = new MentionListener();
 		ChatActions actions = listener.onMessage(chatMessage, context);
 		assertMessage(expectedResponse, actions);
 	}
@@ -61,7 +61,7 @@ public class MentionListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListener listener = new MentionListener("OakBot");
+		MentionListener listener = new MentionListener();
 
 		ChatActions response = listener.onMessage(chatMessage, context);
 		assertFalse(response.isEmpty());
@@ -78,7 +78,7 @@ public class MentionListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListener listener = new MentionListener("OakBot");
+		MentionListener listener = new MentionListener();
 		listener.ignoreNextMessage();
 
 		ChatActions response = listener.onMessage(chatMessage, context);

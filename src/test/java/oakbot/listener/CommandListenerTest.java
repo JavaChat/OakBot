@@ -26,7 +26,7 @@ import oakbot.command.learn.LearnedCommandsDao;
  * @author Michael Angstadt
  */
 public class CommandListenerTest {
-	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
+	private final static BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@Test
 	public void onMessage() {

@@ -18,7 +18,7 @@ import oakbot.task.XkcdExplainTask;
  * @author Michael Angstadt
  */
 public class XkcdComicListenerTest {
-	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
+	private final static BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@Test
 	public void onMessage() {

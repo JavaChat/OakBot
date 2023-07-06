@@ -18,7 +18,6 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class MentionListener implements Listener {
-	private final String botUsername;
 	private final long cooldownTimeBetweenResponses = TimeUnit.MINUTES.toMillis(1);
 	private final Map<Integer, Long> timeOfLastResponseByRoom = new HashMap<>();
 	private final Map<String, String> responses = new HashMap<>();
@@ -31,10 +30,6 @@ public class MentionListener implements Listener {
 		responses.put("ty", response);
 	}
 	private boolean ignore = false;
-
-	public MentionListener(String botUsername) {
-		this.botUsername = botUsername;
-	}
 
 	@Override
 	public String name() {
@@ -57,7 +52,7 @@ public class MentionListener implements Listener {
 			return doNothing();
 		}
 
-		if (!message.getContent().isMentioned(botUsername)) {
+		if (!message.getContent().isMentioned(context.getBotUserName())) {
 			return doNothing();
 		}
 

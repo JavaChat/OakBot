@@ -16,7 +16,8 @@ import oakbot.listener.Listener;
  */
 public class BotContext {
 	private final boolean authorAdmin;
-	private final String trigger;
+	private final String trigger, botUserName;
+	private final long botUserId;
 	private final IChatClient connection;
 
 	private final List<Integer> currentRooms, homeRooms;
@@ -26,15 +27,19 @@ public class BotContext {
 	 * @param authorAdmin true if the incoming message author is an admin, false
 	 * if not
 	 * @param trigger the bot's command trigger
+	 * @param botUserName the bot's username
+	 * @param botUserId, the bot's user ID
 	 * @param connection the connection to the chat system
 	 * @param currentRooms the rooms the bot is currently in
 	 * @param homeRooms the bot's home rooms
 	 * @param maxRooms the maximum number of rooms the bot can be in at a time
 	 * or null for no limit
 	 */
-	public BotContext(boolean authorAdmin, String trigger, IChatClient connection, List<Integer> currentRooms, List<Integer> homeRooms, Integer maxRooms) {
+	public BotContext(boolean authorAdmin, String trigger, String botUserName, long botUserId, IChatClient connection, List<Integer> currentRooms, List<Integer> homeRooms, Integer maxRooms) {
 		this.authorAdmin = authorAdmin;
 		this.trigger = trigger;
+		this.botUserName = botUserName;
+		this.botUserId = botUserId;
 		this.connection = connection;
 		this.currentRooms = Collections.unmodifiableList(currentRooms);
 		this.homeRooms = Collections.unmodifiableList(homeRooms);
@@ -47,6 +52,22 @@ public class BotContext {
 	 */
 	public String getTrigger() {
 		return trigger;
+	}
+
+	/**
+	 * Gets the bot's username.
+	 * @return the bot's username
+	 */
+	public String getBotUserName() {
+		return botUserName;
+	}
+
+	/**
+	 * Gets the bot's user ID.
+	 * @return the bot's user ID
+	 */
+	public long getBotUserId() {
+		return botUserId;
 	}
 
 	/**

@@ -16,7 +16,7 @@ import oakbot.chat.ChatMessage;
  * @author Michael Angstadt
  */
 public class WaveListenerTest {
-	private final static BotContext context = new BotContext(false, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
+	private final static BotContext context = new BotContext(false, "/", "OakBot", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
 
 	@Test
 	public void onMessage() {
@@ -36,8 +36,8 @@ public class WaveListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
-		WaveListener listener = new WaveListener("OakBot", 0, mentionListener);
+		MentionListenerMock mentionListener = new MentionListenerMock();
+		WaveListener listener = new WaveListener(0, mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		if (response == null) {
@@ -58,8 +58,8 @@ public class WaveListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
-		WaveListener listener = new WaveListener("OakBot", 0, mentionListener);
+		MentionListenerMock mentionListener = new MentionListenerMock();
+		WaveListener listener = new WaveListener(0, mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		assertMessage("\\o", chatResponse);
@@ -76,10 +76,10 @@ public class WaveListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
-		WaveListener listener = new WaveListener("OakBot", 0, mentionListener);
+		MentionListenerMock mentionListener = new MentionListenerMock();
+		WaveListener listener = new WaveListener(0, mentionListener);
 
-		BotContext context = new BotContext(true, "/", null, Collections.emptyList(), Collections.emptyList(), 0);
+		BotContext context = new BotContext(true, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		assertMessage("\\o", chatResponse);
 		chatResponse = listener.onMessage(chatMessage, context);
@@ -99,8 +99,8 @@ public class WaveListenerTest {
 		.build();
 		//@formatter:on
 
-		MentionListenerMock mentionListener = new MentionListenerMock("OakBot");
-		WaveListener listener = new WaveListener("OakBot", 0, mentionListener);
+		MentionListenerMock mentionListener = new MentionListenerMock();
+		WaveListener listener = new WaveListener(0, mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage1, context);
 		assertMessage("\\o", chatResponse);
@@ -117,10 +117,6 @@ public class WaveListenerTest {
 
 	private static class MentionListenerMock extends MentionListener {
 		private boolean ignored = false;
-
-		public MentionListenerMock(String botUsername) {
-			super(botUsername);
-		}
 
 		@Override
 		public void ignoreNextMessage() {

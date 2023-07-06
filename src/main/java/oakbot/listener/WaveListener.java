@@ -22,18 +22,23 @@ public class WaveListener implements Listener {
 	private final Pattern waveRegex = Pattern.compile("(^|\\s)(o/|\\\\o)(\\s|$)");
 	private final long timeBetweenWaves = TimeUnit.MINUTES.toMillis(5);
 	private final long hesitation;
-	private final String botUsername;
 	private final MentionListener mentionListener;
 	private final Map<Integer, Long> lastWaves = new HashMap<>();
 
 	/**
-	 * @param botUsername the bot's username
+	 * @param hesitation the amount of time to wait before waving back (in
+	 * milliseconds)
+	 */
+	public WaveListener(long hesitation) {
+		this(hesitation, null);
+	}
+
+	/**
 	 * @param hesitation the amount of time to wait before waving back (in
 	 * milliseconds)
 	 * @param mentionListener the mention listener
 	 */
-	public WaveListener(String botUsername, long hesitation, MentionListener mentionListener) {
-		this.botUsername = botUsername;
+	public WaveListener(long hesitation, MentionListener mentionListener) {
 		this.hesitation = hesitation;
 		this.mentionListener = mentionListener;
 	}
@@ -57,7 +62,7 @@ public class WaveListener implements Listener {
 	@Override
 	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		String content = message.getContent().getContent();
-		boolean mentioned = message.getContent().isMentioned(botUsername);
+		boolean mentioned = message.getContent().isMentioned(context.getBotUserName());
 
 		String wave;
 		if (mentioned) {
@@ -70,7 +75,9 @@ public class WaveListener implements Listener {
 				return doNothing();
 			}
 
-			mentionListener.ignoreNextMessage();
+			if (mentionListener != null) {
+				mentionListener.ignoreNextMessage();
+			}
 			wave = m.group(2);
 		} else {
 			/*
@@ -105,8 +112,7 @@ public class WaveListener implements Listener {
 		 */
 		try {
 			Thread.sleep(hesitation);
-		} catch (InterruptedException e) {
-			//empty
+		} catch (InterruptedException ignore) {
 		}
 
 		String reply = reverse(wave);

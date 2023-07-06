@@ -304,7 +304,7 @@ public class Bot {
 		inactivityTasks.touch(message);
 
 		boolean isUserAdmin = admins.contains(message.getUserId());
-		BotContext context = new BotContext(isUserAdmin, trigger, connection, rooms.getRooms(), rooms.getHomeRooms(), maxRooms);
+		BotContext context = new BotContext(isUserAdmin, trigger, userName, userId, connection, rooms.getRooms(), rooms.getHomeRooms(), maxRooms);
 
 		ChatActions actions;
 		try {

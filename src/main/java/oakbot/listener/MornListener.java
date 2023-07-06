@@ -24,7 +24,6 @@ import oakbot.command.HelpDoc;
 public class MornListener implements Listener {
 	private final long timeBetweenReplies = TimeUnit.MINUTES.toMillis(10);
 	private final long hesitation;
-	private final String botUsername;
 	private final MentionListener mentionListener;
 	private final Map<Integer, Long> lastReplies = new HashMap<>();
 
@@ -41,13 +40,11 @@ public class MornListener implements Listener {
 	//@formatter:on
 
 	/**
-	 * @param botUsername the bot's username
 	 * @param hesitation the amount of time to wait before responding (in
 	 * milliseconds)
 	 * @param mentionListener the mention listener
 	 */
-	public MornListener(String botUsername, long hesitation, MentionListener mentionListener) {
-		this.botUsername = botUsername;
+	public MornListener(long hesitation, MentionListener mentionListener) {
 		this.hesitation = hesitation;
 		this.mentionListener = mentionListener;
 	}
@@ -72,7 +69,7 @@ public class MornListener implements Listener {
 	@Override
 	public ChatActions onMessage(ChatMessage message, BotContext context) {
 		List<String> mentions = message.getContent().getMentions();
-		boolean mentioned = message.getContent().isMentioned(botUsername);
+		boolean mentioned = message.getContent().isMentioned(context.getBotUserName());
 		if (!mentions.isEmpty() && !mentioned) {
 			/*
 			 * Message isn't directed toward the bot.

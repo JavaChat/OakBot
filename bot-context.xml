@@ -278,20 +278,16 @@
 	</bean>
 	
 	<!-- mention listener -->
-	<bean id="mentionListener" class="oakbot.listener.MentionListener">
-		<constructor-arg value="${account.username}" />
-	</bean>
+	<bean id="mentionListener" class="oakbot.listener.MentionListener" />
 	
 	<!-- morn listener -->
 	<bean class="oakbot.listener.MornListener">
-		<constructor-arg value="${account.username}" />
 		<constructor-arg value="1000" /> <!-- amount of time to wait before responding (milliseconds) -->
 		<constructor-arg ref="mentionListener" />
 	</bean>
 	
 	<!-- wave listener -->
 	<bean class="oakbot.listener.WaveListener">
-		<constructor-arg value="${account.username}" />
 		<constructor-arg value="1000" /> <!-- amount of time to wait before waving back (milliseconds) -->
 		<constructor-arg ref="mentionListener" />
 	</bean>
@@ -318,7 +314,7 @@
 	<!-- ChatGPT task -->
 	<bean class="oakbot.task.ChatGPTTask">
 		<constructor-arg value="43200000" /> <!-- 12 hours - run frequency (in milliseconds) -->
-		<constructor-arg value="You are grumpy Java developer named 'OakBot'." /> <!-- ChatGPT prompt, defines the bot's personality -->
+		<constructor-arg value="You are grumpy Java developer named '${account.username}'." /> <!-- ChatGPT prompt, defines the bot's personality -->
 		<constructor-arg value="50" /> <!-- max tokens (how long ChatGPT's responses can be, each word is around 0.75 tokens) -->
 		<constructor-arg value="10" /> <!-- how many chat messages to send to ChatGPT -->
 		<constructor-arg value="API_KEY" /> <!-- ChatGPT API key -->

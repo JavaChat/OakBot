@@ -61,11 +61,11 @@ public class CommandsWikiPage {
 
 		List<Listener> listeners = new ArrayList<>();
 		{
-			MentionListener mentionListener = new MentionListener("");
+			MentionListener mentionListener = new MentionListener();
 
 			listeners.add(mentionListener);
-			listeners.add(new MornListener("OakBot", 1000, mentionListener));
-			listeners.add(new WaveListener("OakBot", 1000, mentionListener));
+			listeners.add(new MornListener(1000, mentionListener));
+			listeners.add(new WaveListener(1000, mentionListener));
 			listeners.add(new WelcomeListener(db, Collections.emptyMap()));
 
 			listeners.removeIf(l -> l.name() == null);
