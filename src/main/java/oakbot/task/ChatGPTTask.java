@@ -91,6 +91,21 @@ public class ChatGPTTask implements ScheduledTask {
 			resetTimer(roomId);
 
 			List<ChatMessage> messages = bot.getLatestMessages(roomId, latestMessageCount);
+			if (messages.isEmpty()) {
+				return;
+			}
+
+			ChatMessage latestMessage = messages.get(messages.size() - 1);
+			if (latestMessage.getUserId() < 1 || latestMessage.getUserId() == bot.getUserId()) {
+				/*
+				 * Do not post anything if the room is currently inactive.
+				 * 
+				 * We consider the room to be inactive if the latest message was
+				 * authored by a bot user (such as "Feeds") or by the bot itself.
+				 */
+				return;
+			}
+
 			ChatGPTRequest request = new ChatGPTRequest(chatGPTParameters);
 			for (ChatMessage message : messages) {
 				String content = message.getContent().getContent();
