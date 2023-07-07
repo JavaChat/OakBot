@@ -17,7 +17,7 @@ import oakbot.util.ChatBuilder;
  * Responds when a user mentions the bot's name.
  * @author Michael Angstadt
  */
-public class MentionListener implements Listener {
+public class MentionListener implements CatchAllMentionListener {
 	private final long cooldownTimeBetweenResponses = TimeUnit.MINUTES.toMillis(1);
 	private final Map<Integer, Long> timeOfLastResponseByRoom = new HashMap<>();
 	private final Map<String, String> responses = new HashMap<>();
@@ -80,9 +80,7 @@ public class MentionListener implements Listener {
 		); //@formatter:on
 	}
 
-	/**
-	 * Tells this listener to not respond to the next message it receives.
-	 */
+	@Override
 	public void ignoreNextMessage() {
 		ignore = true;
 	}

@@ -24,7 +24,7 @@ import oakbot.command.HelpDoc;
 public class MornListener implements Listener {
 	private final long timeBetweenReplies = TimeUnit.MINUTES.toMillis(10);
 	private final long hesitation;
-	private final MentionListener mentionListener;
+	private final CatchAllMentionListener catchAllListener;
 	private final Map<Integer, Long> lastReplies = new HashMap<>();
 
 	/**
@@ -44,9 +44,9 @@ public class MornListener implements Listener {
 	 * milliseconds)
 	 * @param mentionListener the mention listener
 	 */
-	public MornListener(long hesitation, MentionListener mentionListener) {
+	public MornListener(long hesitation, CatchAllMentionListener catchAllListener) {
 		this.hesitation = hesitation;
-		this.mentionListener = mentionListener;
+		this.catchAllListener = catchAllListener;
 	}
 
 	@Override
@@ -79,7 +79,8 @@ public class MornListener implements Listener {
 
 		String content = removeMentionsAndPunctuation(message.getContent().getContent());
 
-		Optional<String> reply = responses.stream() //@formatter:off
+		Optional<String> reply = responses
+				.stream() //@formatter:off
 			.filter(s -> content.equalsIgnoreCase(s[0]))
 			.map(s -> s[1])
 		.findFirst(); //@formatter:on
@@ -92,7 +93,7 @@ public class MornListener implements Listener {
 		 * Always reply if the bot is mentioned.
 		 */
 		if (mentioned) {
-			mentionListener.ignoreNextMessage();
+			catchAllListener.ignoreNextMessage();
 
 			/*
 			 * Wait for a moment to make it seem less robotic.

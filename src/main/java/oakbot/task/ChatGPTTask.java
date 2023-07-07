@@ -1,6 +1,10 @@
 package oakbot.task;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -16,55 +20,94 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class ChatGPTTask implements ScheduledTask {
-	private final long runFrequency;
-	private final String prompt, apiKey;
-	private final int maxTokens, pastMessages;
-	private final List<Integer> roomIds;
+	private final ChatGPTParameters chatGPTParameters;
+	private final long timeToWaitBeforePosting;
+	private final int latestMessageCount, latestMessageCharacterLimit;
+	private final Map<Integer, Instant> runTimes;
 
 	/**
-	 * @param runFrequency how often this task runs (in milliseconds)
-	 * @param prompt the prompt to define the bot's personality (e.g. "You are a
-	 * helpful assistant")
-	 * @param maxTokens defines how long ChatGPT's response will be (one word is
-	 * about 0.75 tokens)
-	 * @param pastMessages how many of the latest messages from the chat room to
-	 * send to ChatGPT
-	 * @param apiKey the ChatGPT API key
-	 * @param roomIds the rooms to do this with
+	 * @param chatGPTParameters parameters for connecting to ChatGPT
+	 * @param timeToWaitBeforePosting the amount of time to wait before posting
+	 * a message (in milliseconds)
+	 * @param latestMessagesCount the number of chat room messages to send to
+	 * ChatGPT (each message counts against the usage quota)
+	 * @param latestMessagesCharacterLimit each chat message that is sent to
+	 * ChatGPT will not exceed this number of characters (includes markdown
+	 * syntax). Chat messages that do will be truncated (without cutting off
+	 * words). 0 to disable truncation (each message counts against the usage
+	 * quota).
+	 * @param roomIds the rooms to initially start this task in
 	 */
-	public ChatGPTTask(long runFrequency, String prompt, int maxTokens, int pastMessages, String apiKey, List<Integer> roomIds) {
-		this.runFrequency = runFrequency;
-		this.prompt = prompt;
-		this.maxTokens = maxTokens;
-		this.pastMessages = pastMessages;
-		this.apiKey = apiKey;
-		this.roomIds = roomIds;
+	public ChatGPTTask(ChatGPTParameters chatGPTParameters, long timeToWaitBeforePosting, int latestMessageCount, int latestMessageCharacterLimit, List<Integer> roomIds) {
+		this.chatGPTParameters = chatGPTParameters;
+		this.timeToWaitBeforePosting = timeToWaitBeforePosting;
+		this.latestMessageCount = latestMessageCount;
+		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
+
+		runTimes = new HashMap<>();
+		for (Integer roomId : roomIds) {
+			resetTimer(roomId);
+		}
 	}
 
 	@Override
 	public long nextRun() {
-		return runFrequency;
+		long lowest = timeToWaitBeforePosting;
+		synchronized (runTimes) {
+			for (Instant instant : runTimes.values()) {
+				long diff = instant.toEpochMilli() - Instant.now().toEpochMilli();
+				if (diff < lowest) {
+					lowest = diff;
+				}
+			}
+		}
+
+		if (lowest < 1) {
+			lowest = 1;
+		}
+		return lowest;
 	}
 
 	@Override
 	public void run(Bot bot) throws Exception {
-		for (Integer roomId : roomIds) {
-			if (!bot.getRooms().contains(roomId)) {
-				continue;
-			}
+		List<Integer> roomsToPostTo = new ArrayList<>();
+		synchronized (runTimes) {
+			for (Map.Entry<Integer, Instant> entry : runTimes.entrySet()) {
+				Integer roomId = entry.getKey();
+				if (!bot.getRooms().contains(roomId)) {
+					continue;
+				}
 
-			List<ChatMessage> messages = bot.getLatestMessages(roomId, pastMessages);
-			ChatGPTRequest request = new ChatGPTRequest(apiKey, prompt, maxTokens);
+				Instant runTime = entry.getValue();
+				if (runTime.isAfter(Instant.now())) {
+					continue;
+				}
+
+				roomsToPostTo.add(roomId);
+			}
+		}
+
+		for (Integer roomId : roomsToPostTo) {
+			resetTimer(roomId);
+
+			List<ChatMessage> messages = bot.getLatestMessages(roomId, latestMessageCount);
+			ChatGPTRequest request = new ChatGPTRequest(chatGPTParameters);
 			for (ChatMessage message : messages) {
 				String content = message.getContent().getContent();
 				boolean fixedFont = message.getContent().isFixedFont();
 				String contentMd = ChatBuilder.toMarkdown(content, fixedFont);
-				String truncatedMessage = SplitStrategy.WORD.split(contentMd, 200).get(0);
+
+				String truncatedContentMd;
+				if (latestMessageCharacterLimit > 0) {
+					truncatedContentMd = SplitStrategy.WORD.split(contentMd, latestMessageCharacterLimit).get(0);
+				} else {
+					truncatedContentMd = contentMd;
+				}
 
 				if (message.getUserId() == bot.getUserId()) {
-					request.addBotMessage(truncatedMessage);
+					request.addBotMessage(truncatedContentMd);
 				} else {
-					request.addHumanMessage(truncatedMessage);
+					request.addHumanMessage(truncatedContentMd);
 				}
 			}
 
@@ -80,35 +123,21 @@ public class ChatGPTTask implements ScheduledTask {
 	}
 
 	/**
+	 * Resets the chat timer for the given room.
+	 * @param roomId the room ID
+	 */
+	public void resetTimer(int roomId) {
+		Instant nextRunTime = Instant.now().plusMillis(timeToWaitBeforePosting);
+		synchronized (runTimes) {
+			runTimes.put(roomId, nextRunTime);
+		}
+	}
+
+	/**
 	 * Creates an HTTP client. This method is for unit testing.
 	 * @return the HTTP client
 	 */
 	CloseableHttpClient createClient() {
 		return HttpClients.createDefault();
 	}
-
-	//@formatter:off
-	/*
-	{"model":"gpt-3.5-turbo","messages":[{"role":"system","content":"You are knowledgable, but grumpy, Java software developer."},{"role":"user","content":"When was Java 17 released?"}],"max_tokens":50,"temperature":1.0}
-	{
-	  "id" : "chatcmpl-7Yi4sFx7sq4hfA3huekbWN04TVZAN",
-	  "object" : "chat.completion",
-	  "created" : 1688506942,
-	  "model" : "gpt-3.5-turbo-0613",
-	  "choices" : [ {
-	    "index" : 0,
-	    "message" : {
-	      "role" : "assistant",
-	      "content" : "Java 17 was released on September 14, 2021. Finally, they managed to make it work, but who knows for how long..."
-	    },
-	    "finish_reason" : "stop"
-	  } ],
-	  "usage" : {
-	    "prompt_tokens" : 32,
-	    "completion_tokens" : 30,
-	    "total_tokens" : 62
-	  }
-	}
-	*/
-	//@formatter:on
 }

@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -18,7 +19,6 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import oakbot.inactivity.InactivityTask;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -41,6 +41,8 @@ import oakbot.command.learn.LearnCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.command.learn.UnlearnCommand;
 import oakbot.filter.ChatResponseFilter;
+import oakbot.inactivity.InactivityTask;
+import oakbot.listener.CatchAllMentionListener;
 import oakbot.listener.CommandListener;
 import oakbot.listener.Listener;
 import oakbot.task.ScheduledTask;
@@ -126,6 +128,20 @@ public final class Main {
 		}
 
 		setupLogging(botProperties.getLoggingConfig());
+
+		/*
+		 * Put the "catch all" listeners at the end so they won't run if another
+		 * listener tells them not to run.
+		 */
+		Collections.sort(listeners, (a, b) -> {
+			if (a instanceof CatchAllMentionListener) {
+				return -1;
+			}
+			if (b instanceof CatchAllMentionListener) {
+				return 1;
+			}
+			return 0;
+		});
 
 		LearnedCommandsDao learnedCommands;
 		if (botProperties.isEnableLearnedCommands()) {

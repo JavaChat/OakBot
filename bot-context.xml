@@ -278,18 +278,21 @@
 	</bean>
 	
 	<!-- mention listener -->
+	<!--
+	Enable this if you're not using the ChatGPTListener
 	<bean id="mentionListener" class="oakbot.listener.MentionListener" />
+	-->
 	
 	<!-- morn listener -->
 	<bean class="oakbot.listener.MornListener">
 		<constructor-arg value="1000" /> <!-- amount of time to wait before responding (milliseconds) -->
-		<constructor-arg ref="mentionListener" />
+		<constructor-arg ref="chatGPTListener" /> <!-- should be set to either mentionListener or chatGPTListener -->
 	</bean>
 	
 	<!-- wave listener -->
 	<bean class="oakbot.listener.WaveListener">
 		<constructor-arg value="1000" /> <!-- amount of time to wait before waving back (milliseconds) -->
-		<constructor-arg ref="mentionListener" />
+		<constructor-arg ref="chatGPTListener" /> <!-- should be set to either mentionListener or chatGPTListener -->
 	</bean>
 	
 	<!-- welcome listener -->
@@ -311,18 +314,28 @@
 		<constructor-arg value="1800000" /> <!-- 30 minutes - the amount time to wait after the comic is posted to the chat room before crawling explainxkcd.com for the explanation (milliseconds) -->
 	</bean>
 
-	<!-- ChatGPT task -->
-	<bean class="oakbot.task.ChatGPTTask">
-		<constructor-arg value="43200000" /> <!-- 12 hours - run frequency (in milliseconds) -->
-		<constructor-arg value="You are grumpy Java developer named '${account.username}'." /> <!-- ChatGPT prompt, defines the bot's personality -->
-		<constructor-arg value="50" /> <!-- max tokens (how long ChatGPT's responses can be, each word is around 0.75 tokens) -->
-		<constructor-arg value="10" /> <!-- how many chat messages to send to ChatGPT -->
+	<!-- ChatGPT -->
+	<bean class="oakbot.task.ChatGPTParameters" id="chatGPTParameters">
 		<constructor-arg value="API_KEY" /> <!-- ChatGPT API key -->
+		<constructor-arg value="You are a grumpy Java developer named '${account.username}'." /> <!-- ChatGPT prompt, defines the bot's personality -->
+		<constructor-arg value="100" /> <!-- how long ChatGPT's responses can be, each word costs around 1.33 tokens -->
+	</bean>
+	<bean class="oakbot.task.ChatGPTTask" id="chatGPTTask">
+		<constructor-arg ref="chatGPTParameters" />
+		<constructor-arg value="43200000" /> <!-- 12 hours - run frequency (in milliseconds) -->
+		<constructor-arg value="10" /> <!-- how many of the latest chat messages to send to ChatGPT -->
+		<constructor-arg value="300" /> <!-- the messages that are sent to ChatGPT will not exceed this number of characters (for reducing usage quota), 0 to disable truncating -->
 		<constructor-arg> <!-- the rooms to post messages in -->
 			<util:list>
 				<value>139</value>
 			</util:list>
 		</constructor-arg>
+	</bean>
+	<bean class="oakbot.listener.ChatGPTListener" id="chatGPTListener">
+		<constructor-arg ref="chatGPTTask" />
+		<constructor-arg ref="chatGPTParameters" />
+		<constructor-arg value="10" /> <!-- how many of the latest chat messages to send to ChatGPT -->
+		<constructor-arg value="300" /> <!-- the messages that are sent to ChatGPT will not exceed this number of characters (for reducing usage quota), 0 to disable truncating -->
 	</bean>
 	
 	<!-- fact of the day task -->

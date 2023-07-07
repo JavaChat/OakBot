@@ -22,7 +22,7 @@ public class WaveListener implements Listener {
 	private final Pattern waveRegex = Pattern.compile("(^|\\s)(o/|\\\\o)(\\s|$)");
 	private final long timeBetweenWaves = TimeUnit.MINUTES.toMillis(5);
 	private final long hesitation;
-	private final MentionListener mentionListener;
+	private final CatchAllMentionListener catchAllListener;
 	private final Map<Integer, Long> lastWaves = new HashMap<>();
 
 	/**
@@ -36,11 +36,11 @@ public class WaveListener implements Listener {
 	/**
 	 * @param hesitation the amount of time to wait before waving back (in
 	 * milliseconds)
-	 * @param mentionListener the mention listener
+	 * @param catchAllListener the catch-all listener
 	 */
-	public WaveListener(long hesitation, MentionListener mentionListener) {
+	public WaveListener(long hesitation, CatchAllMentionListener catchAllListener) {
 		this.hesitation = hesitation;
-		this.mentionListener = mentionListener;
+		this.catchAllListener = catchAllListener;
 	}
 
 	@Override
@@ -75,8 +75,8 @@ public class WaveListener implements Listener {
 				return doNothing();
 			}
 
-			if (mentionListener != null) {
-				mentionListener.ignoreNextMessage();
+			if (catchAllListener != null) {
+				catchAllListener.ignoreNextMessage();
 			}
 			wave = m.group(2);
 		} else {
