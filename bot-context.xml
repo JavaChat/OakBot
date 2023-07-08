@@ -65,7 +65,7 @@
 		If this property is not defined, then oneboxes will not be replaced.
 		Note that this value cannot exceed two minutes, which is the maximum amount of time Stack Overflow Chat gives you to edit/delete your posts.
 		-->
-		<prop key="hideOneboxesAfter">110000</prop>
+		<prop key="hideOneboxesAfter">PT1M50S</prop>
 		
 		<!--
 		The list of rooms the bot cannot be unsummoned from.

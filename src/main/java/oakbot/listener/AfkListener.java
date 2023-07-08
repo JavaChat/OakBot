@@ -4,12 +4,13 @@ import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
@@ -25,7 +26,7 @@ import oakbot.util.ChatBuilder;
  * @see AfkCommand
  */
 public class AfkListener implements Listener {
-	private final long timeBetweenWarnings = TimeUnit.MINUTES.toMillis(15);
+	private final Duration timeBetweenWarnings = Duration.ofMinutes(15);
 	private final AfkCommand command;
 
 	public AfkListener(AfkCommand command) {
@@ -82,10 +83,14 @@ public class AfkListener implements Listener {
 	private List<AfkUser> filterUsersNotWarnedAbout(Collection<AfkUser> afkUsers, int userId) {
 		List<AfkUser> usersNotWarnedAbout = new ArrayList<>(afkUsers.size());
 		for (AfkUser afkUser : afkUsers) {
-			long lastWarnedUser = afkUser.getTimeLastWarnedUser(userId);
-			long sinceLastWarning = System.currentTimeMillis() - lastWarnedUser;
-			if (sinceLastWarning > timeBetweenWarnings) {
+			Instant lastWarnedUser = afkUser.getTimeLastWarnedUser(userId);
+			if (lastWarnedUser == null) {
 				usersNotWarnedAbout.add(afkUser);
+			} else {
+				Duration sinceLastWarning = Duration.between(lastWarnedUser, Instant.now());
+				if (sinceLastWarning.compareTo(timeBetweenWarnings) > 0) {
+					usersNotWarnedAbout.add(afkUser);
+				}
 			}
 		}
 		return usersNotWarnedAbout;

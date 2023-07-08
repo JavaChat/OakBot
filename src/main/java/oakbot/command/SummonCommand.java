@@ -2,13 +2,14 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
@@ -21,7 +22,7 @@ import oakbot.bot.JoinRoom;
  */
 public class SummonCommand implements Command {
 	private final int minSummonsRequired;
-	private final long summonTime = TimeUnit.MINUTES.toMillis(2);
+	private final Duration summonTime = Duration.ofMinutes(2);
 	private final Map<Integer, Pending> pendingSummons = new HashMap<>();
 
 	/**
@@ -83,10 +84,15 @@ public class SummonCommand implements Command {
 
 		if (!context.isAuthorAdmin()) {
 			Pending pending = pendingSummons.get(roomToJoin);
-			long elapsed = System.currentTimeMillis() - ((pending == null) ? 0 : pending.getStarted());
-			if (elapsed > summonTime) {
+			if (pending == null) {
 				pending = new Pending(roomToJoin);
 				pendingSummons.put(roomToJoin, pending);
+			} else {
+				Duration elapsed = Duration.between(pending.getStarted(), Instant.now());
+				if (elapsed.compareTo(summonTime) > 0) {
+					pending = new Pending(roomToJoin);
+					pendingSummons.put(roomToJoin, pending);
+				}
 			}
 
 			int userId = chatCommand.getMessage().getUserId();
@@ -110,7 +116,7 @@ public class SummonCommand implements Command {
 		}
 
 		pendingSummons.remove(roomToJoin);
-		
+
 		//@formatter:off
 		return ChatActions.create(
 			new JoinRoom(roomToJoin)
@@ -124,8 +130,8 @@ public class SummonCommand implements Command {
 
 	private static class Pending {
 		private final int roomId;
-		private final Set<Integer> userIds = new HashSet<Integer>();
-		private final long started = System.currentTimeMillis();
+		private final Set<Integer> userIds = new HashSet<>();
+		private final Instant started = Instant.now();
 
 		public Pending(int roomId) {
 			this.roomId = roomId;
@@ -140,7 +146,7 @@ public class SummonCommand implements Command {
 			return userIds;
 		}
 
-		public long getStarted() {
+		public Instant getStarted() {
 			return started;
 		}
 	}

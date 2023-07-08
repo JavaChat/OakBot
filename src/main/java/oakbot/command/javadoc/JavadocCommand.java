@@ -4,8 +4,8 @@ import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,7 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -43,7 +42,7 @@ public class JavadocCommand implements Command {
 	 * Stop responding to numeric choices the user enters after this amount of
 	 * time.
 	 */
-	private static final long choiceTimeout = TimeUnit.SECONDS.toMillis(30);
+	private static final Duration choiceTimeout = Duration.ofSeconds(30);
 
 	/**
 	 * "Flags" that a class can have. They are defined in a List because, if a
@@ -276,7 +275,8 @@ public class JavadocCommand implements Command {
 			return doNothing();
 		}
 
-		boolean timedOut = ChronoUnit.MILLIS.between(conversation.timeLastTouched, Instant.now()) > choiceTimeout;
+		Duration age = Duration.between(conversation.timeLastTouched, Instant.now());
+		boolean timedOut = age.compareTo(choiceTimeout) > 0;
 		if (timedOut) {
 			//it's been a while since the choices were printed to the chat in this room, so ignore
 			return doNothing();

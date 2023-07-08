@@ -7,6 +7,7 @@ import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Sleeper;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,7 +68,7 @@ public class DadJokeListener implements Listener {
 			return doNothing();
 		}
 
-		hesitate(3000);
+		hesitate(Duration.ofSeconds(3));
 		return reply("Hi " + phrase.get() + ", I'm " + botName + "!", message);
 	}
 
@@ -97,9 +98,9 @@ public class DadJokeListener implements Listener {
 		return words;
 	}
 
-	private void hesitate(long ms) {
+	private void hesitate(Duration duration) {
 		try {
-			Sleeper.sleep(ms);
+			Sleeper.sleep(duration.toMillis());
 		} catch (InterruptedException ignored) {
 		}
 	}

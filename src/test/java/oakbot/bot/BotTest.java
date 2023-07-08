@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -821,7 +822,7 @@ public class BotTest {
 		//@formatter:off
 		Bot bot = bot()
 			.rooms(1)
-			.hideOneboxesAfter(1000)
+			.hideOneboxesAfter(Duration.ofSeconds(1))
 			.listeners(listener)
 		.build();
 		//@formatter:on

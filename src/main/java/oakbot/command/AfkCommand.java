@@ -2,6 +2,7 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -122,7 +123,7 @@ public class AfkCommand implements Command {
 	 * @author Michael Angstadt
 	 */
 	public static class AfkUser {
-		private final Map<Integer, Long> lastWarnedUser = new HashMap<>();
+		private final Map<Integer, Instant> lastWarnedUser = new HashMap<>();
 		private final String username, awayMessage;
 		private final int userId;
 
@@ -160,21 +161,19 @@ public class AfkCommand implements Command {
 		 * Gets the time that a user was last notified by the bot that the AFK
 		 * user is away.
 		 * @param userId the user ID
-		 * @return the time or zero if the user never received a notification
+		 * @return the time or null if the user never received a notification
 		 */
-		public long getTimeLastWarnedUser(int userId) {
-			Long time = lastWarnedUser.get(userId);
-			return (time == null) ? 0 : time;
+		public Instant getTimeLastWarnedUser(int userId) {
+			return lastWarnedUser.get(userId);
 		}
 
 		/**
 		 * Resets the time that a user was last notified by the bot that the AFK
 		 * user is away.
-		 * @param userId
+		 * @param userId the user ID
 		 */
 		public void setTimeLastWarnedUser(int userId) {
-			long time = System.currentTimeMillis();
-			lastWarnedUser.put(userId, time);
+			lastWarnedUser.put(userId, Instant.now());
 		}
 
 		@Override

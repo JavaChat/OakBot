@@ -3,9 +3,10 @@ package oakbot.listener;
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.reply;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
@@ -18,8 +19,8 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class MentionListener implements CatchAllMentionListener {
-	private final long cooldownTimeBetweenResponses = TimeUnit.MINUTES.toMillis(1);
-	private final Map<Integer, Long> timeOfLastResponseByRoom = new HashMap<>();
+	private final Duration cooldownTimeBetweenResponses = Duration.ofMinutes(1);
+	private final Map<Integer, Instant> timeOfLastResponseByRoom = new HashMap<>();
 	private final Map<String, String> responses = new HashMap<>();
 	{
 		String response = "You're welcome.";
@@ -56,15 +57,13 @@ public class MentionListener implements CatchAllMentionListener {
 			return doNothing();
 		}
 
-		Long prevResponse = timeOfLastResponseByRoom.get(message.getRoomId());
-		if (prevResponse == null) {
-			prevResponse = 0L;
-		}
-
-		long now = System.currentTimeMillis();
-		long elapsed = now - prevResponse;
-		if (elapsed < cooldownTimeBetweenResponses) {
-			return doNothing();
+		Instant prevResponse = timeOfLastResponseByRoom.get(message.getRoomId());
+		Instant now = Instant.now();
+		if (prevResponse != null) {
+			Duration elapsed = Duration.between(prevResponse, now);
+			if (elapsed.compareTo(cooldownTimeBetweenResponses) < 0) {
+				return doNothing();
+			}
 		}
 
 		timeOfLastResponseByRoom.put(message.getRoomId(), now);

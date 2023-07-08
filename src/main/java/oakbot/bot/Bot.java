@@ -2,6 +2,7 @@ package oakbot.bot;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class Bot {
 	private final BlockingQueue<ChatMessage> newMessages = new LinkedBlockingQueue<>();
 	private final ChatMessage CLOSE_MESSAGE = new ChatMessage.Builder().build();
 	private final List<Integer> admins, bannedUsers, allowedUsers;
-	private final Integer hideOneboxesAfter;
+	private final Duration hideOneboxesAfter;
 	private final Rooms rooms;
 	private final Integer maxRooms;
 	private final List<Listener> listeners;
@@ -148,8 +149,7 @@ public class Bot {
 				 */
 				try {
 					Sleeper.sleep(2000);
-				} catch (InterruptedException e) {
-					//ignore
+				} catch (InterruptedException ignore) {
 				}
 			}
 
@@ -207,7 +207,7 @@ public class Bot {
 
 	private void handleMessage(ChatMessage message) {
 		if (message.getContent() == null) {
-			//user deleted his/her message, ignore
+			//user deleted their message, ignore
 			return;
 		}
 
@@ -223,7 +223,7 @@ public class Bot {
 
 		IRoom room = connection.getRoom(message.getRoomId());
 		if (room == null) {
-			//no longer in the room
+			//the bot is no longer in the room
 			return;
 		}
 
@@ -258,10 +258,11 @@ public class Bot {
 			 */
 			boolean messageIsOnebox = message.getContent().isOnebox();
 			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
-				long hideIn = hideOneboxesAfter - (System.currentTimeMillis() - postedMessage.getTimePosted());
+				Duration postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
+				Duration hideIn = hideOneboxesAfter.minus(postedMessageAge);
 				if (logger.isLoggable(Level.INFO)) {
 					String action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
-					logger.info(action + " in " + hideIn + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+					logger.info(action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
 				}
 
 				timer.schedule(new TimerTask() {
@@ -294,7 +295,7 @@ public class Bot {
 					private String quote(String content) {
 						return new ChatBuilder().quote().append(' ').append(content).toString();
 					}
-				}, hideIn);
+				}, hideIn.toMillis());
 			}
 
 			return;
@@ -470,11 +471,10 @@ public class Bot {
 
 		synchronized (postedMessages) {
 			List<Long> messageIds = room.sendMessage(filteredMessage, message.splitStrategy());
-			long now = System.currentTimeMillis();
 			String condensedMessage = message.condensedMessage();
 			boolean ephemeral = message.ephemeral();
 
-			PostedMessage postedMessage = new PostedMessage(now, filteredMessage, condensedMessage, ephemeral, messageIds.subList(1, messageIds.size()));
+			PostedMessage postedMessage = new PostedMessage(Instant.now(), filteredMessage, condensedMessage, ephemeral, messageIds.subList(1, messageIds.size()));
 			postedMessages.put(messageIds.get(0), postedMessage);
 		}
 	}
@@ -906,7 +906,7 @@ public class Bot {
 	 * @author Michael Angstadt
 	 */
 	private static class PostedMessage {
-		private final long timePosted;
+		private final Instant timePosted;
 		private final String originalContent, condensedContent;
 		private final boolean ephemeral;
 		private final List<Long> relatedMessageIds;
@@ -924,7 +924,7 @@ public class Bot {
 		 * connected to this one, due to the chat client having to split up the
 		 * original message due to length limitations
 		 */
-		public PostedMessage(long timePosted, String originalContent, String condensedContent, boolean ephemeral, List<Long> relatedMessageIds) {
+		public PostedMessage(Instant timePosted, String originalContent, String condensedContent, boolean ephemeral, List<Long> relatedMessageIds) {
 			this.timePosted = timePosted;
 			this.originalContent = originalContent;
 			this.condensedContent = condensedContent;
@@ -936,7 +936,7 @@ public class Bot {
 		 * Gets the time the message was posted.
 		 * @return the time the message was posted
 		 */
-		public long getTimePosted() {
+		public Instant getTimePosted() {
 			return timePosted;
 		}
 
@@ -997,7 +997,8 @@ public class Bot {
 	public static class Builder {
 		private IChatClient connection;
 		private String userName, trigger = "=", greeting;
-		private Integer userId, hideOneboxesAfter;
+		private Integer userId;
+		private Duration hideOneboxesAfter;
 		private Rooms rooms = new Rooms(Arrays.asList(1), Collections.emptyList());
 		private Integer maxRooms;
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
@@ -1021,7 +1022,7 @@ public class Bot {
 			return this;
 		}
 
-		public Builder hideOneboxesAfter(Integer hideOneboxesAfter) {
+		public Builder hideOneboxesAfter(Duration hideOneboxesAfter) {
 			this.hideOneboxesAfter = hideOneboxesAfter;
 			return this;
 		}

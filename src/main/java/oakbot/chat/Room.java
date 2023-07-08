@@ -151,6 +151,9 @@ public class Room implements IRoom {
 		 */
 		long period = Duration.ofHours(8).toMillis();
 		websocketReconnectTimer.schedule(new TimerTask() {
+			final Duration pauseBetweenAttempts = Duration.ofSeconds(10);
+			final int maxAttempts = 3;
+
 			@Override
 			public void run() {
 				synchronized (Room.this) {
@@ -163,16 +166,16 @@ public class Room implements IRoom {
 					}
 
 					boolean connected = false;
-					int tries = 0;
-					while (!connected && tries < 3) {
+					int attempts = 0;
+					while (!connected && attempts < maxAttempts) {
 						try {
-							tries++;
+							attempts++;
 							connectToWebsocket();
 							connected = true;
 						} catch (IOException e) {
-							logger.log(Level.SEVERE, "[room=" + roomId + "]: Could not recreate websocket session. Trying again in 10 seconds.", e);
+							logger.log(Level.SEVERE, "[room=" + roomId + "]: Could not recreate websocket session. Trying again in " + pauseBetweenAttempts.getSeconds() + " seconds.", e);
 							try {
-								Thread.sleep(10000);
+								Thread.sleep(pauseBetweenAttempts.toMillis());
 							} catch (InterruptedException e1) {
 								break;
 							}
@@ -180,7 +183,7 @@ public class Room implements IRoom {
 					}
 
 					if (!connected) {
-						logger.severe("[room=" + roomId + "]: Could not recreate websocket session after " + tries + " tries. Leaving the room.");
+						logger.severe("[room=" + roomId + "]: Could not recreate websocket session after " + attempts + " tries. Leaving the room.");
 						leave();
 					}
 				}

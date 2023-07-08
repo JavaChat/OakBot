@@ -2,6 +2,7 @@ package oakbot;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -16,7 +17,8 @@ public class BotProperties extends PropertiesWrapper {
 	private final Path loggingConfig;
 	private final String site, loginEmail, password, botUserName, trigger, greeting;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, allowedUsers;
-	private final Integer botUserId, hideOneboxesAfter;
+	private final Integer botUserId;
+	private final Duration hideOneboxesAfter;
 	private boolean enableLearnedCommands;
 
 	/**
@@ -35,7 +37,9 @@ public class BotProperties extends PropertiesWrapper {
 
 		trigger = get("trigger", "=");
 		greeting = get("greeting");
-		hideOneboxesAfter = getInteger("hideOneboxesAfter");
+
+		String value = get("hideOneboxesAfter");
+		hideOneboxesAfter = (value == null) ? null : Duration.parse(value);
 
 		homeRooms = getIntegerList("rooms.home", Arrays.asList(1)); //default to "Sandbox"
 		quietRooms = getIntegerList("rooms.quiet");
@@ -156,9 +160,9 @@ public class BotProperties extends PropertiesWrapper {
 
 	/**
 	 * Gets the amount of time to wait before hiding a onebox the bot posts.
-	 * @return the amount of time (in milliseconds) or null not to hide oneboxes
+	 * @return the amount of time or null not to hide oneboxes
 	 */
-	public Integer getHideOneboxesAfter() {
+	public Duration getHideOneboxesAfter() {
 		return hideOneboxesAfter;
 	}
 
