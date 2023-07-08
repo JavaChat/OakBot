@@ -308,7 +308,6 @@
 	<!-- XKCD explained -->
 	<bean class="oakbot.listener.XkcdComicListener">
 		<constructor-arg ref="xkcdExplainTask" />
-		<constructor-arg value="-2" /> <!-- user ID of the bot user that posts the comics -->
 	</bean>
 	<bean class="oakbot.task.XkcdExplainTask" id="xkcdExplainTask">
 		<constructor-arg value="PT30M" /> <!-- the amount time to wait after the comic is posted to the chat room before crawling explainxkcd.com for the explanation (milliseconds) -->

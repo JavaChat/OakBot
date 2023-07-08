@@ -18,28 +18,34 @@ import oakbot.task.XkcdExplainTask;
 public class XkcdComicListener implements Listener {
 	private static final Pattern regex = Pattern.compile("https://xkcd.com/(\\d+)");
 
-	private final XkcdExplainTask task;
-	private final int feedUserId;
+	private final XkcdExplainTask explainTask;
 
 	/**
-	 * @param task the task that posts the explanation
-	 * @param feedUserId the user ID of the user that posts the XKCD comics
+	 * @param explainTask the task that posts the explanation
 	 */
-	public XkcdComicListener(XkcdExplainTask task, int feedUserId) {
-		this.task = task;
-		this.feedUserId = feedUserId;
+	public XkcdComicListener(XkcdExplainTask explainTask) {
+		this.explainTask = explainTask;
 	}
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, BotContext context) {
-		if (message.getUserId() == feedUserId) {
+		if (postedByBot(message)) {
 			Matcher m = regex.matcher(message.getContent().getContent());
 			if (m.find()) {
 				int comicId = Integer.parseInt(m.group(1));
-				task.comicPosted(comicId, message);
+				explainTask.comicPosted(comicId, message);
 			}
 		}
 
 		return doNothing();
+	}
+
+	/**
+	 * Determines if the given message was posted by a bot user.
+	 * @param message the chat message
+	 * @return true if it was posted by a bot user, false if not
+	 */
+	private boolean postedByBot(ChatMessage message) {
+		return message.getUserId() < 1;
 	}
 }
