@@ -46,36 +46,77 @@ public class ChatGPTTask implements ScheduledTask {
 		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
 
 		runTimes = new HashMap<>();
-		for (Integer roomId : roomIds) {
-			resetTimer(roomId);
-		}
+		roomIds.stream().forEach(this::resetTimer);
 	}
 
 	@Override
 	public long nextRun() {
-		long lowest = timeToWaitBeforePosting.toMillis();
+		long lowest;
+
 		synchronized (runTimes) {
-			for (Instant instant : runTimes.values()) {
-				long diff = instant.toEpochMilli() - Instant.now().toEpochMilli();
-				if (diff < lowest) {
-					lowest = diff;
-				}
+			if (runTimes.isEmpty()) {
+				return timeToWaitBeforePosting.toMillis();
 			}
+
+			Instant now = Instant.now();
+
+			//@formatter:off
+			lowest = runTimes.values().stream()
+				.map(runTime -> Duration.between(now, runTime))
+				.mapToLong(Duration::toMillis)
+			.min().getAsLong();
+			//@formatter:on
 		}
 
-		if (lowest < 1) {
-			lowest = 1;
-		}
-		return lowest;
+		return (lowest < 1) ? 1 : lowest;
 	}
 
 	@Override
 	public void run(Bot bot) throws Exception {
-		List<Integer> roomsToPostTo = new ArrayList<>();
+		List<Integer> roomsToPostTo = findRoomsToPostTo(bot);
+
+		for (Integer roomId : roomsToPostTo) {
+			resetTimer(roomId);
+
+			/*
+			 * Do not post anything if the room has no messages.
+			 */
+			List<ChatMessage> messages = bot.getLatestMessages(roomId, latestMessageCount);
+			if (messages.isEmpty()) {
+				continue;
+			}
+
+			/*
+			 * Do not post anything if the latest message was not authored by a
+			 * human.
+			 */
+			ChatMessage latestMessage = messages.get(messages.size() - 1);
+			boolean latestMsgPostedByBot = (latestMessage.getUserId() < 1);
+			boolean latestMsgPostedByOak = (latestMessage.getUserId() == bot.getUserId());
+			if (latestMsgPostedByBot || latestMsgPostedByOak) {
+				continue;
+			}
+
+			ChatGPTRequest request = buildChatGPTRequest(messages, bot);
+
+			String completion;
+			try (CloseableHttpClient client = createClient()) {
+				completion = request.send(client);
+			}
+
+			PostMessage postMessage = new PostMessage(completion).splitStrategy(SplitStrategy.WORD);
+			bot.sendMessage(roomId, postMessage);
+		}
+	}
+
+	private List<Integer> findRoomsToPostTo(Bot bot) {
+		List<Integer> roomIds = new ArrayList<>();
+
 		synchronized (runTimes) {
 			for (Map.Entry<Integer, Instant> entry : runTimes.entrySet()) {
 				Integer roomId = entry.getKey();
-				if (!bot.getRooms().contains(roomId)) {
+				boolean oakIsNotInTheRoom = !bot.getRooms().contains(roomId);
+				if (oakIsNotInTheRoom) {
 					continue;
 				}
 
@@ -84,59 +125,37 @@ public class ChatGPTTask implements ScheduledTask {
 					continue;
 				}
 
-				roomsToPostTo.add(roomId);
+				roomIds.add(roomId);
 			}
 		}
 
-		for (Integer roomId : roomsToPostTo) {
-			resetTimer(roomId);
+		return roomIds;
+	}
 
-			List<ChatMessage> messages = bot.getLatestMessages(roomId, latestMessageCount);
-			if (messages.isEmpty()) {
-				return;
+	private ChatGPTRequest buildChatGPTRequest(List<ChatMessage> messages, Bot bot) {
+		ChatGPTRequest request = new ChatGPTRequest(chatGPTParameters);
+
+		for (ChatMessage message : messages) {
+			String content = message.getContent().getContent();
+			boolean fixedFont = message.getContent().isFixedFont();
+			String contentMd = ChatBuilder.toMarkdown(content, fixedFont);
+
+			String truncatedContentMd;
+			if (latestMessageCharacterLimit > 0) {
+				truncatedContentMd = SplitStrategy.WORD.split(contentMd, latestMessageCharacterLimit).get(0);
+			} else {
+				truncatedContentMd = contentMd;
 			}
 
-			ChatMessage latestMessage = messages.get(messages.size() - 1);
-			if (latestMessage.getUserId() < 1 || latestMessage.getUserId() == bot.getUserId()) {
-				/*
-				 * Do not post anything if the room is currently inactive.
-				 * 
-				 * We consider the room to be inactive if the latest message was
-				 * authored by a bot user (such as "Feeds") or by the bot
-				 * itself.
-				 */
-				return;
+			boolean messagePostedByOak = (message.getUserId() == bot.getUserId());
+			if (messagePostedByOak) {
+				request.addBotMessage(truncatedContentMd);
+			} else {
+				request.addHumanMessage(truncatedContentMd);
 			}
-
-			ChatGPTRequest request = new ChatGPTRequest(chatGPTParameters);
-			for (ChatMessage message : messages) {
-				String content = message.getContent().getContent();
-				boolean fixedFont = message.getContent().isFixedFont();
-				String contentMd = ChatBuilder.toMarkdown(content, fixedFont);
-
-				String truncatedContentMd;
-				if (latestMessageCharacterLimit > 0) {
-					truncatedContentMd = SplitStrategy.WORD.split(contentMd, latestMessageCharacterLimit).get(0);
-				} else {
-					truncatedContentMd = contentMd;
-				}
-
-				if (message.getUserId() == bot.getUserId()) {
-					request.addBotMessage(truncatedContentMd);
-				} else {
-					request.addHumanMessage(truncatedContentMd);
-				}
-			}
-
-			String message;
-			try (CloseableHttpClient client = createClient()) {
-				message = request.send(client);
-			}
-
-			PostMessage postMessage = new PostMessage(message);
-			postMessage.splitStrategy(SplitStrategy.WORD);
-			bot.sendMessage(roomId, postMessage);
 		}
+
+		return request;
 	}
 
 	/**
