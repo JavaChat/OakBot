@@ -4,12 +4,13 @@ import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import oakbot.bot.BotContext;
@@ -22,10 +23,10 @@ import oakbot.command.HelpDoc;
  * @author Michael Angstadt
  */
 public class MornListener implements Listener {
-	private final long timeBetweenReplies = TimeUnit.MINUTES.toMillis(10);
-	private final long hesitation;
+	private final Duration timeBetweenReplies = Duration.ofMinutes(10);
+	private final Duration hesitation;
 	private final CatchAllMentionListener catchAllListener;
-	private final Map<Integer, Long> lastReplies = new HashMap<>();
+	private final Map<Integer, Instant> lastReplyByRoom = new HashMap<>();
 
 	/**
 	 * The messages that the bot will respond to, along with its responses. The
@@ -40,12 +41,20 @@ public class MornListener implements Listener {
 	//@formatter:on
 
 	/**
-	 * @param hesitation the amount of time to wait before responding (in
-	 * milliseconds)
+	 * @param hesitation the amount of time to wait before responding (duration
+	 * string)
+	 */
+	public MornListener(String hesitation) {
+		this(hesitation, null);
+	}
+
+	/**
+	 * @param hesitation the amount of time to wait before responding (duration
+	 * string)
 	 * @param mentionListener the mention listener
 	 */
-	public MornListener(long hesitation, CatchAllMentionListener catchAllListener) {
-		this.hesitation = hesitation;
+	public MornListener(String hesitation, CatchAllMentionListener catchAllListener) {
+		this.hesitation = Duration.parse(hesitation);
 		this.catchAllListener = catchAllListener;
 	}
 
@@ -93,7 +102,9 @@ public class MornListener implements Listener {
 		 * Always reply if the bot is mentioned.
 		 */
 		if (mentioned) {
-			catchAllListener.ignoreNextMessage();
+			if (catchAllListener != null) {
+				catchAllListener.ignoreNextMessage();
+			}
 
 			/*
 			 * Wait for a moment to make it seem less robotic.
@@ -104,21 +115,19 @@ public class MornListener implements Listener {
 		}
 
 		int roomId = message.getRoomId();
-		Long lastReply = lastReplies.get(roomId);
-		if (lastReply == null) {
-			lastReply = 0L;
-		}
+		Instant lastReply = lastReplyByRoom.get(roomId);
 
 		/*
 		 * Do not respond if the bot was not mentioned and it responded
 		 * recently.
 		 */
-		long now = System.currentTimeMillis();
-		if (now - lastReply < timeBetweenReplies) {
+		Instant now = Instant.now();
+		Duration timeSinceLastReply = (lastReply == null) ? timeBetweenReplies : Duration.between(lastReply, now);
+		if (timeSinceLastReply.compareTo(timeBetweenReplies) < 0) {
 			return doNothing();
 		}
 
-		lastReplies.put(roomId, now);
+		lastReplyByRoom.put(roomId, now);
 
 		/*
 		 * Wait for a moment to make it seem less robotic.
@@ -130,7 +139,7 @@ public class MornListener implements Listener {
 
 	private void hesitate() {
 		try {
-			Thread.sleep(hesitation);
+			Thread.sleep(hesitation.toMillis());
 		} catch (InterruptedException ignored) {
 		}
 	}

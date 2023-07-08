@@ -15,14 +15,14 @@ public class XkcdExplainTaskTest {
 	 * Live test. Outputs the message to stdout.
 	 */
 	public static void main(String args[]) throws Exception {
-		XkcdExplainTask task = new XkcdExplainTask(1);
+		XkcdExplainTask task = new XkcdExplainTask("PT1S");
 		String message = task.getExplainationMessage(2796, 1234);
 		System.out.println(message);
 	}
 
 	@Test
 	public void getExplainationMessage() throws Exception {
-		XkcdExplainTask task = new XkcdExplainTask(1) {
+		XkcdExplainTask task = new XkcdExplainTask("PT1S") {
 			@Override
 			String get(String url) throws IOException {
 				assertEquals("https://www.explainxkcd.com/wiki/index.php/2796", url);

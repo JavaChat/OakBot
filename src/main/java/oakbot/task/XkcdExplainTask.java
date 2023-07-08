@@ -1,6 +1,7 @@
 package oakbot.task;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -23,7 +24,7 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class XkcdExplainTask implements ScheduledTask {
-	private final long timeToWaitBeforePosting;
+	private final Duration timeToWaitBeforePosting;
 
 	private long nextRun = TimeUnit.MINUTES.toMillis(1);
 	private ChatMessage comicMessage;
@@ -33,10 +34,10 @@ public class XkcdExplainTask implements ScheduledTask {
 	/**
 	 * @param timeToWaitBeforePosting the amount time to wait after the comic is
 	 * posted to the chat room before crawling explainxkcd.com for the
-	 * explanation (milliseconds)
+	 * explanation (duration string)
 	 */
-	public XkcdExplainTask(long timeToWaitBeforePosting) {
-		this.timeToWaitBeforePosting = timeToWaitBeforePosting;
+	public XkcdExplainTask(String timeToWaitBeforePosting) {
+		this.timeToWaitBeforePosting = Duration.parse(timeToWaitBeforePosting);
 	}
 
 	@Override
@@ -52,7 +53,7 @@ public class XkcdExplainTask implements ScheduledTask {
 		}
 
 		if (!waitedForWikiToUpdate) {
-			nextRun = timeToWaitBeforePosting;
+			nextRun = timeToWaitBeforePosting.toMillis();
 			waitedForWikiToUpdate = true;
 			return;
 		}

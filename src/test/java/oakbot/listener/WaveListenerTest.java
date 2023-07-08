@@ -37,7 +37,7 @@ public class WaveListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		WaveListener listener = new WaveListener(0, mentionListener);
+		WaveListener listener = new WaveListener("PT0S", mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		if (response == null) {
@@ -59,7 +59,7 @@ public class WaveListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		WaveListener listener = new WaveListener(0, mentionListener);
+		WaveListener listener = new WaveListener("PT0S", mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		assertMessage("\\o", chatResponse);
@@ -77,7 +77,7 @@ public class WaveListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		WaveListener listener = new WaveListener(0, mentionListener);
+		WaveListener listener = new WaveListener("PT0S", mentionListener);
 
 		BotContext context = new BotContext(true, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
@@ -100,7 +100,7 @@ public class WaveListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		WaveListener listener = new WaveListener(0, mentionListener);
+		WaveListener listener = new WaveListener("PT0S", mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage1, context);
 		assertMessage("\\o", chatResponse);

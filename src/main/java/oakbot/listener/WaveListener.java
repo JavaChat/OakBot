@@ -3,9 +3,10 @@ package oakbot.listener;
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.post;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,27 +20,28 @@ import oakbot.command.HelpDoc;
  * @author Michael Angstadt
  */
 public class WaveListener implements Listener {
+	private final String WAVE_R = "o/", WAVE_L = "\\o";
 	private final Pattern waveRegex = Pattern.compile("(^|\\s)(o/|\\\\o)(\\s|$)");
-	private final long timeBetweenWaves = TimeUnit.MINUTES.toMillis(5);
-	private final long hesitation;
+	private final Duration timeBetweenWaves = Duration.ofMinutes(5);
+	private final Duration hesitation;
 	private final CatchAllMentionListener catchAllListener;
-	private final Map<Integer, Long> lastWaves = new HashMap<>();
+	private final Map<Integer, Instant> lastWaveTimeByRoom = new HashMap<>();
 
 	/**
-	 * @param hesitation the amount of time to wait before waving back (in
-	 * milliseconds)
+	 * @param hesitation the amount of time to wait before waving back (duration
+	 * string)
 	 */
-	public WaveListener(long hesitation) {
+	public WaveListener(String hesitation) {
 		this(hesitation, null);
 	}
 
 	/**
-	 * @param hesitation the amount of time to wait before waving back (in
-	 * milliseconds)
+	 * @param hesitation the amount of time to wait before waving back (duration
+	 * string)
 	 * @param catchAllListener the catch-all listener
 	 */
-	public WaveListener(long hesitation, CatchAllMentionListener catchAllListener) {
-		this.hesitation = hesitation;
+	public WaveListener(String hesitation, CatchAllMentionListener catchAllListener) {
+		this.hesitation = Duration.parse(hesitation);
 		this.catchAllListener = catchAllListener;
 	}
 
@@ -53,7 +55,7 @@ public class WaveListener implements Listener {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Waves back at you.")
-			.detail("Responds to any users who post the \"wave\" emoticon: o/ or \\o. Will only wave once every " + TimeUnit.MINUTES.convert(timeBetweenWaves, TimeUnit.MILLISECONDS) + " minutes at most.")
+			.detail("Responds to any users who post the \"wave\" emoticon: " + WAVE_R + " or " + WAVE_L + ". Will only wave once every " + timeBetweenWaves.toMinutes() + " minutes at most.")
 			.includeSummaryWithDetail(false)
 		.build();
 		//@formatter:on
@@ -84,26 +86,24 @@ public class WaveListener implements Listener {
 			 * If not mentioned, only respond if the message consists of just
 			 * the emoticon.
 			 */
-			if (!content.equals("o/") && !content.equals("\\o")) {
+			if (!content.equals(WAVE_R) && !content.equals(WAVE_L)) {
 				return doNothing();
 			}
 
 			int roomId = message.getRoomId();
-			Long lastWave = lastWaves.get(roomId);
-			if (lastWave == null) {
-				lastWave = 0L;
-			}
+			Instant lastWave = lastWaveTimeByRoom.get(roomId);
 
 			/*
 			 * Do not respond if the bot was not mentioned and it responded
 			 * recently. Always wave back to admins.
 			 */
-			long now = System.currentTimeMillis();
-			if (!context.isAuthorAdmin() && now - lastWave < timeBetweenWaves) {
+			Instant now = Instant.now();
+			Duration timeSinceLastWave = (lastWave == null) ? timeBetweenWaves : Duration.between(lastWave, now);
+			if (!context.isAuthorAdmin() && timeSinceLastWave.compareTo(timeBetweenWaves) < 0) {
 				return doNothing();
 			}
 
-			lastWaves.put(roomId, now);
+			lastWaveTimeByRoom.put(roomId, now);
 			wave = content;
 		}
 
@@ -111,7 +111,7 @@ public class WaveListener implements Listener {
 		 * Wait for a moment to make it seem less robotic.
 		 */
 		try {
-			Thread.sleep(hesitation);
+			Thread.sleep(hesitation.toMillis());
 		} catch (InterruptedException ignore) {
 		}
 
@@ -120,6 +120,6 @@ public class WaveListener implements Listener {
 	}
 
 	private String reverse(String wave) {
-		return wave.equals("o/") ? "\\o" : "o/";
+		return wave.equals(WAVE_R) ? WAVE_L : WAVE_R;
 	}
 }

@@ -165,7 +165,7 @@
 		<constructor-arg value="session token goes here" />
 	</bean>
 	<bean class="oakbot.task.AdventOfCodeTask">
-		<constructor-arg value="900000" /> <!-- polling interval in milliseconds. AoC asks that this not be less than 15 minutes. -->
+		<constructor-arg value="PT15M" /> <!-- polling interval. AoC asks that this not be less than 15 minutes. -->
 		<constructor-arg ref="aocDefaultLeaderboardIds" />
 		<constructor-arg ref="aocApi" />
 	</bean>
@@ -285,13 +285,13 @@
 	
 	<!-- morn listener -->
 	<bean class="oakbot.listener.MornListener">
-		<constructor-arg value="1000" /> <!-- amount of time to wait before responding (milliseconds) -->
+		<constructor-arg value="PT1S" /> <!-- amount of time to wait before responding -->
 		<constructor-arg ref="chatGPTListener" /> <!-- should be set to either mentionListener or chatGPTListener -->
 	</bean>
 	
 	<!-- wave listener -->
 	<bean class="oakbot.listener.WaveListener">
-		<constructor-arg value="1000" /> <!-- amount of time to wait before waving back (milliseconds) -->
+		<constructor-arg value="PT1S" /> <!-- amount of time to wait before waving back -->
 		<constructor-arg ref="chatGPTListener" /> <!-- should be set to either mentionListener or chatGPTListener -->
 	</bean>
 	
@@ -311,7 +311,7 @@
 		<constructor-arg value="-2" /> <!-- user ID of the bot user that posts the comics -->
 	</bean>
 	<bean class="oakbot.task.XkcdExplainTask" id="xkcdExplainTask">
-		<constructor-arg value="1800000" /> <!-- 30 minutes - the amount time to wait after the comic is posted to the chat room before crawling explainxkcd.com for the explanation (milliseconds) -->
+		<constructor-arg value="PT30M" /> <!-- the amount time to wait after the comic is posted to the chat room before crawling explainxkcd.com for the explanation (milliseconds) -->
 	</bean>
 
 	<!-- ChatGPT -->
@@ -322,7 +322,7 @@
 	</bean>
 	<bean class="oakbot.task.ChatGPTTask" id="chatGPTTask">
 		<constructor-arg ref="chatGPTParameters" />
-		<constructor-arg value="43200000" /> <!-- 12 hours - run frequency (in milliseconds) -->
+		<constructor-arg value="PT12H" /> <!-- run frequency -->
 		<constructor-arg value="10" /> <!-- how many of the latest chat messages to send to ChatGPT -->
 		<constructor-arg value="300" /> <!-- the messages that are sent to ChatGPT will not exceed this number of characters (for reducing usage quota), 0 to disable truncating -->
 		<constructor-arg> <!-- the rooms to post messages in -->
@@ -356,12 +356,12 @@
 
 	<!-- fill the silence task -->
 	<bean class="oakbot.inactivity.FillTheSilenceTask">
-		<constructor-arg value="21600000" /> <!-- time in millis (6 hours) -->
+		<constructor-arg value="PT6H" /> <!-- if the room is quiet for this long, bot will post a message -->
 	</bean>
 
 	<!-- leave inactive rooms task -->
 	<bean class="oakbot.inactivity.LeaveRoomTask">
-		<constructor-arg value="259200000" /> <!-- time in millis (3 days) -->
+		<constructor-arg value="P3D" /> <!-- if the room is inactive for this long, bot will leave the room -->
 	</bean>
 
 </beans>

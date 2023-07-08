@@ -64,8 +64,8 @@ public class CommandsWikiPage {
 			MentionListener mentionListener = new MentionListener();
 
 			listeners.add(mentionListener);
-			listeners.add(new MornListener(1000, mentionListener));
-			listeners.add(new WaveListener(1000, mentionListener));
+			listeners.add(new MornListener("PT1S", mentionListener));
+			listeners.add(new WaveListener("PT1S", mentionListener));
 			listeners.add(new WelcomeListener(db, Collections.emptyMap()));
 
 			listeners.removeIf(l -> l.name() == null);

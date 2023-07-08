@@ -29,7 +29,7 @@ public class XkcdComicListenerTest {
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/2797\"><img src=\"https://imgs.xkcd.com/comics/actual_progress.png\" title=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" alt=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" /></a></div>")
 		.build(); //@formatter:on
 
-		XkcdExplainTask task = new XkcdExplainTask(1) {
+		XkcdExplainTask task = new XkcdExplainTask("PT1S") {
 			@Override
 			public void comicPosted(int comicId, ChatMessage comicMessage) {
 				assertEquals(2797, comicId);
@@ -53,7 +53,7 @@ public class XkcdComicListenerTest {
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/2797\"><img src=\"https://imgs.xkcd.com/comics/actual_progress.png\" title=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" alt=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" /></a></div>")
 		.build(); //@formatter:on
 
-		XkcdExplainTask task = new XkcdExplainTask(1) {
+		XkcdExplainTask task = new XkcdExplainTask("PT1S") {
 			@Override
 			public void comicPosted(int comicId, ChatMessage comicMessage) {
 				fail();
@@ -74,7 +74,7 @@ public class XkcdComicListenerTest {
 			.content("foobar")
 		.build(); //@formatter:on
 
-		XkcdExplainTask task = new XkcdExplainTask(1) {
+		XkcdExplainTask task = new XkcdExplainTask("PT1S") {
 			@Override
 			public void comicPosted(int comicId, ChatMessage comicMessage) {
 				fail();

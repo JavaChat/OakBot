@@ -1,12 +1,12 @@
 package oakbot.inactivity;
 
-import oakbot.bot.Bot;
-import oakbot.bot.PostMessage;
-import oakbot.chat.IRoom;
-
 import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import oakbot.bot.Bot;
+import oakbot.bot.PostMessage;
+import oakbot.chat.IRoom;
 
 /**
  * Causes the bot to leave the room if the room has been inactive for some
@@ -18,8 +18,8 @@ public class LeaveRoomTask implements InactivityTask {
 
 	private final Duration inactivityTime; //e.g. 3 days
 
-	public LeaveRoomTask(long inactivityTimeMs) {
-		this.inactivityTime = Duration.ofMillis(inactivityTimeMs);
+	public LeaveRoomTask(String inactivityTime) {
+		this.inactivityTime = Duration.parse(inactivityTime);
 	}
 
 	@Override

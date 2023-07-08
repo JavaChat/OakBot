@@ -30,10 +30,10 @@ public class FillTheSilenceTask implements InactivityTask {
 		"*opens the pod bay doors*"
 	}; //@formatter:on
 
-	private final Duration inactivityTime; //e.g. 6 hours
+	private final Duration inactivityTime;
 
-	public FillTheSilenceTask(long inactivityTimeMs) {
-		this.inactivityTime = Duration.ofMillis(inactivityTimeMs);
+	public FillTheSilenceTask(String inactivityTime) {
+		this.inactivityTime = Duration.parse(inactivityTime);
 	}
 
 	@Override

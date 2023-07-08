@@ -42,7 +42,7 @@ public class MornListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		MornListener listener = new MornListener(0, mentionListener);
+		MornListener listener = new MornListener("PT0S", mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		if (response == null) {
@@ -64,7 +64,7 @@ public class MornListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		MornListener listener = new MornListener(0, mentionListener);
+		MornListener listener = new MornListener("PT0S", mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage, context);
 		assertMessage("morn", chatResponse);
@@ -86,7 +86,7 @@ public class MornListenerTest {
 		//@formatter:on
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
-		MornListener listener = new MornListener(0, mentionListener);
+		MornListener listener = new MornListener("PT0S", mentionListener);
 
 		ChatActions chatResponse = listener.onMessage(chatMessage1, context);
 		assertMessage("morn", chatResponse);

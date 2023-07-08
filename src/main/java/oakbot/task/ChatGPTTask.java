@@ -1,5 +1,6 @@
 package oakbot.task;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,14 +22,14 @@ import oakbot.util.ChatBuilder;
  */
 public class ChatGPTTask implements ScheduledTask {
 	private final ChatGPTParameters chatGPTParameters;
-	private final long timeToWaitBeforePosting;
+	private final Duration timeToWaitBeforePosting;
 	private final int latestMessageCount, latestMessageCharacterLimit;
 	private final Map<Integer, Instant> runTimes;
 
 	/**
 	 * @param chatGPTParameters parameters for connecting to ChatGPT
 	 * @param timeToWaitBeforePosting the amount of time to wait before posting
-	 * a message (in milliseconds)
+	 * a message (duration string)
 	 * @param latestMessagesCount the number of chat room messages to send to
 	 * ChatGPT (each message counts against the usage quota)
 	 * @param latestMessagesCharacterLimit each chat message that is sent to
@@ -38,9 +39,9 @@ public class ChatGPTTask implements ScheduledTask {
 	 * quota).
 	 * @param roomIds the rooms to initially start this task in
 	 */
-	public ChatGPTTask(ChatGPTParameters chatGPTParameters, long timeToWaitBeforePosting, int latestMessageCount, int latestMessageCharacterLimit, List<Integer> roomIds) {
+	public ChatGPTTask(ChatGPTParameters chatGPTParameters, String timeToWaitBeforePosting, int latestMessageCount, int latestMessageCharacterLimit, List<Integer> roomIds) {
 		this.chatGPTParameters = chatGPTParameters;
-		this.timeToWaitBeforePosting = timeToWaitBeforePosting;
+		this.timeToWaitBeforePosting = Duration.parse(timeToWaitBeforePosting);
 		this.latestMessageCount = latestMessageCount;
 		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
 
@@ -52,7 +53,7 @@ public class ChatGPTTask implements ScheduledTask {
 
 	@Override
 	public long nextRun() {
-		long lowest = timeToWaitBeforePosting;
+		long lowest = timeToWaitBeforePosting.toMillis();
 		synchronized (runTimes) {
 			for (Instant instant : runTimes.values()) {
 				long diff = instant.toEpochMilli() - Instant.now().toEpochMilli();
@@ -101,7 +102,8 @@ public class ChatGPTTask implements ScheduledTask {
 				 * Do not post anything if the room is currently inactive.
 				 * 
 				 * We consider the room to be inactive if the latest message was
-				 * authored by a bot user (such as "Feeds") or by the bot itself.
+				 * authored by a bot user (such as "Feeds") or by the bot
+				 * itself.
 				 */
 				return;
 			}
@@ -142,7 +144,7 @@ public class ChatGPTTask implements ScheduledTask {
 	 * @param roomId the room ID
 	 */
 	public void resetTimer(int roomId) {
-		Instant nextRunTime = Instant.now().plusMillis(timeToWaitBeforePosting);
+		Instant nextRunTime = Instant.now().plus(timeToWaitBeforePosting);
 		synchronized (runTimes) {
 			runTimes.put(roomId, nextRunTime);
 		}
