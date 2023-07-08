@@ -37,7 +37,7 @@ public class XkcdComicListenerTest {
 			}
 		};
 
-		XkcdComicListener listener = new XkcdComicListener(task, -313);
+		XkcdComicListener listener = new XkcdComicListener(task);
 		ChatActions actions = listener.onMessage(chatMessage, context);
 		assertTrue(actions.isEmpty());
 	}
@@ -60,7 +60,7 @@ public class XkcdComicListenerTest {
 			}
 		};
 
-		XkcdComicListener listener = new XkcdComicListener(task, -313);
+		XkcdComicListener listener = new XkcdComicListener(task);
 		ChatActions actions = listener.onMessage(chatMessage, context);
 		assertTrue(actions.isEmpty());
 	}
@@ -81,7 +81,7 @@ public class XkcdComicListenerTest {
 			}
 		};
 
-		XkcdComicListener listener = new XkcdComicListener(task, -313);
+		XkcdComicListener listener = new XkcdComicListener(task);
 		ChatActions actions = listener.onMessage(chatMessage, context);
 		assertTrue(actions.isEmpty());
 	}
