@@ -119,7 +119,7 @@ public class XkcdExplainTask implements ScheduledTask {
 		//@formatter:off
 		String beginningMd = new ChatBuilder()
 			.reply(messageId)
-			.bold().link("XKCD #" + comicId + " Explained", url).bold()
+			.bold().link("XKCD #" + comicId + " Explained:", url).bold()
 			.append(" ")
 		.toString();
 		//@formatter:on
