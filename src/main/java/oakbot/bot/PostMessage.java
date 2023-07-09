@@ -1,5 +1,7 @@
 package oakbot.bot;
 
+import java.util.Objects;
+
 import oakbot.chat.SplitStrategy;
 
 /**
@@ -132,20 +134,22 @@ public class PostMessage implements ChatAction {
 	}
 
 	@Override
+	public int hashCode() {
+		return Objects.hash(bypassFilters, condensedMessage, ephemeral, message, splitStrategy);
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		PostMessage other = (PostMessage) obj;
-		if (bypassFilters != other.bypassFilters) return false;
-		if (condensedMessage == null) {
-			if (other.condensedMessage != null) return false;
-		} else if (!condensedMessage.equals(other.condensedMessage)) return false;
-		if (ephemeral != other.ephemeral) return false;
-		if (message == null) {
-			if (other.message != null) return false;
-		} else if (!message.equals(other.message)) return false;
-		if (splitStrategy != other.splitStrategy) return false;
-		return true;
+		return bypassFilters == other.bypassFilters && Objects.equals(condensedMessage, other.condensedMessage) && ephemeral == other.ephemeral && Objects.equals(message, other.message) && splitStrategy == other.splitStrategy;
 	}
+
+	@Override
+	public String toString() {
+		return "PostMessage [message=" + message + ", condensedMessage=" + condensedMessage + ", splitStrategy=" + splitStrategy + ", bypassFilters=" + bypassFilters + ", ephemeral=" + ephemeral + "]";
+	}
+
 }

@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import oakbot.bot.Bot;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.command.aoc.AdventOfCodeApi;
 import oakbot.command.aoc.AdventOfCodeApi.Player;
@@ -53,7 +53,7 @@ public class AdventOfCodeTask implements ScheduledTask {
 	}
 
 	@Override
-	public void run(Bot bot) throws Exception {
+	public void run(IBot bot) throws Exception {
 		for (Map.Entry<Integer, String> entry : defaultLeaderboardIds.entrySet()) {
 			Integer roomId = entry.getKey();
 			String leaderboardId = entry.getValue();

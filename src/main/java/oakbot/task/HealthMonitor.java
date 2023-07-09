@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import oakbot.bot.Bot;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.util.ChatBuilder;
@@ -67,7 +67,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 	}
 
 	@Override
-	public void run(Bot bot) {
+	public void run(IBot bot) {
 		try {
 			securityUpdates = getNumSecurityUpdates();
 		} catch (Exception e) {

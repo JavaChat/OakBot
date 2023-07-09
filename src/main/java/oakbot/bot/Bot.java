@@ -48,7 +48,7 @@ import oakbot.util.Sleeper;
  * A Stackoverflow chat bot.
  * @author Michael Angstadt
  */
-public class Bot {
+public class Bot implements IBot {
 	private static final Logger logger = Logger.getLogger(Bot.class.getName());
 
 	private final String userName, trigger, greeting;
@@ -139,8 +139,8 @@ public class Bot {
 	public Thread connect(boolean quiet) throws IOException {
 		//connect to each room
 		boolean first = true;
-		List<Integer> rooms = new ArrayList<>(this.rooms.getRooms());
-		for (Integer room : rooms) {
+		List<Integer> roomsCopy = new ArrayList<>(rooms.getRooms());
+		for (Integer room : roomsCopy) {
 			if (!first) {
 				/*
 				 * Insert a pause between joining each room in an attempt to
@@ -154,10 +154,10 @@ public class Bot {
 			}
 
 			try {
-				join(room, quiet);
+				joinRoom(room, quiet);
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "Could not join room " + room + ". Removing from rooms list.", e);
-				this.rooms.remove(room);
+				rooms.remove(room);
 			}
 
 			first = false;
@@ -315,7 +315,7 @@ public class Bot {
 			if (shutdownMessage != null) {
 				try {
 					if (e.isBroadcast()) {
-						broadcast(shutdownMessage);
+						broadcastMessage(shutdownMessage);
 					} else {
 						sendMessage(room, shutdownMessage);
 					}
@@ -363,7 +363,7 @@ public class Bot {
 						response = joinRoom.onError().apply(new IOException("Cannot join room. Max rooms reached."));
 					} else {
 						try {
-							IRoom joinedRoom = join(joinRoom.roomId());
+							IRoom joinedRoom = joinRoom(joinRoom.roomId());
 							if (joinedRoom.canPost()) {
 								response = joinRoom.onSuccess().get();
 							} else {
@@ -422,24 +422,13 @@ public class Bot {
 		}
 	}
 
-	/**
-	 * Gets the latest messages from a room.
-	 * @param roomId the room ID
-	 * @param count the number of messages to retrieve
-	 * @return the messages in chronological order
-	 */
+	@Override
 	public List<ChatMessage> getLatestMessages(int roomId, int count) throws IOException {
 		IRoom room = connection.getRoom(roomId);
 		return room.getMessages(count);
 	}
 
-	/**
-	 * Posts a message to a room. If the bot has not joined the given room, then
-	 * it will not post anything.
-	 * @param roomId the room ID
-	 * @param message the message to post
-	 * @throws IOException if there's a problem sending the message
-	 */
+	@Override
 	public void sendMessage(int roomId, PostMessage message) throws IOException {
 		IRoom room = connection.getRoom(roomId);
 		if (room != null) {
@@ -479,6 +468,11 @@ public class Bot {
 		}
 	}
 
+	@Override
+	public void join(int roomId) throws IOException {
+		joinRoom(roomId);
+	}
+
 	/**
 	 * Joins a room.
 	 * @param roomId the room ID
@@ -487,13 +481,8 @@ public class Bot {
 	 * @throws RoomPermissionException if messages cannot be posted to this room
 	 * @throws IOException if there's a problem connecting to the room
 	 */
-	private IRoom join(int roomId) throws IOException {
-		IRoom room = connection.getRoom(roomId);
-		if (room != null) {
-			return room;
-		}
-
-		return join(roomId, false);
+	private IRoom joinRoom(int roomId) throws IOException {
+		return joinRoom(roomId, false);
 	}
 
 	/**
@@ -504,7 +493,7 @@ public class Bot {
 	 * @throws RoomNotFoundException if the room does not exist
 	 * @throws IOException if there's a problem connecting to the room
 	 */
-	private IRoom join(int roomId, boolean quiet) throws RoomNotFoundException, IOException {
+	private IRoom joinRoom(int roomId, boolean quiet) throws RoomNotFoundException, IOException {
 		logger.info("Joining room " + roomId + "...");
 		IRoom room = connection.joinRoom(roomId);
 
@@ -526,11 +515,7 @@ public class Bot {
 		return room;
 	}
 
-	/**
-	 * Leaves a room.
-	 * @param roomId the room ID
-	 * @throws IOException if there's a problem leaving the room
-	 */
+	@Override
 	public void leave(int roomId) throws IOException {
 		logger.info("Leaving room " + roomId + "...");
 		IRoom room = connection.getRoom(roomId);
@@ -544,28 +529,34 @@ public class Bot {
 		room.leave();
 	}
 
+	@Override
 	public String getUsername() {
 		return userName;
 	}
 
+	@Override
 	public Integer getUserId() {
 		return userId;
 	}
 
-	/**
-	 * Gets the bot's command trigger.
-	 * @return the trigger (e.g. "/")
-	 */
+	@Override
 	public String getTrigger() {
 		return trigger;
 	}
 
-	/**
-	 * Gets the rooms that the bot is connected to.
-	 * @return the room IDs
-	 */
-	public Rooms getRooms() {
-		return rooms;
+	@Override
+	public List<Integer> getRooms() {
+		return rooms.getRooms();
+	}
+
+	@Override
+	public List<Integer> getHomeRooms() {
+		return rooms.getHomeRooms();
+	}
+
+	@Override
+	public List<Integer> getQuietRooms() {
+		return rooms.getQuietRooms();
 	}
 
 	private ChatActions handleListeners(ChatMessage message, BotContext context) {
@@ -582,21 +573,12 @@ public class Bot {
 		return actions;
 	}
 
-	/**
-	 * Sends a message to all the non-quiet chat rooms the bot is logged into.
-	 * @param message the message to send
-	 * @throws IOException if there's a problem sending the message
-	 */
-	public void broadcast(String message) throws IOException {
-		broadcast(new PostMessage(message));
+	private void broadcastMessage(String message) throws IOException {
+		broadcastMessage(new PostMessage(message));
 	}
 
-	/**
-	 * Sends a message to all the non-quiet chat rooms the bot is logged into.
-	 * @param message the message to send
-	 * @throws IOException if there's a problem sending the message
-	 */
-	public void broadcast(PostMessage message) throws IOException {
+	@Override
+	public void broadcastMessage(PostMessage message) throws IOException {
 		for (IRoom room : connection.getRooms()) {
 			if (!rooms.isQuietRoom(room.getRoomId())) {
 				sendMessage(room, message);
@@ -960,9 +942,10 @@ public class Bot {
 
 		/**
 		 * Gets the IDs of the other messages that are connected to this one,
-		 * due to the chat client having to split up the original message due to
-		 * length limitations.
-		 * @return
+		 * due to the chat client splitting up the original message due to
+		 * limitations in how long an individual chat message can be.
+		 * @return the IDs of the other messages or empty list if there are no
+		 * other such messages
 		 */
 		public List<Long> getRelatedMessageIds() {
 			return relatedMessageIds;
@@ -976,7 +959,7 @@ public class Bot {
 		 * alone
 		 */
 		public boolean isCondensableOrEphemeral() {
-			return condensedContent != null || ephemeral;
+			return condensedContent != null || isEphemeral();
 		}
 
 		/**

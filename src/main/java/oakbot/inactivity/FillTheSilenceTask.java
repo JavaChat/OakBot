@@ -3,6 +3,7 @@ package oakbot.inactivity;
 import java.time.Duration;
 
 import oakbot.bot.Bot;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.IRoom;
 import oakbot.command.Command;
@@ -37,9 +38,9 @@ public class FillTheSilenceTask implements InactivityTask {
 	}
 
 	@Override
-	public Duration getInactivityTime(IRoom room, Bot bot) {
+	public Duration getInactivityTime(IRoom room, IBot bot) {
 		//never post to quiet rooms
-		if (bot.getRooms().isQuietRoom(room.getRoomId())) {
+		if (bot.getQuietRooms().contains(room.getRoomId())) {
 			return null;
 		}
 
@@ -47,7 +48,7 @@ public class FillTheSilenceTask implements InactivityTask {
 	}
 
 	@Override
-	public void run(IRoom room, Bot bot) throws Exception {
+	public void run(IRoom room, IBot bot) throws Exception {
 		String message = Command.random(messages);
 		bot.sendMessage(room.getRoomId(), new PostMessage(message));
 	}

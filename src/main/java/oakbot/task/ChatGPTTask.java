@@ -10,7 +10,7 @@ import java.util.Map;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import oakbot.bot.Bot;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
@@ -72,7 +72,7 @@ public class ChatGPTTask implements ScheduledTask {
 	}
 
 	@Override
-	public void run(Bot bot) throws Exception {
+	public void run(IBot bot) throws Exception {
 		List<Integer> roomsToPostTo = findRoomsToPostTo(bot);
 
 		for (Integer roomId : roomsToPostTo) {
@@ -109,7 +109,7 @@ public class ChatGPTTask implements ScheduledTask {
 		}
 	}
 
-	private List<Integer> findRoomsToPostTo(Bot bot) {
+	private List<Integer> findRoomsToPostTo(IBot bot) {
 		List<Integer> roomIds = new ArrayList<>();
 
 		synchronized (runTimes) {
@@ -132,7 +132,7 @@ public class ChatGPTTask implements ScheduledTask {
 		return roomIds;
 	}
 
-	private ChatGPTRequest buildChatGPTRequest(List<ChatMessage> messages, Bot bot) {
+	private ChatGPTRequest buildChatGPTRequest(List<ChatMessage> messages, IBot bot) {
 		ChatGPTRequest request = new ChatGPTRequest(chatGPTParameters);
 
 		for (ChatMessage message : messages) {

@@ -23,7 +23,7 @@ public class QOTDTest {
 		QOTD qotd = new QOTD() {
 			@Override
 			String httpGet(String url) throws IOException {
-				try (InputStream in = FOTDTest.class.getResourceAsStream("slashdot.html")) {
+				try (InputStream in = QOTDTest.class.getResourceAsStream("slashdot.html")) {
 					return new Gobble(in).asString();
 				}
 			}
@@ -39,7 +39,7 @@ public class QOTDTest {
 		QOTD qotd = new QOTD() {
 			@Override
 			String httpGet(String url) throws IOException {
-				try (InputStream in = FOTDTest.class.getResourceAsStream("theysaidso.json")) {
+				try (InputStream in = QOTDTest.class.getResourceAsStream("theysaidso.json")) {
 					return new Gobble(in).asString();
 				}
 			}
@@ -55,7 +55,7 @@ public class QOTDTest {
 		QOTD qotd = new QOTD() {
 			@Override
 			String httpGet(String url) throws IOException {
-				try (InputStream in = FOTDTest.class.getResourceAsStream("theysaidso_newline.json")) {
+				try (InputStream in = QOTDTest.class.getResourceAsStream("theysaidso_newline.json")) {
 					return new Gobble(in).asString();
 				}
 			}

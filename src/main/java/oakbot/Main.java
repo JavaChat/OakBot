@@ -2,6 +2,7 @@ package oakbot;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -60,7 +61,7 @@ public final class Main {
 		try (InputStream in = Main.class.getResourceAsStream("/info.properties")) {
 			props.load(in);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new UncheckedIOException(e);
 		}
 
 		VERSION = props.getProperty("version");
@@ -266,7 +267,7 @@ public final class Main {
 			return Site.STACKOVERFLOW;
 		}
 
-		Site sites[] = new Site[] { Site.STACKOVERFLOW, Site.STACKEXCHANGE, Site.META };
+		Site[] sites = { Site.STACKOVERFLOW, Site.STACKEXCHANGE, Site.META };
 		for (Site site : sites) {
 			if (site.getDomain().equalsIgnoreCase(domain)) {
 				return site;

@@ -1,6 +1,6 @@
 package oakbot.task;
 
-import oakbot.bot.Bot;
+import oakbot.bot.IBot;
 
 /**
  * Represents a task that runs on a regular basis.
@@ -13,7 +13,7 @@ public interface ScheduledTask {
 	 * @param bot the bot instance
 	 * @throws Exception if anything bad happens
 	 */
-	void run(Bot bot) throws Exception;
+	void run(IBot bot) throws Exception;
 
 	/**
 	 * Determines how long to wait before running the task again.

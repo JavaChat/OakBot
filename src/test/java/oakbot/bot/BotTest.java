@@ -544,7 +544,7 @@ public class BotTest {
 		 * Verify.
 		 */
 		verify(room2).leave();
-		assertEquals(Arrays.asList(1), bot.getRooms().getRooms());
+		assertEquals(Arrays.asList(1), bot.getRooms());
 	}
 
 	@Test

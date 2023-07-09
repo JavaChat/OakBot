@@ -2,13 +2,11 @@ package oakbot.task;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -16,8 +14,9 @@ import java.time.LocalDateTime;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import oakbot.bot.Bot;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
+import oakbot.chat.SplitStrategy;
 import oakbot.util.Gobble;
 
 /**
@@ -30,13 +29,15 @@ public class FOTDTest {
 	 * Live test. Outputs current FOTD to stdout.
 	 */
 	public static void main(String args[]) throws Exception {
-		FOTD fotd = new FOTD() {
-			@Override
-			void broadcast(PostMessage response, Bot bot) {
-				System.out.println(response.message());
-			}
-		};
-		fotd.run(null);
+		IBot bot = mock(IBot.class);
+		doAnswer(invocation -> {
+			PostMessage response = (PostMessage) invocation.getArguments()[0];
+			System.out.println(response.message());
+			return null;
+		}).when(bot).broadcastMessage(any(PostMessage.class));
+
+		FOTD fotd = new FOTD();
+		fotd.run(bot);
 	}
 
 	@BeforeClass
@@ -74,80 +75,68 @@ public class FOTDTest {
 
 	@Test
 	public void run() throws Exception {
-		FOTD task = spy(new FOTD() {
+		FOTD task = new FOTD() {
 			@Override
 			String get(String url) {
 				assertEquals("http://www.refdesk.com", url);
 				return refdeskPage.replace("${fact}", "The <b>fact</b> - Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>");
 			}
+		};
 
-			@Override
-			void broadcast(PostMessage response, Bot bot) throws IOException {
-				assertEquals("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)", response.message());
-			}
-		});
-
-		Bot bot = mock(Bot.class);
+		IBot bot = mock(IBot.class);
 		task.run(bot);
 
-		verify(task).broadcast(any(PostMessage.class), eq(bot));
+		PostMessage expected = new PostMessage("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)").splitStrategy(SplitStrategy.WORD);
+		verify(bot).broadcastMessage(expected);
 	}
 
 	@Test
 	public void run_no_dash() throws Exception {
-		FOTD task = spy(new FOTD() {
+		FOTD task = new FOTD() {
 			@Override
 			String get(String url) {
 				assertEquals("http://www.refdesk.com", url);
 				return refdeskPage.replace("${fact}", "The <b>fact</b><br>Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>");
 			}
+		};
 
-			@Override
-			void broadcast(PostMessage response, Bot bot) throws IOException {
-				assertEquals("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)", response.message());
-			}
-		});
-
-		Bot bot = mock(Bot.class);
+		IBot bot = mock(IBot.class);
 		task.run(bot);
 
-		verify(task).broadcast(any(PostMessage.class), eq(bot));
+		PostMessage expected = new PostMessage("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)").splitStrategy(SplitStrategy.WORD);
+		verify(bot).broadcastMessage(expected);
 	}
 
 	@Test
 	public void run_multiline() throws Exception {
-		FOTD task = spy(new FOTD() {
+		FOTD task = new FOTD() {
 			@Override
 			String get(String url) {
 				assertEquals("http://www.refdesk.com", url);
 				return refdeskPage.replace("${fact}", "The <b>fact</b>\nline two - Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>");
 			}
+		};
 
-			@Override
-			void broadcast(PostMessage response, Bot bot) throws IOException {
-				assertEquals("The <b>fact</b>\nline two\nSource: http://www.refdesk.com/fotd-arch.html", response.message());
-			}
-		});
-
-		Bot bot = mock(Bot.class);
+		IBot bot = mock(IBot.class);
 		task.run(bot);
 
-		verify(task).broadcast(any(PostMessage.class), eq(bot));
+		PostMessage expected = new PostMessage("The <b>fact</b>\nline two\nSource: http://www.refdesk.com/fotd-arch.html").splitStrategy(SplitStrategy.WORD);
+		verify(bot).broadcastMessage(expected);
 	}
 
 	@Test
 	public void run_fact_not_found() throws Exception {
-		FOTD task = spy(new FOTD() {
+		FOTD task = new FOTD() {
 			@Override
 			String get(String url) {
 				assertEquals("http://www.refdesk.com", url);
 				return "<html></html>";
 			}
-		});
+		};
 
-		Bot bot = mock(Bot.class);
+		IBot bot = mock(IBot.class);
 		task.run(bot);
 
-		verify(task, never()).broadcast(any(PostMessage.class), eq(bot));
+		verify(bot, never()).broadcastMessage(any(PostMessage.class));
 	}
 }

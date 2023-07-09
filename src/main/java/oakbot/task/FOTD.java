@@ -13,7 +13,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import oakbot.bot.Bot;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
@@ -39,7 +39,7 @@ public class FOTD implements ScheduledTask {
 	}
 
 	@Override
-	public void run(Bot bot) throws Exception {
+	public void run(IBot bot) throws Exception {
 		String response = get(url);
 		String fact = parseFact(response);
 		if (fact == null) {
@@ -56,8 +56,9 @@ public class FOTD implements ScheduledTask {
 		} else {
 			cb.append(' ').link("(source)", archiveUrl);
 		}
-
-		broadcast(new PostMessage(cb).splitStrategy(SplitStrategy.WORD), bot);
+		
+		PostMessage postMessage = new PostMessage(cb).splitStrategy(SplitStrategy.WORD);
+		bot.broadcastMessage(postMessage);
 	}
 
 	private String parseFact(String html) {
@@ -115,16 +116,5 @@ public class FOTD implements ScheduledTask {
 	 */
 	LocalDateTime now() {
 		return LocalDateTime.now();
-	}
-
-	/**
-	 * Broadcasts a message to all chat rooms. This method is package private so
-	 * unit tests can override it.
-	 * @param response the chat message to send
-	 * @param bot the bot instance
-	 * @throws IOException if there's a problem sending the message
-	 */
-	void broadcast(PostMessage response, Bot bot) throws IOException {
-		bot.broadcast(response);
 	}
 }

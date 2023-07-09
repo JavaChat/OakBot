@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import oakbot.bot.Bot;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.IRoom;
 
@@ -23,9 +23,9 @@ public class LeaveRoomTask implements InactivityTask {
 	}
 
 	@Override
-	public Duration getInactivityTime(IRoom room, Bot bot) {
+	public Duration getInactivityTime(IRoom room, IBot bot) {
 		//never leave home rooms
-		if (bot.getRooms().isHomeRoom(room.getRoomId())) {
+		if (bot.getHomeRooms().contains(room.getRoomId())) {
 			return null;
 		}
 
@@ -33,7 +33,7 @@ public class LeaveRoomTask implements InactivityTask {
 	}
 
 	@Override
-	public void run(IRoom room, Bot bot) throws Exception {
+	public void run(IRoom room, IBot bot) throws Exception {
 		try {
 			bot.sendMessage(room.getRoomId(), new PostMessage("*quietly closes the door behind him*"));
 		} catch (Exception e) {

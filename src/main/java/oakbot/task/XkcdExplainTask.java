@@ -13,7 +13,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import oakbot.bot.Bot;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
@@ -46,7 +46,7 @@ public class XkcdExplainTask implements ScheduledTask {
 	}
 
 	@Override
-	public synchronized void run(Bot bot) throws Exception {
+	public synchronized void run(IBot bot) throws Exception {
 		boolean noComicsPostedYet = (comicId == null);
 		if (noComicsPostedYet) {
 			return;
