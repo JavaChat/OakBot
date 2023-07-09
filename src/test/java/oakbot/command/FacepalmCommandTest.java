@@ -11,9 +11,9 @@ import java.net.URI;
 
 import org.junit.Test;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Gobble;
@@ -35,7 +35,7 @@ public class FacepalmCommandTest {
 		};
 
 		ChatCommand message = new ChatCommandBuilder(command).build();
-		ChatActions response = command.onMessage(message, mock(BotContext.class));
+		ChatActions response = command.onMessage(message, mock(IBot.class));
 
 		//@formatter:off
 		assertPostMessage(
@@ -58,7 +58,7 @@ public class FacepalmCommandTest {
 		};
 
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
-		ChatActions response = command.onMessage(message, mock(BotContext.class));
+		ChatActions response = command.onMessage(message, mock(IBot.class));
 
 		assertMessage(":1 Sorry, an error occurred. >.>", response);
 	}
@@ -74,7 +74,7 @@ public class FacepalmCommandTest {
 		};
 
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
-		ChatActions response = command.onMessage(message, mock(BotContext.class));
+		ChatActions response = command.onMessage(message, mock(IBot.class));
 
 		assertMessage(":1 Sorry, an error occurred. >.>", response);
 	}
@@ -90,7 +90,7 @@ public class FacepalmCommandTest {
 		};
 
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
-		ChatActions response = command.onMessage(message, mock(BotContext.class));
+		ChatActions response = command.onMessage(message, mock(IBot.class));
 
 		assertMessage(":1 Sorry, an error occurred. >.>", response);
 	}

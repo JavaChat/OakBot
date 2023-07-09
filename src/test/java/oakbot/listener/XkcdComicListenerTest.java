@@ -4,13 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.Collections;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.task.XkcdExplainTask;
 
@@ -18,8 +17,6 @@ import oakbot.task.XkcdExplainTask;
  * @author Michael Angstadt
  */
 public class XkcdComicListenerTest {
-	private final static BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
-
 	@Test
 	public void onMessage() {
 		ChatMessage chatMessage = new ChatMessage.Builder() //@formatter:off
@@ -36,13 +33,13 @@ public class XkcdComicListenerTest {
 				assertSame(chatMessage, comicMessage);
 			}
 		};
+		
+		IBot bot = mock(IBot.class);
 
 		XkcdComicListener listener = new XkcdComicListener(task);
-		ChatActions actions = listener.onMessage(chatMessage, context);
+		ChatActions actions = listener.onMessage(chatMessage, bot);
 		assertTrue(actions.isEmpty());
 	}
-
-	//ChatMessage [timestamp=2023-06-30T11:35:01, messageId=56471052, parentMessageId=0, userId=-2, username=Feeds, mentionedUserId=0, roomId=139, roomName=null, content=[fixedFont=false] <div class="onebox ob-xkcd"><a rel="nofollow noopener noreferrer" href="https://xkcd.com/2796"><img src="https://imgs.xkcd.com/comics/real_estate_analysis.png" title="Mars does get a good score on &#39;noise levels&#39; and &#39;scenic views,&#39; but the school district ranking isn&#39;t great; the only teacher--the Perseverance rover--is too busy with rock samples to teach more than the occasional weekend class." alt="Mars does get a good score on &#39;noise levels&#39; and &#39;scenic views,&#39; but the school district ranking isn&#39;t great; the only teacher--the Perseverance rover--is too busy with rock samples to teach more than the occasional weekend class." /></a></div>, edits=0, stars=0]
 
 	@Test
 	public void onMessage_wrong_user() {
@@ -59,9 +56,11 @@ public class XkcdComicListenerTest {
 				fail();
 			}
 		};
+		
+		IBot bot = mock(IBot.class);
 
 		XkcdComicListener listener = new XkcdComicListener(task);
-		ChatActions actions = listener.onMessage(chatMessage, context);
+		ChatActions actions = listener.onMessage(chatMessage, bot);
 		assertTrue(actions.isEmpty());
 	}
 
@@ -80,9 +79,11 @@ public class XkcdComicListenerTest {
 				fail();
 			}
 		};
+		
+		IBot bot = mock(IBot.class);
 
 		XkcdComicListener listener = new XkcdComicListener(task);
-		ChatActions actions = listener.onMessage(chatMessage, context);
+		ChatActions actions = listener.onMessage(chatMessage, bot);
 		assertTrue(actions.isEmpty());
 	}
 }

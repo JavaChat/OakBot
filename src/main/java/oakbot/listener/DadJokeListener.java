@@ -1,19 +1,19 @@
 package oakbot.listener;
 
-import oakbot.bot.BotContext;
-import oakbot.bot.ChatActions;
-import oakbot.chat.ChatMessage;
-import oakbot.command.HelpDoc;
-import oakbot.util.ChatBuilder;
-import oakbot.util.Sleeper;
+import static oakbot.bot.ChatActions.doNothing;
+import static oakbot.bot.ChatActions.reply;
 
 import java.time.Duration;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static oakbot.bot.ChatActions.doNothing;
-import static oakbot.bot.ChatActions.reply;
+import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
+import oakbot.chat.ChatMessage;
+import oakbot.command.HelpDoc;
+import oakbot.util.ChatBuilder;
+import oakbot.util.Sleeper;
 
 /**
  * Responds to "I am [blank]" messages with "Hi [blank], I'm Oak!".
@@ -52,7 +52,7 @@ public class DadJokeListener implements Listener {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		if (message.getContent().isOnebox()) {
 			return doNothing();
 		}

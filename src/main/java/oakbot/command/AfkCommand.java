@@ -10,9 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 
 /**
  * Marks users as being "afk".
@@ -44,7 +44,7 @@ public class AfkCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String username = chatCommand.getMessage().getUsername();
 		int userId = chatCommand.getMessage().getUserId();
 		String awayMessage = chatCommand.getContentMarkdown();

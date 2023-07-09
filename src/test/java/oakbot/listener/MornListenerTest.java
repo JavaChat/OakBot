@@ -3,21 +3,19 @@ package oakbot.listener;
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 
 /**
  * @author Michael Angstadt
  */
 public class MornListenerTest {
-	private final static BotContext context = new BotContext(false, "/", "OakBot", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
-
 	@Test
 	public void onMessage() {
 		assertMorn("morn", "morn", false);
@@ -40,11 +38,14 @@ public class MornListenerTest {
 			.content(message)
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getUsername()).thenReturn("OakBot");
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		MornListener listener = new MornListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage, context);
+		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
 		if (response == null) {
 			assertTrue(chatResponse.isEmpty());
 		} else {
@@ -62,13 +63,16 @@ public class MornListenerTest {
 			.content("morn")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getUsername()).thenReturn("OakBot");
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		MornListener listener = new MornListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage, context);
+		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("morn", chatResponse);
-		chatResponse = listener.onMessage(chatMessage, context);
+		chatResponse = listener.onMessage(chatMessage, bot);
 		assertTrue(chatResponse.isEmpty());
 	}
 
@@ -84,20 +88,23 @@ public class MornListenerTest {
 			.content("morn")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getUsername()).thenReturn("OakBot");
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		MornListener listener = new MornListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage1, context);
+		ChatActions chatResponse = listener.onMessage(chatMessage1, bot);
 		assertMessage("morn", chatResponse);
 
-		chatResponse = listener.onMessage(chatMessage2, context);
+		chatResponse = listener.onMessage(chatMessage2, bot);
 		assertMessage("morn", chatResponse);
 
-		chatResponse = listener.onMessage(chatMessage1, context);
+		chatResponse = listener.onMessage(chatMessage1, bot);
 		assertTrue(chatResponse.isEmpty());
 
-		chatResponse = listener.onMessage(chatMessage2, context);
+		chatResponse = listener.onMessage(chatMessage2, bot);
 		assertTrue(chatResponse.isEmpty());
 	}
 

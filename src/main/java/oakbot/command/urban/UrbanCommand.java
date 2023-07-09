@@ -17,9 +17,9 @@ import org.apache.http.client.utils.URIBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
@@ -52,7 +52,7 @@ public class UrbanCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("You have to type a word to see its definition... -_-", chatCommand);

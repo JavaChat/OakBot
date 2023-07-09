@@ -5,9 +5,9 @@ import static oakbot.bot.ChatActions.reply;
 import java.util.Arrays;
 import java.util.List;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 
@@ -45,7 +45,7 @@ public class UnlearnCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String commandName = chatCommand.getContent().trim();
 		if (commandName.isEmpty()) {
 			return reply("You haven't specified the command name.", chatCommand);

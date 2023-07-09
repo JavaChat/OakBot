@@ -12,8 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.command.AfkCommand;
 import oakbot.command.AfkCommand.AfkUser;
@@ -34,8 +34,8 @@ public class AfkListener implements Listener {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatMessage message, BotContext context) {
-		if (isUserAwayAndTypedAfkCommandAgain(message, context.getTrigger())) {
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
+		if (isUserAwayAndTypedAfkCommandAgain(message, bot.getTrigger())) {
 			return doNothing();
 		}
 

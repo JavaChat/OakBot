@@ -1,25 +1,23 @@
 package oakbot.listener;
 
-import oakbot.bot.BotContext;
-import oakbot.bot.ChatActions;
-import oakbot.bot.PostMessage;
-import oakbot.chat.ChatMessage;
-import oakbot.util.Sleeper;
+import static oakbot.bot.ChatActionsUtils.assertMessage;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Collections;
-
-import static oakbot.bot.ChatActionsUtils.assertMessage;
-import static org.junit.Assert.fail;
+import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
+import oakbot.bot.PostMessage;
+import oakbot.chat.ChatMessage;
+import oakbot.util.Sleeper;
 
 /**
  * @author Michael Angstadt
  */
 public class DadJokeListenerTest {
-	private final static BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
-
 	@BeforeClass
 	public static void beforeClass() {
 		Sleeper.unitTest = true;
@@ -113,7 +111,7 @@ public class DadJokeListenerTest {
 			.build(); //@formatter:on
 
 		DadJokeListener listener = new DadJokeListener("Oak");
-		ChatActions actions = listener.onMessage(chatMessage, context);
+		ChatActions actions = listener.onMessage(chatMessage, mock(IBot.class));
 		assertMessage(":1 " + response, actions);
 	}
 
@@ -125,7 +123,7 @@ public class DadJokeListenerTest {
 			.build(); //@formatter:on
 
 		DadJokeListener listener = new DadJokeListener("Oak");
-		ChatActions actions = listener.onMessage(chatMessage, context);
+		ChatActions actions = listener.onMessage(chatMessage, mock(IBot.class));
 		if (!actions.isEmpty()) {
 			PostMessage postMessage = (PostMessage) actions.getActions().get(0);
 			fail("The following response was returned when no response was expected: " + postMessage.message());

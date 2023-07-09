@@ -19,9 +19,9 @@ import org.apache.http.impl.client.HttpClients;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 
 /**
@@ -63,7 +63,7 @@ public class ReactCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("Please specify a human emotion.", chatCommand);

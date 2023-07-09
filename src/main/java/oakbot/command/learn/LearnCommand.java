@@ -10,9 +10,9 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -49,7 +49,7 @@ public class LearnCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		//example: "/learn test this is a test"
 		ChatMessage message = chatCommand.getMessage();
 
@@ -74,13 +74,13 @@ public class LearnCommand implements Command {
 
 		String commandOutput = null;
 		try {
-			String plainText = context.getOriginalMessageContent(message.getMessageId());
+			String plainText = bot.getOriginalMessageContent(message.getMessageId());
 
 			/*
 			 * Capture the text that comes before the command name, in case the
 			 * user wants to use fixed-width formatting.
 			 */
-			Pattern p = Pattern.compile("^(.*?)" + Pattern.quote(context.getTrigger()) + name() + "\\s+" + Pattern.quote(commandName) + "\\s+(.*?)$", Pattern.DOTALL);
+			Pattern p = Pattern.compile("^(.*?)" + Pattern.quote(bot.getTrigger()) + name() + "\\s+" + Pattern.quote(commandName) + "\\s+(.*?)$", Pattern.DOTALL);
 
 			Matcher m = p.matcher(plainText);
 			if (m.find()) {

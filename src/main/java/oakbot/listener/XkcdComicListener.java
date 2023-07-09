@@ -5,8 +5,8 @@ import static oakbot.bot.ChatActions.doNothing;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.task.XkcdExplainTask;
 
@@ -28,7 +28,7 @@ public class XkcdComicListener implements Listener {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		if (postedByBot(message)) {
 			Matcher m = regex.matcher(message.getContent().getContent());
 			if (m.find()) {

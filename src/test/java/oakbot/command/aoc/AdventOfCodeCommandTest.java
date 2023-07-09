@@ -3,11 +3,12 @@ package oakbot.command.aoc;
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,9 +17,9 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.util.ChatCommandBuilder;
 
 /**
@@ -29,13 +30,15 @@ public class AdventOfCodeCommandTest {
 	public void using_default_id() {
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		leaderboardIds.put(1, "123456");
-		AdventOfCodeCommand command = mock(leaderboardIds, "123456");
+		AdventOfCodeCommand command = mockCommand(leaderboardIds, "123456");
 		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
 			.messageId(1)
 			.roomId(1)
 		.build(); //@formatter:on
+		
+		IBot bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, mockBotContext());
+		ChatActions response = command.onMessage(message, bot);
 		assertLeaderboardResponse("123456", response);
 	}
 
@@ -56,9 +59,11 @@ public class AdventOfCodeCommandTest {
 			}
 		};
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
 
-		BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), null);
-		ChatActions response = command.onMessage(message, context);
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 Please specify a leaderboard ID (e.g. /aoc 123456).", response);
 	}
 
@@ -66,13 +71,15 @@ public class AdventOfCodeCommandTest {
 	public void override_default_id() {
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		leaderboardIds.put(1, "123456");
-		AdventOfCodeCommand command = mock(leaderboardIds, "098765");
+		AdventOfCodeCommand command = mockCommand(leaderboardIds, "098765");
 		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
 			.messageId(1)
 			.content("098765")
 		.build(); //@formatter:on
+		
+		IBot bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, mockBotContext());
+		ChatActions response = command.onMessage(message, bot);
 		assertLeaderboardResponse("098765", response);
 	}
 
@@ -93,13 +100,14 @@ public class AdventOfCodeCommandTest {
 			}
 		};
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
+		
+		IBot bot = mock(IBot.class);
 
-		BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), null);
-		ChatActions response = command.onMessage(message, context);
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 This command is only active during the month of December.", response);
 	}
 
-	private static AdventOfCodeCommand mock(Map<Integer, String> leaderboardIds, String expectedLeaderboardId) {
+	private static AdventOfCodeCommand mockCommand(Map<Integer, String> leaderboardIds, String expectedLeaderboardId) {
 		AdventOfCodeApi api = new AdventOfCodeApi("") {
 			@Override
 			JsonNode get(String url) throws IOException {
@@ -146,9 +154,5 @@ public class AdventOfCodeCommandTest {
 		//@formatter:on
 
 		assertMessage(expected, actual);
-	}
-
-	private static BotContext mockBotContext() {
-		return new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 1);
 	}
 }

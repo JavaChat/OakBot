@@ -20,9 +20,9 @@ import org.jsoup.nodes.Element;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
@@ -51,7 +51,7 @@ public class TagCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("Please specify the tag name (e.g. \"java\").", chatCommand);

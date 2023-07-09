@@ -3,21 +3,19 @@ package oakbot.listener;
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 
 /**
  * @author Michael Angstadt
  */
 public class MentionListenerTest {
-	private final static BotContext context = new BotContext(false, "/", "OakBot", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
-
 	@Test
 	public void respond() {
 		assertResponse("Hey @OakBot", ":0 Type `/help` to see all my commands.");
@@ -35,9 +33,14 @@ public class MentionListenerTest {
 			.content(message)
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+		when(bot.getUsername()).thenReturn("OakBot");
 
 		MentionListener listener = new MentionListener();
-		ChatActions actions = listener.onMessage(chatMessage, context);
+		
+		ChatActions actions = listener.onMessage(chatMessage, bot);
 		assertTrue(actions.isEmpty());
 	}
 
@@ -47,9 +50,14 @@ public class MentionListenerTest {
 			.content(message)
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+		when(bot.getUsername()).thenReturn("OakBot");
 
 		MentionListener listener = new MentionListener();
-		ChatActions actions = listener.onMessage(chatMessage, context);
+		
+		ChatActions actions = listener.onMessage(chatMessage, bot);
 		assertMessage(expectedResponse, actions);
 	}
 
@@ -60,13 +68,17 @@ public class MentionListenerTest {
 			.content("Hey @Oakbot")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+		when(bot.getUsername()).thenReturn("OakBot");
 
 		MentionListener listener = new MentionListener();
 
-		ChatActions response = listener.onMessage(chatMessage, context);
+		ChatActions response = listener.onMessage(chatMessage, bot);
 		assertFalse(response.isEmpty());
 
-		response = listener.onMessage(chatMessage, context);
+		response = listener.onMessage(chatMessage, bot);
 		assertTrue(response.isEmpty());
 	}
 
@@ -77,14 +89,18 @@ public class MentionListenerTest {
 			.content("Hey @Oakbot")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+		when(bot.getUsername()).thenReturn("OakBot");
 
 		MentionListener listener = new MentionListener();
 		listener.ignoreNextMessage();
 
-		ChatActions response = listener.onMessage(chatMessage, context);
+		ChatActions response = listener.onMessage(chatMessage, bot);
 		assertTrue(response.isEmpty());
 
-		response = listener.onMessage(chatMessage, context);
+		response = listener.onMessage(chatMessage, bot);
 		assertFalse(response.isEmpty());
 	}
 }

@@ -2,9 +2,9 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.doNothing;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.filter.UpsidedownTextFilter;
 
 /**
@@ -35,7 +35,7 @@ public class RolloverCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		int roomId = chatCommand.getMessage().getRoomId();
 		filter.toggle(roomId);
 		return doNothing();

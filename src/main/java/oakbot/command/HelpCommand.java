@@ -12,9 +12,9 @@ import java.util.stream.StreamSupport;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.learn.LearnedCommand;
@@ -56,9 +56,9 @@ public class HelpCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		if (!chatCommand.getContent().isEmpty()) {
-			return showHelpText(chatCommand, context.getTrigger());
+			return showHelpText(chatCommand, bot.getTrigger());
 		}
 
 		Multimap<String, String> commandSummaries = getCommandSummaries();
@@ -80,7 +80,7 @@ public class HelpCommand implements Command {
 				String name = entry.getKey();
 				String description = entry.getValue();
 
-				cb.fixed().append(context.getTrigger()).append(name);
+				cb.fixed().append(bot.getTrigger()).append(name);
 				cb.append(repeat(" ", longestNameLength - name.length() + 2));
 				cb.append(description).nl();
 			}
@@ -96,7 +96,7 @@ public class HelpCommand implements Command {
 				if (!first) {
 					cb.append(", ");
 				}
-				cb.append(context.getTrigger()).append(name);
+				cb.append(bot.getTrigger()).append(name);
 				first = false;
 			}
 			cb.nl().fixed().nl();

@@ -11,9 +11,9 @@ import java.util.regex.Pattern;
 import org.apache.http.client.utils.URIBuilder;
 import org.xml.sax.SAXException;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
@@ -62,7 +62,7 @@ public class HttpCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String split[] = chatCommand.getContent().split("\\s+");
 		String code = split[0].toUpperCase();
 		if (code.isEmpty()) {

@@ -13,8 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import oakbot.Database;
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.IRoom;
@@ -62,7 +62,7 @@ public class WelcomeListener implements Listener {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		int roomId = message.getRoomId();
 		if (!roomHasWelcomeMessage(roomId)) {
 			return doNothing();
@@ -79,7 +79,7 @@ public class WelcomeListener implements Listener {
 
 		List<UserInfo> userInfo;
 		try {
-			IRoom room = context.getRoom(roomId);
+			IRoom room = bot.getRoom(roomId);
 			userInfo = room.getUserInfo(Arrays.asList(userId));
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Could not get user info for user " + userId, e);

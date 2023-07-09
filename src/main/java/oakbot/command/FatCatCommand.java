@@ -9,9 +9,9 @@ import java.util.List;
 import org.apache.commons.text.StringEscapeUtils;
 
 import oakbot.Database;
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
@@ -58,8 +58,8 @@ public class FatCatCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
-		String params[] = chatCommand.getContent().split("\\s+", 2);
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
+		String[] params = chatCommand.getContent().split("\\s+", 2);
 
 		String action = params[0].toLowerCase();
 		String url = (params.length < 2) ? null : params[1];
@@ -69,9 +69,9 @@ public class FatCatCommand implements Command {
 		case "list":
 			return listCats();
 		case "add":
-			return addCat(chatCommand, context, url);
+			return addCat(chatCommand, bot, url);
 		case "delete":
-			return deleteCat(chatCommand, context, url);
+			return deleteCat(chatCommand, bot, url);
 		default:
 			return reply("Unknown action.", chatCommand);
 		}
@@ -109,8 +109,8 @@ public class FatCatCommand implements Command {
 		//@formatter:on
 	}
 
-	private ChatActions addCat(ChatCommand chatCommand, BotContext context, String cat) {
-		if (!context.isAuthorAdmin() && chatCommand.getMessage().getUserId() != hans) {
+	private ChatActions addCat(ChatCommand chatCommand, IBot bot, String cat) {
+		if (!hasEditPerms(chatCommand, bot)) {
 			return reply("Only Hans can add.", chatCommand);
 		}
 
@@ -120,7 +120,7 @@ public class FatCatCommand implements Command {
 				.reply(chatCommand)
 				.append("Specify the URL of the cat you want to add: ")
 				.code()
-				.append(context.getTrigger())
+				.append(bot.getTrigger())
 				.append(name())
 				.append(" add URL")
 				.code()
@@ -145,8 +145,8 @@ public class FatCatCommand implements Command {
 		return reply("Is cat fat? (y/n)", chatCommand);
 	}
 
-	private ChatActions deleteCat(ChatCommand chatCommand, BotContext context, String cat) {
-		if (!context.isAuthorAdmin() && chatCommand.getMessage().getUserId() != hans) {
+	private ChatActions deleteCat(ChatCommand chatCommand, IBot bot, String cat) {
+		if (!hasEditPerms(chatCommand, bot)) {
 			return reply("Only Hans can delete.", chatCommand);
 		}
 
@@ -156,7 +156,7 @@ public class FatCatCommand implements Command {
 				.reply(chatCommand)
 				.append("Specify the URL of the cat you want to delete: ")
 				.code()
-				.append(context.getTrigger())
+				.append(bot.getTrigger())
 				.append(name())
 				.append(" delete URL")
 				.code()
@@ -178,6 +178,11 @@ public class FatCatCommand implements Command {
 
 		save();
 		return reply("Deleted.", chatCommand);
+	}
+	
+	private boolean hasEditPerms(ChatCommand chatCommand, IBot bot) {
+		int authorId = chatCommand.getMessage().getUserId();
+		return bot.getAdminUsers().contains(authorId) || authorId == hans;
 	}
 
 	public String handleResponse(ChatMessage message) {

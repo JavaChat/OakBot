@@ -7,9 +7,9 @@ import static oakbot.command.Command.random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -37,7 +37,7 @@ public class RollCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		Parameters parameters = parseParameters(chatCommand);
 		if (parameters.choices != null) {
 			String choice = random(parameters.choices);

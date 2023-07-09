@@ -2,9 +2,9 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.post;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 
 /**
  * Displays a "shrug" emoticon.
@@ -28,7 +28,7 @@ public class ShrugCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		return post("¯\\\\_(\u30C4)_/¯");
 	}
 }

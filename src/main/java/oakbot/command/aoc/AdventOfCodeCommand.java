@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -61,7 +61,7 @@ public class AdventOfCodeCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		if (!isActive()) {
 			return reply("This command is only active during the month of December.", chatCommand);
 		}
@@ -73,7 +73,7 @@ public class AdventOfCodeCommand implements Command {
 		}
 
 		if (leaderboardId == null) {
-			return reply("Please specify a leaderboard ID (e.g. " + context.getTrigger() + name() + " 123456).", chatCommand);
+			return reply("Please specify a leaderboard ID (e.g. " + bot.getTrigger() + name() + " 123456).", chatCommand);
 		}
 
 		List<Player> players;
@@ -201,7 +201,7 @@ public class AdventOfCodeCommand implements Command {
 		}
 
 		ChatBuilder condensed = new ChatBuilder();
-		condensed.append("Type ").code().append(context.getTrigger()).append(name());
+		condensed.append("Type ").code().append(bot.getTrigger()).append(name());
 		if (!displayDefaultLeaderboard) {
 			condensed.append(" " + leaderboardId);
 		}

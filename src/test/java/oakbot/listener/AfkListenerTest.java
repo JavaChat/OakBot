@@ -2,13 +2,13 @@ package oakbot.listener;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.command.AfkCommand;
 
@@ -16,8 +16,6 @@ import oakbot.command.AfkCommand;
  * @author Michael Angstadt
  */
 public class AfkListenerTest {
-	private final BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
-
 	@Test
 	public void mention_full() {
 		AfkCommand command = new AfkCommand();
@@ -34,9 +32,11 @@ public class AfkListenerTest {
 			.content("Where are you, @Frank?")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
 
 		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, bot);
 		assertMessage(":1 Frank is away", response);
 	}
 
@@ -56,9 +56,11 @@ public class AfkListenerTest {
 			.content("Where are you, @Fran?")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
 
 		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, bot);
 		assertMessage(":1 Frank is away\nFranny is away: brb\nfra Niegel is away", response);
 	}
 
@@ -78,9 +80,11 @@ public class AfkListenerTest {
 			.content("Where are you, @Fr?")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
 
 		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 	}
 
@@ -98,11 +102,13 @@ public class AfkListenerTest {
 			.content("Where are you, @Frank @Frank @Fran @Franny?")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
 
 		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, bot);
 		assertMessage(":1 Frank is away\nFranny is away", response);
-		response = listener.onMessage(message, context);
+		response = listener.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 	}
 
@@ -119,12 +125,14 @@ public class AfkListenerTest {
 			.content("I'm back.")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
 
 		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, bot);
 		assertMessage(":1 Welcome back!", response);
 
-		response = listener.onMessage(message, context);
+		response = listener.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 	}
 
@@ -141,9 +149,12 @@ public class AfkListenerTest {
 			.content("/afk")
 		.build();
 		//@formatter:on
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
 
 		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 	}
 }

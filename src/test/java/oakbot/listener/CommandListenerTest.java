@@ -3,19 +3,20 @@ package oakbot.listener;
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
 
 import com.google.common.collect.Multimap;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
@@ -26,15 +27,17 @@ import oakbot.command.learn.LearnedCommandsDao;
  * @author Michael Angstadt
  */
 public class CommandListenerTest {
-	private final static BotContext context = new BotContext(false, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
-
 	@Test
 	public void onMessage() {
 		Command command = new UpperCommand();
 		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("/upper test").build();
-		ChatActions response = listener.onMessage(message, context);
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+		
+		ChatActions response = listener.onMessage(message, bot);
 
 		assertMessage("TEST", response);
 	}
@@ -45,7 +48,11 @@ public class CommandListenerTest {
 		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("/capital test").build();
-		ChatActions response = listener.onMessage(message, context);
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+		
+		ChatActions response = listener.onMessage(message, bot);
 
 		assertMessage("TEST", response);
 	}
@@ -56,7 +63,11 @@ public class CommandListenerTest {
 		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("upper test").build();
-		ChatActions response = listener.onMessage(message, context);
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+		
+		ChatActions response = listener.onMessage(message, bot);
 
 		assertTrue(response.isEmpty());
 	}
@@ -69,8 +80,11 @@ public class CommandListenerTest {
 		CommandListener listener = new CommandListener(Arrays.asList(), learnedCommands);
 
 		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
 
-		ChatActions response = listener.onMessage(message, context);
+		ChatActions response = listener.onMessage(message, bot);
 
 		assertMessage("bar", response);
 	}
@@ -81,7 +95,11 @@ public class CommandListenerTest {
 		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
-		ChatActions response = listener.onMessage(message, context);
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+		
+		ChatActions response = listener.onMessage(message, bot);
 
 		assertTrue(response.isEmpty());
 	}
@@ -94,7 +112,11 @@ public class CommandListenerTest {
 		});
 
 		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
-		ChatActions response = listener.onMessage(message, context);
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+		
+		ChatActions response = listener.onMessage(message, bot);
 
 		assertMessage("Unknown command.", response);
 	}
@@ -170,7 +192,7 @@ public class CommandListenerTest {
 		}
 
 		@Override
-		public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+		public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 			return ChatActions.post("response");
 		}
 	}
@@ -192,7 +214,7 @@ public class CommandListenerTest {
 		}
 
 		@Override
-		public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+		public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 			return ChatActions.post(chatCommand.getContent().toUpperCase());
 		}
 	}

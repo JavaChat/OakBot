@@ -4,9 +4,9 @@ import static oakbot.bot.ChatActions.post;
 
 import java.time.LocalDateTime;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 
@@ -103,7 +103,7 @@ public class LearnedCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		return post(output);
 	}
 

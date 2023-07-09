@@ -14,9 +14,9 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.chat.IRoom;
 import oakbot.chat.PingableUser;
 import oakbot.chat.UserInfo;
@@ -50,12 +50,12 @@ public class JuiceBoxCommandTest {
 		when(room.getUserInfo(200)).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
-
-		BotContext context = mock(BotContext.class);
-		when(context.getRoom(anyInt())).thenReturn(room);
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getRoom(anyInt())).thenReturn(room);
 
 		ChatCommand message = new ChatCommandBuilder(command).username("Michael").build();
-		ChatActions response = command.onMessage(message, context);
+		ChatActions response = command.onMessage(message, bot);
 
 		assertMessage(":0 https://juiceboxify.me/images/8176425e07bbe2caf82c90e82ac07dc445013e68.jpg", response);
 	}
@@ -83,12 +83,12 @@ public class JuiceBoxCommandTest {
 		when(room.getUserInfo(200)).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
-
-		BotContext context = mock(BotContext.class);
-		when(context.getRoom(anyInt())).thenReturn(room);
+		
+		IBot bot = mock(IBot.class);
+		when(bot.getRoom(anyInt())).thenReturn(room);
 
 		ChatCommand message = new ChatCommandBuilder(command).username("Michael").content("oakbot").build();
-		ChatActions response = command.onMessage(message, context);
+		ChatActions response = command.onMessage(message, bot);
 
 		assertMessage(":0 https://juiceboxify.me/images/8176425e07bbe2caf82c90e82ac07dc445013e68.jpg", response);
 	}
@@ -117,11 +117,11 @@ public class JuiceBoxCommandTest {
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
 
-		BotContext context = mock(BotContext.class);
-		when(context.getRoom(anyInt())).thenReturn(room);
+		IBot bot = mock(IBot.class);
+		when(bot.getRoom(anyInt())).thenReturn(room);
 
 		ChatCommand message = new ChatCommandBuilder(command).username("Michael").content("oakbot").build();
-		ChatActions response = command.onMessage(message, context);
+		ChatActions response = command.onMessage(message, bot);
 
 		assertMessage(":0 User has no face.", response);
 	}
@@ -136,11 +136,11 @@ public class JuiceBoxCommandTest {
 			new PingableUser(1, 200, "OakBot", LocalDateTime.now())
 		)); //@formatter:on
 
-		BotContext context = mock(BotContext.class);
-		when(context.getRoom(anyInt())).thenReturn(room);
+		IBot bot = mock(IBot.class);
+		when(bot.getRoom(anyInt())).thenReturn(room);
 
 		ChatCommand message = new ChatCommandBuilder(command).username("Michael").content("JonSkeet").build();
-		ChatActions response = command.onMessage(message, context);
+		ChatActions response = command.onMessage(message, bot);
 
 		assertMessage(":0 User not found (they must be in this room).", response);
 	}

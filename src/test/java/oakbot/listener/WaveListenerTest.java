@@ -3,21 +3,21 @@ package oakbot.listener;
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 import org.junit.Test;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 
 /**
  * @author Michael Angstadt
  */
 public class WaveListenerTest {
-	private final static BotContext context = new BotContext(false, "/", "OakBot", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
-
 	@Test
 	public void onMessage() {
 		assertWave("o/", "\\o", false);
@@ -36,10 +36,13 @@ public class WaveListenerTest {
 		.build();
 		//@formatter:on
 
+		IBot bot = mock(IBot.class);
+		when(bot.getUsername()).thenReturn("OakBot");
+
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		WaveListener listener = new WaveListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage, context);
+		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
 		if (response == null) {
 			assertTrue(chatResponse.isEmpty());
 		} else {
@@ -58,12 +61,14 @@ public class WaveListenerTest {
 		.build();
 		//@formatter:on
 
+		IBot bot = mock(IBot.class);
+
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		WaveListener listener = new WaveListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage, context);
+		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("\\o", chatResponse);
-		chatResponse = listener.onMessage(chatMessage, context);
+		chatResponse = listener.onMessage(chatMessage, bot);
 		assertTrue(chatResponse.isEmpty());
 	}
 
@@ -72,17 +77,20 @@ public class WaveListenerTest {
 		//@formatter:off
 		ChatMessage chatMessage = new ChatMessage.Builder()
 			.roomId(1)
+			.userId(10)
 			.content("o/")
 		.build();
 		//@formatter:on
 
+		IBot bot = mock(IBot.class);
+		when(bot.getAdminUsers()).thenReturn(Arrays.asList(10));
+
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		WaveListener listener = new WaveListener("PT0S", mentionListener);
 
-		BotContext context = new BotContext(true, "/", "", 0, null, Collections.emptyList(), Collections.emptyList(), 0);
-		ChatActions chatResponse = listener.onMessage(chatMessage, context);
+		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("\\o", chatResponse);
-		chatResponse = listener.onMessage(chatMessage, context);
+		chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("\\o", chatResponse);
 	}
 
@@ -99,19 +107,21 @@ public class WaveListenerTest {
 		.build();
 		//@formatter:on
 
+		IBot bot = mock(IBot.class);
+
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		WaveListener listener = new WaveListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage1, context);
+		ChatActions chatResponse = listener.onMessage(chatMessage1, bot);
 		assertMessage("\\o", chatResponse);
 
-		chatResponse = listener.onMessage(chatMessage2, context);
+		chatResponse = listener.onMessage(chatMessage2, bot);
 		assertMessage("\\o", chatResponse);
 
-		chatResponse = listener.onMessage(chatMessage1, context);
+		chatResponse = listener.onMessage(chatMessage1, bot);
 		assertTrue(chatResponse.isEmpty());
 
-		chatResponse = listener.onMessage(chatMessage2, context);
+		chatResponse = listener.onMessage(chatMessage2, bot);
 		assertTrue(chatResponse.isEmpty());
 	}
 

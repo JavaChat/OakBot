@@ -23,9 +23,9 @@ import org.xml.sax.SAXException;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
@@ -63,7 +63,7 @@ public class DefineCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String word = chatCommand.getContent().trim();
 		if (word.isEmpty()) {
 			return reply("Please specify the word you'd like to define.", chatCommand);

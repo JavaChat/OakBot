@@ -8,8 +8,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
@@ -47,13 +47,13 @@ public class MentionListener implements CatchAllMentionListener {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		if (ignore) {
 			ignore = false;
 			return doNothing();
 		}
 
-		if (!message.getContent().isMentioned(context.getBotUserName())) {
+		if (!message.getContent().isMentioned(bot.getUsername())) {
 			return doNothing();
 		}
 
@@ -74,7 +74,7 @@ public class MentionListener implements CatchAllMentionListener {
 		}
 
 		return reply(new ChatBuilder() //@formatter:off
-			.append("Type ").code().append(context.getTrigger()).append("help").code().append(" to see all my commands."),
+			.append("Type ").code().append(bot.getTrigger()).append("help").code().append(" to see all my commands."),
 			message
 		); //@formatter:on
 	}

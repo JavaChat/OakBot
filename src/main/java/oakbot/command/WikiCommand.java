@@ -5,9 +5,9 @@ import static oakbot.bot.ChatActions.reply;
 
 import com.google.common.net.UrlEscapers;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 
 /**
  * Displays on-boxed Wikipedia pages.
@@ -30,7 +30,7 @@ public class WikiCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("Please specify the term you'd like to display.", chatCommand);

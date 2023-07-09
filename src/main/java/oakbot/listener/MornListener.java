@@ -13,8 +13,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 
@@ -76,9 +76,9 @@ public class MornListener implements Listener {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		List<String> mentions = message.getContent().getMentions();
-		boolean mentioned = message.getContent().isMentioned(context.getBotUserName());
+		boolean mentioned = message.getContent().isMentioned(bot.getUsername());
 		if (!mentions.isEmpty() && !mentioned) {
 			/*
 			 * Message isn't directed toward the bot.

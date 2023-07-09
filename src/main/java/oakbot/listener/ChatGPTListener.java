@@ -11,8 +11,8 @@ import java.util.logging.Logger;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
@@ -67,18 +67,18 @@ public class ChatGPTListener implements CatchAllMentionListener {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		if (ignoreNextMessage) {
 			ignoreNextMessage = false;
 			return doNothing();
 		}
 
-		if (!message.getContent().isMentioned(context.getBotUserName())) {
+		if (!message.getContent().isMentioned(bot.getUsername())) {
 			return doNothing();
 		}
 
 		try {
-			List<ChatMessage> prevMessages = context.getRoom(message.getRoomId()).getMessages(latestMessagesCount);
+			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), latestMessagesCount);
 			ChatGPTRequest request = new ChatGPTRequest(chatGPTParameters);
 			for (ChatMessage prevMessage : prevMessages) {
 				String content = prevMessage.getContent().getContent();
@@ -92,7 +92,7 @@ public class ChatGPTListener implements CatchAllMentionListener {
 					truncatedContentMd = contentMd;
 				}
 
-				if (prevMessage.getUserId() == context.getBotUserId()) {
+				if (prevMessage.getUserId() == bot.getUserId()) {
 					request.addBotMessage(truncatedContentMd);
 				} else {
 					request.addHumanMessage(truncatedContentMd);

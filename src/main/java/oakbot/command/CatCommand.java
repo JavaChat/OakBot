@@ -20,9 +20,9 @@ import org.xml.sax.SAXException;
 
 import com.google.common.net.UrlEscapers;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Leaf;
@@ -67,7 +67,7 @@ public class CatCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		int repeats = 0;
 		try (CloseableHttpClient client = createClient()) {
 			while (repeats < 5) {

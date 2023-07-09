@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.JoinRoom;
 
 /**
@@ -55,11 +55,11 @@ public class SummonCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String content = chatCommand.getContent().trim();
 
-		Integer maxRooms = context.getMaxRooms();
-		if (maxRooms != null && context.getCurrentRooms().size() >= maxRooms) {
+		Integer maxRooms = bot.getMaxRooms();
+		if (maxRooms != null && bot.getRooms().size() >= maxRooms) {
 			return reply("I can't join anymore rooms, I've reached my limit (" + maxRooms + ").", chatCommand);
 		}
 
@@ -78,11 +78,12 @@ public class SummonCommand implements Command {
 			return reply("That's the ID for this room... -_-", chatCommand);
 		}
 
-		if (context.getCurrentRooms().contains(roomToJoin)) {
+		if (bot.getRooms().contains(roomToJoin)) {
 			return reply("I'm already there... -_-", chatCommand);
 		}
 
-		if (!context.isAuthorAdmin()) {
+		boolean authorIsAdmin = bot.getAdminUsers().contains(chatCommand.getMessage().getUserId());
+		if (!authorIsAdmin) {
 			Pending pending = pendingSummons.get(roomToJoin);
 			if (pending == null) {
 				pending = new Pending(roomToJoin);

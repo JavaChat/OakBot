@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 
@@ -62,9 +62,9 @@ public class WaveListener implements Listener {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatMessage message, BotContext context) {
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		String content = message.getContent().getContent();
-		boolean mentioned = message.getContent().isMentioned(context.getBotUserName());
+		boolean mentioned = message.getContent().isMentioned(bot.getUsername());
 
 		String wave;
 		if (mentioned) {
@@ -99,7 +99,8 @@ public class WaveListener implements Listener {
 			 */
 			Instant now = Instant.now();
 			Duration timeSinceLastWave = (lastWave == null) ? timeBetweenWaves : Duration.between(lastWave, now);
-			if (!context.isAuthorAdmin() && timeSinceLastWave.compareTo(timeBetweenWaves) < 0) {
+			boolean authorIsAdmin = bot.getAdminUsers().contains(message.getUserId());
+			if (!authorIsAdmin && timeSinceLastWave.compareTo(timeBetweenWaves) < 0) {
 				return doNothing();
 			}
 

@@ -6,9 +6,9 @@ import static oakbot.command.Command.random;
 import java.util.Arrays;
 import java.util.List;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 import oakbot.bot.LeaveRoom;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
@@ -40,7 +40,7 @@ public class UnsummonCommand implements Command {
 	}
 
 	@Override
-	public ChatActions onMessage(ChatCommand chatCommand, BotContext context) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String content = chatCommand.getContent().trim();
 
 		int roomToLeave;
@@ -57,11 +57,11 @@ public class UnsummonCommand implements Command {
 			inRoomToLeave = (roomToLeave == chatCommand.getMessage().getRoomId());
 		}
 
-		if (!context.getCurrentRooms().contains(roomToLeave)) {
+		if (!bot.getRooms().contains(roomToLeave)) {
 			return reply("I'm not in that room... -_-", chatCommand);
 		}
 
-		if (context.getHomeRooms().contains(roomToLeave)) {
+		if (bot.getHomeRooms().contains(roomToLeave)) {
 			if (inRoomToLeave) {
 				return reply("This is one of my home rooms, I can't leave it.", chatCommand);
 			}

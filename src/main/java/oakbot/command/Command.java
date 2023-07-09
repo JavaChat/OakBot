@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
 
 /**
  * A chat bot command.
@@ -37,10 +37,10 @@ public interface Command {
 	/**
 	 * Called when a user invokes this command.
 	 * @param chatCommand the command that the user has sent
-	 * @param context the bot context
+	 * @param bot the bot instance
 	 * @return the action(s) to perform in response to the message
 	 */
-	ChatActions onMessage(ChatCommand chatCommand, BotContext context);
+	ChatActions onMessage(ChatCommand chatCommand, IBot bot);
 
 	/**
 	 * Random number generator.

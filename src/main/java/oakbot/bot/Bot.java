@@ -304,12 +304,9 @@ public class Bot implements IBot {
 		//inactiveRoomTasks.touch(message);
 		inactivityTasks.touch(message);
 
-		boolean isUserAdmin = admins.contains(message.getUserId());
-		BotContext context = new BotContext(isUserAdmin, trigger, userName, userId, connection, rooms.getRooms(), rooms.getHomeRooms(), maxRooms);
-
 		ChatActions actions;
 		try {
-			actions = handleListeners(message, context);
+			actions = handleListeners(message);
 		} catch (ShutdownException e) {
 			String shutdownMessage = e.getShutdownMessage();
 			if (shutdownMessage != null) {
@@ -429,6 +426,11 @@ public class Bot implements IBot {
 	}
 
 	@Override
+	public String getOriginalMessageContent(long messageId) throws IOException {
+		return connection.getOriginalMessageContent(messageId);
+	}
+
+	@Override
 	public void sendMessage(int roomId, PostMessage message) throws IOException {
 		IRoom room = connection.getRoom(roomId);
 		if (room != null) {
@@ -494,8 +496,14 @@ public class Bot implements IBot {
 	 * @throws IOException if there's a problem connecting to the room
 	 */
 	private IRoom joinRoom(int roomId, boolean quiet) throws RoomNotFoundException, IOException {
+		//already in the room?
+		IRoom room = connection.getRoom(roomId);
+		if (room != null) {
+			return room;
+		}
+
 		logger.info("Joining room " + roomId + "...");
-		IRoom room = connection.joinRoom(roomId);
+		room = connection.joinRoom(roomId);
 
 		room.addEventListener(MessagePostedEvent.class, (event) -> {
 			newMessages.add(event.getMessage());
@@ -540,6 +548,11 @@ public class Bot implements IBot {
 	}
 
 	@Override
+	public List<Integer> getAdminUsers() {
+		return admins;
+	}
+
+	@Override
 	public String getTrigger() {
 		return trigger;
 	}
@@ -547,6 +560,11 @@ public class Bot implements IBot {
 	@Override
 	public List<Integer> getRooms() {
 		return rooms.getRooms();
+	}
+
+	@Override
+	public IRoom getRoom(int roomId) {
+		return connection.getRoom(roomId);
 	}
 
 	@Override
@@ -559,11 +577,16 @@ public class Bot implements IBot {
 		return rooms.getQuietRooms();
 	}
 
-	private ChatActions handleListeners(ChatMessage message, BotContext context) {
+	@Override
+	public Integer getMaxRooms() {
+		return maxRooms;
+	}
+
+	private ChatActions handleListeners(ChatMessage message) {
 		ChatActions actions = new ChatActions();
 		for (Listener listener : listeners) {
 			try {
-				actions.addAll(listener.onMessage(message, context));
+				actions.addAll(listener.onMessage(message, this));
 			} catch (ShutdownException e) {
 				throw e;
 			} catch (Exception e) {

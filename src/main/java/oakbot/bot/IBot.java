@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.List;
 
 import oakbot.chat.ChatMessage;
+import oakbot.chat.IRoom;
+import oakbot.chat.RoomNotFoundException;
+import oakbot.chat.RoomPermissionException;
 
 /**
  * Represents a chat bot.
@@ -29,6 +32,12 @@ public interface IBot {
 	String getUsername();
 
 	/**
+	 * Gets the admin users.
+	 * @return the user IDs of the admin users
+	 */
+	List<Integer> getAdminUsers();
+
+	/**
 	 * Of all the rooms the bot is connected to, this method returns the "home"
 	 * rooms. Users cannot make the bot leave home rooms.
 	 * @return the room IDs
@@ -48,6 +57,20 @@ public interface IBot {
 	 * @return the room IDs
 	 */
 	List<Integer> getRooms();
+
+	/**
+	 * Gets the maximum number of rooms the bot can be in at once.
+	 * @return the max rooms or null for no limit
+	 */
+	Integer getMaxRooms();
+
+	/**
+	 * Gets the network connection to a room.
+	 * @param roomId the room ID
+	 * @return the network connection or null if the bot is not connected to the
+	 * room
+	 */
+	IRoom getRoom(int roomId);
 
 	/**
 	 * Joins a room.
@@ -75,6 +98,27 @@ public interface IBot {
 	 * @throws if there's a problem getting the messages
 	 */
 	List<ChatMessage> getLatestMessages(int roomId, int count) throws IOException;
+
+	/**
+	 * <p>
+	 * Queries the chat service for the original, Markdown-encoded message that
+	 * the user actually typed into the chat room (when messages are retrieved
+	 * off the web socket, the messages returned as HTML).
+	 * </p>
+	 * <p>
+	 * Note that this involves sending an HTTP GET request to the server.
+	 * </p>
+	 * <p>
+	 * Note that this will give you EXACTLY what the user typed into the chat.
+	 * For example, if they typed a single space character before their message,
+	 * the space character will NOT appear the HTML-formatted message, but WILL
+	 * appear in the string returned by this method.
+	 * </p>
+	 * @param messageId the message ID
+	 * @return the plain text message
+	 * @throws IOException if there's a problem getting the message
+	 */
+	public String getOriginalMessageContent(long messageId) throws IOException;
 
 	/**
 	 * Posts a message to a room. If the bot has not joined the given room, then

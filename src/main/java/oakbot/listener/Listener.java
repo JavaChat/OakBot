@@ -1,7 +1,7 @@
 package oakbot.listener;
 
-import oakbot.bot.BotContext;
 import oakbot.bot.ChatActions;
+import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 
@@ -31,8 +31,8 @@ public interface Listener {
 	/**
 	 * Called whenever a new message is received.
 	 * @param message the message
-	 * @param context the bot context
+	 * @param context the bot instance
 	 * @return the action(s) to perform in response to the message
 	 */
-	ChatActions onMessage(ChatMessage message, BotContext context);
+	ChatActions onMessage(ChatMessage message, IBot bot);
 }
