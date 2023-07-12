@@ -143,9 +143,6 @@
 
 	<!-- /afk -->
 	<bean id="afkCommand" class="oakbot.command.AfkCommand" />
-	<bean class="oakbot.listener.AfkListener">
-		<constructor-arg ref="afkCommand" />
-	</bean>
 	
 	<!-- /aoc -->
 	<bean class="oakbot.command.aoc.AdventOfCodeCommand">

@@ -1,4 +1,4 @@
-package oakbot.listener;
+package oakbot.command;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertTrue;
@@ -8,14 +8,72 @@ import static org.mockito.Mockito.when;
 import org.junit.Test;
 
 import oakbot.bot.ChatActions;
+import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
-import oakbot.command.AfkCommand;
 
 /**
  * @author Michael Angstadt
  */
-public class AfkListenerTest {
+public class AfkCommandTest {
+	@Test
+	public void afk() {
+		AfkCommand afk = new AfkCommand();
+
+		IBot bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+
+		{
+			//@formatter:off
+			ChatMessage message = new ChatMessage.Builder()
+				.messageId(1)
+				.userId(1)
+				.username("Kyle")
+				.content("/afk away")
+			.build();
+			//@formatter:on
+
+			/*
+			 * Message that invoke the afk command are ignored when passed into
+			 * Listener.onMessage().
+			 */
+			ChatActions actions = afk.onMessage(message, bot);
+			assertTrue(actions.isEmpty());
+
+			ChatCommand cmd = ChatCommand.fromMessage(message, "/");
+			actions = afk.onMessage(cmd, bot);
+			assertMessage(":1 Cya later", actions);
+		}
+
+		{
+			//@formatter:off
+			ChatMessage message = new ChatMessage.Builder()
+				.messageId(2)
+				.userId(2)
+				.username("John")
+				.content("Are you there, @Kyle?")
+			.build();
+			//@formatter:on
+
+			ChatActions actions = afk.onMessage(message, bot);
+			assertMessage(":2 Kyle is away: away", actions);
+		}
+
+		{
+			//@formatter:off
+			ChatMessage message = new ChatMessage.Builder()
+				.messageId(3)
+				.userId(1)
+				.username("Kyle")
+				.content("I'm back now!")
+			.build();
+			//@formatter:on
+
+			ChatActions actions = afk.onMessage(message, bot);
+			assertMessage(":3 Welcome back!", actions);
+		}
+	}
+
 	@Test
 	public void mention_full() {
 		AfkCommand command = new AfkCommand();
@@ -32,11 +90,10 @@ public class AfkListenerTest {
 			.content("Where are you, @Frank?")
 		.build();
 		//@formatter:on
-		
+
 		IBot bot = mock(IBot.class);
 
-		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, bot);
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 Frank is away", response);
 	}
 
@@ -56,11 +113,10 @@ public class AfkListenerTest {
 			.content("Where are you, @Fran?")
 		.build();
 		//@formatter:on
-		
+
 		IBot bot = mock(IBot.class);
 
-		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, bot);
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 Frank is away\nFranny is away: brb\nfra Niegel is away", response);
 	}
 
@@ -80,11 +136,10 @@ public class AfkListenerTest {
 			.content("Where are you, @Fr?")
 		.build();
 		//@formatter:on
-		
+
 		IBot bot = mock(IBot.class);
 
-		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, bot);
+		ChatActions response = command.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 	}
 
@@ -102,13 +157,12 @@ public class AfkListenerTest {
 			.content("Where are you, @Frank @Frank @Fran @Franny?")
 		.build();
 		//@formatter:on
-		
+
 		IBot bot = mock(IBot.class);
 
-		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, bot);
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 Frank is away\nFranny is away", response);
-		response = listener.onMessage(message, bot);
+		response = command.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 	}
 
@@ -125,14 +179,13 @@ public class AfkListenerTest {
 			.content("I'm back.")
 		.build();
 		//@formatter:on
-		
+
 		IBot bot = mock(IBot.class);
 
-		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, bot);
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 Welcome back!", response);
 
-		response = listener.onMessage(message, bot);
+		response = command.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 	}
 
@@ -149,12 +202,15 @@ public class AfkListenerTest {
 			.content("/afk")
 		.build();
 		//@formatter:on
-		
+
 		IBot bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 
-		AfkListener listener = new AfkListener(command);
-		ChatActions response = listener.onMessage(message, bot);
+		ChatActions response = command.onMessage(message, bot);
 		assertTrue(response.isEmpty());
+
+		ChatCommand cmd = ChatCommand.fromMessage(message, bot.getTrigger());
+		response = command.onMessage(cmd, bot);
+		assertMessage(":1 Cya later", response);
 	}
 }

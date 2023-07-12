@@ -1,5 +1,6 @@
 package oakbot.command;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Random;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
+import oakbot.chat.ChatMessage;
 
 /**
  * A chat bot command.
@@ -66,5 +68,24 @@ public interface Command {
 	static <T> T random(List<T> list) {
 		int index = random.nextInt(list.size());
 		return list.get(index);
+	}
+
+	/**
+	 * Determines if the given chat message is invoking this command.
+	 * @param message the message
+	 * @param trigger the bot's command trigger
+	 * @return true if the message is invoking this command, false if not
+	 */
+	default boolean isInvokingMe(ChatMessage message, String trigger) {
+		String content = message.getContent().getContent();
+
+		List<String> names = new ArrayList<>();
+		names.add(name());
+		names.addAll(aliases());
+
+		return names.stream().anyMatch(name -> {
+			String invocation = trigger + name;
+			return content.equals(invocation) || content.startsWith(invocation + " ");
+		});
 	}
 }
