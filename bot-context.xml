@@ -283,13 +283,13 @@
 	<!-- morn listener -->
 	<bean class="oakbot.listener.MornListener">
 		<constructor-arg value="PT1S" /> <!-- amount of time to wait before responding -->
-		<constructor-arg ref="chatGPTListener" /> <!-- should be set to either mentionListener or chatGPTListener -->
+		<constructor-arg ref="chatGPT" /> <!-- should be set to either mentionListener or chatGPT -->
 	</bean>
 	
 	<!-- wave listener -->
 	<bean class="oakbot.listener.WaveListener">
 		<constructor-arg value="PT1S" /> <!-- amount of time to wait before waving back -->
-		<constructor-arg ref="chatGPTListener" /> <!-- should be set to either mentionListener or chatGPTListener -->
+		<constructor-arg ref="chatGPT" /> <!-- should be set to either mentionListener or chatGPT -->
 	</bean>
 	
 	<!-- welcome listener -->
@@ -308,27 +308,18 @@
 	</bean>
 
 	<!-- ChatGPT -->
-	<bean class="oakbot.task.ChatGPTParameters" id="chatGPTParameters">
-		<constructor-arg value="API_KEY" /> <!-- ChatGPT API key -->
-		<constructor-arg value="You are a grumpy Java developer named '${account.username}'." /> <!-- ChatGPT prompt, defines the bot's personality -->
-		<constructor-arg value="100" /> <!-- how long ChatGPT's responses can be, each word costs around 1.33 tokens -->
-	</bean>
-	<bean class="oakbot.task.ChatGPTTask" id="chatGPTTask">
-		<constructor-arg ref="chatGPTParameters" />
-		<constructor-arg value="PT12H" /> <!-- run frequency -->
-		<constructor-arg value="10" /> <!-- how many of the latest chat messages to send to ChatGPT -->
-		<constructor-arg value="300" /> <!-- the messages that are sent to ChatGPT will not exceed this number of characters (for reducing usage quota), 0 to disable truncating -->
-		<constructor-arg> <!-- the rooms to post messages in -->
+	<bean class="oakbot.task.ChatGPT" id="chatGPT">
+		<constructor-arg value="API_KEY" />
+		<constructor-arg value="You are a grumpy Java developer named '${account.username}'." /> <!-- one or more sentences that define the bot's personality (e.g. "You are a helpful assistant"). This counts against your usage quota. Each word costs around 1.33 tokens. -->
+		<constructor-arg value="100" /> <!-- places a limit on the length of ChatGPT's completion (response). If this number is too short, then the completion may end abruptly (e.g. in an unfinished sentence). Each word costs around 1.33 tokens. -->
+		<constructor-arg value="PT12H" /> <!-- the amount of time to wait before posting a message (duration string) -->
+		<constructor-arg value="10" /> <!-- the number of chat room messages to include in the ChatGPT request to give the bot context of the conversation (each message counts against the usage quota) -->
+		<constructor-arg value="300" /> <!-- each chat message that is sent to ChatGPT will not exceed this number of characters (includes markdown syntax). Chat messages that do will be truncated (without cutting off words). 0 to disable truncation. Each message counts against the usage quota. Each word costs around 1.33 tokens. -->
+		<constructor-arg> <!-- the rooms in which to start the spontaneous post timer when the bot first starts up. Mentioning the bot in a room causes the spontaneous post timer to start/reset in that room. -->
 			<util:list>
 				<value>139</value>
 			</util:list>
 		</constructor-arg>
-	</bean>
-	<bean class="oakbot.listener.ChatGPTListener" id="chatGPTListener">
-		<constructor-arg ref="chatGPTTask" />
-		<constructor-arg ref="chatGPTParameters" />
-		<constructor-arg value="10" /> <!-- how many of the latest chat messages to send to ChatGPT -->
-		<constructor-arg value="300" /> <!-- the messages that are sent to ChatGPT will not exceed this number of characters (for reducing usage quota), 0 to disable truncating -->
 	</bean>
 	
 	<!-- fact of the day task -->

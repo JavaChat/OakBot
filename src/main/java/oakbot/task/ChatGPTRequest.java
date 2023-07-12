@@ -33,13 +33,6 @@ public class ChatGPTRequest {
 	private final String apiKey;
 
 	/**
-	 * @param parameters parameters for connecting to ChatGPT
-	 */
-	public ChatGPTRequest(ChatGPTParameters parameters) {
-		this(parameters.getApiKey(), parameters.getPrompt(), parameters.getMaxTokensForCompletion());
-	}
-
-	/**
 	 * @param apiKey the API key
 	 * @param prompt defines the bot's personality (e.g. "You are a helpful
 	 * assistant"). This counts against your usage quota. Each word is about
