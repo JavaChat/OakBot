@@ -158,9 +158,18 @@ public class HelpCommand implements Command {
 
 	private Multimap<String, String> getListenerSummaries() {
 		Multimap<String, String> summaries = TreeMultimap.create();
+
 		for (Listener listener : listeners) {
 			String name = listener.name();
 			if (name == null) {
+				continue;
+			}
+
+			/*
+			 * If a command exists with the same name, do not include this
+			 * listener in the help output.
+			 */
+			if (commands.stream().anyMatch(c -> c.name().equals(name))) {
 				continue;
 			}
 
