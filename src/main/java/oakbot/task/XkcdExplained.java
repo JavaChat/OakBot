@@ -22,6 +22,7 @@ import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
@@ -154,20 +155,72 @@ public class XkcdExplained implements ScheduledTask, Listener {
 		}
 
 		Document dom = Jsoup.parse(html);
-		Element firstParagraph = dom.selectFirst("p");
-		if (firstParagraph == null) {
-			throw new IOException();
+		Node next = nextSiblingThatsNotJustWhitespace(dom.getElementById("Explanation").parentNode());
+
+		/*
+		 * A notice such as "This explanation may be incomplete" may be at the
+		 * top of the Explanation section. These notices are inside of a <table>
+		 * element.
+		 */
+		if (next instanceof Element) {
+			Element element = (Element) next;
+			if ("table".equals(element.tagName())) {
+				next = nextSiblingThatsNotJustWhitespace(next);
+			}
+		}
+
+		if (next instanceof Element) {
+			Element element = (Element) next;
+
+			/*
+			 * If an explanation hasn't been posted yet, then we may have
+			 * reached the next section of the wiki page.
+			 */
+			if ("h2".equals(element.tagName())) {
+				throw new IOException();
+			}
+
+			/*
+			 * Sometimes, the first paragraph is wrapped in a <p> element.
+			 */
+			if ("p".equals(element.tagName())) {
+				/*
+				 * If an explanation hasn't been posted yet, the <p> tag may
+				 * just contain <br> tags and other whitespace.
+				 */
+				if (element.text().isEmpty()) {
+					throw new IOException();
+				}
+
+				return element.html();
+			}
 		}
 
 		/*
-		 * If an explanation hasn't been posted yet, the <p> tag may
-		 * just contain <br> tags and other whitespace.
+		 * Other times, the content of the first paragraph is not wrapped in a
+		 * <p> element, but subsequent paragraphs are.
 		 */
-		if (firstParagraph.text().isEmpty()) {
-			throw new IOException();
-		}
+		StringBuilder firstParagraph = new StringBuilder();
+		while (true) {
+			firstParagraph.append(next.outerHtml());
+			next = next.nextSibling();
 
-		return firstParagraph.html();
+			if (next instanceof Element) {
+				Element element = (Element) next;
+				if ("p".equals(element.tagName())) {
+					break;
+				}
+			}
+		}
+		return firstParagraph.toString().trim();
+	}
+
+	private Node nextSiblingThatsNotJustWhitespace(Node node) {
+		do {
+			node = node.nextSibling();
+		} while (node.outerHtml().trim().isEmpty());
+
+		return node;
 	}
 
 	@Override

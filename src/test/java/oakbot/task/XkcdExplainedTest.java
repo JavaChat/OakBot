@@ -97,6 +97,45 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
+	public void first_paragraph_not_wrapped_in_p_element() throws Exception {
+		String html;
+		try (InputStream in = XkcdExplainedTest.class.getResourceAsStream("xkcd-explained-2796-first-para-not-wrapped-in-p-element.html")) {
+			html = new Gobble(in).asString();
+		}
+
+		XkcdExplained task = new XkcdExplained("PT0S") {
+			@Override
+			CloseableHttpClient httpClient() {
+				//@formatter:off
+				return new MockHttpClientBuilder()
+					.request("GET", "https://www.explainxkcd.com/wiki/index.php/2796")
+					.response(200, html)
+				.build();
+				//@formatter:on
+			}
+		};
+
+		IBot bot = mock(IBot.class);
+
+		//@formatter:off
+		ChatMessage message = new ChatMessage.Builder()
+			.timestamp(LocalDateTime.now())
+			.userId(-2)
+			.roomId(1)
+			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/2796\"><img src=\"https://imgs.xkcd.com/comics/actual_progress.png\" title=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" alt=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" /></a></div>")
+		.build();
+		//@formatter:on
+
+		task.onMessage(message, bot);
+		task.run(bot);
+
+		PostMessage expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
+		verify(bot).sendMessage(1, expected);
+
+		assertTrue(task.comicsByRoom.isEmpty());
+	}
+
+	@Test
 	public void initial_wait_time() throws Exception {
 		XkcdExplained task = new XkcdExplained("PT1H") {
 			@Override
