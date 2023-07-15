@@ -154,7 +154,7 @@
 		-->
 		<constructor-arg value="session token goes here" />
 	</bean>
-	<bean class="oakbot.task.AdventOfCode">
+	<bean class="oakbot.command.aoc.AdventOfCode">
 		<constructor-arg value="PT15M" /> <!-- polling interval. AoC asks that this not be less than 15 minutes. -->
 		<constructor-arg>
 			<util:map> <!-- the leaderboard to show for each room if the user does not specify a leaderboard ID (can be empty) -->
