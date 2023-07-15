@@ -29,7 +29,7 @@ import oakbot.command.TagCommand;
 import oakbot.command.UnsummonCommand;
 import oakbot.command.WaduCommand;
 import oakbot.command.WikiCommand;
-import oakbot.command.aoc.AdventOfCodeCommand;
+import oakbot.command.aoc.AdventOfCode;
 import oakbot.command.define.DefineCommand;
 import oakbot.command.effective.EffectiveDebuggingCommand;
 import oakbot.command.effective.EffectiveJavaCommand;
@@ -75,7 +75,7 @@ public class CommandsWikiPage {
 		List<Command> commands = new ArrayList<>();
 		{
 			commands.add(new AboutCommand(null, null));
-			commands.add(new AdventOfCodeCommand(Collections.emptyMap(), null));
+			commands.add(new AdventOfCode("PT0S", Collections.emptyMap(), null));
 			commands.add(new AfkCommand());
 			commands.add(new CatCommand(null));
 			commands.add(new DefineCommand(null));

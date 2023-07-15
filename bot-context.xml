@@ -145,13 +145,6 @@
 	<bean id="afkCommand" class="oakbot.command.AfkCommand" />
 	
 	<!-- /aoc -->
-	<bean class="oakbot.command.aoc.AdventOfCodeCommand">
-		<constructor-arg ref="aocDefaultLeaderboardIds" />
-		<constructor-arg ref="aocApi" />
-	</bean>
-	<util:map id="aocDefaultLeaderboardIds"> <!-- the default leaderboard to show for each room if the user does not specify a leaderboard ID (can be empty) -->
-		<entry key="1" value="123456" />
-	</util:map>
 	<bean id="aocApi" class="oakbot.command.aoc.AdventOfCodeApi">
 		<!--
 		Session token is required in order to query the AoC leaderboards. This value can be retrieved
@@ -161,9 +154,13 @@
 		-->
 		<constructor-arg value="session token goes here" />
 	</bean>
-	<bean class="oakbot.task.AdventOfCodeTask">
+	<bean class="oakbot.task.AdventOfCode">
 		<constructor-arg value="PT15M" /> <!-- polling interval. AoC asks that this not be less than 15 minutes. -->
-		<constructor-arg ref="aocDefaultLeaderboardIds" />
+		<constructor-arg>
+			<util:map> <!-- the leaderboard to show for each room if the user does not specify a leaderboard ID (can be empty) -->
+				<entry key="1" value="123456" />
+			</util:map>
+		</constructor-arg>
 		<constructor-arg ref="aocApi" />
 	</bean>
 

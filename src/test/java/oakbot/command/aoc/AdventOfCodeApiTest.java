@@ -22,7 +22,7 @@ public class AdventOfCodeApiTest {
 	public void getLeadeboard() throws Exception {
 		AdventOfCodeApi api = mock("123456");
 		List<Player> players = api.getLeaderboard("123456");
-		assertEquals(9, players.size());
+		assertEquals(10, players.size());
 
 		Player owner = players.get(0);
 		assertEquals(256093, owner.getId());

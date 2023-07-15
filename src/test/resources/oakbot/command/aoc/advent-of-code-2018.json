@@ -107,6 +107,15 @@
 			"last_star_ts": 0,
 			"local_score": 0,
 			"completion_day_level": {}
+		},
+		"376568": {
+			"global_score": 0,
+			"stars": 0,
+			"id": "376568",
+			"name": "Hey @Michael",
+			"last_star_ts": 0,
+			"local_score": 0,
+			"completion_day_level": {}
 		}
 	},
 	"event": "2018",

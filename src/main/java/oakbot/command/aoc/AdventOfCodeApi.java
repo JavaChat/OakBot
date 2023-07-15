@@ -3,7 +3,6 @@ package oakbot.command.aoc;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,6 +19,8 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import oakbot.util.Now;
 
 /**
  * Interacts with the adventofcode.com website.
@@ -51,7 +52,7 @@ public class AdventOfCodeApi {
 	 * @throws IOException if there's a problem getting the leaderboard
 	 */
 	public List<Player> getLeaderboard(String leaderboardId) throws IOException {
-		int year = LocalDateTime.now().getYear();
+		int year = Now.local().getYear();
 		String jsonUrl = String.format(jsonUrlTemplate, year, leaderboardId);
 
 		JsonNode root = get(jsonUrl);
@@ -100,7 +101,7 @@ public class AdventOfCodeApi {
 	 * @return the URL
 	 */
 	public String getLeaderboardWebsite(String leaderboardId) {
-		int year = LocalDateTime.now().getYear();
+		int year = Now.local().getYear();
 		return String.format(htmlUrlTemplate, year, leaderboardId);
 	}
 
