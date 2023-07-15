@@ -4,16 +4,33 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
  * Translates a message from English to Groot.
  * @author Michael Angstadt
  */
-public class GrootFilter extends ChatResponseFilter {
+public class GrootFilter extends ToggleableFilter {
 	private final Pattern whitespaceRegex = Pattern.compile("\\s+");
 	private final Pattern replyRegex = Pattern.compile("^:\\d+\\s");
 	private final String grootWords[] = { "I", "am", "Groot" };
+
+	@Override
+	public String name() {
+		return "groot";
+	}
+
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("I am Groot.")
+			.detail("Toggles a filter that makes Oak speak in Groot.")
+			.includeSummaryWithDetail(false)
+		.build();
+		//@formatter:on
+	}
 
 	@Override
 	public String filter(String message) {

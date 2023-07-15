@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import oakbot.Database;
@@ -15,19 +16,16 @@ import oakbot.command.Command;
 import oakbot.command.EightBallCommand;
 import oakbot.command.FacepalmCommand;
 import oakbot.command.FatCatCommand;
-import oakbot.command.GrootCommand;
 import oakbot.command.HelpCommand;
 import oakbot.command.HelpDoc;
 import oakbot.command.JuiceBoxCommand;
 import oakbot.command.ReactCommand;
 import oakbot.command.RollCommand;
-import oakbot.command.RolloverCommand;
 import oakbot.command.ShrugCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.SummonCommand;
 import oakbot.command.TagCommand;
 import oakbot.command.UnsummonCommand;
-import oakbot.command.WaduCommand;
 import oakbot.command.WikiCommand;
 import oakbot.command.aoc.AdventOfCode;
 import oakbot.command.define.DefineCommand;
@@ -39,6 +37,9 @@ import oakbot.command.learn.LearnCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.command.learn.UnlearnCommand;
 import oakbot.command.urban.UrbanCommand;
+import oakbot.filter.GrootFilter;
+import oakbot.filter.UpsidedownTextFilter;
+import oakbot.filter.WaduFilter;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
 import oakbot.listener.MornListener;
@@ -84,7 +85,7 @@ public class CommandsWikiPage {
 			commands.add(new EightBallCommand());
 			commands.add(new FacepalmCommand(""));
 			commands.add(new FatCatCommand(db));
-			commands.add(new GrootCommand(null));
+			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners));
 			commands.add(new HttpCommand());
 			commands.add(new JavadocCommand(null));
@@ -92,18 +93,18 @@ public class CommandsWikiPage {
 			commands.add(new LearnCommand(commands, learnedCommands));
 			commands.add(new ReactCommand(null));
 			commands.add(new RollCommand());
-			commands.add(new RolloverCommand(null));
 			commands.add(new ShrugCommand());
 			commands.add(new ShutdownCommand());
 			commands.add(new SummonCommand(2));
 			commands.add(new TagCommand());
 			commands.add(new UnlearnCommand(commands, learnedCommands));
 			commands.add(new UnsummonCommand());
+			commands.add(new UpsidedownTextFilter());
 			commands.add(new UrbanCommand());
-			commands.add(new WaduCommand(null));
+			commands.add(new WaduFilter());
 			commands.add(new WikiCommand());
 
-			commands.sort((a, b) -> a.name().compareTo(b.name()));
+			commands.sort(Comparator.comparing(Command::name));
 		}
 
 		ChatBuilder cb = new ChatBuilder();

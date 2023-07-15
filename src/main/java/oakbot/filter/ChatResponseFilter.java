@@ -30,10 +30,12 @@ public abstract class ChatResponseFilter {
 	/**
 	 * Toggles the filter in a given room.
 	 * @param roomId the room ID
+	 * @return true if the filter is now enabled, false if not
 	 */
-	public void toggle(int roomId) {
+	public boolean toggle(int roomId) {
 		boolean enabled = isEnabled(roomId);
 		setEnabled(roomId, !enabled);
+		return !enabled;
 	}
 
 	/**

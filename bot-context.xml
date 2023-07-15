@@ -198,10 +198,7 @@
 	</bean>
 
 	<!-- /groot -->
-	<bean class="oakbot.command.GrootCommand">
-		<constructor-arg ref="grootFilter" />
-	</bean>
-	<bean id="grootFilter" class="oakbot.filter.GrootFilter" />
+	<bean class="oakbot.filter.GrootFilter" />
 
 	<!-- /http -->
 	<bean class="oakbot.command.http.HttpCommand" />
@@ -231,10 +228,7 @@
 	<bean class="oakbot.command.RollCommand" />
 
 	<!-- /rollover -->
-	<bean class="oakbot.command.RolloverCommand">
-		<constructor-arg ref="upsidedownTextFilter" />
-	</bean>
-	<bean id="upsidedownTextFilter" class="oakbot.filter.UpsidedownTextFilter" />
+	<bean class="oakbot.filter.UpsidedownTextFilter" />
 
 	<!-- /shrug -->
 	<bean class="oakbot.command.ShrugCommand" />
@@ -255,10 +249,7 @@
 	<bean class="oakbot.command.urban.UrbanCommand" />
 
 	<!-- /wadu -->
-	<bean id="waduFilter" class="oakbot.filter.WaduFilter" />
-	<bean class="oakbot.command.WaduCommand">
-		<constructor-arg ref="waduFilter" />
-	</bean>
+	<bean class="oakbot.filter.WaduFilter" />
 	
 	<!-- /wiki -->
 	<bean class="oakbot.command.WikiCommand" />

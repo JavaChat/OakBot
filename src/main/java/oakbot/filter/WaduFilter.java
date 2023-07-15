@@ -4,15 +4,32 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
  * Translates a message from English to Wadu hek.
  * @author Michael Angstadt
  */
-public class WaduFilter extends ChatResponseFilter {
+public class WaduFilter extends ToggleableFilter {
 	private final Pattern whitespaceRegex = Pattern.compile("\\s+");
 	private final Pattern replyRegex = Pattern.compile("^:\\d+\\s");
+
+	@Override
+	public String name() {
+		return "wadu";
+	}
+
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Wadu hek?")
+			.detail("Toggles a filter that makes Oak speak in Wadu Hek.")
+			.includeSummaryWithDetail(false)
+		.build();
+		//@formatter:on
+	}
 
 	@Override
 	public String filter(String message) {

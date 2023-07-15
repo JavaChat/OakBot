@@ -1,11 +1,13 @@
 package oakbot.filter;
 
+import oakbot.command.HelpDoc;
+
 /**
  * Turns text upside down.
  * @author Michael Angstadt
  * @see http://stackoverflow.com/q/24371977/13379
  */
-public class UpsidedownTextFilter extends ChatResponseFilter {
+public class UpsidedownTextFilter extends ToggleableFilter {
 	private final char[] map;
 	{
 		String normal, upsideDown;
@@ -38,6 +40,22 @@ public class UpsidedownTextFilter extends ChatResponseFilter {
 			char u = upsideDown.charAt(i);
 			map[n] = u;
 		}
+	}
+
+	@Override
+	public String name() {
+		return "rollover";
+	}
+
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Turns the bot upside down.")
+			.detail("Toggles a filter that makes all the letters in the messages Oak posts look like they are upside down.")
+			.includeSummaryWithDetail(false)
+		.build();
+		//@formatter:on
 	}
 
 	@Override
