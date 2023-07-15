@@ -30,14 +30,14 @@ import oakbot.chat.ChatMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
-import oakbot.listener.JavadocListener;
+import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
 
 /**
  * The command class for the chat bot.
  * @author Michael Angstadt
  */
-public class JavadocCommand implements Command {
+public class JavadocCommand implements Command, Listener {
 	/**
 	 * Stop responding to numeric choices the user enters after this amount of
 	 * time.
@@ -115,7 +115,7 @@ public class JavadocCommand implements Command {
 	@Override
 	public HelpDoc help() {
 		//@formatter:off
-		return new HelpDoc.Builder(this)
+		return new HelpDoc.Builder((Command)this)
 			.summary("Displays class documentation from the Javadocs.")
 			.detail("If more than one class or method matches the query, then a list of choices is displayed. Queries are case-insensitive.")
 			.example("String", "Searches for all classes named \"String\".")
@@ -166,6 +166,17 @@ public class JavadocCommand implements Command {
 			return handleNoMatch(chatCommand);
 		}
 		return handleSingleMatch(arguments, info, chatCommand);
+	}
+
+	@Override
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
+		String content = message.getContent().getContent();
+		try {
+			int num = Integer.parseInt(content);
+			return showChoice(message, num);
+		} catch (NumberFormatException e) {
+			return doNothing();
+		}
 	}
 
 	private ChatActions handleNoMatch(ChatCommand message) {
@@ -261,13 +272,12 @@ public class JavadocCommand implements Command {
 	}
 
 	/**
-	 * Called when the {@link JavadocListener} picks up a choice someone typed
-	 * into the chat.
+	 * Called when someone types a numeric choice into the chat.
 	 * @param message the chat message
 	 * @param num the number
-	 * @return the chat response or null not to respond to the message
+	 * @return the chat response
 	 */
-	public ChatActions showChoice(ChatMessage message, int num) {
+	private ChatActions showChoice(ChatMessage message, int num) {
 		Conversation conversation = conversations.get(message.getRoomId());
 
 		if (conversation == null) {

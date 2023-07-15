@@ -207,11 +207,8 @@
 	<bean class="oakbot.command.http.HttpCommand" />
 
 	<!-- /javadoc -->
-	<bean id="javadocCommand" class="oakbot.command.javadoc.JavadocCommand">
+	<bean class="oakbot.command.javadoc.JavadocCommand">
 		<constructor-arg ref="javadocDao" />
-	</bean>
-	<bean class="oakbot.listener.JavadocListener">
-		<constructor-arg ref="javadocCommand" />
 	</bean>
 	<bean id="javadocDao" class="oakbot.command.javadoc.JavadocDaoUncached">
 		<constructor-arg>
