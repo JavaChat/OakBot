@@ -18,6 +18,7 @@ import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Now;
 
 /**
  * Posts a fact once per day at noon.
@@ -45,7 +46,7 @@ public class FOTD implements ScheduledTask {
 
 	@Override
 	public long nextRun() {
-		LocalDateTime now = now();
+		LocalDateTime now = Now.local();
 		LocalDateTime next = now.truncatedTo(ChronoUnit.DAYS).withHour(12);
 		if (now.getHour() >= 12) {
 			next = next.plusDays(1);
@@ -122,14 +123,5 @@ public class FOTD implements ScheduledTask {
 				return EntityUtils.toString(response.getEntity());
 			}
 		}
-	}
-
-	/**
-	 * Gets the current time. This method is package private so unit tests can
-	 * override it.
-	 * @return the current time
-	 */
-	LocalDateTime now() {
-		return LocalDateTime.now();
 	}
 }

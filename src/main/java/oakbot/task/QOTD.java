@@ -21,6 +21,7 @@ import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Now;
 
 /**
  * Posts a quote once per day at midnight.
@@ -43,7 +44,7 @@ public class QOTD implements ScheduledTask {
 
 	@Override
 	public long nextRun() {
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = Now.local();
 		LocalDateTime tomorrow = now.truncatedTo(ChronoUnit.DAYS).plusDays(1);
 		return now.until(tomorrow, ChronoUnit.MILLIS);
 	}

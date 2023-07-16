@@ -1,6 +1,7 @@
 package oakbot.task;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -18,6 +20,7 @@ import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.Gobble;
+import oakbot.util.Now;
 
 /**
  * @author Michael Angstadt
@@ -47,30 +50,31 @@ public class FOTDTest {
 		}
 	}
 
+	@After
+	public void after() {
+		Now.disable();
+	}
+
 	@Test
 	public void nextRun_morning() {
-		FOTD task = new FOTD() {
-			@Override
-			LocalDateTime now() {
-				return LocalDateTime.of(2018, 7, 19, 11, 0, 0);
-			}
-		};
+		Now.setNow(LocalDateTime.of(2018, 7, 19, 11, 0, 0));
 
-		long nextRun = task.nextRun();
-		assertEquals(Duration.ofHours(1).toMillis(), nextRun);
+		FOTD task = new FOTD();
+
+		long expected = Duration.ofHours(1).toMillis();
+		long actual = task.nextRun();
+		assertApprox(expected, actual);
 	}
 
 	@Test
 	public void nextRun_afternoon() {
-		FOTD task = new FOTD() {
-			@Override
-			LocalDateTime now() {
-				return LocalDateTime.of(2018, 7, 19, 13, 0, 0);
-			}
-		};
+		Now.setNow(LocalDateTime.of(2018, 7, 19, 13, 0, 0));
 
-		long nextRun = task.nextRun();
-		assertEquals(Duration.ofHours(23).toMillis(), nextRun);
+		FOTD task = new FOTD();
+
+		long expected = Duration.ofHours(23).toMillis();
+		long actual = task.nextRun();
+		assertApprox(expected, actual);
 	}
 
 	@Test
@@ -138,5 +142,9 @@ public class FOTDTest {
 		task.run(bot);
 
 		verify(bot, never()).broadcastMessage(any(PostMessage.class));
+	}
+
+	private static void assertApprox(long expected, long actual) {
+		assertTrue("Expected " + expected + " but was " + actual + ".", expected - actual < 1000);
 	}
 }

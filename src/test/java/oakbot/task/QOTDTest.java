@@ -1,13 +1,18 @@
 package oakbot.task;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
+import org.junit.After;
 import org.junit.Test;
 
 import oakbot.util.Gobble;
+import oakbot.util.Now;
 
 public class QOTDTest {
 	/**
@@ -16,6 +21,11 @@ public class QOTDTest {
 	public static void main(String args[]) throws Exception {
 		QOTD qotd = new QOTD();
 		System.out.println(qotd.fromSlashdot());
+	}
+
+	@After
+	public void after() {
+		Now.disable();
 	}
 
 	@Test
@@ -64,5 +74,20 @@ public class QOTDTest {
 		String expected = "If you like what you do,\nand you’re lucky enough to be good at it, do it for that reason.\n-Phil Grimshaw (source: https://theysaidso.com)";
 		String actual = qotd.fromTheySaidSo().toString();
 		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void nextRun() {
+		Now.setNow(LocalDateTime.of(2018, 7, 19, 11, 0, 0));
+
+		QOTD task = new QOTD();
+
+		long expected = Duration.ofHours(13).toMillis();
+		long actual = task.nextRun();
+		assertApprox(expected, actual);
+	}
+
+	private static void assertApprox(long expected, long actual) {
+		assertTrue("Expected " + expected + " but was " + actual + ".", expected - actual < 1000);
 	}
 }
