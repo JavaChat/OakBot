@@ -5,7 +5,8 @@ import static oakbot.bot.ChatActions.reply;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.bot.ShutdownException;
+import oakbot.bot.PostMessage;
+import oakbot.bot.Shutdown;
 
 /**
  * Shuts down the bot.
@@ -33,7 +34,13 @@ public class ShutdownCommand implements Command {
 		if (admin) {
 			String message = "Shutting down. See you later.";
 			boolean broadcast = chatCommand.getContent().equalsIgnoreCase("broadcast");
-			throw new ShutdownException(message, broadcast);
+
+			//@formatter:off
+			return ChatActions.create(
+				new PostMessage(message).broadcast(broadcast),
+				new Shutdown()
+			);
+			//@formatter:on
 		}
 
 		return reply("Only admins can shut me down. :P", chatCommand);

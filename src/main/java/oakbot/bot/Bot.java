@@ -304,28 +304,7 @@ public class Bot implements IBot {
 		//inactiveRoomTasks.touch(message);
 		inactivityTasks.touch(message);
 
-		ChatActions actions;
-		try {
-			actions = handleListeners(message);
-		} catch (ShutdownException e) {
-			String shutdownMessage = e.getShutdownMessage();
-			if (shutdownMessage != null) {
-				try {
-					if (e.isBroadcast()) {
-						broadcastMessage(shutdownMessage);
-					} else {
-						sendMessage(room, shutdownMessage);
-					}
-				} catch (IOException e2) {
-					logger.log(Level.SEVERE, "Problem sending shutdown message before terminating the bot.", e2);
-				}
-			}
-
-			newMessages.clear();
-			stop();
-
-			return;
-		}
+		ChatActions actions = handleListeners(message);
 
 		if (!actions.isEmpty()) {
 			if (logger.isLoggable(Level.INFO)) {
@@ -344,7 +323,11 @@ public class Bot implements IBot {
 					PostMessage postMessage = (PostMessage) action;
 
 					try {
-						sendMessage(room, postMessage);
+						if (postMessage.broadcast()) {
+							broadcastMessage(postMessage);
+						} else {
+							sendMessage(room, postMessage);
+						}
 					} catch (IOException e) {
 						logger.log(Level.SEVERE, "Problem posting message [room=" + room.getRoomId() + "]: " + postMessage.message(), e);
 					}
@@ -409,6 +392,12 @@ public class Bot implements IBot {
 						logger.log(Level.SEVERE, "Problem leaving room " + leaveRoom.roomId(), e);
 					}
 
+					continue;
+				}
+
+				if (action instanceof Shutdown) {
+					newMessages.clear();
+					stop();
 					continue;
 				}
 			}
@@ -587,17 +576,11 @@ public class Bot implements IBot {
 		for (Listener listener : listeners) {
 			try {
 				actions.addAll(listener.onMessage(message, this));
-			} catch (ShutdownException e) {
-				throw e;
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "A listener threw an exception responding to a message.", e);
 			}
 		}
 		return actions;
-	}
-
-	private void broadcastMessage(String message) throws IOException {
-		broadcastMessage(new PostMessage(message));
 	}
 
 	@Override

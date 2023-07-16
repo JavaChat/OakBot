@@ -1,11 +1,13 @@
 package oakbot.bot;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -29,6 +31,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import oakbot.Database;
 import oakbot.chat.ChatMessage;
 import oakbot.chat.IChatClient;
 import oakbot.chat.IRoom;
@@ -547,26 +550,11 @@ public class BotTest {
 	}
 
 	@Test
-	public void shutdown_broadcast() throws Exception {
-		shutdown(true, true);
-	}
-
-	@Test
-	public void shutdown_message_current_room() throws Exception {
-		shutdown(true, false);
-	}
-
-	@Test
-	public void shutdown_no_message() throws Exception {
-		shutdown(false, false);
-	}
-
-	private void shutdown(boolean postAMessage, boolean broadcastTheMessage) throws Exception {
+	public void shutdown() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
-		IRoom room2 = chatServer.createRoom(2);
+		chatServer.createRoom(1);
 
 		/*
 		 * Define the chat room events to push.
@@ -576,14 +564,14 @@ public class BotTest {
 		/*
 		 * Create the shutdown command.
 		 */
-		String content = postAMessage ? "Bye." : null;
-		ShutdownException exception = new ShutdownException(content, broadcastTheMessage);
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("shutdown");
 		when(command.aliases()).thenReturn(Arrays.asList());
-		when(command.onMessage(any(ChatCommand.class), any(IBot.class))).thenThrow(exception);
+		when(command.onMessage(any(ChatCommand.class), any(IBot.class))).thenReturn(ChatActions.create(new Shutdown()));
 
 		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+
+		Database db = mock(Database.class);
 
 		/*
 		 * Create the bot.
@@ -592,6 +580,7 @@ public class BotTest {
 		Bot bot = bot()
 			.rooms(1, 2)
 			.listeners(commandListener)
+			.database(db)
 		.build();
 		//@formatter:on
 
@@ -600,14 +589,18 @@ public class BotTest {
 		 */
 		Thread t = bot.connect(true);
 		chatServer.pushEvents(event1);
-		//bot.stop(); //this method call should not be necessary
-		t.join();
+
+		/*
+		 * The bot should terminate, so this method should only block until it
+		 * processes the shutdown command.
+		 */
+		t.join(5000);
 
 		/*
 		 * Verify.
 		 */
-		verify(room1, times(postAMessage ? 1 : 0)).sendMessage("Bye.", SplitStrategy.NONE);
-		verify(room2, times(postAMessage && broadcastTheMessage ? 1 : 0)).sendMessage("Bye.", SplitStrategy.NONE);
+		assertFalse(t.isAlive());
+		verify(db, atLeastOnce()).commit();
 	}
 
 	@Test

@@ -11,7 +11,7 @@ import oakbot.chat.SplitStrategy;
 public class PostMessage implements ChatAction {
 	private String message, condensedMessage;
 	private SplitStrategy splitStrategy = SplitStrategy.NONE;
-	private boolean bypassFilters, ephemeral;
+	private boolean bypassFilters, ephemeral, broadcast;
 
 	/**
 	 * @param message the message to post
@@ -64,6 +64,7 @@ public class PostMessage implements ChatAction {
 	 * message will be ignored.
 	 * @param condensedMessage the condensed message or null not to change
 	 * anything
+	 * @return this
 	 */
 	public PostMessage condensedMessage(CharSequence condensedMessage) {
 		this.condensedMessage = (condensedMessage == null) ? null : condensedMessage.toString();
@@ -83,6 +84,7 @@ public class PostMessage implements ChatAction {
 	 * Sets how the message should be split up if it exceeds length limitations.
 	 * By default, the message will be truncated.
 	 * @param splitStrategy the split strategy
+	 * @return this
 	 */
 	public PostMessage splitStrategy(SplitStrategy splitStrategy) {
 		this.splitStrategy = splitStrategy;
@@ -127,15 +129,36 @@ public class PostMessage implements ChatAction {
 	 * Note that if this is set to {@code true}, the {@link #condensedMessage()}
 	 * will be ignored.
 	 * @param ephemeral true to delete the message, false not to
+	 * @return this
 	 */
 	public PostMessage ephemeral(boolean ephemeral) {
 		this.ephemeral = ephemeral;
 		return this;
 	}
 
+	/**
+	 * Gets whether to send the message to all non-quiet chat rooms the bot is
+	 * connected to.
+	 * @return true to broadcast the message, false not to
+	 */
+	public boolean broadcast() {
+		return broadcast;
+	}
+
+	/**
+	 * Sets whether to send the message to all non-quiet chat rooms the bot is
+	 * connected to.
+	 * @param broadcast true to broadcast the message, false not to
+	 * @return this
+	 */
+	public PostMessage broadcast(boolean broadcast) {
+		this.broadcast = broadcast;
+		return this;
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(bypassFilters, condensedMessage, ephemeral, message, splitStrategy);
+		return Objects.hash(broadcast, bypassFilters, condensedMessage, ephemeral, message, splitStrategy);
 	}
 
 	@Override
@@ -144,12 +167,11 @@ public class PostMessage implements ChatAction {
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		PostMessage other = (PostMessage) obj;
-		return bypassFilters == other.bypassFilters && Objects.equals(condensedMessage, other.condensedMessage) && ephemeral == other.ephemeral && Objects.equals(message, other.message) && splitStrategy == other.splitStrategy;
+		return broadcast == other.broadcast && bypassFilters == other.bypassFilters && Objects.equals(condensedMessage, other.condensedMessage) && ephemeral == other.ephemeral && Objects.equals(message, other.message) && splitStrategy == other.splitStrategy;
 	}
 
 	@Override
 	public String toString() {
-		return "PostMessage [message=" + message + ", condensedMessage=" + condensedMessage + ", splitStrategy=" + splitStrategy + ", bypassFilters=" + bypassFilters + ", ephemeral=" + ephemeral + "]";
+		return "PostMessage [message=" + message + ", condensedMessage=" + condensedMessage + ", splitStrategy=" + splitStrategy + ", bypassFilters=" + bypassFilters + ", ephemeral=" + ephemeral + ", broadcast=" + broadcast + "]";
 	}
-
 }
