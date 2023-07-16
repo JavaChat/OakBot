@@ -45,6 +45,8 @@ import oakbot.listener.MentionListener;
 import oakbot.listener.MornListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
+import oakbot.task.ChatGPT;
+import oakbot.task.XkcdExplained;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -65,12 +67,14 @@ public class CommandsWikiPage {
 			MentionListener mentionListener = new MentionListener();
 
 			listeners.add(mentionListener);
+			listeners.add(new ChatGPT("", "", 0, "PT0S", 0, 0, Collections.emptyList()));
 			listeners.add(new MornListener("PT1S", mentionListener));
 			listeners.add(new WaveListener("PT1S", mentionListener));
 			listeners.add(new WelcomeListener(db, Collections.emptyMap()));
+			listeners.add(new XkcdExplained("PT0S"));
 
 			listeners.removeIf(l -> l.name() == null);
-			listeners.sort((a, b) -> a.name().compareTo(b.name()));
+			listeners.sort(Comparator.comparing(Listener::name));
 		}
 
 		List<Command> commands = new ArrayList<>();
