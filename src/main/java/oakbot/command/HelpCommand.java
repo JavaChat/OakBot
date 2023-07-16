@@ -20,6 +20,7 @@ import oakbot.chat.SplitStrategy;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.listener.Listener;
+import oakbot.task.ScheduledTask;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -30,11 +31,13 @@ public class HelpCommand implements Command {
 	private final List<Command> commands;
 	private final LearnedCommandsDao learnedCommands;
 	private final List<Listener> listeners;
+	private final List<ScheduledTask> tasks;
 
-	public HelpCommand(List<Command> commands, LearnedCommandsDao learnedCommands, List<Listener> listeners) {
+	public HelpCommand(List<Command> commands, LearnedCommandsDao learnedCommands, List<Listener> listeners, List<ScheduledTask> tasks) {
 		this.commands = commands;
 		this.learnedCommands = learnedCommands;
 		this.listeners = listeners;
+		this.tasks = tasks;
 	}
 
 	@Override
@@ -63,12 +66,14 @@ public class HelpCommand implements Command {
 
 		Multimap<String, String> commandSummaries = getCommandSummaries();
 		Multimap<String, String> listenerDescriptions = getListenerSummaries();
+		Multimap<String, String> taskDescriptions = getTaskSummaries();
 
 		int longestNameLength;
 		{
 			Collection<String> allNames = new ArrayList<>(commandSummaries.size() + listenerDescriptions.size());
 			allNames.addAll(commandSummaries.keySet());
 			allNames.addAll(listenerDescriptions.keySet());
+			allNames.addAll(taskDescriptions.keySet());
 			longestNameLength = longestStringLength(allNames);
 		}
 
@@ -105,6 +110,19 @@ public class HelpCommand implements Command {
 		if (!listenerDescriptions.isEmpty()) {
 			cb.fixed().append("Listeners====================").nl();
 			for (Map.Entry<String, String> entry : listenerDescriptions.entries()) {
+				String name = entry.getKey();
+				String description = entry.getValue();
+
+				cb.fixed().append(name);
+				cb.append(repeat(" ", longestNameLength - name.length() + 2));
+				cb.append(description).nl();
+			}
+			cb.fixed().nl();
+		}
+
+		if (!taskDescriptions.isEmpty()) {
+			cb.fixed().append("Tasks========================").nl();
+			for (Map.Entry<String, String> entry : taskDescriptions.entries()) {
 				String name = entry.getKey();
 				String description = entry.getValue();
 
@@ -174,6 +192,28 @@ public class HelpCommand implements Command {
 			}
 
 			summaries.put(name, listener.help().getSummary());
+		}
+		return summaries;
+	}
+
+	private Multimap<String, String> getTaskSummaries() {
+		Multimap<String, String> summaries = TreeMultimap.create();
+
+		for (ScheduledTask task : tasks) {
+			String name = task.name();
+			if (name == null) {
+				continue;
+			}
+
+			/*
+			 * If a command or listener exists with the same name, do not
+			 * include this task in the help output.
+			 */
+			if (commands.stream().anyMatch(c -> c.name().equals(name)) || listeners.stream().filter(l -> l.name() != null).anyMatch(l -> l.name().equals(name))) {
+				continue;
+			}
+
+			summaries.put(name, task.help().getSummary());
 		}
 		return summaries;
 	}

@@ -16,6 +16,7 @@ import org.apache.http.util.EntityUtils;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -27,6 +28,20 @@ public class FOTD implements ScheduledTask {
 
 	private final String url = "http://www.refdesk.com";
 	private final String archiveUrl = url + "/fotd-arch.html";
+
+	@Override
+	public String name() {
+		return "fotd";
+	}
+
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Posts a fact every day at 12pm from refdesk.com.")
+		.build();
+		//@formatter:on
+	}
 
 	@Override
 	public long nextRun() {
@@ -56,7 +71,7 @@ public class FOTD implements ScheduledTask {
 		} else {
 			cb.append(' ').link("(source)", archiveUrl);
 		}
-		
+
 		PostMessage postMessage = new PostMessage(cb).splitStrategy(SplitStrategy.WORD);
 		bot.broadcastMessage(postMessage);
 	}

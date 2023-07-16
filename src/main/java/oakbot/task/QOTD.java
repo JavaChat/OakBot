@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -26,6 +27,20 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class QOTD implements ScheduledTask {
+	@Override
+	public String name() {
+		return "qotd";
+	}
+
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Posts a quote every day at 12am from slashdot.org.")
+		.build();
+		//@formatter:on
+	}
+
 	@Override
 	public long nextRun() {
 		LocalDateTime now = LocalDateTime.now();

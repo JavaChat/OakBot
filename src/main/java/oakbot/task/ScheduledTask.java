@@ -1,6 +1,7 @@
 package oakbot.task;
 
 import oakbot.bot.IBot;
+import oakbot.command.HelpDoc;
 
 /**
  * Represents a task that runs on a regular basis.
@@ -20,4 +21,22 @@ public interface ScheduledTask {
 	 * @return the wait time (in milliseconds) or zero to stop running the task
 	 */
 	long nextRun();
+
+	/**
+	 * Gets the task's name to display in the help documentation.
+	 * @return the name or null not to display this task in the help
+	 * documentation
+	 */
+	default String name() {
+		return null;
+	}
+
+	/**
+	 * Gets the task's help documentation.
+	 * @return the help documentation or null if this task does not have any
+	 * help documentation
+	 */
+	default HelpDoc help() {
+		return null;
+	}
 }

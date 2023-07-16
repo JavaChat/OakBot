@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.command.Command;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -22,6 +23,20 @@ public abstract class HealthMonitor implements ScheduledTask {
 	private final List<Integer> roomIds;
 	private boolean first = true;
 	private int securityUpdates;
+
+	@Override
+	public String name() {
+		return "healthmonitor";
+	}
+
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Makes the bot post messages such as \"" + responses[0] + "\" and \"" + responses[1] + "\" based on the number of pending security updates the server has.")
+		.build();
+		//@formatter:on
+	}
 
 	/**
 	 * @param roomIds the rooms to post the messages to

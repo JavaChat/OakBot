@@ -46,6 +46,10 @@ import oakbot.listener.MornListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
 import oakbot.task.ChatGPT;
+import oakbot.task.FOTD;
+import oakbot.task.LinuxHealthMonitor;
+import oakbot.task.QOTD;
+import oakbot.task.ScheduledTask;
 import oakbot.task.XkcdExplained;
 import oakbot.util.ChatBuilder;
 
@@ -62,14 +66,22 @@ public class CommandsWikiPage {
 		String trigger = "/";
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 
+		List<ScheduledTask> tasks = new ArrayList<>();
+		{
+			tasks.add(new FOTD());
+			tasks.add(new LinuxHealthMonitor(Collections.emptyList(), trigger));
+			tasks.add(new QOTD());
+
+			tasks.removeIf(t -> t.name() == null);
+			tasks.sort(Comparator.comparing(ScheduledTask::name));
+		}
+
 		List<Listener> listeners = new ArrayList<>();
 		{
-			MentionListener mentionListener = new MentionListener();
-
-			listeners.add(mentionListener);
+			listeners.add(new MentionListener());
 			listeners.add(new ChatGPT("", "", 0, "PT0S", 0, 0, Collections.emptyList()));
-			listeners.add(new MornListener("PT1S", mentionListener));
-			listeners.add(new WaveListener("PT1S", mentionListener));
+			listeners.add(new MornListener("PT1S", null));
+			listeners.add(new WaveListener("PT1S", null));
 			listeners.add(new WelcomeListener(db, Collections.emptyMap()));
 			listeners.add(new XkcdExplained("PT0S"));
 
@@ -90,7 +102,7 @@ public class CommandsWikiPage {
 			commands.add(new FacepalmCommand(""));
 			commands.add(new FatCatCommand(db));
 			commands.add(new GrootFilter());
-			commands.add(new HelpCommand(commands, learnedCommands, listeners));
+			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks));
 			commands.add(new HttpCommand());
 			commands.add(new JavadocCommand(null));
 			commands.add(new JuiceBoxCommand());
@@ -176,6 +188,23 @@ public class CommandsWikiPage {
 				HelpDoc help = listener.help();
 
 				cb.nl().nl().append("## ").append(listener.name()).nl().nl();
+				if (help.isIncludeSummaryWithDetail()) {
+					cb.append(help.getSummary());
+				}
+				if (help.getDetail() != null) {
+					cb.append(" ").append(help.getDetail());
+				}
+			}
+		}
+
+		cb.nl().nl().append("# Tasks");
+		if (tasks.isEmpty()) {
+			cb.nl().nl().italic("no tasks defined");
+		} else {
+			for (ScheduledTask task : tasks) {
+				HelpDoc help = task.help();
+
+				cb.nl().nl().append("## ").append(task.name()).nl().nl();
 				if (help.isIncludeSummaryWithDetail()) {
 					cb.append(help.getSummary());
 				}

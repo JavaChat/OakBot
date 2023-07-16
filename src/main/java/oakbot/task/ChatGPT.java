@@ -147,7 +147,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	@Override
 	public HelpDoc help() {
 		//@formatter:off
-		return new HelpDoc.Builder(this)
+		return new HelpDoc.Builder((CatchAllMentionListener)this)
 			.summary("Allows the user to have a conversation with ChatGPT by mentioning the bot in chat.")
 		.build();
 		//@formatter:on

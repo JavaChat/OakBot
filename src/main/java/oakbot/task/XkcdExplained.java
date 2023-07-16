@@ -65,7 +65,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 	@Override
 	public HelpDoc help() {
 		//@formatter:off
-		return new HelpDoc.Builder(this)
+		return new HelpDoc.Builder((Listener)this)
 			.summary("Posts an explanation of an XKCD comic whenever one is posted to the room by a system bot. Content scraped from explainxkcd.com.")
 		.build();
 		//@formatter:on

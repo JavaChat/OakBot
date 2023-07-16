@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 import oakbot.listener.Listener;
+import oakbot.task.ScheduledTask;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -15,6 +16,7 @@ import oakbot.util.ChatBuilder;
 public class HelpDoc {
 	private final Command command;
 	private final Listener listener;
+	private final ScheduledTask task;
 	private final String summary, detail;
 	private final boolean includeSummaryWithDetail;
 	private final List<String[]> examples;
@@ -22,6 +24,7 @@ public class HelpDoc {
 	private HelpDoc(Builder builder) {
 		command = builder.command;
 		listener = builder.listener;
+		task = builder.task;
 		summary = Objects.requireNonNull(builder.summary);
 		detail = builder.detail;
 		includeSummaryWithDetail = builder.includeSummaryWithDetail;
@@ -119,6 +122,20 @@ public class HelpDoc {
 			return cb.toString();
 		}
 
+		if (task != null) {
+			ChatBuilder cb = new ChatBuilder();
+			cb.append(task.name()).append(':').nl();
+
+			if (includeSummaryWithDetail) {
+				cb.append(summary);
+			}
+			if (detail != null) {
+				cb.append(' ').append(detail);
+			}
+
+			return cb.toString();
+		}
+
 		return null;
 	}
 
@@ -144,6 +161,7 @@ public class HelpDoc {
 	public static class Builder {
 		private Command command;
 		private Listener listener;
+		private ScheduledTask task;
 		private String summary, detail;
 		private boolean includeSummaryWithDetail = true;
 		private final List<String[]> examples = new ArrayList<>();
@@ -154,6 +172,7 @@ public class HelpDoc {
 		public Builder(Command command) {
 			this.command = command;
 			listener = null;
+			task = null;
 		}
 
 		/**
@@ -162,6 +181,16 @@ public class HelpDoc {
 		public Builder(Listener listener) {
 			command = null;
 			this.listener = listener;
+			task = null;
+		}
+
+		/**
+		 * @param task the task this documentation is for
+		 */
+		public Builder(ScheduledTask task) {
+			command = null;
+			listener = null;
+			this.task = task;
 		}
 
 		/**
