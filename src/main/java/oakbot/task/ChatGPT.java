@@ -21,6 +21,7 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.ChatMessage;
+import oakbot.chat.Content;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
 import oakbot.listener.CatchAllMentionListener;
@@ -228,9 +229,16 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		ChatGPTRequest request = new ChatGPTRequest(apiKey, prompt, completionMaxTokens);
 
 		for (ChatMessage message : messages) {
-			String content = message.getContent().getContent();
-			boolean fixedFont = message.getContent().isFixedFont();
-			String contentMd = ChatBuilder.toMarkdown(content, fixedFont);
+			Content content = message.getContent();
+
+			boolean messageWasDeleted = (content == null);
+			if (messageWasDeleted) {
+				continue;
+			}
+
+			String contentStr = content.getContent();
+			boolean fixedFont = content.isFixedFont();
+			String contentMd = ChatBuilder.toMarkdown(contentStr, fixedFont);
 
 			String truncatedContentMd;
 			if (latestMessageCharacterLimit > 0) {
