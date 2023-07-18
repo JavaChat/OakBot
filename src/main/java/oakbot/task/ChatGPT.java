@@ -131,12 +131,22 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			ChatGPTRequest request = buildChatGPTRequest(messages, bot);
 
-			String completion;
+			String response;
 			try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-				completion = request.send(client);
+				response = request.send(client);
+			} catch (ChatGPTException e) {
+				//@formatter:off
+				response = new ChatBuilder()
+					.code()
+					.append("BEEP BOOP ")
+					.append(e.getMessage())
+					.append(" BEEP BOOP")
+					.code()
+				.toString();
+				//@formatter:on
 			}
 
-			PostMessage postMessage = new PostMessage(completion).splitStrategy(SplitStrategy.WORD);
+			PostMessage postMessage = new PostMessage(response).splitStrategy(SplitStrategy.WORD);
 			bot.sendMessage(roomId, postMessage);
 		}
 	}
@@ -174,16 +184,27 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 		try {
 			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
+
 			ChatGPTRequest request = buildChatGPTRequest(prevMessages, bot);
 
-			String completion;
-			try (CloseableHttpClient client = createClient()) {
-				completion = request.send(client);
+			String response;
+			try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
+				response = request.send(client);
+			} catch (ChatGPTException e) {
+				//@formatter:off
+				response = new ChatBuilder()
+					.code()
+					.append("BEEP BOOP ")
+					.append(e.getMessage())
+					.append(" BEEP BOOP")
+					.code()
+				.toString();
+				//@formatter:on
 			}
 
 			resetSpontaneousPostTimer(message.getRoomId());
 
-			return reply(completion, message);
+			return reply(response, message);
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Problem communicating with ChatGPT.", e);
 			return reply("I don't really feel like talking right now.", message);

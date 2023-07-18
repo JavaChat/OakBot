@@ -95,8 +95,9 @@ public class ChatGPTRequest {
 	 * @return the completion response
 	 * @throws IOException if there's any sort of problem communicating with the
 	 * ChatGPT servers
+	 * @throws ChatGPTException if an error response is returned
 	 */
-	public String send(CloseableHttpClient client) throws IOException {
+	public String send(CloseableHttpClient client) throws IOException, ChatGPTException {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("Sending request to ChatGPT: " + jsonToStringDebug(requestRoot));
 		}
@@ -118,15 +119,29 @@ public class ChatGPTRequest {
 				logger.fine("Response from ChatGPT: " + jsonToStringDebug(responseBody));
 			}
 
-			String completionMessage;
+			JsonNode error = responseBody.get("error");
+			if (error != null) {
+				JsonNode node = error.get("message");
+				String message = (node == null) ? null : node.asText();
+
+				node = error.get("type");
+				String type = (node == null) ? null : node.asText();
+
+				node = error.get("param");
+				String param = (node == null) ? null : node.asText();
+
+				node = error.get("code");
+				String code = (node == null) ? null : node.asText();
+
+				throw new ChatGPTException(message, type, param, code);
+			}
+
 			try {
-				completionMessage = responseBody.get("choices").get(0).get("message").get("content").asText();
+				return responseBody.get("choices").get(0).get("message").get("content").asText();
 			} catch (NullPointerException e) {
 				//the JSON is not structured as expected
 				throw new IOException(e);
 			}
-
-			return completionMessage;
 		} catch (IOException e) {
 			String requestBodyStr = jsonToStringDebug(requestRoot);
 
