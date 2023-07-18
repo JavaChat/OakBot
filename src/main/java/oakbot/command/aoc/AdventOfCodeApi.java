@@ -1,7 +1,6 @@
 package oakbot.command.aoc;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,16 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
 import oakbot.util.Now;
 
 /**
@@ -55,7 +51,11 @@ public class AdventOfCodeApi {
 		int year = Now.local().getYear();
 		String jsonUrl = String.format(jsonUrlTemplate, year, leaderboardId);
 
-		JsonNode root = get(jsonUrl);
+		JsonNode root;
+		try (Http http = HttpFactory.connect()) {
+			root = http.get(jsonUrl).getBodyAsJson();
+		}
+
 		String ownerId = root.get("owner_id").asText();
 		JsonNode members = root.get("members");
 
@@ -103,26 +103,6 @@ public class AdventOfCodeApi {
 	public String getLeaderboardWebsite(String leaderboardId) {
 		int year = Now.local().getYear();
 		return String.format(htmlUrlTemplate, year, leaderboardId);
-	}
-
-	/**
-	 * Sends a GET request and parses the response as JSON. This method is
-	 * package private to allow for unit tests to inject their own JSON data.
-	 * @param url the URL
-	 * @return the JSON response
-	 * @throws IOException if there's a network problem or a problem parsing the
-	 * JSON
-	 */
-	JsonNode get(String url) throws IOException {
-		HttpGet request = new HttpGet(url);
-		try (CloseableHttpClient client = HttpClientBuilder.create().setDefaultCookieStore(cookieStore).build()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				try (InputStream in = response.getEntity().getContent()) {
-					ObjectMapper mapper = new ObjectMapper();
-					return mapper.readTree(in);
-				}
-			}
-		}
 	}
 
 	/**

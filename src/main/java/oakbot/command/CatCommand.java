@@ -15,7 +15,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.xml.sax.SAXException;
 
 import com.google.common.net.UrlEscapers;
@@ -25,6 +24,8 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
 import oakbot.util.Leaf;
 
 /**
@@ -69,10 +70,10 @@ public class CatCommand implements Command {
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		int repeats = 0;
-		try (CloseableHttpClient client = createClient()) {
+		try (Http http = HttpFactory.connect()) {
 			while (repeats < 5) {
-				String catUrl = nextCat(client);
-				if (isCatThere(client, catUrl)) {
+				String catUrl = nextCat(http.getClient());
+				if (isCatThere(http.getClient(), catUrl)) {
 					//@formatter:off
 					return ChatActions.create(
 						new PostMessage(catUrl).bypassFilters(true)
@@ -131,13 +132,5 @@ public class CatCommand implements Command {
 		} catch (IOException e) {
 			return false;
 		}
-	}
-
-	/**
-	 * Creates an HTTP client. This method is for unit testing.
-	 * @return the HTTP client
-	 */
-	CloseableHttpClient createClient() {
-		return HttpClients.createDefault();
 	}
 }

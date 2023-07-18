@@ -1,43 +1,48 @@
 package oakbot.command;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
+import org.junit.After;
 import org.junit.Test;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.chat.IRoom;
+import oakbot.chat.MockHttpClientBuilder;
 import oakbot.chat.PingableUser;
 import oakbot.chat.UserInfo;
 import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Gobble;
+import oakbot.util.HttpFactory;
 
 /**
  * @author Michael Angstadt
  */
 public class JuiceBoxCommandTest {
+	@After
+	public void after() {
+		HttpFactory.restore();
+	}
+
 	@Test
 	public void juicify_self() throws Exception {
-		JuiceBoxCommand command = new JuiceBoxCommand() {
-			@Override
-			String get(URI uri) throws IOException {
-				assertEquals(URI.create("https://juiceboxify.me?url=https%3A%2F%2Fwww.gravatar.com%2Favatar%2F29d7c49f6f174710788c79011219bae1"), uri);
-				try (InputStream in = getClass().getResourceAsStream("juiceboxify-face.html")) {
-					return new Gobble(in).asString();
-				}
-			}
-		};
+		String face = new Gobble(getClass(), "juiceboxify-face.html").asString();
+
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://juiceboxify.me?url=https%3A%2F%2Fwww.gravatar.com%2Favatar%2F29d7c49f6f174710788c79011219bae1")
+			.responseOk(face)
+		.build());
+		//@formatter:on
+
+		JuiceBoxCommand command = new JuiceBoxCommand();
 
 		IRoom room = mock(IRoom.class);
 		when(room.getPingableUsers()).thenReturn(Arrays.asList( //@formatter:off
@@ -50,7 +55,7 @@ public class JuiceBoxCommandTest {
 		when(room.getUserInfo(200)).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
-		
+
 		IBot bot = mock(IBot.class);
 		when(bot.getRoom(anyInt())).thenReturn(room);
 
@@ -62,15 +67,16 @@ public class JuiceBoxCommandTest {
 
 	@Test
 	public void juicify_someone_else() throws Exception {
-		JuiceBoxCommand command = new JuiceBoxCommand() {
-			@Override
-			String get(URI uri) throws IOException {
-				assertEquals(URI.create("https://juiceboxify.me?url=https%3A%2F%2Fi.stack.imgur.com%2FSmeIn.jpg"), uri);
-				try (InputStream in = getClass().getResourceAsStream("juiceboxify-face.html")) {
-					return new Gobble(in).asString();
-				}
-			}
-		};
+		String face = new Gobble(getClass(), "juiceboxify-face.html").asString();
+
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://juiceboxify.me?url=https%3A%2F%2Fi.stack.imgur.com%2FSmeIn.jpg")
+			.responseOk(face)
+		.build());
+		//@formatter:on
+
+		JuiceBoxCommand command = new JuiceBoxCommand();
 
 		IRoom room = mock(IRoom.class);
 		when(room.getPingableUsers()).thenReturn(Arrays.asList( //@formatter:off
@@ -83,7 +89,7 @@ public class JuiceBoxCommandTest {
 		when(room.getUserInfo(200)).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
-		
+
 		IBot bot = mock(IBot.class);
 		when(bot.getRoom(anyInt())).thenReturn(room);
 
@@ -95,18 +101,20 @@ public class JuiceBoxCommandTest {
 
 	@Test
 	public void no_face() throws Exception {
-		JuiceBoxCommand command = new JuiceBoxCommand() {
-			@Override
-			String get(URI uri) throws IOException {
-				assertEquals(URI.create("https://juiceboxify.me?url=https%3A%2F%2Fi.stack.imgur.com%2FSmeIn.jpg"), uri);
-				try (InputStream in = getClass().getResourceAsStream("juiceboxify-no-face.html")) {
-					return new Gobble(in).asString();
-				}
-			}
-		};
+		String face = new Gobble(getClass(), "juiceboxify-no-face.html").asString();
+
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://juiceboxify.me?url=https%3A%2F%2Fi.stack.imgur.com%2FSmeIn.jpg")
+			.responseOk(face)
+		.build());
+		//@formatter:on
+
+		JuiceBoxCommand command = new JuiceBoxCommand();
 
 		IRoom room = mock(IRoom.class);
-		when(room.getPingableUsers()).thenReturn(Arrays.asList( //@formatter:off
+		when(room.getPingableUsers()).thenReturn(Arrays
+				.asList( //@formatter:off
 			new PingableUser(1, 100, "Michael", LocalDateTime.now()),
 			new PingableUser(1, 200, "OakBot", LocalDateTime.now())
 		));

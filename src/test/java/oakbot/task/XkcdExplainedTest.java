@@ -14,13 +14,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.junit.After;
 import org.junit.Test;
 
 import oakbot.bot.IBot;
@@ -29,6 +26,8 @@ import oakbot.chat.ChatMessage;
 import oakbot.chat.MockHttpClientBuilder;
 import oakbot.task.XkcdExplained.Comic;
 import oakbot.util.Gobble;
+import oakbot.util.HttpFactory;
+import oakbot.util.Now;
 
 public class XkcdExplainedTest {
 	/**
@@ -57,24 +56,24 @@ public class XkcdExplainedTest {
 		task.run(bot);
 	}
 
+	@After
+	public void after() {
+		Now.restore();
+		HttpFactory.restore();
+	}
+
 	@Test
 	public void everything_is_ok() throws Exception {
-		String html;
-		try (InputStream in = XkcdExplainedTest.class.getResourceAsStream("xkcd-explained-2796.html")) {
-			html = new Gobble(in).asString();
-		}
+		String html = new Gobble(getClass(), "xkcd-explained-2796.html").asString();
 
-		XkcdExplained task = new XkcdExplained("PT0S") {
-			@Override
-			CloseableHttpClient httpClient() {
-				//@formatter:off
-				return new MockHttpClientBuilder()
-					.request("GET", "https://www.explainxkcd.com/wiki/index.php/2796")
-					.response(200, html)
-				.build();
-				//@formatter:on
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.explainxkcd.com/wiki/index.php/2796")
+			.responseOk(html)
+		.build());
+		//@formatter:on
+
+		XkcdExplained task = new XkcdExplained("PT0S");
 
 		IBot bot = mock(IBot.class);
 
@@ -98,22 +97,16 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void first_paragraph_not_wrapped_in_p_element() throws Exception {
-		String html;
-		try (InputStream in = XkcdExplainedTest.class.getResourceAsStream("xkcd-explained-2796-first-para-not-wrapped-in-p-element.html")) {
-			html = new Gobble(in).asString();
-		}
+		String html = new Gobble(getClass(), "xkcd-explained-2796-first-para-not-wrapped-in-p-element.html").asString();
 
-		XkcdExplained task = new XkcdExplained("PT0S") {
-			@Override
-			CloseableHttpClient httpClient() {
-				//@formatter:off
-				return new MockHttpClientBuilder()
-					.request("GET", "https://www.explainxkcd.com/wiki/index.php/2796")
-					.response(200, html)
-				.build();
-				//@formatter:on
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.explainxkcd.com/wiki/index.php/2796")
+			.responseOk(html)
+		.build());
+		//@formatter:on
+
+		XkcdExplained task = new XkcdExplained("PT0S");
 
 		IBot bot = mock(IBot.class);
 
@@ -137,12 +130,7 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void initial_wait_time() throws Exception {
-		XkcdExplained task = new XkcdExplained("PT1H") {
-			@Override
-			CloseableHttpClient httpClient() {
-				return new MockHttpClientBuilder().build();
-			}
-		};
+		XkcdExplained task = new XkcdExplained("PT1H");
 
 		IBot bot = mock(IBot.class);
 
@@ -171,22 +159,16 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void no_wiki_page() throws Exception {
-		String html;
-		try (InputStream in = XkcdExplainedTest.class.getResourceAsStream("xkcd-explained-404-response.html")) {
-			html = new Gobble(in).asString();
-		}
+		String html = new Gobble(getClass(), "xkcd-explained-404-response.html").asString();
 
-		XkcdExplained task = new XkcdExplained("PT0S") {
-			@Override
-			CloseableHttpClient httpClient() {
-				//@formatter:off
-				return new MockHttpClientBuilder()
-					.request("GET", "https://www.explainxkcd.com/wiki/index.php/2802")
-					.response(404, html)
-				.build();
-				//@formatter:on
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.explainxkcd.com/wiki/index.php/2802")
+			.response(404, html)
+		.build());
+		//@formatter:on
+
+		XkcdExplained task = new XkcdExplained("PT0S");
 
 		IBot bot = mock(IBot.class);
 
@@ -215,22 +197,16 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void explanation_not_posted_yet() throws Exception {
-		String html;
-		try (InputStream in = XkcdExplainedTest.class.getResourceAsStream("xkcd-explained-no-explanation.html")) {
-			html = new Gobble(in).asString();
-		}
+		String html = new Gobble(getClass(), "xkcd-explained-no-explanation.html").asString();
 
-		XkcdExplained task = new XkcdExplained("PT0S") {
-			@Override
-			CloseableHttpClient httpClient() {
-				//@formatter:off
-				return new MockHttpClientBuilder()
-					.request("GET", "https://www.explainxkcd.com/wiki/index.php/2796")
-					.response(200, html)
-				.build();
-				//@formatter:on
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.explainxkcd.com/wiki/index.php/2796")
+			.responseOk(html)
+		.build());
+		//@formatter:on
+
+		XkcdExplained task = new XkcdExplained("PT0S");
 
 		IBot bot = mock(IBot.class);
 
@@ -259,12 +235,14 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void ioexception() throws Exception {
-		XkcdExplained task = new XkcdExplained("PT0S") {
-			@Override
-			CloseableHttpClient httpClient() {
-				throw new UncheckedIOException(new IOException());
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.explainxkcd.com/wiki/index.php/2796")
+			.response(new IOException())
+		.build());
+		//@formatter:on
+
+		XkcdExplained task = new XkcdExplained("PT0S");
 
 		IBot bot = mock(IBot.class);
 
@@ -293,12 +271,12 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void human_user_id() throws Exception {
-		XkcdExplained task = new XkcdExplained("PT0S") {
-			@Override
-			CloseableHttpClient httpClient() {
-				return new MockHttpClientBuilder().build();
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+		.build());
+		//@formatter:on
+
+		XkcdExplained task = new XkcdExplained("PT0S");
 
 		IBot bot = mock(IBot.class);
 
@@ -321,12 +299,12 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void system_bot_posted_something_else() throws Exception {
-		XkcdExplained task = new XkcdExplained("PT0S") {
-			@Override
-			CloseableHttpClient httpClient() {
-				return new MockHttpClientBuilder().build();
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+		.build());
+		//@formatter:on
+
+		XkcdExplained task = new XkcdExplained("PT0S");
 
 		IBot bot = mock(IBot.class);
 
@@ -349,22 +327,16 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void give_up() throws Exception {
-		String html;
-		try (InputStream in = XkcdExplainedTest.class.getResourceAsStream("xkcd-explained-no-explanation.html")) {
-			html = new Gobble(in).asString();
-		}
+		String html = new Gobble(getClass(), "xkcd-explained-no-explanation.html").asString();
 
-		XkcdExplained task = new XkcdExplained("PT0S") {
-			@Override
-			CloseableHttpClient httpClient() {
-				MockHttpClientBuilder b = new MockHttpClientBuilder();
-				for (int i = 0; i < 8; i++) {
-					b.request("GET", "https://www.explainxkcd.com/wiki/index.php/2796");
-					b.response(200, html);
-				}
-				return b.build();
-			}
-		};
+		MockHttpClientBuilder mockHttp = new MockHttpClientBuilder();
+		for (int i = 0; i < 8; i++) {
+			mockHttp.requestGet("https://www.explainxkcd.com/wiki/index.php/2796");
+			mockHttp.responseOk(html);
+		}
+		HttpFactory.inject(mockHttp.build());
+
+		XkcdExplained task = new XkcdExplained("PT0S");
 
 		IBot bot = mock(IBot.class);
 
@@ -394,52 +366,31 @@ public class XkcdExplainedTest {
 		task.run(bot);
 		assertEquals(1, comic.timesCheckedWiki);
 
-		/**
-		 * Simulate 15 minute passing.
-		 */
-		comic.lastCheckedWiki = Instant.now().minus(Duration.ofMinutes(15));
+		Now.fastForward(Duration.ofMinutes(15));
 		task.run(bot);
 		assertEquals(2, comic.timesCheckedWiki);
 
-		/**
-		 * Simulate 15 minute passing.
-		 */
-		comic.lastCheckedWiki = Instant.now().minus(Duration.ofMinutes(15));
+		Now.fastForward(Duration.ofMinutes(15));
 		task.run(bot);
 		assertEquals(3, comic.timesCheckedWiki);
 
-		/**
-		 * Simulate 15 minute passing.
-		 */
-		comic.lastCheckedWiki = Instant.now().minus(Duration.ofMinutes(15));
+		Now.fastForward(Duration.ofMinutes(15));
 		task.run(bot);
 		assertEquals(4, comic.timesCheckedWiki);
 
-		/**
-		 * Simulate 15 minute passing.
-		 */
-		comic.lastCheckedWiki = Instant.now().minus(Duration.ofMinutes(15));
+		Now.fastForward(Duration.ofMinutes(15));
 		task.run(bot);
 		assertEquals(5, comic.timesCheckedWiki);
 
-		/**
-		 * Simulate 15 minute passing.
-		 */
-		comic.lastCheckedWiki = Instant.now().minus(Duration.ofMinutes(15));
+		Now.fastForward(Duration.ofMinutes(15));
 		task.run(bot);
 		assertEquals(6, comic.timesCheckedWiki);
 
-		/**
-		 * Simulate 15 minute passing.
-		 */
-		comic.lastCheckedWiki = Instant.now().minus(Duration.ofMinutes(15));
+		Now.fastForward(Duration.ofMinutes(15));
 		task.run(bot);
 		assertEquals(7, comic.timesCheckedWiki);
 
-		/**
-		 * Simulate 15 minute passing.
-		 */
-		comic.lastCheckedWiki = Instant.now().minus(Duration.ofMinutes(15));
+		Now.fastForward(Duration.ofMinutes(15));
 		task.run(bot);
 		assertEquals(8, comic.timesCheckedWiki);
 

@@ -49,9 +49,9 @@ public class Now {
 	}
 
 	/**
-	 * Disables the offset.
+	 * Disables the offset and restores to present time.
 	 */
-	public static void disable() {
+	public static void restore() {
 		offset = null;
 	}
 

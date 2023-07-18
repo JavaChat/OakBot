@@ -1,6 +1,5 @@
 package oakbot.task;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -8,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -18,8 +16,10 @@ import org.junit.Test;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
+import oakbot.chat.MockHttpClientBuilder;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.Gobble;
+import oakbot.util.HttpFactory;
 import oakbot.util.Now;
 
 /**
@@ -45,14 +45,13 @@ public class FOTDTest {
 
 	@BeforeClass
 	public static void beforeClass() throws Exception {
-		try (InputStream in = FOTDTest.class.getResourceAsStream("refdesk.html")) {
-			refdeskPage = new Gobble(in).asString();
-		}
+		refdeskPage = new Gobble(FOTDTest.class, "refdesk.html").asString();
 	}
 
 	@After
 	public void after() {
-		Now.disable();
+		Now.restore();
+		HttpFactory.restore();
 	}
 
 	@Test
@@ -79,13 +78,14 @@ public class FOTDTest {
 
 	@Test
 	public void run() throws Exception {
-		FOTD task = new FOTD() {
-			@Override
-			String get(String url) {
-				assertEquals("http://www.refdesk.com", url);
-				return refdeskPage.replace("${fact}", "The <b>fact</b> - Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>");
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("http://www.refdesk.com")
+			.responseOk(refdeskPage.replace("${fact}", "The <b>fact</b> - Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>"))
+		.build());
+		//@formatter:on
+
+		FOTD task = new FOTD();
 
 		IBot bot = mock(IBot.class);
 		task.run(bot);
@@ -96,13 +96,14 @@ public class FOTDTest {
 
 	@Test
 	public void run_no_dash() throws Exception {
-		FOTD task = new FOTD() {
-			@Override
-			String get(String url) {
-				assertEquals("http://www.refdesk.com", url);
-				return refdeskPage.replace("${fact}", "The <b>fact</b><br>Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>");
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("http://www.refdesk.com")
+			.responseOk(refdeskPage.replace("${fact}", "The <b>fact</b><br>Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>"))
+		.build());
+		//@formatter:on
+
+		FOTD task = new FOTD();
 
 		IBot bot = mock(IBot.class);
 		task.run(bot);
@@ -113,13 +114,14 @@ public class FOTDTest {
 
 	@Test
 	public void run_multiline() throws Exception {
-		FOTD task = new FOTD() {
-			@Override
-			String get(String url) {
-				assertEquals("http://www.refdesk.com", url);
-				return refdeskPage.replace("${fact}", "The <b>fact</b>\nline two - Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>");
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("http://www.refdesk.com")
+			.responseOk(refdeskPage.replace("${fact}", "The <b>fact</b>\nline two - Provided by <a href=http://www.factretriever.com/>FactRetriever.com</a>"))
+		.build());
+		//@formatter:on
+
+		FOTD task = new FOTD();
 
 		IBot bot = mock(IBot.class);
 		task.run(bot);
@@ -130,13 +132,14 @@ public class FOTDTest {
 
 	@Test
 	public void run_fact_not_found() throws Exception {
-		FOTD task = new FOTD() {
-			@Override
-			String get(String url) {
-				assertEquals("http://www.refdesk.com", url);
-				return "<html></html>";
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("http://www.refdesk.com")
+			.responseOk("<html></html>")
+		.build());
+		//@formatter:on
+
+		FOTD task = new FOTD();
 
 		IBot bot = mock(IBot.class);
 		task.run(bot);

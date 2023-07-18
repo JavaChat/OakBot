@@ -1,7 +1,9 @@
 package oakbot.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -272,6 +275,19 @@ public class Http implements Closeable {
 		 */
 		public Document getBodyAsHtml() {
 			return Jsoup.parse(body, requestUri);
+		}
+
+		/**
+		 * Parses the response body as XML.
+		 * @return the parsed XML document
+		 * @throws SAXException if there's a problem parsing the XML
+		 */
+		public Leaf getBodyAsXml() throws SAXException {
+			try {
+				return Leaf.parse(new ByteArrayInputStream(body.getBytes()));
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
 		}
 	}
 }

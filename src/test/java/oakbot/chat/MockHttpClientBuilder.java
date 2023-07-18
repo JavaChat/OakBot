@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +39,7 @@ import org.mockito.stubbing.Answer;
 public class MockHttpClientBuilder {
 	private final List<ExpectedRequest> expectedRequests = new ArrayList<>();
 	private final List<HttpResponse> responses = new ArrayList<>();
+	private final List<IOException> responseExceptions = new ArrayList<>();
 
 	/**
 	 * Adds the requests/responses involved in logging into Stack Overflow.
@@ -109,6 +110,27 @@ public class MockHttpClientBuilder {
 	}
 
 	/**
+	 * Adds an expected GET request. A call to {@link #response} should be made
+	 * right after this to specify the response that should be returned.
+	 * @param uri the expected URI
+	 * @return this
+	 */
+	public MockHttpClientBuilder requestGet(String uri) {
+		return request("GET", uri);
+	}
+
+	/**
+	 * Adds an expected POST request. A call to {@link #response} should be made
+	 * right after this to specify the response that should be returned.
+	 * @param uri the expected URI
+	 * @param params the name/value pairs of the expected parameters
+	 * @return this
+	 */
+	public MockHttpClientBuilder requestPost(String uri, String... params) {
+		return request("POST", uri, params);
+	}
+
+	/**
 	 * Adds an expected request. A call to {@link #response} should be made
 	 * right after this to specify the response that should be returned.
 	 * @param method the expected method (e.g. "GET")
@@ -123,6 +145,16 @@ public class MockHttpClientBuilder {
 	}
 
 	/**
+	 * Defines the 200 response to send back after a request is received. This
+	 * should be called right after {@link #request}.
+	 * @param body the response body
+	 * @return this
+	 */
+	public MockHttpClientBuilder responseOk(String body) {
+		return response(200, body);
+	}
+
+	/**
 	 * Defines the response to send back after a request is received. This
 	 * should be called right after {@link #request}.
 	 * @param statusCode the status code of the response (e.g. "200")
@@ -130,13 +162,7 @@ public class MockHttpClientBuilder {
 	 * @return this
 	 */
 	public MockHttpClientBuilder response(int statusCode, String body) {
-		HttpEntity entity;
-		try {
-			entity = new StringEntity(body);
-		} catch (UnsupportedEncodingException e) {
-			//should never be thrown
-			throw new RuntimeException(e);
-		}
+		HttpEntity entity = new StringEntity(body, StandardCharsets.UTF_8);
 
 		StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, statusCode, "");
 
@@ -145,6 +171,20 @@ public class MockHttpClientBuilder {
 		when(response.getEntity()).thenReturn(entity);
 		responses.add(response);
 
+		responseExceptions.add(null);
+
+		return this;
+	}
+
+	/**
+	 * Defines an exception to throw after sending a request. This should be
+	 * called right after {@link #request}.
+	 * @param exception the exception to throw
+	 * @return this
+	 */
+	public MockHttpClientBuilder response(IOException exception) {
+		responses.add(null);
+		responseExceptions.add(exception);
 		return this;
 	}
 
@@ -161,10 +201,12 @@ public class MockHttpClientBuilder {
 
 		try {
 			when(client.execute(any(HttpUriRequest.class))).then(new Answer<HttpResponse>() {
-				private int requestCount = 0;
+				private int requestCount = -1;
 
 				@Override
 				public HttpResponse answer(InvocationOnMock invocation) throws Throwable {
+					requestCount++;
+
 					if (requestCount >= expectedRequests.size()) {
 						fail("The unit test only expected " + expectedRequests.size() + " HTTP requests to be sent, but an extra one was generated.");
 					}
@@ -182,7 +224,12 @@ public class MockHttpClientBuilder {
 						assertEquals(expectedRequest.params, params);
 					}
 
-					return responses.get(requestCount++);
+					IOException exception = responseExceptions.get(requestCount);
+					if (exception != null) {
+						throw exception;
+					}
+
+					return responses.get(requestCount);
 				}
 			});
 		} catch (IOException e) {

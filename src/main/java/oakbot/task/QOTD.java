@@ -4,23 +4,18 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
 import oakbot.util.Now;
 
 /**
@@ -56,7 +51,11 @@ public class QOTD implements ScheduledTask {
 	}
 
 	ChatBuilder fromSlashdot() throws IOException {
-		Document document = Jsoup.parse(httpGet("https://slashdot.org"));
+		Document document;
+		try (Http http = HttpFactory.connect()) {
+			document = http.get("https://slashdot.org").getBodyAsHtml();
+		}
+
 		Element element = document.selectFirst("blockquote[cite='https://slashdot.org'] p");
 
 		return new ChatBuilder() //@formatter:off
@@ -66,10 +65,8 @@ public class QOTD implements ScheduledTask {
 
 	ChatBuilder fromTheySaidSo() throws IOException {
 		JsonNode json;
-		{
-			ObjectMapper mapper = new ObjectMapper();
-			String response = httpGet("http://quotes.rest/qod.json");
-			json = mapper.readTree(response);
+		try (Http http = HttpFactory.connect()) {
+			json = http.get("http://quotes.rest/qod.json").getBodyAsJson();
 		}
 
 		JsonNode quoteNode = json.get("contents").get("quotes").get(0);
@@ -92,14 +89,5 @@ public class QOTD implements ScheduledTask {
 			cb.append(' ').link("(source)", permalink);
 		}
 		return cb;
-	}
-
-	String httpGet(String url) throws IOException {
-		HttpGet request = new HttpGet(url);
-		try (CloseableHttpClient client = HttpClients.createDefault()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				return EntityUtils.toString(response.getEntity());
-			}
-		}
 	}
 }

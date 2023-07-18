@@ -3,15 +3,16 @@ package oakbot.task;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.junit.After;
 import org.junit.Test;
 
+import oakbot.chat.MockHttpClientBuilder;
 import oakbot.util.Gobble;
+import oakbot.util.HttpFactory;
 import oakbot.util.Now;
 
 public class QOTDTest {
@@ -25,19 +26,22 @@ public class QOTDTest {
 
 	@After
 	public void after() {
-		Now.disable();
+		Now.restore();
+		HttpFactory.restore();
 	}
 
 	@Test
 	public void fromSlashdot() throws Exception {
-		QOTD qotd = new QOTD() {
-			@Override
-			String httpGet(String url) throws IOException {
-				try (InputStream in = QOTDTest.class.getResourceAsStream("slashdot.html")) {
-					return new Gobble(in).asString();
-				}
-			}
-		};
+		String slashdot = new Gobble(getClass(), "slashdot.html").asString(StandardCharsets.UTF_8);
+
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://slashdot.org")
+			.responseOk(slashdot)
+		.build());
+		//@formatter:on
+
+		QOTD qotd = new QOTD();
 
 		String expected = "\"For a male and female to live continuously together is... biologically speaking, an extremely unnatural condition.\" -- Robert Briffault ([source](https://slashdot.org))";
 		String actual = qotd.fromSlashdot().toString();
@@ -46,14 +50,16 @@ public class QOTDTest {
 
 	@Test
 	public void fromTheySaidSo() throws Exception {
-		QOTD qotd = new QOTD() {
-			@Override
-			String httpGet(String url) throws IOException {
-				try (InputStream in = QOTDTest.class.getResourceAsStream("theysaidso.json")) {
-					return new Gobble(in).asString();
-				}
-			}
-		};
+		String theySaidSo = new Gobble(getClass(), "theysaidso.json").asString(StandardCharsets.UTF_8);
+
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("http://quotes.rest/qod.json")
+			.responseOk(theySaidSo)
+		.build());
+		//@formatter:on
+
+		QOTD qotd = new QOTD();
 
 		String expected = "*\"If you like what you do, and you’re lucky enough to be good at it, do it for that reason.\"* -Phil Grimshaw [(source)](https://theysaidso.com)";
 		String actual = qotd.fromTheySaidSo().toString();
@@ -62,14 +68,16 @@ public class QOTDTest {
 
 	@Test
 	public void fromTheySaidSo_newline() throws Exception {
-		QOTD qotd = new QOTD() {
-			@Override
-			String httpGet(String url) throws IOException {
-				try (InputStream in = QOTDTest.class.getResourceAsStream("theysaidso_newline.json")) {
-					return new Gobble(in).asString();
-				}
-			}
-		};
+		String theySaidSo = new Gobble(getClass(), "theysaidso_newline.json").asString(StandardCharsets.UTF_8);
+
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("http://quotes.rest/qod.json")
+			.responseOk(theySaidSo)
+		.build());
+		//@formatter:on
+
+		QOTD qotd = new QOTD();
 
 		String expected = "If you like what you do,\nand you’re lucky enough to be good at it, do it for that reason.\n-Phil Grimshaw (source: https://theysaidso.com)";
 		String actual = qotd.fromTheySaidSo().toString();

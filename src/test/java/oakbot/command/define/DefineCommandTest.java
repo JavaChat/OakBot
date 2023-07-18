@@ -2,150 +2,205 @@ package oakbot.command.define;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static oakbot.bot.ChatActionsUtils.assertMessageStartsWith;
-import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
+import org.junit.After;
 import org.junit.Test;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
+import oakbot.chat.MockHttpClientBuilder;
 import oakbot.util.ChatCommandBuilder;
+import oakbot.util.Gobble;
+import oakbot.util.HttpFactory;
 
 public class DefineCommandTest {
+	@After
+	public void after() {
+		HttpFactory.restore();
+	}
+	
 	@Test
 	public void no_word() {
 		DefineCommand command = new DefineCommand("apiKey");
 		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
 
-		ChatActions response = command.onMessage(message, null);
+		IBot bot = mock(IBot.class);
+
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 Please specify the word you'd like to define.", response);
 	}
 
 	@Test
 	public void ioexception() throws Exception {
-		DefineCommand command = new DefineCommand("apiKey") {
-			@Override
-			InputStream get(String url) throws IOException {
-				throw new IOException();
-			}
-		};
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
+			.response(new IOException())
+		.build());
+		//@formatter:on
+
+		DefineCommand command = new DefineCommand("apiKey");
+
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("cool")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
-		ChatActions response = command.onMessage(message, null);
+		IBot bot = mock(IBot.class);
+
+		ChatActions response = command.onMessage(message, bot);
 		assertMessageStartsWith(":1 Sorry", response);
 	}
 
 	@Test
 	public void non_xml_response() throws Exception {
-		DefineCommand command = new DefineCommand("apiKey") {
-			@Override
-			InputStream get(String url) throws IOException {
-				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
-				return new ByteArrayInputStream("not XML".getBytes());
-			}
-		};
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
+			.responseOk("not XML")
+		.build());
+		//@formatter:on
+
+		DefineCommand command = new DefineCommand("apiKey");
+
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("cool")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
-		ChatActions response = command.onMessage(message, null);
+		IBot bot = mock(IBot.class);
+
+		ChatActions response = command.onMessage(message, bot);
 		assertMessageStartsWith(":1 Sorry", response);
 	}
 
 	@Test
 	public void not_found() throws Exception {
-		DefineCommand command = new DefineCommand("apiKey") {
-			@Override
-			InputStream get(String url) throws IOException {
-				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
-				return new ByteArrayInputStream("<entry_list/>".getBytes());
-			}
-		};
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
+			.responseOk("<entry_list/>")
+		.build());
+		//@formatter:on
+
+		DefineCommand command = new DefineCommand("apiKey");
+
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("cool")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
-		ChatActions response = command.onMessage(message, null);
+		IBot bot = mock(IBot.class);
+
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 No definitions found.", response);
 	}
 
 	@Test
 	public void not_found_suggestions_one() throws Exception {
-		DefineCommand command = new DefineCommand("apiKey") {
-			@Override
-			InputStream get(String url) throws IOException {
-				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
-				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion></entry_list>".getBytes());
-			}
-		};
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey")
+			.responseOk("<entry_list><suggestion>cool</suggestion></entry_list>")
+		.build());
+		//@formatter:on
+
+		DefineCommand command = new DefineCommand("apiKey");
+
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("col")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
-		ChatActions response = command.onMessage(message, null);
+		IBot bot = mock(IBot.class);
+
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 No definitions found. Did you mean cool?", response);
 	}
 
 	@Test
 	public void not_found_suggestions_two() throws Exception {
-		DefineCommand command = new DefineCommand("apiKey") {
-			@Override
-			InputStream get(String url) throws IOException {
-				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
-				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion></entry_list>".getBytes());
-			}
-		};
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey")
+			.responseOk("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion></entry_list>")
+		.build());
+		//@formatter:on
+
+		DefineCommand command = new DefineCommand("apiKey");
+
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("col")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
-		ChatActions response = command.onMessage(message, null);
+		IBot bot = mock(IBot.class);
+
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 No definitions found. Did you mean cool or cold?", response);
 	}
 
 	@Test
 	public void not_found_suggestions_multiple() throws Exception {
-		DefineCommand command = new DefineCommand("apiKey") {
-			@Override
-			InputStream get(String url) throws IOException {
-				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey", url);
-				return new ByteArrayInputStream("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion><suggestion>colt</suggestion></entry_list>".getBytes());
-			}
-		};
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey")
+			.responseOk("<entry_list><suggestion>cool</suggestion><suggestion>cold</suggestion><suggestion>colt</suggestion></entry_list>")
+		.build());
+		//@formatter:on
+
+		DefineCommand command = new DefineCommand("apiKey");
+
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("col")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
-		ChatActions response = command.onMessage(message, null);
+		IBot bot = mock(IBot.class);
+
+		ChatActions response = command.onMessage(message, bot);
 		assertMessage(":1 No definitions found. Did you mean cool, cold, or colt?", response);
 	}
 
 	@Test
 	public void multiple_definitions() throws Exception {
-		DefineCommand command = new DefineCommand("apiKey") {
-			@Override
-			InputStream get(String url) throws IOException {
-				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey", url);
-				return getClass().getResourceAsStream("cool.xml");
-			}
-		};
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		String cool = new Gobble(getClass(), "cool.xml").asString();
+
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
+			.responseOk(cool)
+		.build());
+		//@formatter:on
+
+		DefineCommand command = new DefineCommand("apiKey");
+
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("cool")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
-		ChatActions response = command.onMessage(message, null);
+		IBot bot = mock(IBot.class);
+
+		ChatActions response = command.onMessage(message, bot);
 		//@formatter:off
 		assertMessage(
 			"cool (adjective):\n" +
@@ -226,18 +281,24 @@ public class DefineCommandTest {
 
 	@Test
 	public void encode_parameters() throws Exception {
-		DefineCommand command = new DefineCommand("apiKey") {
-			@Override
-			InputStream get(String url) throws IOException {
-				assertEquals("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand%20piano?key=apiKey", url);
-				return new ByteArrayInputStream("<entry_list/>".getBytes());
-			}
-		};
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand%20piano?key=apiKey")
+			.responseOk("<entry_list/>")
+		.build());
+		//@formatter:on
+
+		DefineCommand command = new DefineCommand("apiKey");
+
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("grand piano")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
-		command.onMessage(message, null);
+		IBot bot = mock(IBot.class);
+
+		command.onMessage(message, bot);
 	}
 }

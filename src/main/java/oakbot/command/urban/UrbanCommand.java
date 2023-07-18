@@ -4,9 +4,7 @@ import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,6 +23,8 @@ import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
 
 /**
  * Gets word definitions from urbandictionary.com
@@ -82,12 +82,14 @@ public class UrbanCommand implements Command {
 		}
 
 		UrbanResponse response;
-		try {
-			URIBuilder b = new URIBuilder("http://api.urbandictionary.com/v0/define");
-			b.addParameter("term", word);
-			String url = b.toString();
+		try (Http http = HttpFactory.connect()) {
+			//@formatter:off
+			String url = new URIBuilder("http://api.urbandictionary.com/v0/define")
+				.addParameter("term", word)
+			.build().toString();
+			//@formatter:on
 
-			response = mapper.readValue(get(url), UrbanResponse.class);
+			response = mapper.readValue(http.get(url).getBody(), UrbanResponse.class);
 		} catch (IOException | URISyntaxException e) {
 			logger.log(Level.SEVERE, "Problem getting word from Urban Dictionary.", e);
 
@@ -175,16 +177,5 @@ public class UrbanCommand implements Command {
 		}
 		m.appendTail(sb);
 		return sb.toString();
-	}
-
-	/**
-	 * Makes an HTTP GET request to the given URL.
-	 * @param url the URL
-	 * @return the response body
-	 * @throws IOException
-	 */
-	InputStream get(String url) throws IOException {
-		URL urlObj = new URL(url);
-		return urlObj.openStream();
 	}
 }

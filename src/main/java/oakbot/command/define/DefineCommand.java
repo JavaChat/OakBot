@@ -20,9 +20,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
-import com.google.common.escape.Escaper;
-import com.google.common.net.UrlEscapers;
-
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
@@ -31,6 +28,8 @@ import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
 import oakbot.util.Leaf;
 
 /**
@@ -70,15 +69,15 @@ public class DefineCommand implements Command {
 		}
 
 		Leaf response;
-		try {
-			Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
-			URIBuilder b = new URIBuilder("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/" + escaper.escape(word));
-			b.addParameter("key", apiKey);
+		try (Http http = HttpFactory.connect()) {
+			//@formatter:off
+			String url = new URIBuilder("https://www.dictionaryapi.com")
+				.setPathSegments("api", "v1", "references", "collegiate", "xml", word)
+				.addParameter("key", apiKey)
+			.build().toString();
+			//@formatter:on
 
-			String url = b.toString();
-			try (InputStream in = get(url)) {
-				response = Leaf.parse(in);
-			}
+			response = http.get(url).getBodyAsXml();
 		} catch (IOException | SAXException | URISyntaxException e) {
 			logger.log(Level.SEVERE, "Problem getting word from dictionary.", e);
 

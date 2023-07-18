@@ -2,27 +2,22 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
 
 /**
  * Displays reaction gifs of human emotions.
@@ -31,7 +26,6 @@ import oakbot.bot.PostMessage;
 public class ReactCommand implements Command {
 	private static final Logger logger = Logger.getLogger(ReactCommand.class.getName());
 
-	private final ObjectMapper mapper = new ObjectMapper();
 	private final URIBuilder uriBuilder;
 
 	public ReactCommand(String key) {
@@ -71,8 +65,8 @@ public class ReactCommand implements Command {
 
 		uriBuilder.setParameter("tag", content);
 
-		try {
-			JsonNode node = get(uriBuilder.build());
+		try (Http http = HttpFactory.connect()) {
+			JsonNode node = http.get(uriBuilder.build().toString()).getBodyAsJson();
 			if (node.size() == 0) {
 				return reply("Unknown human emotion. Please visit http://replygif.net/t for a list of emotions.", chatCommand);
 			}
@@ -89,23 +83,6 @@ public class ReactCommand implements Command {
 			logger.log(Level.SEVERE, "Problem querying reaction API.", e);
 
 			return reply("Sorry, an error occurred >.> : " + e.getMessage(), chatCommand);
-		}
-	}
-
-	/**
-	 * Makes an HTTP GET request to the given URL.
-	 * @param uri the URL
-	 * @return the response body
-	 * @throws IOException
-	 */
-	JsonNode get(URI uri) throws IOException {
-		HttpGet request = new HttpGet(uri);
-		try (CloseableHttpClient client = HttpClients.createDefault()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				try (InputStream in = response.getEntity().getContent()) {
-					return mapper.readTree(in);
-				}
-			}
 		}
 	}
 }

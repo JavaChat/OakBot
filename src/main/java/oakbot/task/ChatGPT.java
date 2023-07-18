@@ -25,6 +25,7 @@ import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
 import oakbot.listener.CatchAllMentionListener;
 import oakbot.util.ChatBuilder;
+import oakbot.util.HttpFactory;
 
 /**
  * Periodically comment on the chat room's latest messages using ChatGPT. Posts
@@ -130,7 +131,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			ChatGPTRequest request = buildChatGPTRequest(messages, bot);
 
 			String completion;
-			try (CloseableHttpClient client = createClient()) {
+			try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
 				completion = request.send(client);
 			}
 

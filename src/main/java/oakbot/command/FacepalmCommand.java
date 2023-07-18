@@ -2,19 +2,13 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +18,8 @@ import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
 
 /**
  * Displays facepalm GIFs using the Tenor API.
@@ -44,13 +40,15 @@ public class FacepalmCommand implements Command {
 
 		//see: https://tenor.com/gifapi/documentation#endpoints-random
 		try {
-			URIBuilder builder = new URIBuilder("https://api.tenor.com/v1/random");
-			builder.addParameter("key", key);
-			builder.addParameter("q", "facepalm");
-			builder.addParameter("media_filter", "minimal");
-			builder.addParameter("safesearch", "moderate");
-			builder.addParameter("limit", "1");
-			uri = builder.build();
+			//@formatter:off
+			uri = new URIBuilder("https://api.tenor.com/v1/random")
+				.addParameter("key", key)
+				.addParameter("q", "facepalm")
+				.addParameter("media_filter", "minimal")
+				.addParameter("safesearch", "moderate")
+				.addParameter("limit", "1")
+			.build();
+			//@formatter:on
 		} catch (URISyntaxException ignored) {
 			//should never be thrown
 			throw new RuntimeException(ignored);
@@ -75,8 +73,8 @@ public class FacepalmCommand implements Command {
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String imageUrl, response = null;
-		try {
-			response = get(uri);
+		try (Http http = HttpFactory.connect()) {
+			response = http.get(uri.toString()).getBody();
 			JsonNode node = mapper.readTree(response);
 			imageUrl = node.get("results").get(0).get("media").get(0).get("tinygif").get("url").asText();
 		} catch (Exception e) {
@@ -96,21 +94,5 @@ public class FacepalmCommand implements Command {
 			new PostMessage(imageUrl).bypassFilters(true).condensedMessage(condensed)
 		);
 		//@formatter:on
-	}
-
-	/**
-	 * Makes an HTTP GET request to the given URL. This method is
-	 * package-private so it can be overridden in unit tests.
-	 * @param uri the URL
-	 * @return the response body
-	 * @throws IOException if there's a network problem
-	 */
-	String get(URI uri) throws IOException {
-		try (CloseableHttpClient client = HttpClients.createDefault()) {
-			HttpGet request = new HttpGet(uri);
-			try (CloseableHttpResponse response = client.execute(request)) {
-				return EntityUtils.toString(response.getEntity());
-			}
-		}
 	}
 }

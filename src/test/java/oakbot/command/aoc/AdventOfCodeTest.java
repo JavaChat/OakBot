@@ -3,7 +3,6 @@ package oakbot.command.aoc;
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -11,8 +10,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -29,7 +26,10 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
+import oakbot.chat.MockHttpClientBuilder;
 import oakbot.util.ChatCommandBuilder;
+import oakbot.util.Gobble;
+import oakbot.util.HttpFactory;
 import oakbot.util.Now;
 
 /**
@@ -38,24 +38,24 @@ import oakbot.util.Now;
 public class AdventOfCodeTest {
 	@After
 	public void after() {
-		Now.disable();
+		Now.restore();
+		HttpFactory.restore();
 	}
 
 	@Test
-	public void using_default_id() {
+	public void using_default_id() throws Exception {
 		Now.setNow(LocalDateTime.of(2017, 12, 1, 0, 0, 0));
 
-		AdventOfCodeApi api = new AdventOfCodeApi("") {
-			@Override
-			JsonNode get(String url) throws IOException {
-				assertEquals("http://adventofcode.com/2017/leaderboard/private/view/123456.json", url);
+		String aoc2017 = new Gobble(getClass(), "advent-of-code-2017.json").asString();
 
-				ObjectMapper mapper = new ObjectMapper();
-				try (InputStream in = getClass().getResourceAsStream("advent-of-code-2017.json")) {
-					return mapper.readTree(in);
-				}
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("http://adventofcode.com/2017/leaderboard/private/view/123456.json")
+			.responseOk(aoc2017)
+		.build());
+		//@formatter:on
+
+		AdventOfCodeApi api = new AdventOfCodeApi("");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		leaderboardIds.put(1, "123456");
@@ -79,13 +79,12 @@ public class AdventOfCodeTest {
 	public void no_default_id() {
 		Now.setNow(LocalDateTime.of(2017, 12, 1, 0, 0, 0));
 
-		AdventOfCodeApi api = new AdventOfCodeApi("") {
-			@Override
-			JsonNode get(String url) throws IOException {
-				fail("Should not be called because no leaderboard ID was specified.");
-				return null;
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+		.build());
+		//@formatter:on
+
+		AdventOfCodeApi api = new AdventOfCodeApi("");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 
@@ -106,20 +105,19 @@ public class AdventOfCodeTest {
 	}
 
 	@Test
-	public void override_default_id() {
+	public void override_default_id() throws Exception {
 		Now.setNow(LocalDateTime.of(2017, 12, 1, 0, 0, 0));
 
-		AdventOfCodeApi api = new AdventOfCodeApi("") {
-			@Override
-			JsonNode get(String url) throws IOException {
-				assertEquals("http://adventofcode.com/2017/leaderboard/private/view/098765.json", url);
+		String aoc2017 = new Gobble(getClass(), "advent-of-code-2017.json").asString();
 
-				ObjectMapper mapper = new ObjectMapper();
-				try (InputStream in = getClass().getResourceAsStream("advent-of-code-2017.json")) {
-					return mapper.readTree(in);
-				}
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("http://adventofcode.com/2017/leaderboard/private/view/098765.json")
+			.responseOk(aoc2017)
+		.build());
+		//@formatter:on
+
+		AdventOfCodeApi api = new AdventOfCodeApi("");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		leaderboardIds.put(1, "123456");
@@ -144,13 +142,12 @@ public class AdventOfCodeTest {
 	public void not_active() {
 		Now.setNow(LocalDateTime.of(2017, 2, 1, 0, 0, 0));
 
-		AdventOfCodeApi api = new AdventOfCodeApi("") {
-			@Override
-			JsonNode get(String url) throws IOException {
-				fail("Should not be called because the command is not active.");
-				return null;
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+		.build());
+		//@formatter:on
+
+		AdventOfCodeApi api = new AdventOfCodeApi("");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 
@@ -173,13 +170,12 @@ public class AdventOfCodeTest {
 	public void nextRun() throws Exception {
 		Now.setNow(LocalDateTime.of(2017, 12, 1, 0, 0, 0));
 
-		AdventOfCodeApi api = new AdventOfCodeApi("") {
-			@Override
-			JsonNode get(String url) throws IOException {
-				fail("Should not be called.");
-				return null;
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+		.build());
+		//@formatter:on
+
+		AdventOfCodeApi api = new AdventOfCodeApi("");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 
@@ -192,13 +188,12 @@ public class AdventOfCodeTest {
 	public void nextRun_not_december() throws Exception {
 		Now.setNow(LocalDateTime.of(2017, 10, 1, 0, 0, 0));
 
-		AdventOfCodeApi api = new AdventOfCodeApi("") {
-			@Override
-			JsonNode get(String url) throws IOException {
-				fail("Should not be called.");
-				return null;
-			}
-		};
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+		.build());
+		//@formatter:on
+
+		AdventOfCodeApi api = new AdventOfCodeApi("");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 
@@ -209,75 +204,64 @@ public class AdventOfCodeTest {
 
 	@Test
 	public void announce_completions() throws Exception {
-		Now.setNow(LocalDateTime.of(2018, 12, 11, 0, 0, 0));
+		LocalDateTime start = LocalDateTime.of(2018, 12, 11, 0, 0, 0);
 
-		AdventOfCodeApi api = new AdventOfCodeApi("") {
-			private int calls = 0;
+		MockHttpClientBuilder mockHttp = new MockHttpClientBuilder();
+		{
+			Now.setNow(start);
+
+			//REQUEST 1====================
 			ObjectMapper mapper = new ObjectMapper();
 
-			private final JsonNode root;
-			{
-				try (InputStream in = getClass().getResourceAsStream("advent-of-code-2018.json")) {
-					root = mapper.readTree(in);
-				}
-			}
+			JsonNode root = mapper.readTree(getClass().getResourceAsStream("advent-of-code-2018.json"));
 
-			private ObjectNode user, day11;
+			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
+			mockHttp.responseOk(mapper.writeValueAsString(root));
 
-			@Override
-			JsonNode get(String url) throws IOException {
-				calls++;
+			//REQUEST 2====================
+			Now.fastForward(Duration.ofMinutes(15));
 
-				if (calls == 1) {
-					assertEquals("http://adventofcode.com/2018/leaderboard/private/view/123456.json", url);
-					return root;
-				}
+			ObjectNode user = (ObjectNode) root.get("members").get("55305").get("completion_day_level");
+			ObjectNode day11 = mapper.createObjectNode();
+			ObjectNode day11Part1 = mapper.createObjectNode();
+			day11Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
+			day11.set("1", day11Part1);
+			user.set("11", day11);
 
-				if (calls == 2) {
-					assertEquals("http://adventofcode.com/2018/leaderboard/private/view/123456.json", url);
+			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
+			mockHttp.responseOk(mapper.writeValueAsString(root));
 
-					user = (ObjectNode) root.get("members").get("55305").get("completion_day_level");
-					day11 = mapper.createObjectNode();
-					ObjectNode day11Part1 = mapper.createObjectNode();
+			//REQUEST 3====================
+			Now.fastForward(Duration.ofMinutes(15));
 
-					day11Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
-					day11.set("1", day11Part1);
-					user.set("11", day11);
+			ObjectNode day11Part2 = mapper.createObjectNode();
 
-					return root;
-				}
+			day11Part2.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
+			day11.set("2", day11Part2);
 
-				if (calls == 3) {
-					assertEquals("http://adventofcode.com/2018/leaderboard/private/view/123456.json", url);
+			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
+			mockHttp.responseOk(mapper.writeValueAsString(root));
 
-					ObjectNode day11Part2 = mapper.createObjectNode();
+			//REQUEST 4====================
+			Now.fastForward(Duration.ofMinutes(15));
 
-					day11Part2.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
-					day11.set("2", day11Part2);
+			ObjectNode day12 = mapper.createObjectNode();
+			ObjectNode day12Part1 = mapper.createObjectNode();
+			ObjectNode day12Part2 = mapper.createObjectNode();
+			day12Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
+			day12Part2.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(1)).getEpochSecond());
+			day12.set("1", day12Part1);
+			day12.set("2", day12Part2);
+			user.set("12", day12);
 
-					return root;
-				}
+			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
+			mockHttp.responseOk(mapper.writeValueAsString(root));
+		}
 
-				if (calls == 4) {
-					assertEquals("http://adventofcode.com/2018/leaderboard/private/view/123456.json", url);
+		Now.setNow(start);
+		HttpFactory.inject(mockHttp.build());
 
-					ObjectNode day12 = mapper.createObjectNode();
-					ObjectNode day12Part1 = mapper.createObjectNode();
-					ObjectNode day12Part2 = mapper.createObjectNode();
-
-					day12Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
-					day12Part2.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(1)).getEpochSecond());
-					day12.set("1", day12Part1);
-					day12.set("2", day12Part2);
-					user.set("12", day12);
-
-					return root;
-				}
-
-				fail("Too many calls.");
-				return null;
-			}
-		};
+		AdventOfCodeApi api = new AdventOfCodeApi("");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		leaderboardIds.put(1, "123456");
@@ -307,49 +291,41 @@ public class AdventOfCodeTest {
 		expected = new PostMessage("**Unihedron** completed parts 1 and 2 of day 12! \\o/");
 		verify(bot).sendMessage(1, expected);
 	}
-	
+
 	@Test
 	public void announce_completions_anon_user() throws Exception {
-		Now.setNow(LocalDateTime.of(2018, 12, 11, 0, 0, 0));
+		LocalDateTime start = LocalDateTime.of(2018, 12, 11, 0, 0, 0);
 
-		AdventOfCodeApi api = new AdventOfCodeApi("") {
-			private int calls = 0;
+		MockHttpClientBuilder mockHttp = new MockHttpClientBuilder();
+		{
+			Now.setNow(start);
+
+			//REQUEST 1====================
 			ObjectMapper mapper = new ObjectMapper();
 
-			private final JsonNode root;
-			{
-				try (InputStream in = getClass().getResourceAsStream("advent-of-code-2018.json")) {
-					root = mapper.readTree(in);
-				}
-			}
+			JsonNode root = mapper.readTree(getClass().getResourceAsStream("advent-of-code-2018.json"));
 
-			@Override
-			JsonNode get(String url) throws IOException {
-				calls++;
+			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
+			mockHttp.responseOk(mapper.writeValueAsString(root));
 
-				if (calls == 1) {
-					assertEquals("http://adventofcode.com/2018/leaderboard/private/view/123456.json", url);
-					return root;
-				}
+			//REQUEST 2====================
+			Now.fastForward(Duration.ofMinutes(15));
 
-				if (calls == 2) {
-					assertEquals("http://adventofcode.com/2018/leaderboard/private/view/123456.json", url);
+			ObjectNode user = (ObjectNode) root.get("members").get("376542").get("completion_day_level");
+			ObjectNode day11 = mapper.createObjectNode();
+			ObjectNode day11Part1 = mapper.createObjectNode();
+			day11Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
+			day11.set("1", day11Part1);
+			user.set("11", day11);
 
-					ObjectNode user = (ObjectNode) root.get("members").get("376542").get("completion_day_level");
-					ObjectNode day11 = mapper.createObjectNode();
-					ObjectNode day11Part1 = mapper.createObjectNode();
+			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
+			mockHttp.responseOk(mapper.writeValueAsString(root));
+		}
 
-					day11Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
-					day11.set("1", day11Part1);
-					user.set("11", day11);
+		Now.setNow(start);
+		HttpFactory.inject(mockHttp.build());
 
-					return root;
-				}
-
-				fail("Too many calls.");
-				return null;
-			}
-		};
+		AdventOfCodeApi api = new AdventOfCodeApi("");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		leaderboardIds.put(1, "123456");
@@ -367,48 +343,41 @@ public class AdventOfCodeTest {
 		PostMessage expected = new PostMessage("**anonymous user #376542** completed part 1 of day 11! \\o/");
 		verify(bot).sendMessage(1, expected);
 	}
-	
+
 	@Test
 	public void announce_completions_at_symbol_in_username() throws Exception {
-		Now.setNow(LocalDateTime.of(2018, 12, 11, 0, 0, 0));
+		LocalDateTime start = LocalDateTime.of(2018, 12, 11, 0, 0, 0);
 
-		AdventOfCodeApi api = new AdventOfCodeApi("") {
-			private int calls = 0;
+		MockHttpClientBuilder mockHttp = new MockHttpClientBuilder();
+		{
+			Now.setNow(start);
+
+			//REQUEST 1====================
 			ObjectMapper mapper = new ObjectMapper();
-			private final JsonNode root;
-			{
-				try (InputStream in = getClass().getResourceAsStream("advent-of-code-2018.json")) {
-					root = mapper.readTree(in);
-				}
-			}
 
-			@Override
-			JsonNode get(String url) throws IOException {
-				calls++;
+			JsonNode root = mapper.readTree(getClass().getResourceAsStream("advent-of-code-2018.json"));
 
-				if (calls == 1) {
-					assertEquals("http://adventofcode.com/2018/leaderboard/private/view/123456.json", url);
-					return root;
-				}
+			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
+			mockHttp.responseOk(mapper.writeValueAsString(root));
 
-				if (calls == 2) {
-					assertEquals("http://adventofcode.com/2018/leaderboard/private/view/123456.json", url);
+			//REQUEST 2====================
+			Now.fastForward(Duration.ofMinutes(15));
 
-					ObjectNode user = (ObjectNode) root.get("members").get("376568").get("completion_day_level");
-					ObjectNode day11 = mapper.createObjectNode();
-					ObjectNode day11Part1 = mapper.createObjectNode();
+			ObjectNode user = (ObjectNode) root.get("members").get("376568").get("completion_day_level");
+			ObjectNode day11 = mapper.createObjectNode();
+			ObjectNode day11Part1 = mapper.createObjectNode();
+			day11Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
+			day11.set("1", day11Part1);
+			user.set("11", day11);
 
-					day11Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
-					day11.set("1", day11Part1);
-					user.set("11", day11);
+			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
+			mockHttp.responseOk(mapper.writeValueAsString(root));
+		}
 
-					return root;
-				}
+		Now.setNow(start);
+		HttpFactory.inject(mockHttp.build());
 
-				fail("Too many calls.");
-				return null;
-			}
-		};
+		AdventOfCodeApi api = new AdventOfCodeApi("");
 
 		Map<Integer, String> leaderboardIds = new HashMap<>();
 		leaderboardIds.put(1, "123456");

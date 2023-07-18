@@ -5,7 +5,6 @@ import static oakbot.bot.ChatActions.doNothing;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,12 +13,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -32,6 +25,9 @@ import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
 import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
+import oakbot.util.Now;
 
 /**
  * Posts an explanation of the latest XKCD comic from
@@ -129,32 +125,30 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 	private boolean stillNeedToWait(Comic comic) {
 		if (comic.timesCheckedWiki == 0) {
-			Duration postAge = Duration.between(comic.messageContainingComic.getTimestamp(), LocalDateTime.now());
+			Duration postAge = Duration.between(comic.messageContainingComic.getTimestamp(), Now.local());
 			return (postAge.compareTo(timeToWaitBeforeFirstWikiCheck) < 0);
 		} else {
-			Duration lastChecked = Duration.between(comic.lastCheckedWiki, Instant.now());
+			Duration lastChecked = Duration.between(comic.lastCheckedWiki, Now.instant());
 			return (lastChecked.compareTo(timeToWaitBetweenWikiChecks) < 0);
 		}
 	}
 
 	private String scrapeExplanationHtml(String url) throws IOException {
-		String html;
-		try (CloseableHttpClient client = httpClient()) {
-			HttpGet request = new HttpGet(url);
-			try (CloseableHttpResponse response = client.execute(request)) {
-				/*
-				 * If a wiki page for the comic has not been created
-				 * yet, the response status code will be 404.
-				 */
-				if (response.getStatusLine().getStatusCode() != 200) {
-					throw new IOException();
-				}
+		Document dom;
+		try (Http http = HttpFactory.connect()) {
+			Http.Response response = http.get(url);
 
-				html = EntityUtils.toString(response.getEntity());
+			/*
+			 * If a wiki page for the comic has not been created
+			 * yet, the response status code will be 404.
+			 */
+			if (response.getStatusCode() != 200) {
+				throw new IOException();
 			}
+
+			dom = response.getBodyAsHtml();
 		}
 
-		Document dom = Jsoup.parse(html);
 		Node next = nextSiblingThatsNotJustWhitespace(dom.getElementById("Explanation").parentNode());
 
 		/*
@@ -239,10 +233,6 @@ public class XkcdExplained implements ScheduledTask, Listener {
 		return doNothing();
 	}
 
-	CloseableHttpClient httpClient() {
-		return HttpClients.createDefault();
-	}
-
 	static class Comic {
 		final ChatMessage messageContainingComic;
 		final int comicId;
@@ -256,7 +246,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 		}
 
 		public void checkedWiki() {
-			lastCheckedWiki = Instant.now();
+			lastCheckedWiki = Now.instant();
 			timesCheckedWiki++;
 		}
 	}

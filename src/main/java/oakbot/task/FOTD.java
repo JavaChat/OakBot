@@ -1,23 +1,18 @@
 package oakbot.task;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
 import oakbot.util.Now;
 
 /**
@@ -56,7 +51,11 @@ public class FOTD implements ScheduledTask {
 
 	@Override
 	public void run(IBot bot) throws Exception {
-		String response = get(url);
+		String response;
+		try (Http http = HttpFactory.connect()) {
+			response = http.get(url).getBody();
+		}
+
 		String fact = parseFact(response);
 		if (fact == null) {
 			logger.warning("Unable to parse FOTD from " + url + ".");
@@ -107,21 +106,5 @@ public class FOTD implements ScheduledTask {
 		fact = fact.replace("�", "'");
 
 		return fact;
-	}
-
-	/**
-	 * Makes an HTTP GET request to the given URL. This method is
-	 * package-private so it can be overridden in unit tests.
-	 * @param url the URL
-	 * @return the response body
-	 * @throws IOException if there's a network problem
-	 */
-	String get(String url) throws IOException {
-		try (CloseableHttpClient client = HttpClients.createDefault()) {
-			HttpGet request = new HttpGet(url);
-			try (CloseableHttpResponse response = client.execute(request)) {
-				return EntityUtils.toString(response.getEntity());
-			}
-		}
 	}
 }

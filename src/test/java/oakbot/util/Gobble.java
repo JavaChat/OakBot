@@ -42,6 +42,15 @@ public class Gobble {
 		this(null, null, reader);
 	}
 
+	/**
+	 * Gets the contents of a file on the classpath.
+	 * @param clazz a class that exists in the same package as the file
+	 * @param file the file name
+	 */
+	public Gobble(Class<?> clazz, String file) {
+		this(null, clazz.getResourceAsStream(file), null);
+	}
+
 	private Gobble(Path file, InputStream in, Reader reader) {
 		this.file = file;
 		this.in = in;
