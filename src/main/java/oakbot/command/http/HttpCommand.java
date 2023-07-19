@@ -4,7 +4,7 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
+import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,10 +34,8 @@ public class HttpCommand implements Command {
 		} catch (IOException | SAXException ignored) {
 			/*
 			 * These exceptions should never be thrown because the XML file is
-			 * on the classpath and is not coming from user input.
-			 * 
-			 * TODO The XML file is also is checked for correctness in
-			 * HttpCommandXMLTest.
+			 * on the classpath and is not coming from user input. We know the
+			 * XML file is valid because it is parsed in the unit test.
 			 */
 			throw new RuntimeException(ignored);
 		}
@@ -63,7 +61,7 @@ public class HttpCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String split[] = chatCommand.getContent().split("\\s+");
+		String[] split = chatCommand.getContent().split("\\s+");
 		String code = split[0].toUpperCase();
 		if (code.isEmpty()) {
 			return reply("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.", chatCommand);
@@ -117,7 +115,7 @@ public class HttpCommand implements Command {
 		String description = element.text().trim();
 		description = processSectionAnnotations(description, defaultRfc);
 
-		String paragraphs[] = description.split("\n\n");
+		String[] paragraphs = description.split("\n\n");
 		if (paragraph > paragraphs.length) {
 			paragraph = paragraphs.length;
 		}
@@ -167,13 +165,8 @@ public class HttpCommand implements Command {
 	}
 
 	private static String rfcUrl(String rfc, String section) {
-		URIBuilder uri;
-		try {
-			uri = new URIBuilder("http://tools.ietf.org/html/rfc" + rfc);
-		} catch (URISyntaxException e) {
-			//should never be thrown
-			throw new RuntimeException(e);
-		}
+		URIBuilder uri = new URIBuilder(URI.create("http://tools.ietf.org"));
+		uri.setPathSegments("html", "rfc" + rfc);
 
 		if (section != null && !section.isEmpty()) {
 			uri.setFragment("section-" + section);
