@@ -1,7 +1,9 @@
 package oakbot.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +59,21 @@ public class Leaf {
 		this.node = element;
 		this.element = element;
 		this.xpath = xpath;
+	}
+
+	/**
+	 * Parses an XML document using a bare-bones {@link DocumentBuilder}.
+	 * @param bytes the XML data
+	 * @return the parsed document
+	 * @throws SAXException if there's a problem parsing the XML
+	 */
+	public static Leaf parse(byte[] bytes) throws SAXException {
+		try (InputStream in = new ByteArrayInputStream(bytes)) {
+			return parse(in);
+		} catch (IOException ignored) {
+			//never thrown because we're reading from a byte array
+			throw new UncheckedIOException(ignored);
+		}
 	}
 
 	/**

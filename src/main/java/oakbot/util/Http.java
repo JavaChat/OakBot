@@ -1,9 +1,7 @@
 package oakbot.util;
 
-import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,12 +13,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.Consts;
+import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -132,11 +132,15 @@ public class Http implements Closeable {
 				}
 			}
 
-			int statusCode;
-			String body;
-			try (CloseableHttpResponse response = client.execute(request)) {
-				statusCode = response.getStatusLine().getStatusCode();
-				body = EntityUtils.toString(response.getEntity());
+			Response response;
+			try (CloseableHttpResponse httpResponse = client.execute(request)) {
+				int statusCode = httpResponse.getStatusLine().getStatusCode();
+
+				HttpEntity entity = httpResponse.getEntity();
+				ContentType contentType = ContentType.getOrDefault(entity);
+				byte[] body = EntityUtils.toByteArray(entity);
+
+				response = new Response(statusCode, body, contentType, request.getURI().toString());
 			}
 
 			/*
@@ -144,17 +148,16 @@ public class Http implements Closeable {
 			 * quickly. The response body contains the number of seconds the bot
 			 * must wait before it can post another message.
 			 */
-			if (statusCode == 409) {
+			if (response.getStatusCode() == 409) {
+				String body = response.getBody();
 				Long waitTime = parse409Response(body);
 				sleep = (waitTime == null) ? 5000 : waitTime;
 
-				logger.info("HTTP " + statusCode + " response, sleeping " + sleep + "ms [request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "]: " + body);
+				logger.info("HTTP " + response.getStatusCode() + " response, sleeping " + sleep + "ms [request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "]: " + body);
 
 				attempts++;
 				continue;
 			}
-
-			Response response = new Response(statusCode, body, request.getURI().toString());
 
 			if (logger.isLoggable(Level.FINE)) {
 				String bodyDebug;
@@ -163,9 +166,9 @@ public class Http implements Closeable {
 					bodyDebug = JsonUtils.prettyPrint(node);
 				} catch (JsonProcessingException e) {
 					//not JSON
-					bodyDebug = body;
+					bodyDebug = response.getBody();
 				}
-				logger.fine("Received response [status=" + statusCode + "; request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "]: " + bodyDebug);
+				logger.fine("Received response [status=" + response.getStatusCode() + "; request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "]: " + bodyDebug);
 			}
 
 			return response;
@@ -214,17 +217,20 @@ public class Http implements Closeable {
 	 */
 	public static class Response {
 		private final int statusCode;
-		private final String body;
+		private final byte[] body;
+		private final ContentType contentType;
 		private final String requestUri;
 
 		/**
 		 * @param statusCode the status code (e.g. 200)
 		 * @param body the response body
+		 * @param contentType the content type of the body
 		 * @param requestUri the request URI that generated this response
 		 */
-		public Response(int statusCode, String body, String requestUri) {
+		public Response(int statusCode, byte[] body, ContentType contentType, String requestUri) {
 			this.statusCode = statusCode;
 			this.body = body;
+			this.contentType = contentType;
 			this.requestUri = requestUri;
 		}
 
@@ -241,7 +247,7 @@ public class Http implements Closeable {
 		 * @return the response body
 		 */
 		public String getBody() {
-			return body;
+			return new String(body, contentType.getCharset());
 		}
 
 		/**
@@ -251,22 +257,7 @@ public class Http implements Closeable {
 		 * JSON
 		 */
 		public JsonNode getBodyAsJson() throws JsonProcessingException {
-			ObjectMapper mapper = new ObjectMapper();
-			try {
-				return mapper.readTree(body);
-			} catch (JsonProcessingException e) {
-				/*
-				 * This exception must explicitly be caught and thrown because
-				 * it extends IOException and we do not want this method to
-				 * throw IOException.
-				 */
-				throw e;
-			} catch (IOException e) {
-				/*
-				 * Should never be thrown because we're reading from a String.
-				 */
-				throw new RuntimeException(e);
-			}
+			return new ObjectMapper().readTree(getBody());
 		}
 
 		/**
@@ -274,7 +265,7 @@ public class Http implements Closeable {
 		 * @return the parsed HTML document
 		 */
 		public Document getBodyAsHtml() {
-			return Jsoup.parse(body, requestUri);
+			return Jsoup.parse(getBody(), requestUri);
 		}
 
 		/**
@@ -283,11 +274,7 @@ public class Http implements Closeable {
 		 * @throws SAXException if there's a problem parsing the XML
 		 */
 		public Leaf getBodyAsXml() throws SAXException {
-			try {
-				return Leaf.parse(new ByteArrayInputStream(body.getBytes()));
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
+			return Leaf.parse(body);
 		}
 	}
 }
