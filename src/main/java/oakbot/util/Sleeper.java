@@ -30,4 +30,8 @@ public class Sleeper {
 			Thread.sleep(ms);
 		}
 	}
+
+	private Sleeper() {
+		//hide constructor
+	}
 }

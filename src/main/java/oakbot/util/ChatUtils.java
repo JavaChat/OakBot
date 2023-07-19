@@ -19,4 +19,8 @@ public class ChatUtils {
 		Elements elements = document.select("input[name=fkey]");
 		return elements.isEmpty() ? null : elements.first().attr("value");
 	}
+
+	private ChatUtils() {
+		//hide constructor
+	}
 }

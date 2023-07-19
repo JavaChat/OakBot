@@ -37,6 +37,6 @@ public class HttpFactory {
 	}
 
 	private HttpFactory() {
-		//empty
+		//hide constructor
 	}
 }

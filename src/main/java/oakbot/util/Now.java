@@ -56,6 +56,6 @@ public class Now {
 	}
 
 	private Now() {
-		//empty
+		//hide constructor
 	}
 }
