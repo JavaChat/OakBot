@@ -261,6 +261,17 @@ public class Http implements Closeable {
 		}
 
 		/**
+		 * Parses the response body as JSON and maps the data to a Java class.
+		 * @param clazz the class
+		 * @return the parsed JSON
+		 * @throws JsonProcessingException if the body could not be parsed as
+		 * JSON
+		 */
+		public <T> T getBodyAsJson(Class<T> clazz) throws JsonProcessingException {
+			return new ObjectMapper().readValue(getBody(), clazz);
+		}
+
+		/**
 		 * Parses the response body as HTML.
 		 * @return the parsed HTML document
 		 */

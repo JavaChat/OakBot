@@ -13,8 +13,6 @@ import java.util.regex.Pattern;
 
 import org.apache.http.client.utils.URIBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
@@ -32,8 +30,6 @@ import oakbot.util.HttpFactory;
  */
 public class UrbanCommand implements Command {
 	private static final Logger logger = Logger.getLogger(UrbanCommand.class.getName());
-
-	private final ObjectMapper mapper = new ObjectMapper();
 
 	@Override
 	public String name() {
@@ -89,7 +85,7 @@ public class UrbanCommand implements Command {
 			.build().toString();
 			//@formatter:on
 
-			response = mapper.readValue(http.get(url).getBody(), UrbanResponse.class);
+			response = http.get(url).getBodyAsJson(UrbanResponse.class);
 		} catch (IOException | URISyntaxException e) {
 			logger.log(Level.SEVERE, "Problem getting word from Urban Dictionary.", e);
 
