@@ -130,21 +130,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			}
 
 			ChatGPTRequest request = buildChatGPTRequest(messages, bot);
-
-			String response;
-			try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-				response = request.send(client);
-			} catch (ChatGPTException e) {
-				//@formatter:off
-				response = new ChatBuilder()
-					.code()
-					.append("BEEP BOOP ")
-					.append(e.getMessage())
-					.append(" BEEP BOOP")
-					.code()
-				.toString();
-				//@formatter:on
-			}
+			String response = sendChatGPTRequest(request);
 
 			PostMessage postMessage = new PostMessage(response).splitStrategy(SplitStrategy.WORD);
 			bot.sendMessage(roomId, postMessage);
@@ -186,21 +172,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
 
 			ChatGPTRequest request = buildChatGPTRequest(prevMessages, bot);
-
-			String response;
-			try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-				response = request.send(client);
-			} catch (ChatGPTException e) {
-				//@formatter:off
-				response = new ChatBuilder()
-					.code()
-					.append("BEEP BOOP ")
-					.append(e.getMessage())
-					.append(" BEEP BOOP")
-					.code()
-				.toString();
-				//@formatter:on
-			}
+			String response = sendChatGPTRequest(request);
 
 			resetSpontaneousPostTimer(message.getRoomId());
 
@@ -277,6 +249,33 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		}
 
 		return request;
+	}
+
+	private String sendChatGPTRequest(ChatGPTRequest request) throws IOException {
+		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
+			String response = request.send(client);
+			return removeMentionsFromBeginningOfMessage(response);
+		} catch (ChatGPTException e) {
+			//@formatter:off
+			return new ChatBuilder()
+				.code()
+				.append("ERROR BEEP BOOP: ")
+				.append(e.getMessage())
+				.code()
+			.toString();
+			//@formatter:on
+		}
+	}
+
+	private static String removeMentionsFromBeginningOfMessage(String message) {
+		String orig = message;
+		while (true) {
+			String result = orig.replaceAll("^@\\w+\\s+", "");
+			if (result.equals(orig)) {
+				return result;
+			}
+			orig = result;
+		}
 	}
 
 	/**
