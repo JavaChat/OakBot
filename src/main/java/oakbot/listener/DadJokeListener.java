@@ -21,20 +21,25 @@ import oakbot.util.Sleeper;
  */
 public class DadJokeListener implements Listener {
 	private final String botName;
+	private final CatchAllMentionListener catchAllListener;
 
-	private final Pattern regex = Pattern.compile( //@formatter:off
+	//@formatter:off
+	private final Pattern regex = Pattern.compile(
 		"(?i)" +
 		"(?:^|@[^ ]+|:\\d+|[.?!])\\s*" +
 		"(I\\s+am|I'm)\\b" +
 		"(.*?)" +
 		"([.,;!?\\n]|\\band\\b|$)"
-	); //@formatter:on
+	);
+	//@formatter:on
 
 	/**
 	 * @param botName name used in replies
+	 * @param catchAllListener the catch-all listener (can be null)
 	 */
-	public DadJokeListener(String botName) {
+	public DadJokeListener(String botName, CatchAllMentionListener catchAllListener) {
 		this.botName = botName;
+		this.catchAllListener = catchAllListener;
 	}
 
 	@Override
@@ -54,6 +59,14 @@ public class DadJokeListener implements Listener {
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		if (message.getContent().isOnebox()) {
+			return doNothing();
+		}
+
+		/*
+		 * If the bot is mentioned in the message, let the catch-all mention
+		 * listener handle it.
+		 */
+		if (message.getContent().isMentioned(bot.getUsername()) && catchAllListener != null) {
 			return doNothing();
 		}
 
@@ -83,9 +96,11 @@ public class DadJokeListener implements Listener {
 	}
 
 	private String removeLinks(String messageAsMarkdown) {
+		//@formatter:off
 		return messageAsMarkdown
 			.replaceAll("\\[(.*?)]\\(.*?\\)", "$1") //markdown links
 			.replaceAll("\\bhttps?://[^\\s]+", ""); //plaintext links
+		//@formatter:on
 	}
 
 	private int countWords(String phrase) {

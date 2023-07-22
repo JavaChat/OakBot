@@ -3,6 +3,7 @@ package oakbot.listener;
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -103,27 +104,49 @@ public class DadJokeListenerTest {
 		assertResponse(":1234 Hey! I'm Oak", "Hi Oak, I'm Oak!");
 	}
 
+	@Test
+	public void onMessage_bot_mentioned() {
+		assertNoResponse("@Oak I'm confused", mock(CatchAllMentionListener.class));
+		assertResponse("@Oak I'm confused", "Hi confused, I'm Oak!", null);
+	}
+
 	private static void assertResponse(String message, String response) {
+		assertResponse(message, response, null);
+	}
+
+	private static void assertResponse(String message, String response, CatchAllMentionListener catchAll) {
 		ChatMessage chatMessage = new ChatMessage.Builder() //@formatter:off
 			.messageId(1)
 			.roomId(1)
 			.content(message)
 			.build(); //@formatter:on
 
-		DadJokeListener listener = new DadJokeListener("Oak");
-		ChatActions actions = listener.onMessage(chatMessage, mock(IBot.class));
+		DadJokeListener listener = new DadJokeListener("Oak", catchAll);
+
+		IBot bot = mock(IBot.class);
+		when(bot.getUsername()).thenReturn("OakBot");
+
+		ChatActions actions = listener.onMessage(chatMessage, bot);
 		assertMessage(":1 " + response, actions);
 	}
 
 	private static void assertNoResponse(String message) {
+		assertNoResponse(message, null);
+	}
+
+	private static void assertNoResponse(String message, CatchAllMentionListener catchAll) {
 		ChatMessage chatMessage = new ChatMessage.Builder() //@formatter:off
 			.messageId(1)
 			.roomId(1)
 			.content(message)
 			.build(); //@formatter:on
 
-		DadJokeListener listener = new DadJokeListener("Oak");
-		ChatActions actions = listener.onMessage(chatMessage, mock(IBot.class));
+		DadJokeListener listener = new DadJokeListener("Oak", catchAll);
+
+		IBot bot = mock(IBot.class);
+		when(bot.getUsername()).thenReturn("OakBot");
+
+		ChatActions actions = listener.onMessage(chatMessage, bot);
 		if (!actions.isEmpty()) {
 			PostMessage postMessage = (PostMessage) actions.getActions().get(0);
 			fail("The following response was returned when no response was expected: " + postMessage.message());
