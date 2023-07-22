@@ -51,7 +51,7 @@ public class LearnCommandTest {
 		assertEquals("name", learned.name());
 		assertEquals("**command output**", learned.getOutput());
 		assertTrue(learned.aliases().isEmpty());
-		assertMessage("**command output**", learned.onMessage(null, null));
+		assertMessage("**command output**", learned.onMessage(message, null));
 	}
 
 	@Test
@@ -172,7 +172,7 @@ public class LearnCommandTest {
 		assertMessage(":1 Saved.", response);
 
 		LearnedCommand learned = learnedCommands.get("test");
-		assertMessage("    **one**", learned.onMessage(null, null));
+		assertMessage("    **one**", learned.onMessage(message, null));
 	}
 
 	@Test
@@ -192,7 +192,7 @@ public class LearnCommandTest {
 		assertMessage(":1 Saved.", response);
 
 		LearnedCommand learned = learnedCommands.get("test");
-		assertMessage("**one**", learned.onMessage(null, null));
+		assertMessage("**one**", learned.onMessage(message, null));
 	}
 
 	@Test
@@ -212,6 +212,6 @@ public class LearnCommandTest {
 		assertMessage(":1 Saved.", response);
 
 		LearnedCommand learned = learnedCommands.get("test");
-		assertMessage("**one**", learned.onMessage(null, null));
+		assertMessage("**one**", learned.onMessage(message, null));
 	}
 }
