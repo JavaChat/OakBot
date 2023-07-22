@@ -3,6 +3,8 @@ package oakbot.command.learn;
 import static oakbot.bot.ChatActions.post;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -104,7 +106,61 @@ public class LearnedCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		return post(output);
+		String response = output;
+
+		List<String> args = parseArguments(chatCommand.getContent());
+		for (int i = 0; i < args.size(); i++) {
+			response = response.replace("{" + i + "}", args.get(i));
+		}
+
+		return post(response);
+	}
+
+	private List<String> parseArguments(String message) {
+		message = message.trim();
+
+		List<String> args = new ArrayList<>();
+
+		boolean inQuotes = false;
+		boolean escapeNext = false;
+		StringBuilder buf = new StringBuilder();
+		for (int i = 0; i < message.length(); i++) {
+			char c = message.charAt(i);
+
+			if (escapeNext) {
+				buf.append(c);
+				escapeNext = false;
+				continue;
+			}
+
+			if (Character.isWhitespace(c)) {
+				if (!inQuotes) {
+					if (buf.length() > 0) {
+						args.add(buf.toString());
+						buf.setLength(0);
+					}
+					continue;
+				}
+			} else if (c == '"') {
+				if (inQuotes) {
+					args.add(buf.toString());
+					buf.setLength(0);
+				}
+				inQuotes = !inQuotes;
+				continue;
+			} else if (c == '\\') {
+				escapeNext = true;
+				continue;
+			}
+
+			buf.append(c);
+		}
+
+		if (buf.length() > 0) {
+			args.add(buf.toString());
+		}
+
+		return args;
 	}
 
 	/**
