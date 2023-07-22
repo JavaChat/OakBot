@@ -2,7 +2,6 @@ package oakbot.inactivity;
 
 import java.time.Duration;
 
-import oakbot.bot.Bot;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.IRoom;
