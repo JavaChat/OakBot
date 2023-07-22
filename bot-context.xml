@@ -174,6 +174,9 @@
 		<constructor-arg value="" /> <!-- API key for dictionaryapi.com -->
 	</bean>
 	
+	<!-- /echo -->
+	<bean class="oakbot.command.EchoCommand" />
+	
 	<!-- /ed -->
 	<bean class="oakbot.command.effective.EffectiveDebuggingCommand" />
 
