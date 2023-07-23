@@ -14,6 +14,7 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
+import oakbot.util.Sleeper;
 
 /**
  * Displays a "wave" emoticon in response to another user's wave emoticon.
@@ -111,10 +112,7 @@ public class WaveListener implements Listener {
 		/*
 		 * Wait for a moment to make it seem less robotic.
 		 */
-		try {
-			Thread.sleep(hesitation.toMillis());
-		} catch (InterruptedException ignore) {
-		}
+		Sleeper.sleep(hesitation);
 
 		String reply = reverse(wave);
 		return post(reply);

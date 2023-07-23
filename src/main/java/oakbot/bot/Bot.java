@@ -143,10 +143,7 @@ public class Bot implements IBot {
 				 * resolve an issue where the bot chooses to ignore all messages
 				 * in certain rooms.
 				 */
-				try {
-					Sleeper.sleep(2000);
-				} catch (InterruptedException ignore) {
-				}
+				Sleeper.sleep(2000);
 			}
 
 			try {
@@ -170,6 +167,8 @@ public class Bot implements IBot {
 					try {
 						message = newMessages.take();
 					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						logger.log(Level.SEVERE, "Thread interrupted while waiting for new chat messages.", e);
 						break;
 					}
 

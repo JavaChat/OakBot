@@ -2,6 +2,7 @@ package oakbot.chat.mock;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -10,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import oakbot.chat.ChatMessage;
 import oakbot.chat.IRoom;
@@ -27,6 +30,8 @@ import oakbot.chat.event.MessagePostedEvent;
  * @author Michael Angstadt
  */
 public class FileChatRoom implements IRoom {
+	private static final Logger logger = Logger.getLogger(FileChatRoom.class.getName());
+
 	private final int roomId;
 	private final int humanUserId, botUserId;
 	private final String humanUsername, humanProfilePicture, botUsername;
@@ -81,9 +86,10 @@ public class FileChatRoom implements IRoom {
 					postMessage(humanUserId, humanUsername, sb.toString());
 				}
 			} catch (IOException e) {
-				throw new RuntimeException(e);
+				throw new UncheckedIOException(e);
 			} catch (InterruptedException e) {
-				//ignore
+				Thread.currentThread().interrupt();
+				logger.log(Level.SEVERE, "Thread interrupted while waiting for input from \"" + inputFile.getFileName() + "\".", e);
 			}
 		});
 		fileMonitor.start();

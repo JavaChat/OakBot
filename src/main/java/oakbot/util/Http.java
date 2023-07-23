@@ -125,11 +125,7 @@ public class Http implements Closeable {
 		while (attempts < 5) {
 			if (sleep > 0) {
 				logger.info("Sleeping for " + sleep + "ms before resending the request...");
-				try {
-					Sleeper.sleep(sleep);
-				} catch (InterruptedException e) {
-					throw new RuntimeException(e);
-				}
+				Sleeper.sleep(sleep);
 			}
 
 			Response response;

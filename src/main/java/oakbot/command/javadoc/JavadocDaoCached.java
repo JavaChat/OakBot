@@ -153,7 +153,8 @@ public class JavadocDaoCached implements JavadocDao {
 				try {
 					key = watcher.take();
 				} catch (InterruptedException e) {
-					logger.log(Level.WARNING, "Javadoc ZIP file watch thread has been interrupted.", e);
+					Thread.currentThread().interrupt();
+					logger.log(Level.WARNING, "Thread interrupted while watching for changes to the Javadoc ZIP files.", e);
 					return;
 				}
 

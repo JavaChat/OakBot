@@ -54,6 +54,7 @@ import oakbot.util.ChatUtils;
 import oakbot.util.Http;
 import oakbot.util.Http.Response;
 import oakbot.util.JsonUtils;
+import oakbot.util.Sleeper;
 
 /**
  * Represents the connection to a room the user has joined. Use the
@@ -174,11 +175,7 @@ public class Room implements IRoom {
 							connected = true;
 						} catch (IOException e) {
 							logger.log(Level.SEVERE, "[room=" + roomId + "]: Could not recreate websocket session. Trying again in " + pauseBetweenAttempts.getSeconds() + " seconds.", e);
-							try {
-								Thread.sleep(pauseBetweenAttempts.toMillis());
-							} catch (InterruptedException e1) {
-								break;
-							}
+							Sleeper.sleep(pauseBetweenAttempts);
 						}
 					}
 

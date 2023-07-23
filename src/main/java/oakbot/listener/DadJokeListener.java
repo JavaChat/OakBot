@@ -114,9 +114,6 @@ public class DadJokeListener implements Listener {
 	}
 
 	private void hesitate(Duration duration) {
-		try {
-			Sleeper.sleep(duration.toMillis());
-		} catch (InterruptedException ignored) {
-		}
+		Sleeper.sleep(duration.toMillis());
 	}
 }
