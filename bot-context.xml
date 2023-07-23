@@ -260,6 +260,7 @@
 	<!-- dadjoke listener -->
 	<bean class="oakbot.listener.DadJokeListener">
 		<constructor-arg value="Oak" />
+		<constructor-arg ref="chatGPT" /> <!-- should be set to either mentionListener or chatGPT -->
 	</bean>
 	
 	<!-- mention listener -->
