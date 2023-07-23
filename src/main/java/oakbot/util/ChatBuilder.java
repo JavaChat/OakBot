@@ -50,7 +50,7 @@ public class ChatBuilder implements CharSequence {
 	 * @return this
 	 */
 	public ChatBuilder quote() {
-		return append('>');
+		return append("> ");
 	}
 
 	/**

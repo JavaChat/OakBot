@@ -19,6 +19,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -260,37 +262,8 @@ public class Bot implements IBot {
 					logger.info(action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
 				}
 
-				timer.schedule(new TimerTask() {
-					@Override
-					public void run() {
-						try {
-							String condensedContent = postedMessage.getCondensedContent();
-
-							if (postedMessage.isEphemeral()) {
-								room.deleteMessage(message.getMessageId());
-							} else {
-								if (condensedContent == null) {
-									//it's a onebox
-									condensedContent = quote(postedMessage.getOriginalContent());
-								} else {
-									condensedContent = quote(condensedContent);
-								}
-								room.editMessage(message.getMessageId(), condensedContent);
-							}
-
-							//if the original content was split up into multiple messages due to length constraints, delete the additional messages
-							for (Long id : postedMessage.getRelatedMessageIds()) {
-								room.deleteMessage(id);
-							}
-						} catch (Exception e) {
-							logger.log(Level.SEVERE, "Problem editing chat message [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]", e);
-						}
-					}
-
-					private String quote(String content) {
-						return new ChatBuilder().quote().append(' ').append(content).toString();
-					}
-				}, hideIn.toMillis());
+				TimerTask task = new CondenseMessageTask(postedMessage, room);
+				timer.schedule(task, hideIn.toMillis());
 			}
 
 			return;
@@ -448,7 +421,7 @@ public class Bot implements IBot {
 			String condensedMessage = message.condensedMessage();
 			boolean ephemeral = message.ephemeral();
 
-			PostedMessage postedMessage = new PostedMessage(Instant.now(), filteredMessage, condensedMessage, ephemeral, messageIds.subList(1, messageIds.size()));
+			PostedMessage postedMessage = new PostedMessage(Instant.now(), filteredMessage, condensedMessage, ephemeral, messageIds);
 			postedMessages.put(messageIds.get(0), postedMessage);
 		}
 	}
@@ -704,7 +677,7 @@ public class Bot implements IBot {
 		private final Instant timePosted;
 		private final String originalContent, condensedContent;
 		private final boolean ephemeral;
-		private final List<Long> relatedMessageIds;
+		private final List<Long> messageIds;
 
 		/**
 		 * @param timePosted the time the message was posted
@@ -715,16 +688,16 @@ public class Bot implements IBot {
 		 * setting
 		 * @param ephemeral true to delete the message after the amount of time
 		 * specified in the "hideOneboxesAfter" setting, false not to
-		 * @param relatedMessageIds the IDs of the other messages that are
-		 * connected to this one, due to the chat client having to split up the
-		 * original message due to length limitations
+		 * @param messageIds the ID of each message that was actually posted to
+		 * the room (the chat client may split up the original message due to
+		 * length limitations)
 		 */
-		public PostedMessage(Instant timePosted, String originalContent, String condensedContent, boolean ephemeral, List<Long> relatedMessageIds) {
+		public PostedMessage(Instant timePosted, String originalContent, String condensedContent, boolean ephemeral, List<Long> messageIds) {
 			this.timePosted = timePosted;
 			this.originalContent = originalContent;
 			this.condensedContent = condensedContent;
 			this.ephemeral = ephemeral;
-			this.relatedMessageIds = relatedMessageIds;
+			this.messageIds = messageIds;
 		}
 
 		/**
@@ -754,14 +727,13 @@ public class Bot implements IBot {
 		}
 
 		/**
-		 * Gets the IDs of the other messages that are connected to this one,
-		 * due to the chat client splitting up the original message due to
-		 * limitations in how long an individual chat message can be.
-		 * @return the IDs of the other messages or empty list if there are no
-		 * other such messages
+		 * Gets the ID of each message that was actually posted to the room. The
+		 * chat client may split up the original message due to length
+		 * limitations.
+		 * @return the message IDs
 		 */
-		public List<Long> getRelatedMessageIds() {
-			return relatedMessageIds;
+		public List<Long> getMessageIds() {
+			return messageIds;
 		}
 
 		/**
@@ -783,6 +755,69 @@ public class Bot implements IBot {
 		 */
 		public boolean isEphemeral() {
 			return ephemeral;
+		}
+	}
+
+	private static class CondenseMessageTask extends TimerTask {
+		private static final Pattern replyRegex = Pattern.compile("^:(\\d+) (.*)", Pattern.DOTALL);
+
+		private final PostedMessage postedMessage;
+		private final IRoom room;
+
+		public CondenseMessageTask(PostedMessage postedMessage, IRoom room) {
+			this.postedMessage = postedMessage;
+			this.room = room;
+		}
+
+		@Override
+		public void run() {
+			try {
+				List<Long> messagesToDelete;
+				if (postedMessage.isEphemeral()) {
+					messagesToDelete = postedMessage.getMessageIds();
+				} else {
+					String condensedContent = postedMessage.getCondensedContent();
+					boolean isAOneBox = (condensedContent == null);
+					if (isAOneBox) {
+						condensedContent = postedMessage.getOriginalContent();
+					}
+
+					List<Long> messageIds = postedMessage.getMessageIds();
+					String quotedContent = quote(condensedContent);
+					room.editMessage(messageIds.get(0), quotedContent);
+
+					/*
+					 * If the original content was split up into
+					 * multiple messages due to length constraints,
+					 * delete the additional messages.
+					 */
+					messagesToDelete = messageIds.subList(1, messageIds.size());
+				}
+
+				for (Long id : messagesToDelete) {
+					room.deleteMessage(id);
+				}
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Problem editing chat message [room=" + room.getRoomId() + ", id=" + postedMessage.getMessageIds().get(0) + "]", e);
+			}
+		}
+
+		private String quote(String content) {
+			ChatBuilder cb = new ChatBuilder();
+
+			/*
+			 * If the posted message was a reply, the reply syntax must come
+			 * before the quote syntax.
+			 */
+			Matcher m = replyRegex.matcher(content);
+			if (m.find()) {
+				long id = Long.parseLong(m.group(1));
+				content = m.group(2);
+
+				cb.reply(id);
+			}
+
+			return cb.quote().append(content).toString();
 		}
 	}
 
