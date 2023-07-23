@@ -102,7 +102,7 @@ public class CommandsWikiPage {
 			commands.add(new FacepalmCommand(""));
 			commands.add(new FatCatCommand(db));
 			commands.add(new GrootFilter());
-			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks));
+			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
 			commands.add(new HttpCommand());
 			commands.add(new JavadocCommand(null));
 			commands.add(new JuiceBoxCommand());

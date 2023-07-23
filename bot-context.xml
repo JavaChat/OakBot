@@ -57,6 +57,12 @@
 		The message to post when the bot joins a room. Chat markdown can be used here.
 		-->
 		<prop key="greeting">OakBot Online.</prop>
+
+		<!--
+		(optional)
+		Displays this URL when the "help" command output is condensed.
+		-->
+		<prop key="help.webpage">https://github.com/JavaChat/OakBot/wiki/Commands</prop>
 		
 		<!--
    		(optional)

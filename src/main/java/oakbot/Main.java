@@ -156,7 +156,7 @@ public final class Main {
 			learnedCommands = new LearnedCommandsDao(new MemoryDatabase());
 		}
 
-		HelpCommand helpCommand = new HelpCommand(commands, learnedCommands, listeners, tasks);
+		HelpCommand helpCommand = new HelpCommand(commands, learnedCommands, listeners, tasks, botProperties.getHelpWebpage());
 		commands.add(helpCommand);
 
 		CommandListener commandListener = new CommandListener(commands, learnedCommands);

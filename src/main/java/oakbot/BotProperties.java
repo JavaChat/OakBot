@@ -15,7 +15,7 @@ import oakbot.util.PropertiesWrapper;
  */
 public class BotProperties extends PropertiesWrapper {
 	private final Path loggingConfig;
-	private final String site, loginEmail, password, botUserName, trigger, greeting;
+	private final String site, loginEmail, password, botUserName, trigger, greeting, helpWebpage;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, allowedUsers;
 	private final Integer botUserId;
 	private final Duration hideOneboxesAfter;
@@ -49,6 +49,8 @@ public class BotProperties extends PropertiesWrapper {
 		allowedUsers = getIntegerList("users.allowed");
 
 		enableLearnedCommands = getBoolean("enableLearnedCommands", true);
+
+		helpWebpage = get("help.webpage");
 	}
 
 	/**
@@ -168,5 +170,9 @@ public class BotProperties extends PropertiesWrapper {
 
 	public boolean isEnableLearnedCommands() {
 		return enableLearnedCommands;
+	}
+
+	public String getHelpWebpage() {
+		return helpWebpage;
 	}
 }

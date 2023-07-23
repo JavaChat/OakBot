@@ -32,12 +32,14 @@ public class HelpCommand implements Command {
 	private final LearnedCommandsDao learnedCommands;
 	private final List<Listener> listeners;
 	private final List<ScheduledTask> tasks;
+	private final String helpWebpage;
 
-	public HelpCommand(List<Command> commands, LearnedCommandsDao learnedCommands, List<Listener> listeners, List<ScheduledTask> tasks) {
+	public HelpCommand(List<Command> commands, LearnedCommandsDao learnedCommands, List<Listener> listeners, List<ScheduledTask> tasks, String helpWebpage) {
 		this.commands = commands;
 		this.learnedCommands = learnedCommands;
 		this.listeners = listeners;
 		this.tasks = tasks;
+		this.helpWebpage = helpWebpage;
 	}
 
 	@Override
@@ -132,12 +134,19 @@ public class HelpCommand implements Command {
 			}
 		}
 
+		String condensedMessage;
+		if (helpWebpage == null || helpWebpage.isEmpty()) {
+			condensedMessage = "Type " + bot.getTrigger() + name() + " to see my commands.";
+		} else {
+			condensedMessage = "My commands are also listed here: " + helpWebpage;
+		}
+
 		//@formatter:off
 		return ChatActions.create(
 			new PostMessage(cb)
 			.splitStrategy(SplitStrategy.NEWLINE)
 			.bypassFilters(true)
-			.condensedMessage("My commands are also listed here: https://github.com/JavaChat/OakBot/wiki/Commands") //TODO
+			.condensedMessage(condensedMessage)
 		);
 		//@formatter:on
 	}
