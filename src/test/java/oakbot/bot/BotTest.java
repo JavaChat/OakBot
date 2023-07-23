@@ -69,13 +69,12 @@ public class BotTest {
 
 		runAfter = true;
 
-		Sleeper.unitTest = true;
-		Sleeper.timeSlept = 0;
+		Sleeper.startUnitTest();
 	}
 
 	@After
 	public void after() throws Exception {
-		Sleeper.unitTest = false;
+		Sleeper.endUnitTest();
 
 		if (!runAfter) {
 			return;

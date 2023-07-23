@@ -34,13 +34,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public class HttpTest {
 	@Before
 	public void before() {
-		Sleeper.unitTest = true;
-		Sleeper.timeSlept = 0;
+		Sleeper.startUnitTest();
 	}
 
 	@After
 	public void after() {
-		Sleeper.unitTest = false;
+		Sleeper.endUnitTest();
 	}
 
 	@Test
@@ -171,7 +170,7 @@ public class HttpTest {
 
 		Http http = new Http(client);
 		http.get("uri");
-		assertEquals(2000, Sleeper.timeSlept);
+		assertEquals(2000, Sleeper.getTimeSlept());
 	}
 
 	/**
@@ -189,7 +188,7 @@ public class HttpTest {
 		Http http = new Http(client);
 
 		http.get("uri");
-		assertEquals(5000, Sleeper.timeSlept);
+		assertEquals(5000, Sleeper.getTimeSlept());
 	}
 
 	/**
@@ -208,7 +207,7 @@ public class HttpTest {
 			http.get("uri");
 			fail();
 		} catch (IOException e) {
-			assertEquals(8000, Sleeper.timeSlept);
+			assertEquals(8000, Sleeper.getTimeSlept());
 		}
 	}
 

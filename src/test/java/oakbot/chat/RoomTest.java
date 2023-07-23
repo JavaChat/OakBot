@@ -1021,13 +1021,12 @@ public class RoomTest {
 		chatClient.login("email", "password");
 		Room room1 = chatClient.joinRoom(1);
 
-		Sleeper.unitTest = true;
-		Sleeper.timeSlept = 0;
+		Sleeper.startUnitTest();
 		try {
 			assertEquals(1, room1.sendMessage("one"));
-			assertEquals(2000, Sleeper.timeSlept);
+			assertEquals(2000, Sleeper.getTimeSlept());
 		} finally {
-			Sleeper.unitTest = false;
+			Sleeper.endUnitTest();
 		}
 
 		verifyNumberOfRequestsSent(httpClient, 7);

@@ -21,12 +21,12 @@ import oakbot.util.Sleeper;
 public class DadJokeListenerTest {
 	@BeforeClass
 	public static void beforeClass() {
-		Sleeper.unitTest = true;
+		Sleeper.startUnitTest();
 	}
 
 	@AfterClass
 	public static void afterClass() {
-		Sleeper.unitTest = false;
+		Sleeper.endUnitTest();
 	}
 
 	@Test
