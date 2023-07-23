@@ -7,13 +7,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -26,6 +19,8 @@ import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Http;
+import oakbot.util.HttpFactory;
 
 /**
  * Displays StackOverflow tag descriptions (can sort of act like a Computer
@@ -61,9 +56,9 @@ public class TagCommand implements Command {
 		Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
 		String url = "http://stackoverflow.com/tags/" + escaper.escape(tag) + "/info";
 
-		String response;
-		try {
-			response = get(url);
+		Document document;
+		try (Http http = HttpFactory.connect()) {
+			document = http.get(url).getBodyAsHtml();
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Error getting tag description.", e);
 
@@ -76,7 +71,6 @@ public class TagCommand implements Command {
 			//@formatter:on
 		}
 
-		Document document = Jsoup.parse(response);
 		Element element = document.getElementById("wiki-excerpt");
 		if (element == null) {
 			return reply("Tag not found. :(", chatCommand);
@@ -94,19 +88,5 @@ public class TagCommand implements Command {
 			.splitStrategy(SplitStrategy.WORD)
 		);
 		//@formatter:on
-	}
-
-	/**
-	 * Sends an HTTP GET request.
-	 * @param url the URL
-	 * @return the response body
-	 * @throws IOException if there's a problem sending the request
-	 */
-	String get(String url) throws IOException {
-		HttpUriRequest request = new HttpGet(url);
-		try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
-			HttpResponse response = client.execute(request);
-			return EntityUtils.toString(response.getEntity());
-		}
 	}
 }

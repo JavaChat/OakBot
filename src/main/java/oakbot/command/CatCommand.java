@@ -4,17 +4,12 @@ import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.xml.sax.SAXException;
 
 import com.google.common.net.UrlEscapers;
@@ -72,8 +67,8 @@ public class CatCommand implements Command {
 		int repeats = 0;
 		try (Http http = HttpFactory.connect()) {
 			while (repeats < 5) {
-				String catUrl = nextCat(http.getClient());
-				if (isCatThere(http.getClient(), catUrl)) {
+				String catUrl = nextCat(http);
+				if (isCatThere(http, catUrl)) {
 					//@formatter:off
 					return ChatActions.create(
 						new PostMessage(catUrl).bypassFilters(true)
@@ -100,22 +95,15 @@ public class CatCommand implements Command {
 
 	/**
 	 * Gets a random cat picture.
-	 * @param client the HTTP client
+	 * @param http the HTTP client
 	 * @return the URL to the cat picture
 	 * @throws IOException if there's a network error
 	 * @throws SAXException if there's a problem parsing the XML response
 	 */
-	private String nextCat(CloseableHttpClient client) throws IOException, SAXException {
-		HttpGet request = new HttpGet(requestUrl);
-		try (CloseableHttpResponse response = client.execute(request)) {
-			Leaf document;
-			try (InputStream in = response.getEntity().getContent()) {
-				document = Leaf.parse(in);
-			}
-
-			Leaf urlElement = document.selectFirst("/response/data/images/image/url");
-			return urlElement.text();
-		}
+	private String nextCat(Http http) throws IOException, SAXException {
+		Leaf document = http.get(requestUrl).getBodyAsXml();
+		Leaf urlElement = document.selectFirst("/response/data/images/image/url");
+		return urlElement.text();
 	}
 
 	/**
@@ -125,10 +113,10 @@ public class CatCommand implements Command {
 	 * @param url the URL to the image
 	 * @return true if the image exists, false if not
 	 */
-	private boolean isCatThere(CloseableHttpClient client, String url) {
-		HttpHead request = new HttpHead(url);
-		try (CloseableHttpResponse response = client.execute(request)) {
-			return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+	private boolean isCatThere(Http http, String url) {
+		try {
+			Http.Response response = http.head(url);
+			return response.getStatusCode() == HttpStatus.SC_OK;
 		} catch (IOException e) {
 			return false;
 		}

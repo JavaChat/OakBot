@@ -2,6 +2,7 @@ package oakbot.util;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
@@ -46,6 +48,22 @@ public class Http implements Closeable {
 	 */
 	public Http(CloseableHttpClient client) {
 		this.client = Objects.requireNonNull(client);
+	}
+
+	/**
+	 * Sends an HTTP HEAD request.
+	 * @param uri the URI
+	 * @return the response
+	 * @throws IOException if there's a problem sending the request
+	 */
+	public Response head(String uri) throws IOException {
+		HttpHead request = new HttpHead(uri);
+
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Sending request [method=HEAD; URI=" + uri + "]...");
+		}
+
+		return send(request);
 	}
 
 	/**
@@ -133,8 +151,15 @@ public class Http implements Closeable {
 				int statusCode = httpResponse.getStatusLine().getStatusCode();
 
 				HttpEntity entity = httpResponse.getEntity();
-				ContentType contentType = ContentType.getOrDefault(entity);
-				byte[] body = EntityUtils.toByteArray(entity);
+				ContentType contentType;
+				byte[] body;
+				if (entity == null) {
+					contentType = null;
+					body = null;
+				} else {
+					contentType = ContentType.getOrDefault(entity);
+					body = EntityUtils.toByteArray(entity);
+				}
 
 				response = new Response(statusCode, body, contentType, request.getURI().toString());
 			}
@@ -240,48 +265,61 @@ public class Http implements Closeable {
 
 		/**
 		 * Gets the response body.
-		 * @return the response body
+		 * @return the response body or null if there is no body (e.g. HEAD
+		 * requests)
 		 */
 		public String getBody() {
-			return new String(body, contentType.getCharset());
+			if (body == null) {
+				return null;
+			}
+
+			Charset charset = contentType.getCharset();
+			return (charset == null) ? new String(body) : new String(body, charset);
 		}
 
 		/**
 		 * Parses the response body as JSON.
-		 * @return the parsed JSON
+		 * @return the parsed JSON or null if there is no response body (e.g.
+		 * HEAD requests)
 		 * @throws JsonProcessingException if the body could not be parsed as
 		 * JSON
 		 */
 		public JsonNode getBodyAsJson() throws JsonProcessingException {
-			return new ObjectMapper().readTree(getBody());
+			String bodyStr = getBody();
+			return (bodyStr == null) ? null : new ObjectMapper().readTree(bodyStr);
 		}
 
 		/**
 		 * Parses the response body as JSON and maps the data to a Java class.
 		 * @param clazz the class
-		 * @return the parsed JSON
+		 * @return the parsed JSON or null if there is no response body (e.g.
+		 * HEAD requests)
 		 * @throws JsonProcessingException if the body could not be parsed as
 		 * JSON
 		 */
 		public <T> T getBodyAsJson(Class<T> clazz) throws JsonProcessingException {
-			return new ObjectMapper().readValue(getBody(), clazz);
+			String bodyStr = getBody();
+			return (bodyStr == null) ? null : new ObjectMapper().readValue(bodyStr, clazz);
 		}
 
 		/**
 		 * Parses the response body as HTML.
-		 * @return the parsed HTML document
+		 * @return the parsed HTML document or null if there is no response body
+		 * (e.g. HEAD requests)
 		 */
 		public Document getBodyAsHtml() {
-			return Jsoup.parse(getBody(), requestUri);
+			String bodyStr = getBody();
+			return (bodyStr == null) ? null : Jsoup.parse(bodyStr, requestUri);
 		}
 
 		/**
 		 * Parses the response body as XML.
-		 * @return the parsed XML document
+		 * @return the parsed XML document or null if there is no response body
+		 * (e.g. HEAD requests)
 		 * @throws SAXException if there's a problem parsing the XML
 		 */
 		public Leaf getBodyAsXml() throws SAXException {
-			return Leaf.parse(body);
+			return (body == null) ? null : Leaf.parse(body);
 		}
 	}
 }
