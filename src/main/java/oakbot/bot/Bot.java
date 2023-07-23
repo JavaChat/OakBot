@@ -272,103 +272,7 @@ public class Bot implements IBot {
 		inactivityTasks.touch(message);
 
 		ChatActions actions = handleListeners(message);
-
-		if (!actions.isEmpty()) {
-			if (logger.isLoggable(Level.INFO)) {
-				logger.info("Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
-			}
-
-			if (stats != null) {
-				stats.incMessagesRespondedTo();
-			}
-
-			LinkedList<ChatAction> queue = new LinkedList<>(actions.getActions());
-			while (!queue.isEmpty()) {
-				ChatAction action = queue.removeFirst();
-
-				if (action instanceof PostMessage) {
-					PostMessage postMessage = (PostMessage) action;
-
-					try {
-						if (postMessage.broadcast()) {
-							broadcastMessage(postMessage);
-						} else {
-							sendMessage(room, postMessage);
-						}
-					} catch (IOException e) {
-						logger.log(Level.SEVERE, "Problem posting message [room=" + room.getRoomId() + "]: " + postMessage.message(), e);
-					}
-
-					continue;
-				}
-
-				if (action instanceof JoinRoom) {
-					JoinRoom joinRoom = (JoinRoom) action;
-
-					ChatActions response;
-					if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
-						response = joinRoom.onError().apply(new IOException("Cannot join room. Max rooms reached."));
-					} else {
-						try {
-							IRoom joinedRoom = joinRoom(joinRoom.roomId());
-							if (joinedRoom.canPost()) {
-								response = joinRoom.onSuccess().get();
-							} else {
-								/*
-								 * This block of code runs if the bot is not
-								 * configured to post a greeting message after
-								 * joining a room, and the bot does not have
-								 * permission to post to the room.
-								 */
-								response = joinRoom.ifLackingPermissionToPost().get();
-								try {
-									leave(joinRoom.roomId());
-								} catch (IOException e) {
-									logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
-								}
-							}
-						} catch (RoomPermissionException e) {
-							/*
-							 * Thrown if the bot tries to post a greeting
-							 * message after joining the room, but does not
-							 * have permission to post.
-							 */
-							response = joinRoom.ifLackingPermissionToPost().get();
-							try {
-								leave(joinRoom.roomId());
-							} catch (IOException e2) {
-								logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
-							}
-						} catch (RoomNotFoundException e) {
-							response = joinRoom.ifRoomDoesNotExist().get();
-						} catch (IOException e) {
-							response = joinRoom.onError().apply(e);
-						}
-					}
-
-					queue.addAll(response.getActions());
-					continue;
-				}
-
-				if (action instanceof LeaveRoom) {
-					LeaveRoom leaveRoom = (LeaveRoom) action;
-
-					try {
-						leave(leaveRoom.roomId());
-					} catch (IOException e) {
-						logger.log(Level.SEVERE, "Problem leaving room " + leaveRoom.roomId(), e);
-					}
-
-					continue;
-				}
-
-				if (action instanceof Shutdown) {
-					newMessages.clear();
-					stop();
-					continue;
-				}
-			}
-		}
+		handleActions(message, actions);
 
 		if (database != null) {
 			database.commit();
@@ -546,6 +450,107 @@ public class Bot implements IBot {
 			}
 		}
 		return actions;
+	}
+
+	private void handleActions(ChatMessage message, ChatActions actions) {
+		if (actions.isEmpty()) {
+			return;
+		}
+
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info("Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+		}
+
+		if (stats != null) {
+			stats.incMessagesRespondedTo();
+		}
+
+		LinkedList<ChatAction> queue = new LinkedList<>(actions.getActions());
+		while (!queue.isEmpty()) {
+			ChatAction action = queue.removeFirst();
+
+			if (action instanceof PostMessage) {
+				PostMessage postMessage = (PostMessage) action;
+
+				try {
+					if (postMessage.broadcast()) {
+						broadcastMessage(postMessage);
+					} else {
+						sendMessage(message.getRoomId(), postMessage);
+					}
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem posting message [room=" + message.getRoomId() + "]: " + postMessage.message(), e);
+				}
+
+				continue;
+			}
+
+			if (action instanceof JoinRoom) {
+				JoinRoom joinRoom = (JoinRoom) action;
+
+				ChatActions response;
+				if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
+					response = joinRoom.onError().apply(new IOException("Cannot join room. Max rooms reached."));
+				} else {
+					try {
+						IRoom joinedRoom = joinRoom(joinRoom.roomId());
+						if (joinedRoom.canPost()) {
+							response = joinRoom.onSuccess().get();
+						} else {
+							/*
+							 * This block of code runs if the bot is not
+							 * configured to post a greeting message after
+							 * joining a room, and the bot does not have
+							 * permission to post to the room.
+							 */
+							response = joinRoom.ifLackingPermissionToPost().get();
+							try {
+								leave(joinRoom.roomId());
+							} catch (IOException e) {
+								logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
+							}
+						}
+					} catch (RoomPermissionException e) {
+						/*
+						 * Thrown if the bot tries to post a greeting
+						 * message after joining the room, but does not
+						 * have permission to post.
+						 */
+						response = joinRoom.ifLackingPermissionToPost().get();
+						try {
+							leave(joinRoom.roomId());
+						} catch (IOException e2) {
+							logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
+						}
+					} catch (RoomNotFoundException e) {
+						response = joinRoom.ifRoomDoesNotExist().get();
+					} catch (IOException e) {
+						response = joinRoom.onError().apply(e);
+					}
+				}
+
+				queue.addAll(response.getActions());
+				continue;
+			}
+
+			if (action instanceof LeaveRoom) {
+				LeaveRoom leaveRoom = (LeaveRoom) action;
+
+				try {
+					leave(leaveRoom.roomId());
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem leaving room " + leaveRoom.roomId(), e);
+				}
+
+				continue;
+			}
+
+			if (action instanceof Shutdown) {
+				newMessages.clear();
+				stop();
+				continue;
+			}
+		}
 	}
 
 	@Override
