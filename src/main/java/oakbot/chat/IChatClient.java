@@ -73,4 +73,10 @@ public interface IChatClient extends Closeable {
 	 * was returned
 	 */
 	String getOriginalMessageContent(long messageId) throws IOException;
+
+	/**
+	 * Gets the site that this chat client is connected to.
+	 * @return the site
+	 */
+	Site getSite();
 }

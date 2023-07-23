@@ -137,7 +137,7 @@ public class HelpCommand implements Command {
 			new PostMessage(cb)
 			.splitStrategy(SplitStrategy.NEWLINE)
 			.bypassFilters(true)
-			.condensedMessage("My commands are also listed here: https://github.com/JavaChat/OakBot/wiki/Commands")
+			.condensedMessage("My commands are also listed here: https://github.com/JavaChat/OakBot/wiki/Commands") //TODO
 		);
 		//@formatter:on
 	}

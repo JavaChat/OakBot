@@ -37,6 +37,7 @@ import oakbot.chat.IChatClient;
 import oakbot.chat.IRoom;
 import oakbot.chat.InvalidCredentialsException;
 import oakbot.chat.RoomNotFoundException;
+import oakbot.chat.Site;
 import oakbot.chat.SplitStrategy;
 import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
@@ -962,6 +963,11 @@ public class BotTest {
 
 		@Override
 		public String getOriginalMessageContent(long messageId) throws IOException {
+			return null;
+		}
+
+		@Override
+		public Site getSite() {
 			return null;
 		}
 	}

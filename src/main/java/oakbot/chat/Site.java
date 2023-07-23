@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
@@ -69,7 +70,15 @@ public class Site {
 	 * @throws IOException if an unexpected error occurs
 	 */
 	public boolean login(String email, String password, Http http) throws IOException {
-		Response response = http.get("https://" + getLoginDomain() + "/users/login");
+		//@formatter:off
+		String url = new URIBuilder()
+			.setScheme("https")
+			.setHost(getLoginDomain())
+			.setPath("/users/login")
+		.toString();
+		//@formatter:on
+
+		Response response = http.get(url);
 		Document loginPage = response.getBodyAsHtml();
 
 		Elements elements = loginPage.select("input[name=fkey]");
@@ -78,11 +87,13 @@ public class Site {
 		}
 		String fkey = elements.first().attr("value");
 
-		response = http.post("https://" + getLoginDomain() + "/users/login", //@formatter:off
+		//@formatter:off
+		response = http.post(url,
 			"email", email,
 			"password", password,
 			"fkey", fkey
-		); //@formatter:on
+		);
+		//@formatter:on
 
 		int statusCode = response.getStatusCode();
 		return (statusCode == 302);

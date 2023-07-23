@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import oakbot.chat.ChatMessage;
 import oakbot.chat.IChatClient;
+import oakbot.chat.Site;
 
 /**
  * A mock chat client that reads its chat messages from a text file.
@@ -91,6 +92,11 @@ public class FileChatClient implements IChatClient {
 				}
 			}
 		}
+		return null;
+	}
+
+	@Override
+	public Site getSite() {
 		return null;
 	}
 }

@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.WebSocketContainer;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 
 import oakbot.util.Http;
@@ -83,7 +84,7 @@ public class ChatClient implements IChatClient {
 				return room;
 			}
 
-			room = new Room(roomId, site, http, webSocketClient, this);
+			room = new Room(roomId, http, webSocketClient, this);
 			rooms.put(roomId, room);
 
 			return room;
@@ -124,13 +125,25 @@ public class ChatClient implements IChatClient {
 
 	@Override
 	public String getOriginalMessageContent(long messageId) throws IOException {
-		Http.Response response = http.get("https://" + site.getChatDomain() + "/message/" + messageId + "?plain=true");
+		//@formatter:off
+		String url = baseUri()
+			.setPathSegments("message", Long.toString(messageId))
+			.setParameter("plain", "true")
+		.toString();
+		//@formatter:off
+		
+		Http.Response response = http.get(url);
 		int statusCode = response.getStatusCode();
 		if (statusCode != 200) {
 			throw new IOException("HTTP " + statusCode + " response returned: " + response.getBody());
 		}
 
 		return response.getBody();
+	}
+	
+	@Override
+	public Site getSite() {
+		return site;
 	}
 
 	@Override
@@ -143,7 +156,11 @@ public class ChatClient implements IChatClient {
 
 				try {
 					//@formatter:off
-					http.post("https://" + site.getChatDomain() + "/chats/leave/all",
+					String url = baseUri()
+						.setPath("/chats/leave/all")
+					.toString();
+
+					http.post(url,
 						"quiet", "true", //setting this parameter to "false" results in an error
 						"fkey", fkey
 					);
@@ -168,5 +185,17 @@ public class ChatClient implements IChatClient {
 		} catch (IOException e) {
 			logger.log(Level.WARNING, "Problem closing HTTP connection.", e);
 		}
+	}
+
+	/**
+	 * Gets a builder for the base URI of this chat site.
+	 * @return the base URI (e.g. "https://chat.stackoverflow.com")
+	 */
+	private URIBuilder baseUri() {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("https")
+			.setHost(site.getChatDomain());
+		//@formatter:on
 	}
 }

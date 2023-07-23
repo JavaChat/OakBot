@@ -34,6 +34,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
@@ -68,7 +69,6 @@ public class Room implements IRoom {
 
 	private final int roomId;
 	private final String fkey;
-	private final String baseUrl;
 	private final boolean canPost;
 	private final Http http;
 	private final ChatClient chatClient;
@@ -97,7 +97,6 @@ public class Room implements IRoom {
 	 * Creates a connection to a specific chat room. This constructor is meant
 	 * to be called by {@link ChatClient#joinRoom}.
 	 * @param roomId the room ID
-	 * @param site the Stack Exchange site this room belongs to
 	 * @param http the HTTP client
 	 * @param webSocketContainer the object used to create the web socket
 	 * connection
@@ -107,15 +106,20 @@ public class Room implements IRoom {
 	 * @throws RoomNotFoundException if the room does not exist or the user does
 	 * not have permission to view the room
 	 */
-	Room(int roomId, Site site, Http http, WebSocketContainer webSocketContainer, ChatClient chatClient) throws IOException, RoomNotFoundException {
+	Room(int roomId, Http http, WebSocketContainer webSocketContainer, ChatClient chatClient) throws IOException, RoomNotFoundException {
 		this.roomId = roomId;
-		baseUrl = "https://" + site.getChatDomain();
 		this.http = http;
 		this.webSocketContainer = webSocketContainer;
 		this.chatClient = chatClient;
 		websocketReconnectTimer = new Timer(true);
 
-		Response response = http.get(baseUrl + "/rooms/" + roomId);
+		//@formatter:off
+		String url = baseUri()
+			.setPathSegments("rooms", Integer.toString(roomId))
+		.toString();
+		//@formatter:on
+
+		Response response = http.get(url);
 
 		/*
 		 * A 404 response will be returned if the room doesn't exist.
@@ -196,7 +200,8 @@ public class Room implements IRoom {
 			.configurator(new Configurator() {
 				@Override
 				public void beforeRequest(Map<String, List<String>> headers) {
-					headers.put("Origin", Arrays.asList(baseUrl));
+					String origin = baseUri().toString();
+					headers.put("Origin", Arrays.asList(origin));
 				}
 			})
 		.build();
@@ -241,18 +246,31 @@ public class Room implements IRoom {
 
 	private String getWebSocketUrl() throws IOException {
 		//@formatter:off
-		Response response = http.post(baseUrl + "/ws-auth",
+		String url = baseUri()
+			.setPath("/ws-auth")
+		.toString();
+		
+		Response response = http.post(url,
 			"roomid", roomId,
 			"fkey", fkey
 		);
 		//@formatter:on
 
-		String url = response.getBodyAsJson().get("url").asText();
+		String wsUrl = response.getBodyAsJson().get("url").asText();
 
 		List<ChatMessage> messages = getMessages(1);
 		ChatMessage latest = messages.isEmpty() ? null : messages.get(0);
 		long time = (latest == null) ? 0 : latest.getTimestamp().toEpochSecond(ZoneOffset.UTC);
-		return url + "?l=" + time;
+
+		try {
+			//@formatter:off
+			return new URIBuilder(wsUrl)
+				.setParameter("l", Long.toString(time))
+			.toString();
+			//@formatter:on
+		} catch (URISyntaxException e) {
+			throw new IOException("Web socket URL is not a valid URI: " + wsUrl, e);
+		}
 	}
 
 	/**
@@ -419,7 +437,11 @@ public class Room implements IRoom {
 		List<Long> messageIds = new ArrayList<>(parts.size());
 		for (String part : parts) {
 			//@formatter:off
-			Response response = http.post(baseUrl + "/chats/" + roomId + "/messages/new",
+			String url = baseUri()
+				.setPathSegments("chats", Integer.toString(roomId), "messages", "new")
+			.toString();
+
+			Response response = http.post(url,
 				"text", part,
 				"fkey", fkey
 			);
@@ -451,7 +473,11 @@ public class Room implements IRoom {
 	@Override
 	public List<ChatMessage> getMessages(int count) throws IOException {
 		//@formatter:off
-		Response response = http.post(baseUrl + "/chats/" + roomId + "/events",
+		String url = baseUri()
+			.setPathSegments("chats", Integer.toString(roomId), "events")
+		.toString();
+
+		Response response = http.post(url,
 			"mode", "messages",
 			"msgCount", count,
 			"fkey", fkey
@@ -484,7 +510,11 @@ public class Room implements IRoom {
 	@Override
 	public void deleteMessage(long messageId) throws IOException {
 		//@formatter:off
-		Response response = http.post(baseUrl + "/messages/" + messageId + "/delete",
+		String url = baseUri()
+			.setPathSegments("messages", Long.toString(messageId), "delete")
+		.toString();
+
+		Response response = http.post(url,
 			"fkey", fkey
 		);
 		//@formatter:on
@@ -513,7 +543,11 @@ public class Room implements IRoom {
 	@Override
 	public void editMessage(long messageId, String updatedMessage) throws IOException {
 		//@formatter:off
-		Response response = http.post(baseUrl + "/messages/" + messageId,
+		String url = baseUri()
+			.setPathSegments("messages", Long.toString(messageId))
+		.toString();
+
+		Response response = http.post(url,
 			"text", updatedMessage,
 			"fkey", fkey
 		);
@@ -544,7 +578,11 @@ public class Room implements IRoom {
 	@Override
 	public List<UserInfo> getUserInfo(List<Integer> userIds) throws IOException {
 		//@formatter:off
-		Response response = http.post(baseUrl + "/user/info",
+		String url = baseUri()
+			.setPath("/user/info")
+		.toString();
+
+		Response response = http.post(url,
 			"ids", StringUtils.join(userIds, ","),
 			"roomId", roomId
 		);
@@ -578,7 +616,15 @@ public class Room implements IRoom {
 				if (emailHash.startsWith("!")) {
 					profilePicture = emailHash.substring(1);
 				} else {
-					profilePicture = "https://www.gravatar.com/avatar/" + emailHash + "?d=identicon&s=128";
+					//@formatter:off
+					profilePicture = new URIBuilder()
+						.setScheme("https")
+						.setHost("www.gravatar.com")
+						.setPathSegments("avatar", emailHash)
+						.setParameter("d", "identicon")
+						.setParameter("s", "128")
+					.toString();
+					//@formatter:on
 				}
 				builder.profilePicture(profilePicture);
 			}
@@ -616,7 +662,13 @@ public class Room implements IRoom {
 
 	@Override
 	public List<PingableUser> getPingableUsers() throws IOException {
-		Response response = http.get(baseUrl + "/rooms/pingable/" + roomId);
+		//@formatter:off
+		String url = baseUri()
+			.setPathSegments("rooms", "pingable", Integer.toString(roomId))
+		.toString();
+		//@formatter:on
+
+		Response response = http.get(url);
 
 		if (response.getStatusCode() == 404) {
 			throw notFound(response, "get pingable users");
@@ -640,7 +692,13 @@ public class Room implements IRoom {
 
 	@Override
 	public RoomInfo getRoomInfo() throws IOException {
-		Response response = http.get(baseUrl + "/rooms/thumbs/" + roomId);
+		//@formatter:off
+		String url = baseUri()
+			.setPathSegments("rooms", "thumbs", Integer.toString(roomId))
+		.toString();
+		//@formatter:on
+
+		Response response = http.get(url);
 
 		if (response.getStatusCode() == 404) {
 			throw notFound(response, "get room info");
@@ -669,7 +727,11 @@ public class Room implements IRoom {
 
 		try {
 			//@formatter:off
-			http.post(baseUrl + "/chats/leave/" + roomId,
+			String url = baseUri()
+				.setPathSegments("chats", "leave", Integer.toString(roomId))
+			.toString();
+
+			http.post(url,
 				"quiet", "true", //setting this parameter to "false" results in an error
 				"fkey", fkey
 			);
@@ -687,6 +749,18 @@ public class Room implements IRoom {
 
 	private IOException notFound(Response response, String action) {
 		return new IOException("[roomId=" + roomId + "]: 404 response received when trying to " + action + ": " + response.getBody());
+	}
+
+	/**
+	 * Gets a builder for the base URI of this chat site.
+	 * @return the base URI (e.g. "https://chat.stackoverflow.com")
+	 */
+	private URIBuilder baseUri() {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("https")
+			.setHost(chatClient.getSite().getChatDomain());
+		//@formatter:on
 	}
 
 	@Override
