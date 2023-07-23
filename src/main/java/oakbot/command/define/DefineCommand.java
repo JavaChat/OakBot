@@ -5,8 +5,6 @@ import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.XPathWrapper.children;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -241,16 +239,5 @@ public class DefineCommand implements Command {
 			sb.append(child.getTextContent());
 		}
 		return (sb.length() == 0) ? null : sb.toString().trim();
-	}
-
-	/**
-	 * Makes an HTTP GET request to the given URL.
-	 * @param url the URL
-	 * @return the response body
-	 * @throws IOException
-	 */
-	InputStream get(String url) throws IOException {
-		URL urlObj = new URL(url);
-		return urlObj.openStream();
 	}
 }
