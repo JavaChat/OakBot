@@ -52,7 +52,7 @@ public class ChatClient implements IChatClient {
 	 * @param site the Stack Exchange site to connect to
 	 */
 	public ChatClient(CloseableHttpClient httpClient, WebSocketContainer webSocketClient, Site site) {
-		this.http = new Http(httpClient);
+		this.http = new ChatHttp(httpClient);
 		this.webSocketClient = requireNonNull(webSocketClient);
 		this.site = requireNonNull(site);
 	}

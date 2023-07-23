@@ -7,11 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
@@ -41,7 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Http implements Closeable {
 	private static final Logger logger = Logger.getLogger(Http.class.getName());
 
-	private final CloseableHttpClient client;
+	protected final CloseableHttpClient client;
 
 	/**
 	 * @param client the HTTP client object to wrap
@@ -122,101 +119,28 @@ public class Http implements Closeable {
 	}
 
 	/**
-	 * <p>
 	 * Sends an HTTP request.
-	 * </p>
-	 * <p>
-	 * The chat system returns an HTTP 409 response if the client sends too many
-	 * requests too quickly. This method automatically handles such responses by
-	 * sleeping the requested amount of time, and then re-sending the request.
-	 * It will do this up to five times before giving up, at which point an
-	 * {@code IOException} will be thrown.
-	 * </p>
 	 * @param request the request to send
 	 * @return the response
 	 * @throws IOException if there was a problem sending the request
 	 */
-	private Response send(HttpUriRequest request) throws IOException {
-		long sleep = 0;
-		int attempts = 0;
+	protected Response send(HttpUriRequest request) throws IOException {
+		try (CloseableHttpResponse response = client.execute(request)) {
+			int statusCode = response.getStatusLine().getStatusCode();
 
-		while (attempts < 5) {
-			if (sleep > 0) {
-				logger.info("Sleeping for " + sleep + "ms before resending the request...");
-				Sleeper.sleep(sleep);
+			HttpEntity entity = response.getEntity();
+			ContentType contentType;
+			byte[] body;
+			if (entity == null) {
+				contentType = null;
+				body = null;
+			} else {
+				contentType = ContentType.getOrDefault(entity);
+				body = EntityUtils.toByteArray(entity);
 			}
 
-			Response response;
-			try (CloseableHttpResponse httpResponse = client.execute(request)) {
-				int statusCode = httpResponse.getStatusLine().getStatusCode();
-
-				HttpEntity entity = httpResponse.getEntity();
-				ContentType contentType;
-				byte[] body;
-				if (entity == null) {
-					contentType = null;
-					body = null;
-				} else {
-					contentType = ContentType.getOrDefault(entity);
-					body = EntityUtils.toByteArray(entity);
-				}
-
-				response = new Response(statusCode, body, contentType, request.getURI().toString());
-			}
-
-			/*
-			 * An HTTP 409 response means that the bot is sending messages too
-			 * quickly. The response body contains the number of seconds the bot
-			 * must wait before it can post another message.
-			 */
-			if (response.getStatusCode() == 409) {
-				String body = response.getBody();
-				Long waitTime = parse409Response(body);
-				sleep = (waitTime == null) ? 5000 : waitTime;
-
-				logger.info("HTTP " + response.getStatusCode() + " response, sleeping " + sleep + "ms [request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "]: " + body);
-
-				attempts++;
-				continue;
-			}
-
-			if (logger.isLoggable(Level.FINE)) {
-				String bodyDebug;
-				try {
-					JsonNode node = response.getBodyAsJson();
-					bodyDebug = JsonUtils.prettyPrint(node);
-				} catch (JsonProcessingException e) {
-					//not JSON
-					bodyDebug = response.getBody();
-				}
-				logger.fine("Received response [status=" + response.getStatusCode() + "; request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "]: " + bodyDebug);
-			}
-
-			return response;
+			return new Response(statusCode, body, contentType, request.getURI().toString());
 		}
-
-		throw new IOException("Request could not be sent after " + attempts + " attempts [request-method=" + request.getMethod() + "; request-URI=" + request.getURI() + "].");
-	}
-
-	private static final Pattern response409Regex = Pattern.compile("\\d+");
-
-	/**
-	 * Parses the wait time out of an HTTP 409 response. An HTTP 409 response
-	 * indicates that the bot is sending messages too quickly.
-	 * @param body the response body (e.g. "You can perform this action again in
-	 * 2 seconds")
-	 * @return the amount of time (in milliseconds) the bot must wait before the
-	 * chat system will accept the request, or null if this value could not be
-	 * parsed from the response body
-	 */
-	private static Long parse409Response(String body) {
-		Matcher m = response409Regex.matcher(body);
-		if (!m.find()) {
-			return null;
-		}
-
-		int seconds = Integer.parseInt(m.group(0));
-		return TimeUnit.SECONDS.toMillis(seconds);
 	}
 
 	/**
