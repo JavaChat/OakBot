@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
@@ -24,8 +25,6 @@ import oakbot.util.Now;
  */
 public class AdventOfCodeApi {
 	private final CookieStore cookieStore = new BasicCookieStore();
-	private final String htmlUrlTemplate = "http://adventofcode.com/%s/leaderboard/private/view/%s";
-	private final String jsonUrlTemplate = htmlUrlTemplate + ".json";
 
 	/**
 	 * @param sessionToken the session token that's needed to query the API.
@@ -48,8 +47,7 @@ public class AdventOfCodeApi {
 	 * @throws IOException if there's a problem getting the leaderboard
 	 */
 	public List<Player> getLeaderboard(String leaderboardId) throws IOException {
-		int year = Now.local().getYear();
-		String jsonUrl = String.format(jsonUrlTemplate, year, leaderboardId);
+		String jsonUrl = jsonUrl(leaderboardId);
 
 		JsonNode root;
 		try (Http http = HttpFactory.connect()) {
@@ -101,8 +99,17 @@ public class AdventOfCodeApi {
 	 * @return the URL
 	 */
 	public String getLeaderboardWebsite(String leaderboardId) {
-		int year = Now.local().getYear();
-		return String.format(htmlUrlTemplate, year, leaderboardId);
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("http")
+			.setHost("adventofcode.com")
+			.setPathSegments(Integer.toString(Now.local().getYear()), "leaderboard", "private", "view", leaderboardId)
+		.toString();
+		//@formatter:on
+	}
+
+	private String jsonUrl(String leaderboardId) {
+		return getLeaderboardWebsite(leaderboardId) + ".json";
 	}
 
 	/**

@@ -2,7 +2,6 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -29,10 +28,16 @@ public class ReactCommand implements Command {
 	private final URIBuilder uriBuilder;
 
 	public ReactCommand(String key) {
-		uriBuilder = new URIBuilder(URI.create("http://replygif.net/api/gifs"));
-		uriBuilder.addParameter("tag-operator", "and");
-		if (key != null) {
-			uriBuilder.addParameter("api-key", key);
+		//@formatter:off
+		uriBuilder = new URIBuilder()
+			.setScheme("http")
+			.setHost("replygif.net")
+			.setPath("/api/gifs")
+			.setParameter("tag-operator", "and");
+		//@formatter:on
+
+		if (key != null && !key.isEmpty()) {
+			uriBuilder.setParameter("api-key", key);
 		}
 	}
 
@@ -63,10 +68,10 @@ public class ReactCommand implements Command {
 			return reply("Please specify a human emotion.", chatCommand);
 		}
 
-		uriBuilder.setParameter("tag", content);
+		String url = url(content);
 
 		try (Http http = HttpFactory.connect()) {
-			JsonNode node = http.get(uriBuilder.build().toString()).getBodyAsJson();
+			JsonNode node = http.get(url).getBodyAsJson();
 			if (node.size() == 0) {
 				return reply("Unknown human emotion. Please visit http://replygif.net/t for a list of emotions.", chatCommand);
 			}
@@ -84,5 +89,9 @@ public class ReactCommand implements Command {
 
 			return reply("Sorry, an error occurred >.> : " + e.getMessage(), chatCommand);
 		}
+	}
+
+	private String url(String content) {
+		return uriBuilder.setParameter("tag", content).toString();
 	}
 }

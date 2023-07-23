@@ -3,7 +3,6 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 
 import org.apache.http.client.utils.URIBuilder;
@@ -34,11 +33,13 @@ public class JuiceBoxCommand implements Command {
 
 	@Override
 	public HelpDoc help() {
-		return new HelpDoc.Builder(this) //@formatter:off
+		//@formatter:off
+		return new HelpDoc.Builder(this)
 			.summary("Posts a modified version of a user's profile picture, showing them drinking from a juice box (https://juiceboxify.me).")
 			.example("", "Posts the picture of the user who sent the command.")
 			.example("Michael", "Finds a user named \"Michael\" in the current chat room and posts their picture.")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 	}
 
 	@Override
@@ -50,10 +51,12 @@ public class JuiceBoxCommand implements Command {
 
 		PingableUser matchingUser;
 		try {
-			matchingUser = currentRoom.getPingableUsers().stream() //@formatter:off
+			//@formatter:off
+			matchingUser = currentRoom.getPingableUsers().stream()
 				.filter(user -> user.getUsername().equalsIgnoreCase(targetUser))
 				.findFirst()
-			.orElse(null); //@formatter:on
+			.orElse(null);
+			//@formatter:on
 		} catch (IOException e) {
 			return reply(new ChatBuilder("Problem getting the room's list of pingable users: ").code(e.getMessage()), chatCommand);
 		}
@@ -92,25 +95,24 @@ public class JuiceBoxCommand implements Command {
 	 * @throws IOException if there's a network problem
 	 */
 	private String juicifyPhoto(String photo) throws IOException {
-		String baseUrl = "https://juiceboxify.me";
-
-		String uri = null;
-		try {
-			//@formatter:off
-			uri = new URIBuilder(baseUrl)
-				.addParameter("url", photo)
-			.build().toString();
-			//@formatter:on
-		} catch (URISyntaxException ignore) {
-			//base URL is hard-coded
-		}
+		String url = url(photo);
 
 		Document document;
 		try (Http http = HttpFactory.connect()) {
-			document = http.get(uri).getBodyAsHtml();
+			document = http.get(url).getBodyAsHtml();
 		}
 
 		Element element = document.selectFirst("section[class='result'] img");
 		return (element == null) ? null : element.absUrl("src");
+	}
+
+	private String url(String photo) {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("https")
+			.setHost("juiceboxify.me")
+			.setParameter("url", photo)
+		.toString();
+		//@formatter:on
 	}
 }

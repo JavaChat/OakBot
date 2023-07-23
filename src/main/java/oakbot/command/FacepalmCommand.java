@@ -2,8 +2,6 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +28,7 @@ public class FacepalmCommand implements Command {
 	private static final Logger logger = Logger.getLogger(FacepalmCommand.class.getName());
 
 	private final ObjectMapper mapper = new ObjectMapper();
-	private final URI uri;
+	private final String uri;
 
 	/**
 	 * @param key the tenor API key
@@ -39,20 +37,18 @@ public class FacepalmCommand implements Command {
 		Objects.requireNonNull(key);
 
 		//see: https://tenor.com/gifapi/documentation#endpoints-random
-		try {
-			//@formatter:off
-			uri = new URIBuilder("https://api.tenor.com/v1/random")
-				.addParameter("key", key)
-				.addParameter("q", "facepalm")
-				.addParameter("media_filter", "minimal")
-				.addParameter("safesearch", "moderate")
-				.addParameter("limit", "1")
-			.build();
-			//@formatter:on
-		} catch (URISyntaxException ignored) {
-			//should never be thrown
-			throw new RuntimeException(ignored);
-		}
+		//@formatter:off
+		uri = new URIBuilder()
+			.setScheme("https")
+			.setHost("api.tenor.com")
+			.setPath("/v1/random")
+			.setParameter("key", key)
+			.setParameter("q", "facepalm")
+			.setParameter("media_filter", "minimal")
+			.setParameter("safesearch", "moderate")
+			.setParameter("limit", "1")
+		.toString();
+		//@formatter:on
 	}
 
 	@Override
@@ -74,7 +70,7 @@ public class FacepalmCommand implements Command {
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String imageUrl, response = null;
 		try (Http http = HttpFactory.connect()) {
-			response = http.get(uri.toString()).getBody();
+			response = http.get(uri).getBody();
 			JsonNode node = mapper.readTree(response);
 			imageUrl = node.get("results").get(0).get("media").get(0).get("tinygif").get("url").asText();
 		} catch (Exception e) {

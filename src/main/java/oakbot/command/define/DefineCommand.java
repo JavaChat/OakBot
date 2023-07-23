@@ -6,7 +6,6 @@ import static oakbot.util.XPathWrapper.children;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,15 +69,9 @@ public class DefineCommand implements Command {
 
 		Leaf response;
 		try (Http http = HttpFactory.connect()) {
-			//@formatter:off
-			String url = new URIBuilder("https://www.dictionaryapi.com")
-				.setPathSegments("api", "v1", "references", "collegiate", "xml", word)
-				.addParameter("key", apiKey)
-			.build().toString();
-			//@formatter:on
-
+			String url = url(word);
 			response = http.get(url).getBodyAsXml();
-		} catch (IOException | SAXException | URISyntaxException e) {
+		} catch (IOException | SAXException e) {
 			logger.log(Level.SEVERE, "Problem getting word from dictionary.", e);
 
 			//@formatter:off
@@ -116,6 +109,17 @@ public class DefineCommand implements Command {
 			new PostMessage(cb.toString().trim())
 			.splitStrategy(SplitStrategy.NEWLINE)
 		);
+		//@formatter:on
+	}
+
+	private String url(String word) {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("https")
+			.setHost("www.dictionaryapi.com")
+			.setPathSegments("api", "v1", "references", "collegiate", "xml", word)
+			.addParameter("key", apiKey)
+		.toString();
 		//@formatter:on
 	}
 

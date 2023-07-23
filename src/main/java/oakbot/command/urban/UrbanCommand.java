@@ -79,14 +79,9 @@ public class UrbanCommand implements Command {
 
 		UrbanResponse response;
 		try (Http http = HttpFactory.connect()) {
-			//@formatter:off
-			String url = new URIBuilder("http://api.urbandictionary.com/v0/define")
-				.addParameter("term", word)
-			.build().toString();
-			//@formatter:on
-
+			String url = url(word);
 			response = http.get(url).getBodyAsJson(UrbanResponse.class);
-		} catch (IOException | URISyntaxException e) {
+		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Problem getting word from Urban Dictionary.", e);
 
 			//@formatter:off
@@ -140,6 +135,17 @@ public class UrbanCommand implements Command {
 			)
 			.splitStrategy(SplitStrategy.WORD)
 		);
+		//@formatter:on
+	}
+
+	private String url(String word) {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("http")
+			.setHost("api.urbandictionary.com")
+			.setPath("/v0/define")
+			.setParameter("term", word)
+		.toString();
 		//@formatter:on
 	}
 

@@ -7,11 +7,9 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-
-import com.google.common.escape.Escaper;
-import com.google.common.net.UrlEscapers;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -53,8 +51,7 @@ public class TagCommand implements Command {
 		}
 
 		String tag = content.toLowerCase().replace(' ', '-');
-		Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
-		String url = "http://stackoverflow.com/tags/" + escaper.escape(tag) + "/info";
+		String url = url(tag);
 
 		Document document;
 		try (Http http = HttpFactory.connect()) {
@@ -87,6 +84,16 @@ public class TagCommand implements Command {
 			)
 			.splitStrategy(SplitStrategy.WORD)
 		);
+		//@formatter:on
+	}
+
+	private String url(String tag) {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("http")
+			.setHost("stackoverflow.com")
+			.setPathSegments("tags", tag, "info")
+		.toString();	
 		//@formatter:on
 	}
 }

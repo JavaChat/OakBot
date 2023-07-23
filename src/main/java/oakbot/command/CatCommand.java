@@ -10,9 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.http.HttpStatus;
+import org.apache.http.client.utils.URIBuilder;
 import org.xml.sax.SAXException;
-
-import com.google.common.net.UrlEscapers;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -35,11 +34,21 @@ public class CatCommand implements Command {
 	private final String requestUrl;
 
 	public CatCommand(String key) {
-		String url = "http://thecatapi.com/api/images/get?size=small&format=xml&type=gif";
-		if (key != null) {
-			url += "&api_key=" + UrlEscapers.urlFormParameterEscaper().escape(key);
+		//@formatter:off
+		URIBuilder ub = new URIBuilder()
+			.setScheme("http")
+			.setHost("thecatapi.com")
+			.setPath("/api/images/get")
+			.setParameter("size", "small")
+			.setParameter("format", "xml")
+			.setParameter("type", "gif");
+		//@formatter:on
+
+		if (key != null && !key.isEmpty()) {
+			ub.setParameter("api_key", key);
 		}
-		requestUrl = url;
+
+		requestUrl = ub.toString();
 	}
 
 	@Override

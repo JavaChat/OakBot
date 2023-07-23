@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -84,7 +85,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 					continue;
 				}
 
-				String url = "https://www.explainxkcd.com/wiki/index.php/" + comic.comicId;
+				String url = url(comic.comicId);
 				String explanationHtml;
 				try {
 					explanationHtml = scrapeExplanationHtml(url);
@@ -121,6 +122,16 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 			stopChecking.forEach(comicsByRoom::remove);
 		}
+	}
+
+	private String url(int comicId) {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("https")
+			.setHost("www.explainxkcd.com")
+			.setPathSegments("wiki", "index.php", Integer.toString(comicId))
+		.toString();	
+		//@formatter:on
 	}
 
 	private boolean stillNeedToWait(Comic comic) {
