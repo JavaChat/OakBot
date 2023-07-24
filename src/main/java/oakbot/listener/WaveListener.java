@@ -55,8 +55,8 @@ public class WaveListener implements Listener {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Waves back at you.")
-			.detail("Responds to any users who post the \"wave\" emoticon: " + WAVE_R + " or " + WAVE_L + ". Will only wave once every " + timeBetweenWaves.toMinutes() + " minutes at most.")
+			.summary("Waves back at you. " + WAVE_R)
+			.detail("Responds with the opposite \"wave\" emoticon when a user waves: " + WAVE_R + " or " + WAVE_L + ". Will only wave once every " + timeBetweenWaves.toMinutes() + " minutes at most.")
 			.includeSummaryWithDetail(false)
 		.build();
 		//@formatter:on

@@ -48,7 +48,7 @@ public class FatCatCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Displays a random fat cat.")
+			.summary("Displays a fat cat.")
 			.example("", "Shows a random fat cat.")
 			.example("list", "Lists all fat cats.")
 			.example("add URL", "Adds a fat cat.")
@@ -179,7 +179,7 @@ public class FatCatCommand implements Command {
 		save();
 		return reply("Deleted.", chatCommand);
 	}
-	
+
 	private boolean hasEditPerms(ChatCommand chatCommand, IBot bot) {
 		int authorId = chatCommand.getMessage().getUserId();
 		return bot.getAdminUsers().contains(authorId) || authorId == hans;

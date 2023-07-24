@@ -51,7 +51,7 @@ public class DadJokeListener implements Listener {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Responds to messages that start with \"I am [blank]\" with \"Hi [blank], I'm Oak!\".")
+			.summary("Responds to sentences that start with \"I am [blank]\".")
 		.build();
 		//@formatter:on
 	}

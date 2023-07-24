@@ -65,7 +65,7 @@ public class CatCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Displays a random cat picture. :3")
+			.summary("Displays a cat GIF. :3")
 			.detail("Images from thecatapi.com.")
 		.build();
 		//@formatter:on

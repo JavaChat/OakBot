@@ -146,7 +146,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder((CatchAllMentionListener)this)
-			.summary("Allows the user to have a conversation with ChatGPT by mentioning the bot in chat.")
+			.summary("Allows the user to have a conversation with ChatGPT.")
+			.detail("Mentioning the bot will start a conversation. The last " + numLatestMessagesToIncludeInRequest + " messages in the chat room are sent to the ChatGPT servers for context. Under certain conditions, the bot will also periodically post a message from ChatGPT on its own.")
 		.build();
 		//@formatter:on
 	}

@@ -60,7 +60,7 @@ public class FacepalmCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Displays a facepalm gif.")
+			.summary("Displays a facepalm GIF.")
 			.detail("Images from tenor.com.")
 		.build();
 		//@formatter:on

@@ -35,9 +35,10 @@ public class JuiceBoxCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Posts a modified version of a user's profile picture, showing them drinking from a juice box (https://juiceboxify.me).")
-			.example("", "Posts the picture of the user who sent the command.")
-			.example("Michael", "Finds a user named \"Michael\" in the current chat room and posts their picture.")
+			.summary("Posts a modified version of a user's profile picture showing them drinking from a juice box.")
+			.detail("Images from juiceboxify.me.")
+			.example("", "Juiceboxifies the picture of the user who sent the command.")
+			.example("Michael", "Finds a user named \"Michael\" in the current chat room and juiceboxifies their picture.")
 		.build();
 		//@formatter:on
 	}

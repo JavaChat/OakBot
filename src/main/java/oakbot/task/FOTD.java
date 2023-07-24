@@ -34,7 +34,8 @@ public class FOTD implements ScheduledTask {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Posts a fact every day at 12pm from refdesk.com.")
+			.summary("Posts a fact every day.")
+			.detail("Facts are from refdesk.com. Fact is posted at 12:00 server time to all non-quiet rooms.")
 		.build();
 		//@formatter:on
 	}

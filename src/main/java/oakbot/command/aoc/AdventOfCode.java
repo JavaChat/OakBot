@@ -75,8 +75,8 @@ public class AdventOfCode implements ScheduledTask, Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder((Command)this)
-			.summary("Displays the scores from an Advent of Code private leaderboard. Announces when members of the leaderboard complete puzzles.")
-			.detail("Only works during the month of December.")
+			.summary("Displays scores from Advent of Code leaderboards, and announces when members complete puzzles.")
+			.detail("Only enabled during the month of December.")
 			.example("", "Displays the default leaderboard that is assigned to the current room.")
 			.example("12345", "Displays the leaderboard with ID 12345.")
 		.build();

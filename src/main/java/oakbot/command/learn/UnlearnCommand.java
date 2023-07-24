@@ -38,7 +38,7 @@ public class UnlearnCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Makes the bot forget a learned command.")
+			.summary("Deletes a learned command.")
 			.example("happy", "Deletes the command called \"happy\".")
 		.build();
 		//@formatter:on

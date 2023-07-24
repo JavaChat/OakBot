@@ -52,7 +52,7 @@ public class DefineCommand implements Command {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Displays word definitions from the dictionary.")
-			.detail("Definitions are retrieved from Merriam-Webster's dictionary API (http://www.dictionaryapi.com/).")
+			.detail("Definitions are retrieved from Merriam-Webster's dictionary API (dictionaryapi.com).")
 			.example("steganography", "Displays the definition for \"steganography\".")
 		.build();
 		//@formatter:on

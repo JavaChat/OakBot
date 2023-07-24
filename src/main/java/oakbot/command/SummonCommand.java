@@ -48,8 +48,8 @@ public class SummonCommand implements Command {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Makes the bot join another room.")
-			.detail("At least " + minSummonsRequired + " user(s) are needed to summon Oak to a room.")
-			.example("139", "Makes Oak join the room with ID 139.")
+			.detail("At least " + minSummonsRequired + " user(s) are needed to summon the bot to a room.")
+			.example("139", "Makes the bot join the room with ID 139.")
 		.build();
 		//@formatter:on
 	}

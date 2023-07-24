@@ -33,8 +33,9 @@ public class UnsummonCommand implements Command {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Makes the bot leave a room.")
-			.example("", "Makes Oak leave the current room.")
-			.example("139", "Makes Oak leave the room with ID 139.")
+			.detail("Rooms which are designated as \"home\" rooms cannot be left.")
+			.example("", "Makes the bot leave the current room.")
+			.example("139", "Makes the bot leave the room with ID 139.")
 		.build();
 		//@formatter:on
 	}

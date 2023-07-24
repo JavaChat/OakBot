@@ -42,8 +42,9 @@ public class LearnCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Teaches the bot a new command.")
+			.summary("Creates a new command.")
 			.example("happy :)", "Creates a command called \"happy\" which outputs \":)\" when invoked.")
+			.example("complement {0} is awesome!", "Creates a command called \"complement\" which has a parameter.")
 		.build();
 		//@formatter:on
 	}

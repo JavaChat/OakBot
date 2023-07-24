@@ -5,8 +5,10 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.StreamSupport;
 
 import com.google.common.collect.Multimap;
@@ -180,6 +182,7 @@ public class HelpCommand implements Command {
 		for (LearnedCommand command : learnedCommands) {
 			names.add(command.name());
 		}
+		names.sort(String.CASE_INSENSITIVE_ORDER);
 		return names;
 	}
 
@@ -229,9 +232,15 @@ public class HelpCommand implements Command {
 
 	private ChatActions showHelpText(ChatCommand message, String trigger) {
 		String commandName = message.getContent();
-		List<String> helpTexts = new ArrayList<>();
 
-		commands.stream() //@formatter:off
+		/**
+		 * Remove duplicate help messages, as classes implement multiple
+		 * interfaces.
+		 */
+		Set<String> helpTexts = new HashSet<>();
+
+		//@formatter:off
+		commands.stream()
 			.filter(c -> c.name() != null)
 			.filter(c -> c.name().equalsIgnoreCase(commandName) || c.aliases().stream().anyMatch(a -> a.equalsIgnoreCase(commandName)))
 			.map(c -> c.help().getHelpText(trigger))
@@ -246,7 +255,14 @@ public class HelpCommand implements Command {
 			.filter(l -> l.name() != null)
 			.filter(l -> l.name().equalsIgnoreCase(commandName))
 			.map(l -> l.help().getHelpText(trigger))
-		.forEach(helpTexts::add); //@formatter:on
+		.forEach(helpTexts::add);
+
+		tasks.stream()
+			.filter(t -> t.name() != null)
+			.filter(t -> t.name().equalsIgnoreCase(commandName))
+			.map(t -> t.help().getHelpText(trigger))
+		.forEach(helpTexts::add);
+		//@formatter:on
 
 		if (helpTexts.isEmpty()) {
 			return reply("No command or listener exists with that name.", message);

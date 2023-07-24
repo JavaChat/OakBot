@@ -32,7 +32,8 @@ public class QOTD implements ScheduledTask {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Posts a quote every day at 12am from slashdot.org.")
+			.summary("Posts a quote every day.")
+			.detail("Quotes are from slashdot.org. Quote is posted at 0:00 server time to all non-quiet rooms.")
 		.build();
 		//@formatter:on
 	}

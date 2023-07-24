@@ -21,6 +21,8 @@ public abstract class HealthMonitor implements ScheduledTask {
 
 	private final String[] responses = { "coughs", "sneezes", "clears throat", "expectorates", "sniffles", "wheezes", "groans", "moans" };
 	private final List<Integer> roomIds;
+	private final int maxPendingUpdatesBeforeGettingSick = 10;
+
 	private boolean first = true;
 	private int securityUpdates;
 
@@ -33,7 +35,8 @@ public abstract class HealthMonitor implements ScheduledTask {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Makes the bot post messages such as \"" + responses[0] + "\" and \"" + responses[1] + "\" based on the number of pending security updates the server has.")
+			.summary("Makes the bot \"cough\" when the server has pending security updates.")
+			.detail("The bot will start coughing when there are " + maxPendingUpdatesBeforeGettingSick + " or more pending updates. It will cough more frequently the more updates there are.")
 		.build();
 		//@formatter:on
 	}
@@ -70,7 +73,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 		 * Don't post anything if there are less than 10 updates. But check
 		 * again tomorrow.
 		 */
-		if (securityUpdates < 10) {
+		if (securityUpdates < maxPendingUpdatesBeforeGettingSick) {
 			return Duration.ofDays(1).toMillis();
 		}
 

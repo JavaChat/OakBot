@@ -29,7 +29,7 @@ public class EchoCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Makes the bot say what you want.")
+			.summary("Makes the bot say something.")
 			.example("I love Java!", "Makes the bot post the message, \"I love Java!\".")
 		.build();
 		//@formatter:on

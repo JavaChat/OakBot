@@ -55,8 +55,9 @@ public class ReactCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Displays a reaction gif.")
+			.summary("Displays a reaction GIF.")
 			.detail("Images from replygif.net.")
+			.example("happy", "Displays a \"happy\" GIF.")
 		.build();
 		//@formatter:on
 	}
