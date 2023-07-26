@@ -101,6 +101,12 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 				stopChecking.add(roomId);
 
+				/**
+				 * Ensure the content has no newlines. Newlines prevent the
+				 * markdown conversion from happening.
+				 */
+				explanationHtml = explanationHtml.replaceAll("(\\r\\n|\\n|\\r)", " ");
+
 				String explanationMd = ChatBuilder.toMarkdown(explanationHtml, false, url);
 
 				//@formatter:off
