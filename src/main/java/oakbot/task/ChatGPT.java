@@ -271,7 +271,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private static String removeMentionsFromBeginningOfMessage(String message) {
 		String orig = message;
 		while (true) {
-			String result = orig.replaceAll("^@\\w+\\s+", "");
+			String result = orig.replaceAll("^@.+?\\s+", "");
 			if (result.equals(orig)) {
 				return result;
 			}
