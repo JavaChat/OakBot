@@ -3,7 +3,7 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
-import com.google.common.net.UrlEscapers;
+import org.apache.http.client.utils.URIBuilder;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -36,10 +36,16 @@ public class WikiCommand implements Command {
 			return reply("Please specify the term you'd like to display.", chatCommand);
 		}
 
-		content = content.replace(' ', '_');
-		content = UrlEscapers.urlPathSegmentEscaper().escape(content);
+		String keyword = content.replace(' ', '_');
 
-		String url = "http://en.wikipedia.org/wiki/" + content;
+		//@formatter:off
+		String url = new URIBuilder()
+			.setScheme("https")
+			.setHost("en.wikipedia.org")
+			.setPathSegments("wiki", keyword)
+		.toString();
+		//@formatter:on
+
 		return post(url);
 	}
 }
