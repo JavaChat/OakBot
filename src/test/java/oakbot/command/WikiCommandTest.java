@@ -24,23 +24,27 @@ public class WikiCommandTest {
 
 	@Test
 	public void spaces() {
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("John Doe")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		ChatActions response = command.onMessage(message, null);
-		assertMessage("http://en.wikipedia.org/wiki/John_Doe", response);
+		assertMessage("https://en.wikipedia.org/wiki/John_Doe", response);
 	}
 
 	@Test
 	public void url_safe() {
-		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		ChatCommand message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("I/O")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		ChatActions response = command.onMessage(message, null);
-		assertMessage("http://en.wikipedia.org/wiki/I%2FO", response);
+		assertMessage("https://en.wikipedia.org/wiki/I%2FO", response);
 	}
 }
