@@ -24,7 +24,7 @@ public class LearnedCommandTest {
 		//@formatter:on
 
 		IBot bot = mock(IBot.class);
-		
+
 		//no arguments
 
 		//@formatter:off
@@ -35,7 +35,7 @@ public class LearnedCommandTest {
 
 		ChatActions actions = cmd.onMessage(chatCommand, bot);
 		assertMessage("{0} is {1}!", actions);
-		
+
 		//two arguments
 
 		//@formatter:off
@@ -46,7 +46,18 @@ public class LearnedCommandTest {
 
 		actions = cmd.onMessage(chatCommand, bot);
 		assertMessage("Michael is awesome!", actions);
-		
+
+		//arguments with Markdown
+
+		//@formatter:off
+		chatCommand = new ChatCommandBuilder(cmd)
+			.content("<b>Michael awesome</b>")
+		.build();
+		//@formatter:on
+
+		actions = cmd.onMessage(chatCommand, bot);
+		assertMessage("**Michael is awesome**!", actions);
+
 		//quoted argument
 
 		//@formatter:off
@@ -57,7 +68,7 @@ public class LearnedCommandTest {
 
 		actions = cmd.onMessage(chatCommand, bot);
 		assertMessage("Oak Bot is awesome!", actions);
-		
+
 		//escaped quotes
 
 		//@formatter:off
@@ -68,7 +79,7 @@ public class LearnedCommandTest {
 
 		actions = cmd.onMessage(chatCommand, bot);
 		assertMessage("Oak \"Bot\" is awesome!", actions);
-		
+
 		//two quoted arguments
 
 		//@formatter:off
@@ -79,9 +90,9 @@ public class LearnedCommandTest {
 
 		actions = cmd.onMessage(chatCommand, bot);
 		assertMessage("Oak Bot is very cool!", actions);
-		
+
 		//too many arguments
-		
+
 		//@formatter:off
 		chatCommand = new ChatCommandBuilder(cmd)
 			.content("Michael awesome cool")
@@ -90,9 +101,9 @@ public class LearnedCommandTest {
 
 		actions = cmd.onMessage(chatCommand, bot);
 		assertMessage("Michael is awesome!", actions);
-		
+
 		//not enough arguments
-		
+
 		//@formatter:off
 		chatCommand = new ChatCommandBuilder(cmd)
 			.content("Michael")
@@ -101,9 +112,9 @@ public class LearnedCommandTest {
 
 		actions = cmd.onMessage(chatCommand, bot);
 		assertMessage("Michael is {1}!", actions);
-		
+
 		//escaped space
-		
+
 		//@formatter:off
 		chatCommand = new ChatCommandBuilder(cmd)
 			.content("Michael\\ awesome")
@@ -112,9 +123,9 @@ public class LearnedCommandTest {
 
 		actions = cmd.onMessage(chatCommand, bot);
 		assertMessage("Michael awesome is {1}!", actions);
-		
+
 		//empty argument
-		
+
 		//@formatter:off
 		chatCommand = new ChatCommandBuilder(cmd)
 			.content("\"\"")

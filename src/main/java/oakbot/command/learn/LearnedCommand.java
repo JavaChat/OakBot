@@ -108,9 +108,10 @@ public class LearnedCommand implements Command {
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String response = output;
 
-		List<String> args = parseArguments(chatCommand.getContent());
+		List<String> args = parseArguments(chatCommand.getContentMarkdown());
 		for (int i = 0; i < args.size(); i++) {
-			response = response.replace("{" + i + "}", args.get(i));
+			String arg = args.get(i);
+			response = response.replace("{" + i + "}", arg);
 		}
 
 		return post(response);
