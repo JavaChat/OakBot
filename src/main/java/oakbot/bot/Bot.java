@@ -485,6 +485,21 @@ public class Bot implements IBot {
 				continue;
 			}
 
+			if (action instanceof DeleteMessage) {
+				DeleteMessage deleteMessage = (DeleteMessage) action;
+				ChatActions response;
+				try {
+					IRoom room = connection.getRoom(message.getRoomId());
+					room.deleteMessage(deleteMessage.messageId());
+					response = deleteMessage.onSuccess().get();
+				} catch (Exception e) {
+					response = deleteMessage.onError().apply(e);
+				}
+
+				queue.addAll(response.getActions());
+				continue;
+			}
+
 			if (action instanceof JoinRoom) {
 				JoinRoom joinRoom = (JoinRoom) action;
 

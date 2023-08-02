@@ -13,6 +13,7 @@ import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
 import oakbot.command.Command;
+import oakbot.command.DeleteCommand;
 import oakbot.command.EightBallCommand;
 import oakbot.command.FacepalmCommand;
 import oakbot.command.FatCatCommand;
@@ -95,6 +96,7 @@ public class CommandsWikiPage {
 			commands.add(new AdventOfCode("PT0S", Collections.emptyMap(), null));
 			commands.add(new AfkCommand());
 			commands.add(new CatCommand(null));
+			commands.add(new DeleteCommand());
 			commands.add(new DefineCommand(null));
 			commands.add(new EffectiveDebuggingCommand());
 			commands.add(new EffectiveJavaCommand());

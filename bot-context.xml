@@ -148,7 +148,7 @@
 	</bean>
 
 	<!-- /afk -->
-	<bean id="afkCommand" class="oakbot.command.AfkCommand" />
+	<bean class="oakbot.command.AfkCommand" />
 	
 	<!-- /aoc -->
 	<bean id="aocApi" class="oakbot.command.aoc.AdventOfCodeApi">
@@ -179,6 +179,9 @@
 	<bean class="oakbot.command.define.DefineCommand">
 		<constructor-arg value="" /> <!-- API key for dictionaryapi.com -->
 	</bean>
+	
+	<!-- /delete -->
+	<bean class="oakbot.command.DeleteCommand" />
 	
 	<!-- /echo -->
 	<bean class="oakbot.command.EchoCommand" />
