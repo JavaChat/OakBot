@@ -101,11 +101,19 @@
 		</plugins>
 	</build>
 	<dependencies>
+		<!--
+		Clone and build this project to use it:
+
+		git clone https://github.com/mangstadt/sochat4j.git
+		cd sochat4j
+		mvn install
+		-->
 		<dependency>
 			<groupId>com.github.mangstadt</groupId>
 			<artifactId>sochat4j</artifactId>
 			<version>1.0.0</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
