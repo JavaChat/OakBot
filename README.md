@@ -15,11 +15,15 @@ OakBot is most active in the [Java](https://chat.stackoverflow.com/rooms/139) ch
 
 # Build Instructions
 
-To build the project, run the command below.
+To build the project, first clone and install the SOChat4j library:
 
-`mvn package`
+```
+git clone https://github.com/mangstadt/sochat4j.git
+cd sochat4j
+mvn install
+```
 
-This command will build the project and package it into an executable, shaded JAR. A shaded JAR file contains all of the project's dependencies. The shaded JAR file is saved here: `target/OakBot-VERSION.jar`.
+Then, inside of the cloned OakBot folder, run `mvn package`. This command will build the project and package it into an executable, shaded JAR. A shaded JAR file contains all of the project's dependencies. The shaded JAR file is saved here: `target/OakBot-VERSION.jar`.
 
 # Deploy Instructions
 
