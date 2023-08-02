@@ -22,6 +22,14 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.IChatClient;
+import com.github.mangstadt.sochat4j.IRoom;
+import com.github.mangstadt.sochat4j.RoomNotFoundException;
+import com.github.mangstadt.sochat4j.RoomPermissionException;
+import com.github.mangstadt.sochat4j.event.MessageEditedEvent;
+import com.github.mangstadt.sochat4j.event.MessagePostedEvent;
+import com.github.mangstadt.sochat4j.util.Sleeper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -29,19 +37,11 @@ import com.google.common.collect.Multimap;
 import oakbot.Database;
 import oakbot.Rooms;
 import oakbot.Statistics;
-import oakbot.chat.ChatMessage;
-import oakbot.chat.IChatClient;
-import oakbot.chat.IRoom;
-import oakbot.chat.RoomNotFoundException;
-import oakbot.chat.RoomPermissionException;
-import oakbot.chat.event.MessageEditedEvent;
-import oakbot.chat.event.MessagePostedEvent;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.inactivity.InactivityTask;
 import oakbot.listener.Listener;
 import oakbot.task.ScheduledTask;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Sleeper;
 
 /**
  * A Stackoverflow chat bot.

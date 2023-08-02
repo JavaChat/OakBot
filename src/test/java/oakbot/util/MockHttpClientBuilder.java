@@ -1,12 +1,13 @@
-package oakbot.chat;
+package oakbot.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,74 +41,6 @@ public class MockHttpClientBuilder {
 	private final List<ExpectedRequest> expectedRequests = new ArrayList<>();
 	private final List<HttpResponse> responses = new ArrayList<>();
 	private final List<IOException> responseExceptions = new ArrayList<>();
-
-	/**
-	 * Adds the requests/responses involved in logging into Stack Overflow.
-	 * @param fkey the fkey shown on the login page
-	 * @param email the user's email address
-	 * @param password the user's password
-	 * @param success true if the login should be successful, false if not
-	 * @return this
-	 */
-	public MockHttpClientBuilder login(String fkey, String email, String password, boolean success) {
-		return login(Site.STACKOVERFLOW.getDomain(), fkey, email, password, success);
-	}
-
-	/**
-	 * Adds the requests/responses involved in logging into Stack Overflow.
-	 * @param domain the domain of the website
-	 * @param fkey the fkey shown on the login page
-	 * @param email the user's email address
-	 * @param password the user's password
-	 * @param success true if the login should be successful, false if not
-	 * @return this
-	 */
-	public MockHttpClientBuilder login(String domain, String fkey, String email, String password, boolean success) {
-		//@formatter:off
-		return 
-			 request("GET", "https://" + domain + "/users/login")
-			.response(200, ResponseSamples.loginPage(fkey))
-		
-			.request("POST", "https://" + domain + "/users/login",
-				"fkey", fkey,
-				"email", email,
-				"password", password
-			)
-			.response(success ? 302 : 200, "");
-		//@formatter:on
-	}
-
-	/**
-	 * Adds the requests/responses involved in joining a room.
-	 * @param roomId the room ID
-	 * @param fkey the fkey of the room
-	 * @param webSocketUrl the web socket URL of the room
-	 * @param timestamp the timestamp of the most recent message in the chat
-	 * room
-	 * @return this
-	 */
-	public MockHttpClientBuilder joinRoom(int roomId, String fkey, String webSocketUrl, long timestamp) {
-		//@formatter:off	
-		return
-			 request("GET", "https://chat.stackoverflow.com/rooms/" + roomId)
-			.response(200, ResponseSamples.chatRoom(fkey))
-			
-			.request("POST", "https://chat.stackoverflow.com/ws-auth",
-				"roomid", roomId + "",
-				"fkey", fkey
-			)
-			.response(200, ResponseSamples.wsAuth(webSocketUrl))
-			
-			.request("POST", "https://chat.stackoverflow.com/chats/" + roomId + "/events",
-				"mode", "messages",
-				"msgCount", "1",
-				"fkey", fkey
-			)
-			.response(200, ResponseSamples.events()
-				.event(timestamp, "content", 50, "UserName", roomId, 20157245)
-			.build());
-		//@formatter:on
-	}
 
 	/**
 	 * Adds an expected GET request. A call to {@link #response} should be made
@@ -208,7 +141,7 @@ public class MockHttpClientBuilder {
 					requestCount++;
 
 					if (requestCount >= expectedRequests.size()) {
-						fail("The unit test only expected " + expectedRequests.size() + " HTTP requests to be sent, but an extra one was generated.");
+						fail("The unit test only expected " + expectedRequests.size() + " HTTP requests to be sent, but more were generated.");
 					}
 
 					HttpRequest actualRequest = (HttpRequest) invocation.getArguments()[0];
@@ -234,7 +167,7 @@ public class MockHttpClientBuilder {
 			});
 		} catch (IOException e) {
 			//never thrown because it is a mock object
-			throw new RuntimeException(e);
+			throw new UncheckedIOException(e);
 		}
 
 		return client;

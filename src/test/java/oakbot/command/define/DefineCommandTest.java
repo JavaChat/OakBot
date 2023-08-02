@@ -5,6 +5,7 @@ import static oakbot.bot.ChatActionsUtils.assertMessageStartsWith;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.After;
 import org.junit.Test;
@@ -12,17 +13,17 @@ import org.junit.Test;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.chat.MockHttpClientBuilder;
 import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
+import oakbot.util.MockHttpClientBuilder;
 
 public class DefineCommandTest {
 	@After
 	public void after() {
 		HttpFactory.restore();
 	}
-	
+
 	@Test
 	public void no_word() {
 		DefineCommand command = new DefineCommand("apiKey");
@@ -180,7 +181,7 @@ public class DefineCommandTest {
 
 	@Test
 	public void multiple_definitions() throws Exception {
-		String cool = new Gobble(getClass(), "cool.xml").asString();
+		String cool = new Gobble(getClass(), "cool.xml").asString(StandardCharsets.UTF_8);
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()

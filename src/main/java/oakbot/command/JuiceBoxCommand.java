@@ -3,20 +3,22 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import com.github.mangstadt.sochat4j.IRoom;
+import com.github.mangstadt.sochat4j.PingableUser;
+import com.github.mangstadt.sochat4j.UserInfo;
+import com.github.mangstadt.sochat4j.util.Http;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.chat.IRoom;
-import oakbot.chat.PingableUser;
-import oakbot.chat.UserInfo;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Http;
 import oakbot.util.HttpFactory;
 
 /**
@@ -67,7 +69,7 @@ public class JuiceBoxCommand implements Command {
 
 		UserInfo matchingUserInfo;
 		try {
-			List<UserInfo> list = currentRoom.getUserInfo(matchingUser.getUserId());
+			List<UserInfo> list = currentRoom.getUserInfo(Arrays.asList(matchingUser.getUserId()));
 			matchingUserInfo = list.isEmpty() ? null : list.get(0);
 		} catch (IOException e) {
 			return reply(new ChatBuilder("Problem getting user info: ").code(e.getMessage()), chatCommand);

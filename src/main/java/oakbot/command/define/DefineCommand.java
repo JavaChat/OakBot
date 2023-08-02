@@ -2,7 +2,6 @@ package oakbot.command.define;
 
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
-import static oakbot.util.XPathWrapper.children;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,20 +13,22 @@ import java.util.stream.Collectors;
 import org.apache.http.client.utils.URIBuilder;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
+
+import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.util.Http;
+import com.github.mangstadt.sochat4j.util.Leaf;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Http;
 import oakbot.util.HttpFactory;
-import oakbot.util.Leaf;
 
 /**
  * Gets word definitions from urbandictionary.com
@@ -151,9 +152,11 @@ public class DefineCommand implements Command {
 		return definitions;
 	}
 
-	public String getDefinition(Node dtNode) {
+	private String getDefinition(Node dtNode) {
 		StringBuilder sb = new StringBuilder();
-		for (Node child : children(dtNode)) {
+		NodeList children = dtNode.getChildNodes();
+		for (int i = 0; i < children.getLength(); i++) {
+			Node child = children.item(i);
 			if (child instanceof Text) {
 				sb.append(child.getTextContent());
 				continue;
@@ -177,7 +180,7 @@ public class DefineCommand implements Command {
 			}
 		}
 
-		String split[] = sb.toString().split("\\s*:\\s*");
+		String[] split = sb.toString().split("\\s*:\\s*");
 		List<String> list = new ArrayList<>();
 		for (String s : split) {
 			s = s.trim();
@@ -231,7 +234,9 @@ public class DefineCommand implements Command {
 		}
 
 		StringBuilder sb = new StringBuilder();
-		for (Node child : children(viNode.node())) {
+		NodeList children = viNode.node().getChildNodes();
+		for (int i = 0; i < children.getLength(); i++) {
+			Node child = children.item(i);
 			if ("aq".equals(child.getNodeName())) {
 				//don't include the author of the example (for user-contributed content)
 				continue;

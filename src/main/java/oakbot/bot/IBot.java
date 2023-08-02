@@ -3,10 +3,10 @@ package oakbot.bot;
 import java.io.IOException;
 import java.util.List;
 
-import oakbot.chat.ChatMessage;
-import oakbot.chat.IRoom;
-import oakbot.chat.RoomNotFoundException;
-import oakbot.chat.RoomPermissionException;
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.IRoom;
+import com.github.mangstadt.sochat4j.RoomNotFoundException;
+import com.github.mangstadt.sochat4j.RoomPermissionException;
 
 /**
  * Represents a chat bot.
@@ -32,7 +32,7 @@ public interface IBot {
 	String getUsername();
 
 	/**
-	 * Gets the admin users.
+	 * Gets the users who have admin permissions over the bot.
 	 * @return the user IDs of the admin users
 	 */
 	List<Integer> getAdminUsers();

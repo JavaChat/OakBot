@@ -8,13 +8,13 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Http;
 import oakbot.util.HttpFactory;
 import oakbot.util.Now;
 

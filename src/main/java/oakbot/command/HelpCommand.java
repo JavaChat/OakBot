@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 
+import com.github.mangstadt.sochat4j.SplitStrategy;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
@@ -18,7 +19,6 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.SplitStrategy;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.listener.Listener;

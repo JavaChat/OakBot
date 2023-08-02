@@ -20,21 +20,14 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.ClientProperties;
-import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
+import com.github.mangstadt.sochat4j.ChatClient;
+import com.github.mangstadt.sochat4j.IChatClient;
+import com.github.mangstadt.sochat4j.Site;
 import com.google.common.collect.Multimap;
 
 import oakbot.bot.Bot;
-import oakbot.chat.ChatClient;
-import oakbot.chat.IChatClient;
-import oakbot.chat.Site;
 import oakbot.chat.mock.FileChatClient;
 import oakbot.command.Command;
 import oakbot.command.HelpCommand;
@@ -173,25 +166,8 @@ public final class Main {
 		} else {
 			Site site = getSite(botProperties);
 
-			/*
-			 * 4/2/2020: You cannot just call HttpClients.createDefault(). When
-			 * this method is used, Apache's HTTP library does not properly
-			 * parse the cookies it receives when logging into StackOverflow,
-			 * and thus cannot join any chat rooms.
-			 * 
-			 * Solution found here: https://stackoverflow.com/q/36473478/13379
-			 */
-			CloseableHttpClient httpClient = HttpClients.custom() //@formatter:off
-				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
-			.build(); //@formatter:on
-
-			ClientManager websocketClient = ClientManager.createClient(JdkClientContainer.class.getName());
-			websocketClient.setDefaultMaxSessionIdleTimeout(0);
-			websocketClient.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
-
 			System.out.println("Logging in as " + botProperties.getLoginEmail() + "...");
-			connection = new ChatClient(httpClient, websocketClient, site);
-			connection.login(botProperties.getLoginEmail(), botProperties.getLoginPassword());
+			connection = ChatClient.connect(site, botProperties.getLoginEmail(), botProperties.getLoginPassword());
 		}
 
 		//@formatter:off
@@ -253,7 +229,8 @@ public final class Main {
 			String name = entry.getKey();
 			Collection<Command> commandsWithSameName = entry.getValue();
 
-			String list = commandsWithSameName.stream() //@formatter:off
+			String list = commandsWithSameName
+					.stream() //@formatter:off
 				.map(c -> c.getClass().getName())
 			.collect(Collectors.joining(", ")); //@formatter:on
 

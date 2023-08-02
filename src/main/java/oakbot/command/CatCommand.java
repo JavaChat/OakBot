@@ -13,14 +13,15 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.xml.sax.SAXException;
 
+import com.github.mangstadt.sochat4j.util.Http;
+import com.github.mangstadt.sochat4j.util.Leaf;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Http;
 import oakbot.util.HttpFactory;
-import oakbot.util.Leaf;
 
 /**
  * Displays a random cat picture.

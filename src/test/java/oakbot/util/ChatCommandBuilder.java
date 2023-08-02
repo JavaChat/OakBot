@@ -2,8 +2,9 @@ package oakbot.util;
 
 import java.time.LocalDateTime;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.bot.ChatCommand;
-import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 
 /**

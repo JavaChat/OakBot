@@ -10,13 +10,13 @@ import org.apache.http.client.utils.URIBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Http;
 import oakbot.util.HttpFactory;
 
 /**

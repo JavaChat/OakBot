@@ -1,7 +1,7 @@
 package oakbot.command;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -11,16 +11,17 @@ import java.util.Arrays;
 import org.junit.After;
 import org.junit.Test;
 
+import com.github.mangstadt.sochat4j.IRoom;
+import com.github.mangstadt.sochat4j.PingableUser;
+import com.github.mangstadt.sochat4j.UserInfo;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.chat.IRoom;
-import oakbot.chat.MockHttpClientBuilder;
-import oakbot.chat.PingableUser;
-import oakbot.chat.UserInfo;
 import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
+import oakbot.util.MockHttpClientBuilder;
 
 /**
  * @author Michael Angstadt
@@ -45,14 +46,15 @@ public class JuiceBoxCommandTest {
 		JuiceBoxCommand command = new JuiceBoxCommand();
 
 		IRoom room = mock(IRoom.class);
-		when(room.getPingableUsers()).thenReturn(Arrays.asList( //@formatter:off
+		when(room.getPingableUsers()).thenReturn(Arrays
+				.asList( //@formatter:off
 			new PingableUser(1, 100, "Michael", LocalDateTime.now()),
 			new PingableUser(1, 200, "OakBot", LocalDateTime.now())
 		));
-		when(room.getUserInfo(100)).thenReturn(Arrays.asList(
+		when(room.getUserInfo(Arrays.asList(100))).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://www.gravatar.com/avatar/29d7c49f6f174710788c79011219bae1").build()
 		));
-		when(room.getUserInfo(200)).thenReturn(Arrays.asList(
+		when(room.getUserInfo(Arrays.asList(200))).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
 
@@ -79,14 +81,15 @@ public class JuiceBoxCommandTest {
 		JuiceBoxCommand command = new JuiceBoxCommand();
 
 		IRoom room = mock(IRoom.class);
-		when(room.getPingableUsers()).thenReturn(Arrays.asList( //@formatter:off
+		when(room.getPingableUsers()).thenReturn(Arrays
+				.asList( //@formatter:off
 			new PingableUser(1, 100, "Michael", LocalDateTime.now()),
 			new PingableUser(1, 200, "OakBot", LocalDateTime.now())
 		));
-		when(room.getUserInfo(100)).thenReturn(Arrays.asList(
+		when(room.getUserInfo(Arrays.asList(100))).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://www.gravatar.com/avatar/29d7c49f6f174710788c79011219bae1").build()
 		));
-		when(room.getUserInfo(200)).thenReturn(Arrays.asList(
+		when(room.getUserInfo(Arrays.asList(200))).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
 
@@ -118,10 +121,10 @@ public class JuiceBoxCommandTest {
 			new PingableUser(1, 100, "Michael", LocalDateTime.now()),
 			new PingableUser(1, 200, "OakBot", LocalDateTime.now())
 		));
-		when(room.getUserInfo(100)).thenReturn(Arrays.asList(
+		when(room.getUserInfo(Arrays.asList(100))).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://www.gravatar.com/avatar/29d7c49f6f174710788c79011219bae1").build()
 		));
-		when(room.getUserInfo(200)).thenReturn(Arrays.asList(
+		when(room.getUserInfo(Arrays.asList(200))).thenReturn(Arrays.asList(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
 
@@ -139,7 +142,8 @@ public class JuiceBoxCommandTest {
 		JuiceBoxCommand command = new JuiceBoxCommand();
 
 		IRoom room = mock(IRoom.class);
-		when(room.getPingableUsers()).thenReturn(Arrays.asList( //@formatter:off
+		when(room.getPingableUsers()).thenReturn(Arrays
+				.asList( //@formatter:off
 			new PingableUser(1, 100, "Michael", LocalDateTime.now()),
 			new PingableUser(1, 200, "OakBot", LocalDateTime.now())
 		)); //@formatter:on

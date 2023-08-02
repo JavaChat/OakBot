@@ -14,8 +14,8 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.mangstadt.sochat4j.util.Http;
 
-import oakbot.util.Http;
 import oakbot.util.HttpFactory;
 import oakbot.util.Now;
 

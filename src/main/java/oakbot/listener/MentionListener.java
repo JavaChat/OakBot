@@ -8,9 +8,10 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 

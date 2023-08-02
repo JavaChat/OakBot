@@ -7,8 +7,9 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.NodeVisitor;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.bot.ChatCommand;
-import oakbot.chat.ChatMessage;
 
 /**
  * Helper class for building chat messages that are formatted in Stack Overflow

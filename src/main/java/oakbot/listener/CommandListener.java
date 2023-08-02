@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommandsDao;

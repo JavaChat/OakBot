@@ -16,7 +16,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import oakbot.util.Leaf;
+import com.github.mangstadt.sochat4j.util.Leaf;
 
 /**
  * Tests to make sure the data in the XML file containing the Effective Java

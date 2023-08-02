@@ -18,10 +18,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
 

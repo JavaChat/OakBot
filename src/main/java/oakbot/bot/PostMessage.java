@@ -2,7 +2,7 @@ package oakbot.bot;
 
 import java.util.Objects;
 
-import oakbot.chat.SplitStrategy;
+import com.github.mangstadt.sochat4j.SplitStrategy;
 
 /**
  * Instructs the bot to post a chat message.

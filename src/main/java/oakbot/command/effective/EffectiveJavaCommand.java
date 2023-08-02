@@ -13,15 +13,16 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.xml.sax.SAXException;
 
+import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.util.Leaf;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Leaf;
 
 /**
  * Displays items from the book "Effective Java, Third Edition" by Joshua Bloch.

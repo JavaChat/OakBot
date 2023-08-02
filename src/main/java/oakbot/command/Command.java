@@ -6,10 +6,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 
 /**
  * A chat bot command.

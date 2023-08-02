@@ -5,8 +5,9 @@ import java.util.List;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import oakbot.chat.ChatMessage;
-import oakbot.chat.Content;
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.Content;
+
 import oakbot.util.ChatBuilder;
 
 /**

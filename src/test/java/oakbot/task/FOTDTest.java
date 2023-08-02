@@ -1,7 +1,7 @@
 package oakbot.task;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -14,12 +14,13 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.github.mangstadt.sochat4j.SplitStrategy;
+
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.MockHttpClientBuilder;
-import oakbot.chat.SplitStrategy;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
+import oakbot.util.MockHttpClientBuilder;
 import oakbot.util.Now;
 
 /**

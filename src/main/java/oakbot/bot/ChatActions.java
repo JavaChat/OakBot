@@ -6,7 +6,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import oakbot.chat.ChatMessage;
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.util.ChatBuilder;
 
 /**

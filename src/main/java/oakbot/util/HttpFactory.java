@@ -3,6 +3,8 @@ package oakbot.util;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import com.github.mangstadt.sochat4j.util.Http;
+
 /**
  * Use this class when you want to send normal HTTP requests in production, but
  * want to inject a mock HTTP client during unit testing.

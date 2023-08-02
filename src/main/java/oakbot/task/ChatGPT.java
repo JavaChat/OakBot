@@ -17,12 +17,13 @@ import java.util.stream.Collectors;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.Content;
+import com.github.mangstadt.sochat4j.SplitStrategy;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.ChatMessage;
-import oakbot.chat.Content;
-import oakbot.chat.SplitStrategy;
 import oakbot.command.HelpDoc;
 import oakbot.listener.CatchAllMentionListener;
 import oakbot.util.ChatBuilder;

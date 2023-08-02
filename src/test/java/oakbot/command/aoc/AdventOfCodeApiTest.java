@@ -8,10 +8,10 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 
-import oakbot.chat.MockHttpClientBuilder;
 import oakbot.command.aoc.AdventOfCodeApi.Player;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
+import oakbot.util.MockHttpClientBuilder;
 import oakbot.util.Now;
 
 /**

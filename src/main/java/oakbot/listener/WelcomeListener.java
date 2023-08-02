@@ -12,13 +12,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.IRoom;
+import com.github.mangstadt.sochat4j.UserInfo;
+
 import oakbot.Database;
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.ChatMessage;
-import oakbot.chat.IRoom;
-import oakbot.chat.UserInfo;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 

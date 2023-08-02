@@ -7,10 +7,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
-import oakbot.chat.ChatMessage;
-import oakbot.chat.IChatClient;
-import oakbot.chat.Site;
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.IChatClient;
+import com.github.mangstadt.sochat4j.IRoom;
+import com.github.mangstadt.sochat4j.Site;
 
 /**
  * A mock chat client that reads its chat messages from a text file.
@@ -64,8 +66,8 @@ public class FileChatClient implements IChatClient {
 	}
 
 	@Override
-	public List<FileChatRoom> getRooms() {
-		return rooms;
+	public List<IRoom> getRooms() {
+		return rooms.stream().map(r -> (IRoom) r).collect(Collectors.toList());
 	}
 
 	@Override

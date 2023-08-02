@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 import org.junit.After;
 import org.junit.Test;
 
-import oakbot.chat.MockHttpClientBuilder;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
+import oakbot.util.MockHttpClientBuilder;
 import oakbot.util.Now;
 
 public class QOTDTest {

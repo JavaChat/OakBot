@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import oakbot.util.Leaf;
+import com.github.mangstadt.sochat4j.util.Leaf;
 
 /**
  * Parses {@link ClassInfo} objects from XML documents.

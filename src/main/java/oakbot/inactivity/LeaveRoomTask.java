@@ -4,9 +4,10 @@ import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.mangstadt.sochat4j.IRoom;
+
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.IRoom;
 
 /**
  * Causes the bot to leave the room if the room has been inactive for some

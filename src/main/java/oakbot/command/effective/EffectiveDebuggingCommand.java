@@ -7,11 +7,12 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
+import com.github.mangstadt.sochat4j.SplitStrategy;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.SplitStrategy;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;

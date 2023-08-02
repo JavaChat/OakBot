@@ -12,12 +12,12 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
 import com.google.common.collect.Multimap;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.command.learn.LearnedCommand;

@@ -8,10 +8,11 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 
 /**
  * @author Michael Angstadt

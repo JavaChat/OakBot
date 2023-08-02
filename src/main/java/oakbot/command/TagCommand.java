@@ -11,13 +11,14 @@ import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.util.Http;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Http;
 import oakbot.util.HttpFactory;
 
 /**

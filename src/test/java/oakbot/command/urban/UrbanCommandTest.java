@@ -12,10 +12,10 @@ import org.junit.Test;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.chat.MockHttpClientBuilder;
 import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
+import oakbot.util.MockHttpClientBuilder;
 
 /**
  * @author Michael Angstadt

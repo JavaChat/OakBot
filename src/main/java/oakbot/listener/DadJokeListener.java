@@ -8,12 +8,13 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.util.Sleeper;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Sleeper;
 
 /**
  * Responds to "I am [blank]" messages with "Hi [blank], I'm Oak!".

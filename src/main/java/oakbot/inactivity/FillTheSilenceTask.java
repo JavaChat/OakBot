@@ -2,9 +2,10 @@ package oakbot.inactivity;
 
 import java.time.Duration;
 
+import com.github.mangstadt.sochat4j.IRoom;
+
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.IRoom;
 import oakbot.command.Command;
 
 /**

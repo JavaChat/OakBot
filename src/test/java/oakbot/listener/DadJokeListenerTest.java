@@ -9,11 +9,12 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.util.Sleeper;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.ChatMessage;
-import oakbot.util.Sleeper;
 
 /**
  * @author Michael Angstadt

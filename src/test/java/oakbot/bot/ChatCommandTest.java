@@ -6,7 +6,7 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
-import oakbot.chat.ChatMessage;
+import com.github.mangstadt.sochat4j.ChatMessage;
 
 /**
  * @author Michael Angstadt

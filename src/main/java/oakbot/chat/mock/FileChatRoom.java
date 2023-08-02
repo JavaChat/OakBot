@@ -14,16 +14,16 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import oakbot.chat.ChatMessage;
-import oakbot.chat.IRoom;
-import oakbot.chat.PingableUser;
-import oakbot.chat.RoomInfo;
-import oakbot.chat.RoomNotFoundException;
-import oakbot.chat.RoomPermissionException;
-import oakbot.chat.SplitStrategy;
-import oakbot.chat.UserInfo;
-import oakbot.chat.event.Event;
-import oakbot.chat.event.MessagePostedEvent;
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.IRoom;
+import com.github.mangstadt.sochat4j.PingableUser;
+import com.github.mangstadt.sochat4j.RoomInfo;
+import com.github.mangstadt.sochat4j.RoomNotFoundException;
+import com.github.mangstadt.sochat4j.RoomPermissionException;
+import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.UserInfo;
+import com.github.mangstadt.sochat4j.event.Event;
+import com.github.mangstadt.sochat4j.event.MessagePostedEvent;
 
 /**
  * A mock connection to a chat room that reads messages from a text file.

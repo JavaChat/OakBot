@@ -3,10 +3,10 @@ package oakbot.bot;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.same;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -31,22 +31,23 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.IChatClient;
+import com.github.mangstadt.sochat4j.IRoom;
+import com.github.mangstadt.sochat4j.InvalidCredentialsException;
+import com.github.mangstadt.sochat4j.RoomNotFoundException;
+import com.github.mangstadt.sochat4j.Site;
+import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.event.MessagePostedEvent;
+import com.github.mangstadt.sochat4j.util.Sleeper;
+
 import oakbot.Database;
-import oakbot.chat.ChatMessage;
-import oakbot.chat.IChatClient;
-import oakbot.chat.IRoom;
-import oakbot.chat.InvalidCredentialsException;
-import oakbot.chat.RoomNotFoundException;
-import oakbot.chat.Site;
-import oakbot.chat.SplitStrategy;
-import oakbot.chat.event.MessagePostedEvent;
 import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.filter.ChatResponseFilter;
 import oakbot.listener.CommandListener;
 import oakbot.listener.Listener;
-import oakbot.util.Sleeper;
 
 /**
  * @author Michael Angstadt
@@ -942,7 +943,7 @@ public class BotTest {
 		}
 
 		@Override
-		public List<? extends IRoom> getRooms() {
+		public List<IRoom> getRooms() {
 			return new ArrayList<>(joined.values());
 		}
 

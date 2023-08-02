@@ -3,9 +3,10 @@ package oakbot.listener;
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.reply;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 import oakbot.command.FatCatCommand;
 
 /**

@@ -8,13 +8,14 @@ import java.util.List;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.SplitStrategy;
+
 import oakbot.Database;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.ChatMessage;
-import oakbot.chat.SplitStrategy;
 import oakbot.util.ChatBuilder;
 
 /**

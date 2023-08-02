@@ -10,7 +10,7 @@ OakBot is most active in the [Java](https://chat.stackoverflow.com/rooms/139) ch
 
 # Requirements
 
-* Java 1.8
+* Java 11
 * [Maven](http://maven.apache.org) (for building)
 
 # Build Instructions

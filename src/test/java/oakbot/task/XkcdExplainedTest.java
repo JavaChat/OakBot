@@ -5,9 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -20,13 +20,14 @@ import java.time.LocalDateTime;
 import org.junit.After;
 import org.junit.Test;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.chat.ChatMessage;
-import oakbot.chat.MockHttpClientBuilder;
 import oakbot.task.XkcdExplained.Comic;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
+import oakbot.util.MockHttpClientBuilder;
 import oakbot.util.Now;
 
 public class XkcdExplainedTest {

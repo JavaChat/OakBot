@@ -1,8 +1,9 @@
 package oakbot.listener;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
 
 /**

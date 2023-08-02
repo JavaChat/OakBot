@@ -13,11 +13,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.util.Sleeper;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
-import oakbot.chat.ChatMessage;
 import oakbot.command.HelpDoc;
-import oakbot.util.Sleeper;
 
 /**
  * Responds to "good morning" messages.
