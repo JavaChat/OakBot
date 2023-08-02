@@ -28,7 +28,7 @@ public class DeleteCommand implements Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("del");
+		return Arrays.asList("del", "rm");
 	}
 
 	@Override
