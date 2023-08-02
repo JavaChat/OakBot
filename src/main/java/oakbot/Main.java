@@ -202,6 +202,14 @@ public final class Main {
 
 		Thread t = bot.connect(arguments.quiet());
 
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				logger.info("Running shutdown hook.");
+				bot.stop();
+			}
+		});
+
 		System.out.println("Bot has launched successfully. To move this process to the background, press Ctrl+Z then type \"bg\".");
 
 		t.join();
