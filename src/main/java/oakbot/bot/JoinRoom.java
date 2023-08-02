@@ -17,8 +17,8 @@ public class JoinRoom implements ChatAction {
 	 */
 	public JoinRoom(int roomId) {
 		this.roomId = roomId;
-		onSuccess = ifRoomDoesNotExist = ifLackingPermissionToPost = () -> ChatActions.doNothing();
-		onError = (e) -> ChatActions.doNothing();
+		onSuccess = ifRoomDoesNotExist = ifLackingPermissionToPost = ChatActions::doNothing;
+		onError = e -> ChatActions.doNothing();
 	}
 
 	/**
