@@ -64,7 +64,7 @@ public class FOTD implements ScheduledTask {
 			return;
 		}
 
-		fact = ChatBuilder.toMarkdown(fact, false, url);
+		fact = ChatBuilder.toMarkdown(fact, false, true, url);
 		ChatBuilder cb = new ChatBuilder(fact);
 
 		boolean isMultiline = fact.contains("\n");

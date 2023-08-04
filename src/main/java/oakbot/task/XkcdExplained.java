@@ -108,7 +108,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 				 */
 				explanationHtml = explanationHtml.replaceAll("(\\r\\n|\\n|\\r)", " ");
 
-				String explanationMd = ChatBuilder.toMarkdown(explanationHtml, false, url);
+				String explanationMd = ChatBuilder.toMarkdown(explanationHtml, false, false, url);
 
 				//@formatter:off
 				String beginningMd = new ChatBuilder()

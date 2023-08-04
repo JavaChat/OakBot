@@ -293,18 +293,20 @@ public class ChatBuilder implements CharSequence {
 	 * @return the content as formatted in Markdown
 	 */
 	public static String toMarkdown(String content, boolean fixedFont) {
-		return toMarkdown(content, fixedFont, null);
+		return toMarkdown(content, fixedFont, true, null);
 	}
 
 	/**
 	 * Converts HTML-formated content to Markdown syntax.
 	 * @param content the HTML content
 	 * @param fixedFont if the message is formatted with a fixed font
+	 * @param includeTitleInLinks true to include the value of each &lt;a&gt;
+	 * tag's "title" attribute in Markdown links, false not to
 	 * @param baseUrl the base URL for resolving links with relative URLs. This
 	 * should be set to the URL of the page that the content came from.
 	 * @return the content as formatted in Markdown
 	 */
-	public static String toMarkdown(String content, boolean fixedFont, String baseUrl) {
+	public static String toMarkdown(String content, boolean fixedFont, boolean includeTitleInLinks, String baseUrl) {
 		if (content == null) {
 			return null;
 		}
@@ -413,7 +415,7 @@ public class ChatBuilder implements CharSequence {
 										//just in case a <a> tag without a URL sneaks in there
 										chatBuilder.append(text);
 									} else {
-										String title = element.attr("title");
+										String title = includeTitleInLinks ? element.attr("title") : "";
 										chatBuilder.link(text, url, title);
 									}
 								}
