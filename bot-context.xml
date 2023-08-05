@@ -209,6 +209,14 @@
 		<constructor-arg ref="fatCatCommand" />
 	</bean>
 
+	<!-- /fish -->
+	<bean class="oakbot.command.FishCommand">
+		<constructor-arg ref="database" />
+		<constructor-arg value="PT15M" /> <!-- min time until quiver -->
+		<constructor-arg value="PT2H" /> <!-- max time until quiver -->
+		<constructor-arg value="PT30M" /> <!-- time able to pull up fish after quiver -->
+	</bean>
+
 	<!-- /groot -->
 	<bean class="oakbot.filter.GrootFilter" />
 
