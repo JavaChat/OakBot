@@ -30,13 +30,6 @@ import oakbot.util.Now;
 import oakbot.util.Rng;
 
 public class FishCommandTest {
-
-	public static void main(String[] args) {
-		Random r = mock(Random.class);
-		when(r.nextInt(5)).thenReturn(10);
-		System.out.println(r.nextInt(5));
-	}
-
 	@After
 	public void after() {
 		Now.restore();
