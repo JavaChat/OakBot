@@ -201,12 +201,9 @@
 	</bean>
 	
 	<!-- /fatcat -->
-	<bean id="fatCatCommand" class="oakbot.command.FatCatCommand">
+	<bean class="oakbot.command.FatCatCommand">
 		<constructor-arg ref="database" />
 		<!-- TODO: specify admin IDs in constructor -->
-	</bean>
-	<bean class="oakbot.listener.FatCatListener">
-		<constructor-arg ref="fatCatCommand" />
 	</bean>
 
 	<!-- /fish -->

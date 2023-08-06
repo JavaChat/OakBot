@@ -1,5 +1,6 @@
 package oakbot.command;
 
+import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
@@ -16,6 +17,7 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
+import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -23,7 +25,7 @@ import oakbot.util.ChatBuilder;
  * pictures.
  * @author Michael Angstadt
  */
-public class FatCatCommand implements Command {
+public class FatCatCommand implements Command, Listener {
 	private final int hans = 4581014;
 	private final Database db;
 	private final List<String> cats = new ArrayList<>();
@@ -48,7 +50,7 @@ public class FatCatCommand implements Command {
 	@Override
 	public HelpDoc help() {
 		//@formatter:off
-		return new HelpDoc.Builder(this)
+		return new HelpDoc.Builder((Command)this)
 			.summary("Displays a fat cat.")
 			.example("", "Shows a random fat cat.")
 			.example("list", "Lists all fat cats.")
@@ -76,6 +78,12 @@ public class FatCatCommand implements Command {
 		default:
 			return reply("Unknown action.", chatCommand);
 		}
+	}
+	
+	@Override
+	public ChatActions onMessage(ChatMessage message, IBot bot) {
+		String reply = handleResponse(message);
+		return (reply == null) ? doNothing() : reply(reply, message);
 	}
 
 	private ChatActions showCat(ChatCommand chatCommand) {
@@ -186,7 +194,7 @@ public class FatCatCommand implements Command {
 		return bot.getAdminUsers().contains(authorId) || authorId == hans;
 	}
 
-	public String handleResponse(ChatMessage message) {
+	private String handleResponse(ChatMessage message) {
 		Conversation conversation = conversations.get(message.getRoomId(), message.getUserId());
 		if (conversation == null) {
 			return null;
