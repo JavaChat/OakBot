@@ -29,6 +29,8 @@ import oakbot.util.Rng;
  * @author Michael Angstadt
  */
 public class FishCommand implements Command, ScheduledTask {
+	private static final int MAX_QUIVERS = 3;
+
 	//@formatter:off
 	private static final List<Fish> allFish = new ArrayList<>(List.of(
 		//https://hades.fandom.com/wiki/Fishing
@@ -201,15 +203,25 @@ public class FishCommand implements Command, ScheduledTask {
 	@Override
 	public synchronized void run(IBot bot) throws Exception {
 		Instant now = Now.instant();
+
 		for (Map.Entry<Integer, Map<Integer, PendingCatch>> entry : currentlyFishingByRoom.entrySet()) {
 			int roomId = entry.getKey();
+			List<Integer> userIdsToRemove = new ArrayList<>();
+
 			Map<Integer, PendingCatch> pendingCatchesInRoom = entry.getValue();
-			for (PendingCatch pendingCatch : pendingCatchesInRoom.values()) {
+			for (Map.Entry<Integer, PendingCatch> entry2 : pendingCatchesInRoom.entrySet()) {
+				int userId = entry2.getKey();
+				PendingCatch pendingCatch = entry2.getValue();
+
 				if (pendingCatch.userWarned) {
 					Duration sinceQuiver = Duration.between(pendingCatch.time, now);
 					boolean fishGotAway = (sinceQuiver.compareTo(timeUserHasToCatchFish) > 0);
 					if (fishGotAway) {
-						pendingCatch.resetTime();
+						if (pendingCatch.timesWarned < MAX_QUIVERS) {
+							pendingCatch.resetTime();
+						} else {
+							userIdsToRemove.add(userId);
+						}
 					}
 					continue;
 				}
@@ -217,19 +229,15 @@ public class FishCommand implements Command, ScheduledTask {
 				boolean fishSnagged = pendingCatch.time.isBefore(now);
 				if (fishSnagged) {
 					pendingCatch.userWarned = true;
+					pendingCatch.timesWarned++;
 
-					String possessiveUsername;
-					if (pendingCatch.username.endsWith("s")) {
-						possessiveUsername = pendingCatch.username + "'";
-					} else {
-						possessiveUsername = pendingCatch.username + "'s";
-					}
-
-					PostMessage message = new PostMessage(fishMessage(possessiveUsername + " line quivers."));
+					PostMessage message = new PostMessage(fishMessage(possessive(pendingCatch.username) + " line quivers."));
 					bot.sendMessage(roomId, message);
 					continue;
 				}
 			}
+
+			userIdsToRemove.forEach(pendingCatchesInRoom::remove);
 		}
 	}
 
@@ -242,6 +250,10 @@ public class FishCommand implements Command, ScheduledTask {
 			.italic()
 		.toString();
 		//@formatter:on
+	}
+
+	private String possessive(String s) {
+		return s + (s.endsWith("s") ? "'" : "'s");
 	}
 
 	@Override
@@ -328,6 +340,7 @@ public class FishCommand implements Command, ScheduledTask {
 		private final Fish fish;
 		private Instant time;
 		private boolean userWarned;
+		private int timesWarned;
 
 		public PendingCatch(String username) {
 			this.username = username;
