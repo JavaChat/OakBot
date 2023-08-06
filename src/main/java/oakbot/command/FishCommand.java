@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -23,14 +22,13 @@ import oakbot.bot.PostMessage;
 import oakbot.task.ScheduledTask;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Now;
+import oakbot.util.Rng;
 
 /**
  * Allows user to catch fish.
  * @author Michael Angstadt
  */
 public class FishCommand implements Command, ScheduledTask {
-	private static final Random rand = new Random();
-
 	//@formatter:off
 	private static final List<Fish> allFish = new ArrayList<>(List.of(
 		//https://hades.fandom.com/wiki/Fishing
@@ -218,7 +216,15 @@ public class FishCommand implements Command, ScheduledTask {
 				boolean fishSnagged = pendingCatch.time.isBefore(now);
 				if (fishSnagged) {
 					pendingCatch.userWarned = true;
-					PostMessage message = new PostMessage(fishMessage(pendingCatch.username + "'s line quivers."));
+
+					String possessiveUsername;
+					if (pendingCatch.username.endsWith("s")) {
+						possessiveUsername = pendingCatch.username + "'";
+					} else {
+						possessiveUsername = pendingCatch.username + "'s";
+					}
+
+					PostMessage message = new PostMessage(fishMessage(possessiveUsername + " line quivers."));
 					bot.sendMessage(roomId, message);
 					continue;
 				}
@@ -244,7 +250,7 @@ public class FishCommand implements Command, ScheduledTask {
 
 	private String displayCaughtFish(Inventory fishCollection) {
 		if (fishCollection == null || fishCollection.map.isEmpty()) {
-			return "You inventory is empty.";
+			return "Your inventory is empty.";
 		}
 
 		List<Map.Entry<Fish, MutableInt>> list = new ArrayList<>(fishCollection.map.entrySet());
@@ -330,7 +336,7 @@ public class FishCommand implements Command, ScheduledTask {
 		}
 
 		public void resetTime() {
-			int seconds = rand.nextInt((int) (maxTimeUntilQuiver.toSeconds() - minTimeUntilQuiver.toSeconds())) + (int) minTimeUntilQuiver.toSeconds();
+			int seconds = Rng.next((int) minTimeUntilQuiver.toSeconds(), (int) maxTimeUntilQuiver.toSeconds());
 			time = Now.instant().plus(Duration.ofSeconds(seconds));
 			userWarned = false;
 		}
@@ -408,7 +414,7 @@ public class FishCommand implements Command, ScheduledTask {
 
 		public static Fish randomByRarity() {
 			double total = allFish.stream().mapToDouble(fish -> fish.rarity).sum();
-			double randValue = rand.nextDouble() * total;
+			double randValue = Rng.next() * total;
 			double cur = 0.0;
 			for (Fish fish : allFish) {
 				cur += fish.rarity;
