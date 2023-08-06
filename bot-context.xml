@@ -203,7 +203,11 @@
 	<!-- /fatcat -->
 	<bean class="oakbot.command.FatCatCommand">
 		<constructor-arg ref="database" />
-		<!-- TODO: specify admin IDs in constructor -->
+		<constructor-arg> <!-- a list of users who have permission to add/remove pictures from this command. Bot admins already have permission to do this. -->
+			<util:list>
+				<value>12345</value>				
+			</util:list>
+		</constructor-arg>
 	</bean>
 
 	<!-- /fish -->

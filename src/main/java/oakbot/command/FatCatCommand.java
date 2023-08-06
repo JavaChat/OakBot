@@ -5,6 +5,7 @@ import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.text.StringEscapeUtils;
@@ -26,13 +27,18 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class FatCatCommand implements Command, Listener {
-	private final int hans = 4581014;
 	private final Database db;
+	private final List<Integer> commandAdmins;
 	private final List<String> cats = new ArrayList<>();
 	private final Conversations conversations = new Conversations();
 
 	public FatCatCommand(Database db) {
+		this(db, Collections.emptyList());
+	}
+
+	public FatCatCommand(Database db, List<Integer> commandAdmins) {
 		this.db = db;
+		this.commandAdmins = commandAdmins;
 
 		@SuppressWarnings("unchecked")
 		List<String> list = (List<String>) db.get("fatcat");
@@ -79,7 +85,7 @@ public class FatCatCommand implements Command, Listener {
 			return reply("Unknown action.", chatCommand);
 		}
 	}
-	
+
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		String reply = handleResponse(message);
@@ -191,7 +197,7 @@ public class FatCatCommand implements Command, Listener {
 
 	private boolean hasEditPerms(ChatCommand chatCommand, IBot bot) {
 		int authorId = chatCommand.getMessage().getUserId();
-		return bot.getAdminUsers().contains(authorId) || authorId == hans;
+		return bot.getAdminUsers().contains(authorId) || commandAdmins.contains(authorId);
 	}
 
 	private String handleResponse(ChatMessage message) {
