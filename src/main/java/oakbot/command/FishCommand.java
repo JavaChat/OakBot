@@ -34,29 +34,29 @@ public class FishCommand implements Command, ScheduledTask {
 	//@formatter:off
 	private static final List<Fish> allFish = new ArrayList<>(List.of(
 		//https://hades.fandom.com/wiki/Fishing
-		new Fish("Hellfish", 0.9, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/3/3d/Hellfish.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Knucklehead", 0.5, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/9/94/Knucklehead.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Scyllascion", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/0/0a/Scyllascion.png/revision/latest/scale-to-width-down/50"),
+		new Fish("Hellfish", 0.9, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/3/3d/Hellfish.png"),
+		new Fish("Knucklehead", 0.5, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/9/94/Knucklehead.png"),
+		new Fish("Scyllascion", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/0/0a/Scyllascion.png"),
 		
-		new Fish("Slavug", 0.9, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/4/40/Slavug.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Chrustacean", 0.5, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/5/50/Chrustacean.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Flameater", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/d/d7/Flameater.png/revision/latest/scale-to-width-down/50"),
+		new Fish("Slavug", 0.9, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/4/40/Slavug.png"),
+		new Fish("Chrustacean", 0.5, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/5/50/Chrustacean.png"),
+		new Fish("Flameater", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/d/d7/Flameater.png"),
 		
-		new Fish("Chlam", 0.9, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/0/02/Chlam.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Charp", 0.5, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/a/a9/Charp.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Seamare", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/1/11/Seamare.png/revision/latest/scale-to-width-down/50"),
+		new Fish("Chlam", 0.9, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/0/02/Chlam.png"),
+		new Fish("Charp", 0.5, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/a/a9/Charp.png"),
+		new Fish("Seamare", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/1/11/Seamare.png"),
 		
-		new Fish("Gupp", 0.9, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/4/4c/Gupp.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Scuffer", 0.5, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/2/27/Scuffer.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Stonewhal", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/f/f2/Stonewhal.png/revision/latest/scale-to-width-down/50"),
+		new Fish("Gupp", 0.9, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/4/4c/Gupp.png"),
+		new Fish("Scuffer", 0.5, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/2/27/Scuffer.png"),
+		new Fish("Stonewhal", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/f/f2/Stonewhal.png"),
 		
-		new Fish("Mati", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/8/85/Mati.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Projelly", 0.1, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/2/2b/Projelly.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Voidskate", 0.05, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/1/12/Voidskate.png/revision/latest/scale-to-width-down/50"),
+		new Fish("Mati", 0.2, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/8/85/Mati.png"),
+		new Fish("Projelly", 0.1, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/2/2b/Projelly.png"),
+		new Fish("Voidskate", 0.05, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/1/12/Voidskate.png"),
 		
-		new Fish("Trout", 0.1, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/6/66/Trout.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Bass", 0.05, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/b/bd/Bass.png/revision/latest/scale-to-width-down/50"),
-		new Fish("Sturgeon", 0.01, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/4/42/Sturgeon.png/revision/latest/scale-to-width-down/50")
+		new Fish("Trout", 0.1, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/6/66/Trout.png"),
+		new Fish("Bass", 0.05, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/b/bd/Bass.png"),
+		new Fish("Sturgeon", 0.01, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/4/42/Sturgeon.png")
 		
 		//https://programming.guide/java/list-of-java-exceptions.html
 		//new Fish("IOException", 0.9),
