@@ -141,6 +141,7 @@ public class FishCommand implements Command, ScheduledTask {
 				}
 
 				inv.remove(fish);
+				saveInventories();
 
 				//@formatter:off
 				return post(fishMessage(new ChatBuilder()
@@ -353,7 +354,11 @@ public class FishCommand implements Command, ScheduledTask {
 		public void remove(Fish fish) {
 			MutableInt count = map.get(fish);
 			if (count != null) {
-				count.decrement();
+				if (count.intValue() == 1) {
+					map.remove(fish);
+				} else {
+					count.decrement();
+				}
 			}
 		}
 
