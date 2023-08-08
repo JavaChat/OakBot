@@ -119,20 +119,41 @@ public class FishCommand implements Command, ScheduledTask {
 
 	@Override
 	public synchronized ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
+		int roomId = chatCommand.getMessage().getRoomId();
 		int userId = chatCommand.getMessage().getUserId();
 		String username = chatCommand.getMessage().getUsername();
 		Inventory inv = inventoryByUser.get(userId);
+		Map<Integer, PendingCatch> pendingCatchesInThisRoom = currentlyFishingByRoom.computeIfAbsent(roomId, k -> new HashMap<Integer, PendingCatch>());
 
 		String content = chatCommand.getContent();
 		if (!content.isEmpty()) {
 			String[] split = content.split("\\s+");
+			String subCommand = split[0];
 
-			if ("inv".equalsIgnoreCase(split[0])) {
+			if ("inv".equalsIgnoreCase(subCommand)) {
 				String message = displayCaughtFish(inv);
 				return reply(fishMessage(message), chatCommand);
 			}
 
-			if ("release".equalsIgnoreCase(split[0])) {
+			if ("status".equalsIgnoreCase(subCommand)) {
+				PendingCatch pendingCatch = pendingCatchesInThisRoom.get(userId);
+				String message;
+				if (pendingCatch == null) {
+					message = "You don't have any lines out.";
+				} else {
+					Duration sinceLineQuivered = Duration.between(pendingCatch.time, Now.instant());
+					boolean currentlyQuivering = (!sinceLineQuivered.isNegative() && sinceLineQuivered.compareTo(timeUserHasToCatchFish) < 0);
+					if (currentlyQuivering) {
+						message = "Your line is quivering. Better pull it up.";
+					} else {
+						message = "Your line hasn't caught anything yet.";
+					}
+				}
+
+				return reply(fishMessage(message), chatCommand);
+			}
+
+			if ("release".equalsIgnoreCase(subCommand)) {
 				if (split.length < 2) {
 					return reply(fishMessage("Specify a fish to release."), chatCommand);
 				}
@@ -155,9 +176,6 @@ public class FishCommand implements Command, ScheduledTask {
 			return reply(fishMessage("Unknown fish command."), chatCommand);
 		}
 
-		int roomId = chatCommand.getMessage().getRoomId();
-
-		Map<Integer, PendingCatch> pendingCatchesInThisRoom = currentlyFishingByRoom.computeIfAbsent(roomId, k -> new HashMap<Integer, PendingCatch>());
 		PendingCatch pendingCatch = pendingCatchesInThisRoom.remove(userId);
 
 		if (pendingCatch == null) {

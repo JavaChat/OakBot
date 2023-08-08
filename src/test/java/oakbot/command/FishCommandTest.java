@@ -340,4 +340,90 @@ public class FishCommandTest {
 
 		verify(db).set("fish.caught", map);
 	}
+
+	@Test
+	public void fish_status() throws Exception {
+		Database db = mock(Database.class);
+
+		IBot bot = mock(IBot.class);
+
+		Random rand = mock(Random.class);
+		when(rand.nextInt(15 * 60)).thenReturn(5 * 60); //line will quiver after (15+5) minutes
+		when(rand.nextDouble()).thenReturn(0.1234);
+		Rng.inject(rand);
+
+		FishCommand command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		verify(db).getMap("fish.caught");
+
+		/*
+		 * Before throwing out the line.
+		 */
+
+		//@formatter:off
+		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+			.content("status")
+			.messageId(10)
+			.roomId(1)
+			.userId(123456)
+			.username("Zagreus")
+		.build(), bot);
+		//@formatter:on
+
+		assertMessage(":10 🐟 *You don't have any lines out.*", actual);
+
+		/*
+		 * Throw out the line.
+		 */
+
+		//@formatter:off
+		actual = command.onMessage(new ChatCommandBuilder(command)
+			.messageId(10)
+			.roomId(1)
+			.userId(123456)
+			.username("Zagreus")
+		.build(), bot);
+		//@formatter:on
+
+		assertMessage("🐟 *Zagreus throws in a line.*", actual);
+
+		/*
+		 * Check status before quiver.
+		 */
+
+		//@formatter:off
+		actual = command.onMessage(new ChatCommandBuilder(command)
+			.content("status")
+			.messageId(10)
+			.roomId(1)
+			.userId(123456)
+			.username("Zagreus")
+		.build(), bot);
+		//@formatter:on
+
+		assertMessage(":10 🐟 *Your line hasn't caught anything yet.*", actual);
+
+		/*
+		 * Check status after quiver.
+		 */
+
+		Now.fastForward(Duration.ofMinutes(21));
+
+		//@formatter:off
+		actual = command.onMessage(new ChatCommandBuilder(command)
+			.content("status")
+			.messageId(11)
+			.roomId(1)
+			.userId(123456)
+			.username("Zagreus")
+		.build(), bot);
+
+		List<ChatAction> expected = Arrays.asList(
+			new PostMessage(":11 🐟 *Your line is quivering. Better pull it up.*")
+		);
+		//@formatter:on
+
+		assertEquals(expected, actual.getActions());
+
+		verify(db, never()).set(eq("fish.caught"), any(Map.class));
+	}
 }
