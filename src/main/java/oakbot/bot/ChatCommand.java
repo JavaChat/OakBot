@@ -76,15 +76,15 @@ public class ChatCommand {
 	 * command name
 	 */
 	public String getContentMarkdown() {
-		return ChatBuilder.toMarkdown(content, isFixedFont());
+		return ChatBuilder.toMarkdown(content, isFixedWidthFont());
 	}
 
 	/**
 	 * Determines whether the command is formatted in a monospace font.
 	 * @return true if it's formatted in a monospace font, false if not
 	 */
-	public boolean isFixedFont() {
-		return message.getContent().isFixedFont();
+	public boolean isFixedWidthFont() {
+		return message.getContent().isFixedWidthFont();
 	}
 
 	/**
@@ -210,7 +210,7 @@ public class ChatCommand {
 			text = "";
 		} else {
 			text = content.substring(startOfText);
-			if (!contentObj.isFixedFont()) {
+			if (!contentObj.isFixedWidthFont()) {
 				text = text.trim();
 			}
 		}

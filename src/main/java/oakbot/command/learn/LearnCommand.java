@@ -56,7 +56,7 @@ public class LearnCommand implements Command {
 		ChatMessage message = chatCommand.getMessage();
 
 		//example: "test this is a test"
-		ChatMessage subMessage = new ChatMessage.Builder(message).content(chatCommand.getContent(), chatCommand.isFixedFont()).build();
+		ChatMessage subMessage = new ChatMessage.Builder(message).content(chatCommand.getContent(), chatCommand.isFixedWidthFont()).build();
 		ChatCommand subCommand = ChatCommand.fromMessage(subMessage, null);
 		if (subCommand == null) {
 			return reply("You haven't specified the command name or its output.", chatCommand);

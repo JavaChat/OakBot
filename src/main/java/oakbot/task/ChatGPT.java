@@ -232,8 +232,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			}
 
 			String contentStr = content.getContent();
-			boolean fixedFont = content.isFixedFont();
-			String contentMd = ChatBuilder.toMarkdown(contentStr, fixedFont);
+			boolean fixedWidthFont = content.isFixedWidthFont();
+			String contentMd = ChatBuilder.toMarkdown(contentStr, fixedWidthFont);
 
 			String truncatedContentMd;
 			if (latestMessageCharacterLimit > 0) {

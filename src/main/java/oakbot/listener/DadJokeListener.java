@@ -71,7 +71,7 @@ public class DadJokeListener implements Listener {
 			return doNothing();
 		}
 
-		String messageAsMarkdown = ChatBuilder.toMarkdown(message.getContent().getContent(), message.getContent().isFixedFont());
+		String messageAsMarkdown = ChatBuilder.toMarkdown(message.getContent().getContent(), message.getContent().isFixedWidthFont());
 		String messageWithoutLinks = removeLinks(messageAsMarkdown);
 		Optional<String> phrase = findPhrase(messageWithoutLinks);
 		if (!phrase.isPresent()) {
