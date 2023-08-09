@@ -88,8 +88,9 @@ public class Bot implements IBot {
 
 	private Bot(Builder builder) {
 		connection = Objects.requireNonNull(builder.connection);
-		userName = builder.userName;
-		userId = Objects.requireNonNull(builder.userId);
+
+		userName = (connection.getUsername() == null) ? builder.userName : connection.getUsername();
+		userId = (connection.getUserId() == null) ? builder.userId : connection.getUserId();
 		hideOneboxesAfter = builder.hideOneboxesAfter;
 		trigger = Objects.requireNonNull(builder.trigger);
 		greeting = builder.greeting;
@@ -979,6 +980,15 @@ public class Bot implements IBot {
 			if (connection == null) {
 				throw new IllegalStateException("No ChatConnection given.");
 			}
+
+			if (connection.getUsername() == null && this.userName == null) {
+				throw new IllegalStateException("Unable to parse username. You'll need to manually set it in the properties section of the bot-context XML file.");
+			}
+
+			if (connection.getUserId() == null && this.userId == null) {
+				throw new IllegalStateException("Unable to parse user ID. You'll need to manually set it in the properties section of the bot-context XML file.");
+			}
+
 			return new Bot(this);
 		}
 	}

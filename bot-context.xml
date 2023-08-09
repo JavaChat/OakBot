@@ -36,15 +36,15 @@
 		<prop key="account.password">password</prop>
 		
 		<!--
-		The username of the bot's Stack Overflow account.
-		-->
+		Manually set the username of the bot's account, incase it can't be parsed automatically.
 		<prop key="account.username">OakBot</prop>
+		-->
 		
 		<!--
-		The user ID of the bot's Stack Overflow account.
+		Manually set the user ID of the bot's account, incase it can't be parsed automatically.
 		The user ID can be found in the URL of the account's profile page.
-		-->
 		<prop key="account.userId">4258326</prop>
+		-->
 		
 		<!--
 		The string sequence that prefixes all commands (typically a single character).
@@ -317,7 +317,7 @@
 	<!-- ChatGPT -->
 	<bean class="oakbot.task.ChatGPT" id="chatGPT">
 		<constructor-arg value="API_KEY" />
-		<constructor-arg value="You are a grumpy Java developer named '${account.username}'." /> <!-- one or more sentences that define the bot's personality (e.g. "You are a helpful assistant"). This counts against your usage quota. Each word costs around 1.33 tokens. -->
+		<constructor-arg value="You are a grumpy Java developer named 'OakBot'." /> <!-- one or more sentences that define the bot's personality (e.g. "You are a helpful assistant"). This counts against your usage quota. Each word costs around 1.33 tokens. -->
 		<constructor-arg value="100" /> <!-- places a limit on the length of ChatGPT's completion (response). If this number is too short, then the completion may end abruptly (e.g. in an unfinished sentence). Each word costs around 1.33 tokens. -->
 		<constructor-arg value="PT12H" /> <!-- the amount of time to wait before posting a message (duration string) -->
 		<constructor-arg value="10" /> <!-- the number of chat room messages to include in the ChatGPT request to give the bot context of the conversation (each message counts against the usage quota) -->

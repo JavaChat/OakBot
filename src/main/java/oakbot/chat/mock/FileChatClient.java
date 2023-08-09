@@ -21,10 +21,10 @@ import com.github.mangstadt.sochat4j.Site;
 public class FileChatClient implements IChatClient {
 	private final AtomicLong eventIdCounter = new AtomicLong(), messageIdCounter = new AtomicLong();
 	private final List<FileChatRoom> rooms = new ArrayList<>();
-	private final int botUserId, humanUserId;
+	private final Integer botUserId, humanUserId;
 	private final String botUsername, humanUsername, humanProfilePicture;
 
-	public FileChatClient(int botUserId, String botUsername, int humanUserId, String humanUsername, String humanProfilePicture) {
+	public FileChatClient(Integer botUserId, String botUsername, Integer humanUserId, String humanUsername, String humanProfilePicture) {
 		this.botUserId = botUserId;
 		this.botUsername = botUsername;
 		this.humanUserId = humanUserId;
@@ -35,6 +35,16 @@ public class FileChatClient implements IChatClient {
 	@Override
 	public void login(String email, String password) {
 		//empty
+	}
+
+	@Override
+	public String getUsername() {
+		return botUsername;
+	}
+
+	@Override
+	public Integer getUserId() {
+		return botUserId;
 	}
 
 	@Override

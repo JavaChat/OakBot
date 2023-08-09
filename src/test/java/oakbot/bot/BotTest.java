@@ -928,6 +928,16 @@ public class BotTest {
 		}
 
 		@Override
+		public String getUsername() {
+			return null;
+		}
+
+		@Override
+		public Integer getUserId() {
+			return null;
+		}
+
+		@Override
 		public IRoom joinRoom(int roomId) throws RoomNotFoundException, IOException {
 			if (roomId == 999) {
 				throw new IOException();
