@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.Content;
@@ -289,13 +288,5 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		synchronized (spontaneousPostTimes) {
 			spontaneousPostTimes.put(roomId, nextRunTime);
 		}
-	}
-
-	/**
-	 * Creates an HTTP client. This method is for unit testing.
-	 * @return the HTTP client
-	 */
-	CloseableHttpClient createClient() {
-		return HttpClients.createDefault();
 	}
 }
