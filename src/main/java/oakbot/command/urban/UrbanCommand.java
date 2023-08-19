@@ -160,7 +160,7 @@ public class UrbanCommand implements Command {
 	private static String encodeLinks(String definition) {
 		Pattern p = Pattern.compile("\\[(.*?)\\]");
 		Matcher m = p.matcher(definition);
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		while (m.find()) {
 			String word = m.group(1);
 

@@ -151,7 +151,7 @@ public class JavadocZipFile {
 	 */
 	private String javadocUrlPattern(ClassInfo info) {
 		Matcher m = javadocUrlPatternFieldRegex.matcher(javadocUrlPattern);
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		while (m.find()) {
 			String field = m.group(1);
 			String replacement;

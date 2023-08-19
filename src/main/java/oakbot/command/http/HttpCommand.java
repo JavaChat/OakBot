@@ -135,7 +135,7 @@ public class HttpCommand implements Command {
 	private static String processSectionAnnotations(String description, String defaultRfc) {
 		Pattern p = Pattern.compile("#([\\d\\.]+)( (\\d+))?#");
 		Matcher m = p.matcher(description);
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		while (m.find()) {
 			String section = m.group(1);
 			String rfc = m.group(3);
