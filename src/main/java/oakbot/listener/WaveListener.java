@@ -113,10 +113,14 @@ public class WaveListener implements Listener {
 		/*
 		 * Wait for a moment to make it seem less robotic.
 		 */
-		Sleeper.sleep(hesitation);
+		hesitate();
 
 		String reply = reverse(wave);
 		return post(reply);
+	}
+
+	private void hesitate() {
+		Sleeper.sleep(hesitation);
 	}
 
 	private String reverse(String wave) {

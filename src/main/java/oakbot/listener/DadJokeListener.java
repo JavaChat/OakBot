@@ -23,6 +23,7 @@ import oakbot.util.ChatBuilder;
 public class DadJokeListener implements Listener {
 	private final String botName;
 	private final CatchAllMentionListener catchAllListener;
+	private final Duration hesitation = Duration.ofSeconds(3);
 
 	//@formatter:off
 	private final Pattern regex = Pattern.compile(
@@ -82,7 +83,7 @@ public class DadJokeListener implements Listener {
 			return doNothing();
 		}
 
-		hesitate(Duration.ofSeconds(3));
+		hesitate();
 		return reply("Hi " + phrase.get() + ", I'm " + botName + "!", message);
 	}
 
@@ -114,7 +115,7 @@ public class DadJokeListener implements Listener {
 		return words;
 	}
 
-	private void hesitate(Duration duration) {
-		Sleeper.sleep(duration.toMillis());
+	private void hesitate() {
+		Sleeper.sleep(hesitation);
 	}
 }
