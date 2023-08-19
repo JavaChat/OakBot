@@ -4,8 +4,10 @@ import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 import static oakbot.command.Command.random;
 
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -69,21 +71,19 @@ public class RollCommand implements Command {
 			total += result;
 		}
 
-		ChatBuilder cb = new ChatBuilder().reply(chatCommand);
-		boolean first = true;
-		for (int result : results) {
-			if (first) {
-				first = false;
-			} else {
-				cb.append(", ");
-			}
-			cb.append(result);
-		}
+		ChatBuilder cb = new ChatBuilder();
+
+		//@formatter:off
+		cb.append(Arrays.stream(results)
+			.mapToObj(i -> i + "")
+		.collect(Collectors.joining(", ")));
+		//@formatter:on
+
 		if (results.length > 1) {
 			cb.nl().append("Total = ").append(total);
 		}
 
-		return post(cb);
+		return reply(cb, chatCommand);
 	}
 
 	private Parameters parseParameters(ChatCommand chatCommand) {

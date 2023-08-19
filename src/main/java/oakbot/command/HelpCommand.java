@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
@@ -100,14 +101,13 @@ public class HelpCommand implements Command {
 		if (!learnedCommandNames.isEmpty()) {
 			cb.fixed().append("Learned Commands=============").nl();
 			cb.fixed();
-			boolean first = true;
-			for (String name : learnedCommandNames) {
-				if (!first) {
-					cb.append(", ");
-				}
-				cb.append(bot.getTrigger()).append(name);
-				first = false;
-			}
+
+			//@formatter:off
+			cb.append(learnedCommandNames.stream()
+				.map(name -> bot.getTrigger() + name)
+			.collect(Collectors.joining(", ")));
+			//@formatter:on
+
 			cb.nl().fixed().nl();
 		}
 

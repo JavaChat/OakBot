@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Wraps a {@link Properties} object, providing additional functionality.
@@ -203,20 +204,19 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @param list the list or null to remove
 	 */
 	public void setIntegerList(String key, List<Integer> list) {
+		String value;
+
 		if (list == null) {
-			set(key, null);
+			value = null;
+		} else {
+			//@formatter:off
+			value = list.stream()
+				.map(Object::toString)
+			.collect(Collectors.joining(","));
+			//@formatter:on
 		}
 
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for (Integer item : list) {
-			if (!first) {
-				sb.append(',');
-			}
-			sb.append(item);
-			first = false;
-		}
-		set(key, sb.toString());
+		set(key, value);
 	}
 
 	/**
