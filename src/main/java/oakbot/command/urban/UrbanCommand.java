@@ -4,7 +4,6 @@ import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -164,19 +163,19 @@ public class UrbanCommand implements Command {
 		StringBuffer sb = new StringBuffer();
 		while (m.find()) {
 			String word = m.group(1);
-			try {
-				URIBuilder b = new URIBuilder("http://www.urbandictionary.com/define.php");
-				b.addParameter("term", word);
-				String url = b.toString();
 
-				ChatBuilder cb = new ChatBuilder();
-				cb.link(word, url);
-				m.appendReplacement(sb, cb.toString());
-			} catch (URISyntaxException e) {
-				//should never be thrown since the URL string is hard-coded, but just incase...
-				//remove the link
-				m.appendReplacement(sb, word);
-			}
+			//@formatter:off
+			String url = new URIBuilder()
+				.setScheme("http")
+				.setHost("www.urbandictionary.com")
+				.setPath("/define.php")
+				.setParameter("term", word)
+			.toString();
+			//@formatter:on
+
+			ChatBuilder cb = new ChatBuilder();
+			cb.link(word, url);
+			m.appendReplacement(sb, cb.toString());
 		}
 		m.appendTail(sb);
 		return sb.toString();

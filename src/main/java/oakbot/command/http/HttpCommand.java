@@ -4,7 +4,6 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -166,8 +165,12 @@ public class HttpCommand implements Command {
 	}
 
 	private static String rfcUrl(String rfc, String section) {
-		URIBuilder uri = new URIBuilder(URI.create("http://tools.ietf.org"));
-		uri.setPathSegments("html", "rfc" + rfc);
+		//@formatter:off
+		URIBuilder uri = new URIBuilder()
+			.setScheme("http")
+			.setHost("tools.ietf.org")
+			.setPathSegments("html", "rfc" + rfc);
+		//@formatter:on
 
 		if (section != null && !section.isEmpty()) {
 			uri.setFragment("section-" + section);
