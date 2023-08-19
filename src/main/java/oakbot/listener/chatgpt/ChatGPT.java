@@ -103,7 +103,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	@Override
 	public void run(IBot bot) throws Exception {
 		removeRoomsBotIsNotIn(bot);
-		List<Integer> roomsToPostTo = findRoomsToSpontaneouslyPostTo(bot);
+		List<Integer> roomsToPostTo = findRoomsToSpontaneouslyPostTo();
 
 		for (Integer roomId : roomsToPostTo) {
 			resetSpontaneousPostTimer(roomId);
@@ -201,7 +201,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		}
 	}
 
-	private List<Integer> findRoomsToSpontaneouslyPostTo(IBot bot) {
+	private List<Integer> findRoomsToSpontaneouslyPostTo() {
 		List<Integer> roomIds = new ArrayList<>();
 
 		synchronized (spontaneousPostTimes) {
