@@ -13,7 +13,7 @@ import oakbot.bot.IBot;
  */
 public class EightBallCommand implements Command {
 	//@formatter:off
-	private final String answers[] = {
+	private final String[] answers = {
 		//positive
 		"It is certain",
 		"It is decidedly so",

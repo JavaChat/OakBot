@@ -75,7 +75,7 @@ class JavadocCommandArguments {
 		int paragraph = 1;
 		String targetUser = null;
 		if (rest != null && !rest.isEmpty()) {
-			String split[] = rest.split("\\s+");
+			String[] split = rest.split("\\s+");
 			if (split.length == 1) {
 				String token = split[0];
 				try {

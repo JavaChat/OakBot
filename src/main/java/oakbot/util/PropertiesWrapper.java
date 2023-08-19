@@ -184,7 +184,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 			return defaultValue;
 		}
 
-		String split[] = value.split("\\s*,\\s*");
+		String[] split = value.split("\\s*,\\s*");
 		List<Integer> numbers = new ArrayList<>(split.length);
 		for (String v : split) {
 			try {

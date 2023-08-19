@@ -163,7 +163,7 @@ public class ChatCommand {
 							break;
 						}
 
-						String tag[] = openTags.remove(openTags.size() - 1);
+						String[] tag = openTags.remove(openTags.size() - 1);
 						if (tag[0].equals(curTagName)) {
 							break;
 						}

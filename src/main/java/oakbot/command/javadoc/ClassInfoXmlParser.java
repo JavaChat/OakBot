@@ -109,7 +109,7 @@ public class ClassInfoXmlParser {
 		String packageName = (pipe < 0) ? null : value.substring(0, pipe);
 
 		String afterPipe = (pipe < 0) ? value : value.substring(pipe + 1);
-		String split[] = afterPipe.split("\\.");
+		String[] split = afterPipe.split("\\.");
 		List<String> outerClassNames = new ArrayList<>(split.length - 1);
 		for (int i = 0; i < split.length - 1; i++) {
 			outerClassNames.add(split[i]);
@@ -127,7 +127,7 @@ public class ClassInfoXmlParser {
 	 * @return the {@link ClassName} objects
 	 */
 	private static List<ClassName> parseClassNames(String value) {
-		String split[] = value.trim().split("\\s+");
+		String[] split = value.trim().split("\\s+");
 		return Arrays.stream(split).map(ClassInfoXmlParser::parseClassName).collect(Collectors.toList());
 	}
 

@@ -221,7 +221,7 @@ public class JavadocZipFile {
 					//e.g. "Map.Entry.xml"
 					String fileName = file.getFileName().toString();
 
-					String split[] = fileName.split("\\.");
+					String[] split = fileName.split("\\.");
 					List<String> outerClasses = new ArrayList<>();
 					for (int i = 0; i < split.length - 2; i++) { //ignore extension and simple name
 						outerClasses.add(split[i]);
@@ -266,7 +266,7 @@ public class JavadocZipFile {
 	 */
 	private Path findClassFile(FileSystem fs, String fullName) {
 		//e.g. "/java/util/Map/Entry.xml", followed by "/java/util/Map.Entry.xml", etc
-		String split[] = fullName.split("\\.");
+		String[] split = fullName.split("\\.");
 		for (int i = split.length; i > 0; i--) {
 			StringBuilder sb = new StringBuilder();
 			for (int j = 0; j < i; j++) {

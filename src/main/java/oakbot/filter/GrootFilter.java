@@ -14,7 +14,7 @@ import oakbot.util.ChatBuilder;
 public class GrootFilter extends ToggleableFilter {
 	private final Pattern whitespaceRegex = Pattern.compile("\\s+");
 	private final Pattern replyRegex = Pattern.compile("^:\\d+\\s");
-	private final String grootWords[] = { "I", "am", "Groot" };
+	private final String[] grootWords = { "I", "am", "Groot" };
 
 	@Override
 	public String name() {

@@ -62,7 +62,7 @@ public class RollCommand implements Command {
 		}
 
 		int total = 0;
-		int results[] = new int[parameters.times];
+		int[] results = new int[parameters.times];
 		for (int i = 0; i < parameters.times; i++) {
 			int result = random.nextInt(parameters.sides) + 1;
 			results[i] = result;

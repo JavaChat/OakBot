@@ -42,7 +42,7 @@ public class LinuxHealthMonitor extends HealthMonitor {
 			line = reader.readLine();
 		}
 
-		String split[] = line.split(";");
+		String[] split = line.split(";");
 		return Integer.parseInt(split[1]);
 	}
 }
