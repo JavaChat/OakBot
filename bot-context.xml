@@ -315,7 +315,7 @@
 	</bean>
 
 	<!-- ChatGPT -->
-	<bean class="oakbot.task.ChatGPT" id="chatGPT">
+	<bean class="oakbot.listener.chatgpt.ChatGPT" id="chatGPT">
 		<constructor-arg value="API_KEY" />
 		<constructor-arg value="You are a grumpy Java developer named 'OakBot'." /> <!-- one or more sentences that define the bot's personality (e.g. "You are a helpful assistant"). This counts against your usage quota. Each word costs around 1.33 tokens. -->
 		<constructor-arg value="100" /> <!-- places a limit on the length of ChatGPT's completion (response). If this number is too short, then the completion may end abruptly (e.g. in an unfinished sentence). Each word costs around 1.33 tokens. -->

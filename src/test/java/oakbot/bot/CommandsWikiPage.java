@@ -46,7 +46,7 @@ import oakbot.listener.MentionListener;
 import oakbot.listener.MornListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
-import oakbot.task.ChatGPT;
+import oakbot.listener.chatgpt.ChatGPT;
 import oakbot.task.FOTD;
 import oakbot.task.LinuxHealthMonitor;
 import oakbot.task.QOTD;

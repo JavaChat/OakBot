@@ -1,4 +1,4 @@
-package oakbot.task;
+package oakbot.listener.chatgpt;
 
 import java.io.IOException;
 import java.io.InputStream;

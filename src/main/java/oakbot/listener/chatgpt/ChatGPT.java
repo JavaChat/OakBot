@@ -1,4 +1,4 @@
-package oakbot.task;
+package oakbot.listener.chatgpt;
 
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.reply;
@@ -25,6 +25,7 @@ import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.command.HelpDoc;
 import oakbot.listener.CatchAllMentionListener;
+import oakbot.task.ScheduledTask;
 import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
 
