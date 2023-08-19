@@ -1,5 +1,6 @@
 package oakbot.util;
 
+import org.apache.http.client.CookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
@@ -28,6 +29,17 @@ public class HttpFactory {
 	 */
 	public static Http connect() {
 		CloseableHttpClient client = (mock == null) ? HttpClients.createDefault() : mock;
+		return new Http(client);
+	}
+
+	/**
+	 * Creates an HTTP client or returns a mock client injected using
+	 * {@link #inject}.
+	 * @param cookieStore the cookies to use
+	 * @return the HTTP client
+	 */
+	public static Http connect(CookieStore cookieStore) {
+		CloseableHttpClient client = (mock == null) ? HttpClients.custom().setDefaultCookieStore(cookieStore).build() : mock;
 		return new Http(client);
 	}
 

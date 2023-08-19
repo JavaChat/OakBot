@@ -50,7 +50,7 @@ public class AdventOfCodeApi {
 		String jsonUrl = jsonUrl(leaderboardId);
 
 		JsonNode root;
-		try (Http http = HttpFactory.connect()) {
+		try (Http http = HttpFactory.connect(cookieStore)) {
 			root = http.get(jsonUrl).getBodyAsJson();
 		}
 
