@@ -125,10 +125,9 @@ public class FishCommand implements Command, ScheduledTask {
 		Inventory inv = inventoryByUser.get(userId);
 		Map<Integer, PendingCatch> pendingCatchesInThisRoom = currentlyFishingByRoom.computeIfAbsent(roomId, k -> new HashMap<Integer, PendingCatch>());
 
-		String content = chatCommand.getContent();
-		if (!content.isEmpty()) {
-			String[] split = content.split("\\s+");
-			String subCommand = split[0];
+		List<String> args = chatCommand.getContentAsArgs();
+		if (!args.isEmpty()) {
+			String subCommand = args.get(0);
 
 			if ("inv".equalsIgnoreCase(subCommand)) {
 				String message = displayCaughtFish(inv);
@@ -154,11 +153,11 @@ public class FishCommand implements Command, ScheduledTask {
 			}
 
 			if ("release".equalsIgnoreCase(subCommand)) {
-				if (split.length < 2) {
+				if (args.size() < 2) {
 					return reply(fishMessage("Specify a fish to release."), chatCommand);
 				}
 
-				Fish fish = Fish.findOrNull(split[1]);
+				Fish fish = Fish.findOrNull(args.get(1));
 				if (fish == null || inv == null || !inv.has(fish)) {
 					return reply(fishMessage("You don't have any of that fish."), chatCommand);
 				}

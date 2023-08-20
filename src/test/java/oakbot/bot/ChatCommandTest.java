@@ -3,10 +3,17 @@ package oakbot.bot;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
 
 import org.junit.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
+
+import oakbot.command.Command;
+import oakbot.util.ChatCommandBuilder;
 
 /**
  * @author Michael Angstadt
@@ -80,5 +87,39 @@ public class ChatCommandTest {
 		assertEquals(name, command.getCommandName());
 		assertEquals(text, command.getContent());
 		assertSame(message, command.getMessage());
+	}
+
+	@Test
+	public void getContentAsArgs() {
+		assertContentAsArgs("", List.of());
+		assertContentAsArgs("one", List.of("one"));
+		assertContentAsArgs("one two", List.of("one", "two"));
+		
+		//trim whitespace
+		assertContentAsArgs("  one two  ", List.of("one", "two"));
+		
+		//multiple whitespace characters
+		assertContentAsArgs("one \t two", List.of("one", "two"));
+		
+		//convert HTML to markdown
+		assertContentAsArgs("<b>one</b> two", List.of("**one**", "two"));
+		
+		//double-quotes
+		assertContentAsArgs("one \"two three\"", List.of("one", "two three"));
+		
+		//double-quotes without terminating quote
+		assertContentAsArgs("one \"two three", List.of("one", "two three"));
+		
+		//escaped double quote
+		assertContentAsArgs("one \"two \\\"three\"", List.of("one", "two \"three"));
+	}
+
+	private static void assertContentAsArgs(String content, List<String> expected) {
+		Command command = mock(Command.class);
+		when(command.name()).thenReturn("cmd");
+
+		ChatCommand chatCommand = new ChatCommandBuilder(command).content(content).build();
+		List<String> actual = chatCommand.getContentAsArgs();
+		assertEquals(expected, actual);
 	}
 }

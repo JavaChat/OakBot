@@ -4,6 +4,7 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,11 +62,12 @@ public class HttpCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String[] args = chatCommand.getContent().split("\\s+");
-		String code = args[0].toUpperCase();
-		if (code.isEmpty()) {
+		List<String> args = chatCommand.getContentAsArgs();
+		if (args.isEmpty()) {
 			return reply("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.", chatCommand);
 		}
+
+		String code = args.get(0).toUpperCase();
 
 		Leaf element = document.selectFirst("/http/statusCode[@code='" + code + "']");
 		boolean isStatusCode = (element != null);
@@ -120,13 +122,13 @@ public class HttpCommand implements Command {
 		//@formatter:on
 	}
 
-	private static int getParagraph(String[] args) {
-		if (args.length == 1) {
+	private static int getParagraph(List<String> args) {
+		if (args.size() < 2) {
 			return 1;
 		}
 
 		try {
-			int paragraph = Integer.parseInt(args[1]);
+			int paragraph = Integer.parseInt(args.get(1));
 			return (paragraph < 1) ? 1 : paragraph;
 		} catch (NumberFormatException e) {
 			return 1;

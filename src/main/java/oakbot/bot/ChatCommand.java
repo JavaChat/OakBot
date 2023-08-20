@@ -70,6 +70,71 @@ public class ChatCommand {
 	}
 
 	/**
+	 * <p>
+	 * Gets the text that comes after the command name, parsed as
+	 * whitespace-delimited arguments. Arguments that are surrounded in
+	 * double-quotes can contain whitespace. Text is converted to markdown.
+	 * </p>
+	 * <p>
+	 * For example, given the chat message:<br>
+	 * {@code /define <b>java</b> "foo bar" 2}<br>
+	 * this method would return the array<br>
+	 * {@code ["**java**", "foo bar", "2"]}
+	 * </p>
+	 * @return the arguments or empty list if there is no text after the command
+	 * name
+	 */
+	public List<String> getContentAsArgs() {
+		if (getContent().trim().isEmpty()) {
+			return List.of();
+		}
+
+		String md = getContentMarkdown().trim();
+		List<String> args = new ArrayList<>();
+
+		boolean inQuotes = false;
+		boolean escapeNext = false;
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < md.length(); i++) {
+			char c = md.charAt(i);
+
+			if (escapeNext) {
+				sb.append(c);
+				escapeNext = false;
+				continue;
+			}
+
+			if (Character.isWhitespace(c)) {
+				if (!inQuotes) {
+					if (sb.length() > 0) {
+						args.add(sb.toString());
+						sb.setLength(0);
+					}
+					continue;
+				}
+			} else if (c == '"') {
+				if (inQuotes) {
+					args.add(sb.toString());
+					sb.setLength(0);
+				}
+				inQuotes = !inQuotes;
+				continue;
+			} else if (c == '\\') {
+				escapeNext = true;
+				continue;
+			}
+
+			sb.append(c);
+		}
+
+		if (sb.length() > 0) {
+			args.add(sb.toString());
+		}
+
+		return args;
+	}
+
+	/**
 	 * Converts any HTML formatting in the text that comes after the command
 	 * name to Markdown syntax.
 	 * @return the Markdown text or empty string if there is no text after the
