@@ -61,16 +61,15 @@ public class HttpCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String[] split = chatCommand.getContent().split("\\s+");
-		String code = split[0].toUpperCase();
+		String[] args = chatCommand.getContent().split("\\s+");
+		String code = args[0].toUpperCase();
 		if (code.isEmpty()) {
 			return reply("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.", chatCommand);
 		}
 
-		boolean isStatusCode = true;
 		Leaf element = document.selectFirst("/http/statusCode[@code='" + code + "']");
-		if (element == null) {
-			isStatusCode = false;
+		boolean isStatusCode = (element != null);
+		if (!isStatusCode) {
 			element = document.selectFirst("/http/method[@name='" + code + "']");
 			if (element == null) {
 				String reply = code.matches("\\d+") ? "Status code not recognized." : "Method not recognized.";
@@ -78,19 +77,8 @@ public class HttpCommand implements Command {
 			}
 		}
 
-		int paragraph = 1;
-		if (split.length > 1) {
-			try {
-				paragraph = Integer.parseInt(split[1]);
-				if (paragraph < 1) {
-					paragraph = 1;
-				}
-			} catch (NumberFormatException e) {
-				paragraph = 1;
-			}
-		}
-
-		String defaultRfc = getDefaultRfc(element);
+		int paragraph = getParagraph(args);
+		String defaultRfc = getRfc(element);
 
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(chatCommand);
@@ -130,6 +118,19 @@ public class HttpCommand implements Command {
 			new PostMessage(cb).splitStrategy(SplitStrategy.WORD)
 		);
 		//@formatter:on
+	}
+
+	private static int getParagraph(String[] args) {
+		if (args.length == 1) {
+			return 1;
+		}
+
+		try {
+			int paragraph = Integer.parseInt(args[1]);
+			return (paragraph < 1) ? 1 : paragraph;
+		} catch (NumberFormatException e) {
+			return 1;
+		}
 	}
 
 	private static String processSectionAnnotations(String description, String defaultRfc) {
@@ -179,18 +180,8 @@ public class HttpCommand implements Command {
 		return uri.toString();
 	}
 
-	private static String getDefaultRfc(Leaf element) {
-		while (true) {
-			String rfc = element.attribute("rfc");
-			if (!rfc.isEmpty()) {
-				return rfc;
-			}
-
-			/*
-			 * A null parent will never be returned become null because the root
-			 * <http> element has a "rfc" attribute
-			 */
-			element = element.parent();
-		}
+	private static String getRfc(Leaf element) {
+		String rfc = element.attribute("rfc");
+		return rfc.isEmpty() ? element.parent().attribute("rfc") : rfc;
 	}
 }
