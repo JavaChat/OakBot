@@ -1,6 +1,5 @@
 package oakbot.command.javadoc;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -68,7 +67,7 @@ class JavadocCommandArguments {
 		} else if (parametersStr.isEmpty()) {
 			parameters = Collections.emptyList();
 		} else {
-			parameters = Arrays.asList(parametersStr.split("\\s*,\\s*"));
+			parameters = List.of(parametersStr.split("\\s*,\\s*"));
 		}
 
 		String rest = m.group(9);

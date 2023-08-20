@@ -2,7 +2,6 @@ package oakbot.command.learn;
 
 import static oakbot.bot.ChatActions.reply;
 
-import java.util.Arrays;
 import java.util.List;
 
 import oakbot.bot.ChatActions;
@@ -31,7 +30,7 @@ public class UnlearnCommand implements Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("forget");
+		return List.of("forget");
 	}
 
 	@Override

@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -245,14 +244,14 @@ public class BotTest {
 		 */
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("name");
-		when(command.aliases()).thenReturn(Arrays.asList("alias"));
+		when(command.aliases()).thenReturn(List.of("alias"));
 		ChatCommand expectedChatCommand2 = new ChatCommand(event2.getMessage(), "name", "command");
 		when(command.onMessage(eq(expectedChatCommand2), any(IBot.class))).thenReturn(ChatActions.doNothing());
 		ChatCommand expectedChatCommand3 = new ChatCommand(event3.getMessage(), "alias", "command");
 		when(command.onMessage(eq(expectedChatCommand3), any(IBot.class))).thenReturn(ChatActions.doNothing());
 		ChatCommand expectedChatCommand4 = new ChatCommand(event4.getMessage(), "name", "reply");
 		when(command.onMessage(eq(expectedChatCommand4), any(IBot.class))).thenReturn(ChatActions.post("reply"));
-		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+		CommandListener commandListener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
 		/*
 		 * Create the bot.
@@ -358,7 +357,7 @@ public class BotTest {
 		 */
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("command");
-		when(command.aliases()).thenReturn(Arrays.asList());
+		when(command.aliases()).thenReturn(List.of());
 		when(command.onMessage(any(ChatCommand.class), any(IBot.class))).thenReturn(ChatActions.post("reply"));
 
 		/*
@@ -367,7 +366,7 @@ public class BotTest {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("learned").output("reply").build());
 
-		CommandListener commandListener = new CommandListener(Arrays.asList(command), learnedCommands);
+		CommandListener commandListener = new CommandListener(List.of(command), learnedCommands);
 
 		/*
 		 * Create the listener.
@@ -453,7 +452,7 @@ public class BotTest {
 		 */
 		Command joinCommand = mock(Command.class);
 		when(joinCommand.name()).thenReturn("join");
-		when(joinCommand.aliases()).thenReturn(Arrays.asList());
+		when(joinCommand.aliases()).thenReturn(List.of());
 		when(joinCommand.onMessage(any(ChatCommand.class), any(IBot.class))).then((invocation) -> {
 			ChatCommand chatCommand = (ChatCommand) invocation.getArguments()[0];
 			int roomId = Integer.parseInt(chatCommand.getContent());
@@ -469,7 +468,7 @@ public class BotTest {
 			//@formatter:on
 		});
 
-		CommandListener commandListener = new CommandListener(Arrays.asList(joinCommand), new LearnedCommandsDao());
+		CommandListener commandListener = new CommandListener(List.of(joinCommand), new LearnedCommandsDao());
 
 		/*
 		 * Create the bot.
@@ -522,11 +521,11 @@ public class BotTest {
 		 */
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("leave");
-		when(command.aliases()).thenReturn(Arrays.asList());
+		when(command.aliases()).thenReturn(List.of());
 
 		when(command.onMessage(any(ChatCommand.class), any(IBot.class))).thenReturn(ChatActions.create(new LeaveRoom(2)));
 
-		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+		CommandListener commandListener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
 		/*
 		 * Create the bot.
@@ -547,7 +546,7 @@ public class BotTest {
 		 * Verify.
 		 */
 		verify(room2).leave();
-		assertEquals(Arrays.asList(1), bot.getRooms());
+		assertEquals(List.of(1), bot.getRooms());
 	}
 
 	@Test
@@ -567,10 +566,10 @@ public class BotTest {
 		 */
 		Command command = mock(Command.class);
 		when(command.name()).thenReturn("shutdown");
-		when(command.aliases()).thenReturn(Arrays.asList());
+		when(command.aliases()).thenReturn(List.of());
 		when(command.onMessage(any(ChatCommand.class), any(IBot.class))).thenReturn(ChatActions.create(new Shutdown()));
 
-		CommandListener commandListener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+		CommandListener commandListener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
 		Database db = mock(Database.class);
 
@@ -730,7 +729,7 @@ public class BotTest {
 		 * Setup the chat rooms.
 		 */
 		IRoom room1 = chatServer.createRoom(1);
-		when(room1.sendMessage("http://en.wikipedia.org/wiki/Java", SplitStrategy.NONE)).thenReturn(Arrays.asList(100L));
+		when(room1.sendMessage("http://en.wikipedia.org/wiki/Java", SplitStrategy.NONE)).thenReturn(List.of(100L));
 
 		/*
 		 * Define the chat room events to push.
@@ -894,7 +893,7 @@ public class BotTest {
 			when(room.getRoomId()).thenReturn(roomId);
 			when(room.getFkey()).thenReturn("0123456789abcdef0123456789abcdef");
 			when(room.canPost()).thenReturn(canPost);
-			when(room.sendMessage(anyString(), any(SplitStrategy.class))).thenReturn(Arrays.asList(messageId++));
+			when(room.sendMessage(anyString(), any(SplitStrategy.class))).thenReturn(List.of(messageId++));
 			doAnswer((invocation) -> {
 				chatClient.joined.remove(roomId);
 				return null;

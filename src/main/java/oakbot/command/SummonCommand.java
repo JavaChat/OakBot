@@ -4,7 +4,6 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +39,7 @@ public class SummonCommand implements Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("join");
+		return List.of("join");
 	}
 
 	@Override

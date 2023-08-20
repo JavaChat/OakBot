@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.junit.Test;
@@ -154,11 +154,11 @@ public class PropertiesWrapperTest {
 		props.setProperty("key4", "");
 
 		PropertiesWrapper wrapper = new PropertiesWrapper(props);
-		assertEquals(Arrays.asList(1), wrapper.getIntegerList("key1"));
-		assertEquals(Arrays.asList(2, 3, 4), wrapper.getIntegerList("key2"));
-		assertEquals(Arrays.asList(2), wrapper.getIntegerList("key3"));
-		assertEquals(Arrays.asList(), wrapper.getIntegerList("key4"));
-		assertEquals(Arrays.asList(), wrapper.getIntegerList("foo"));
+		assertEquals(List.of(1), wrapper.getIntegerList("key1"));
+		assertEquals(List.of(2, 3, 4), wrapper.getIntegerList("key2"));
+		assertEquals(List.of(2), wrapper.getIntegerList("key3"));
+		assertEquals(List.of(), wrapper.getIntegerList("key4"));
+		assertEquals(List.of(), wrapper.getIntegerList("foo"));
 	}
 
 	private static LocalDateTime date(String date) {

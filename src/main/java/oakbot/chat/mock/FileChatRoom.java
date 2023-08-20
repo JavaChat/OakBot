@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -139,7 +138,7 @@ public class FileChatRoom implements IRoom {
 	@Override
 	public List<Long> sendMessage(String message, SplitStrategy splitStragey) {
 		long id = postMessage(botUserId, botUsername, message);
-		return Arrays.asList(id);
+		return List.of(id);
 	}
 
 	/**
@@ -198,7 +197,7 @@ public class FileChatRoom implements IRoom {
 	@Override
 	public List<UserInfo> getUserInfo(List<Integer> userIds) throws IOException {
 		//@formatter:off
-		return Arrays.asList(
+		return List.of(
 			new UserInfo.Builder()
 				.userId(userIds.get(0))
 				.roomId(roomId)
@@ -213,7 +212,7 @@ public class FileChatRoom implements IRoom {
 	@Override
 	public List<PingableUser> getPingableUsers() throws IOException {
 		//@formatter:off
-		return Arrays.asList(
+		return List.of(
 			new PingableUser(roomId, humanUserId, humanUsername, LocalDateTime.now()),
 			new PingableUser(roomId, botUserId, botUsername, LocalDateTime.now())
 		);
@@ -222,7 +221,7 @@ public class FileChatRoom implements IRoom {
 
 	@Override
 	public RoomInfo getRoomInfo() throws IOException {
-		return new RoomInfo(roomId, "name", "description", Arrays.asList("one", "two", "three"));
+		return new RoomInfo(roomId, "name", "description", List.of("one", "two", "three"));
 	}
 
 	public List<ChatMessage> getAllMessages() {

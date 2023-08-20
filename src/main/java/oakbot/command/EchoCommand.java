@@ -3,7 +3,6 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
-import java.util.Arrays;
 import java.util.List;
 
 import oakbot.bot.ChatActions;
@@ -22,7 +21,7 @@ public class EchoCommand implements Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("say");
+		return List.of("say");
 	}
 
 	@Override

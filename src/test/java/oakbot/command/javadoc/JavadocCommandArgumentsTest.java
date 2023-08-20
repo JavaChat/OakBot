@@ -3,7 +3,7 @@ package oakbot.command.javadoc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -38,77 +38,77 @@ public class JavadocCommandArgumentsTest {
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList(), parser.getParameters());
+		assertEquals(List.of(), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList("int"), parser.getParameters());
+		assertEquals(List.of("int"), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int[])");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList("int[]"), parser.getParameters());
+		assertEquals(List.of("int[]"), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int...)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList("int..."), parser.getParameters());
+		assertEquals(List.of("int..."), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int, int)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList("int", "int"), parser.getParameters());
+		assertEquals(List.of("int", "int"), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int, int) 2");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(2, parser.getParagraph());
-		assertEquals(Arrays.asList("int", "int"), parser.getParameters());
+		assertEquals(List.of("int", "int"), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("java.lang.string#indexOf(int,int)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("indexOf", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList("int", "int"), parser.getParameters());
+		assertEquals(List.of("int", "int"), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("string()");
 		assertEquals("string", parser.getClassName());
 		assertEquals("string", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList(), parser.getParameters());
+		assertEquals(List.of(), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("string(string)");
 		assertEquals("string", parser.getClassName());
 		assertEquals("string", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList("string"), parser.getParameters());
+		assertEquals(List.of("string"), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("java.lang.string()");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("string", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList(), parser.getParameters());
+		assertEquals(List.of(), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("java.lang.string(string)");
 		assertEquals("java.lang.string", parser.getClassName());
 		assertEquals("string", parser.getMethodName());
 		assertEquals(1, parser.getParagraph());
-		assertEquals(Arrays.asList("string"), parser.getParameters());
+		assertEquals(List.of("string"), parser.getParameters());
 		assertNull(parser.getTargetUser());
 
 		parser = JavadocCommandArguments.parse("java.lang.string 2");

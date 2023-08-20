@@ -11,7 +11,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,7 +174,7 @@ public class FishCommandTest {
 			.username("Zagreus")
 		.build(), bot);
 
-		List<ChatAction> expected = Arrays.asList(
+		List<ChatAction> expected = List.of(
 			new PostMessage("🐟 *Zagreus pulls up nothing.*")
 		);
 		//@formatter:on
@@ -238,7 +237,7 @@ public class FishCommandTest {
 			.username("Zagreus")
 		.build(), bot);
 
-		List<ChatAction> expected = Arrays.asList(
+		List<ChatAction> expected = List.of(
 			new PostMessage("🐟 *Zagreus pulls up nothing.*")
 		);
 		//@formatter:on
@@ -325,7 +324,7 @@ public class FishCommandTest {
 			.username("Zagreus")
 		.build(), bot);
 
-		List<ChatAction> expected = Arrays.asList(
+		List<ChatAction> expected = List.of(
 			new PostMessage("🐟 *Zagreus caught a **Hellfish**!*"),
 			new PostMessage("https://static.wikia.nocookie.net/hades_gamepedia_en/images/3/3d/Hellfish.png")
 		);
@@ -417,7 +416,7 @@ public class FishCommandTest {
 			.username("Zagreus")
 		.build(), bot);
 
-		List<ChatAction> expected = Arrays.asList(
+		List<ChatAction> expected = List.of(
 			new PostMessage(":11 🐟 *Your line is quivering. Better pull it up.*")
 		);
 		//@formatter:on

@@ -5,7 +5,6 @@ import static oakbot.bot.ChatActions.reply;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +90,7 @@ public class EffectiveJavaCommand implements Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("bloch");
+		return List.of("bloch");
 	}
 
 	@Override

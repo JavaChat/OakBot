@@ -8,8 +8,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -105,7 +105,7 @@ public class LearnCommandTest {
 		when(existing.name()).thenReturn("test");
 
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
-		LearnCommand command = new LearnCommand(Arrays.asList(existing), learnedCommands);
+		LearnCommand command = new LearnCommand(List.of(existing), learnedCommands);
 		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
 			.messageId(1)
 			.content("test value")
@@ -122,10 +122,10 @@ public class LearnCommandTest {
 	public void onMessage_command_exists_check_alias() throws Exception {
 		Command existing = mock(Command.class);
 		when(existing.name()).thenReturn("name");
-		when(existing.aliases()).thenReturn(Arrays.asList("test"));
+		when(existing.aliases()).thenReturn(List.of("test"));
 
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
-		LearnCommand command = new LearnCommand(Arrays.asList(existing), learnedCommands);
+		LearnCommand command = new LearnCommand(List.of(existing), learnedCommands);
 		ChatCommand message = new ChatCommandBuilder(command) //@formatter:off
 			.messageId(1)
 			.content("test value")

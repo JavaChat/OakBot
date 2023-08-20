@@ -3,7 +3,6 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.reply;
 import static oakbot.command.Command.random;
 
-import java.util.Arrays;
 import java.util.List;
 
 import oakbot.bot.ChatActions;
@@ -25,7 +24,7 @@ public class UnsummonCommand implements Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("leave");
+		return List.of("leave");
 	}
 
 	@Override

@@ -3,7 +3,6 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.reply;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +27,7 @@ public class DeleteCommand implements Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("del", "rm");
+		return List.of("del", "rm");
 	}
 
 	@Override

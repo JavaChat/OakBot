@@ -4,7 +4,6 @@ import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +58,7 @@ public class CatCommand implements Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("meow");
+		return List.of("meow");
 	}
 
 	@Override

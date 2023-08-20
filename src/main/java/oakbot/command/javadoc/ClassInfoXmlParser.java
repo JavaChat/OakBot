@@ -49,7 +49,7 @@ public class ClassInfoXmlParser {
 		//modifiers
 		String value = classElement.attribute("modifiers");
 		if (!value.isEmpty()) {
-			builder.modifiers(Arrays.asList(value.split("\\s+")));
+			builder.modifiers(List.of(value.split("\\s+")));
 		}
 
 		//super class
@@ -140,7 +140,7 @@ public class ClassInfoXmlParser {
 		//modifiers
 		String value = element.attribute("modifiers");
 		if (!value.isEmpty()) {
-			builder.modifiers(Arrays.asList(value.split("\\s+")));
+			builder.modifiers(List.of(value.split("\\s+")));
 		}
 
 		//since
@@ -181,7 +181,7 @@ public class ClassInfoXmlParser {
 		//modifiers
 		String value = element.attribute("modifiers");
 		if (!value.isEmpty()) {
-			builder.modifiers(Arrays.asList(value.split("\\s+")));
+			builder.modifiers(List.of(value.split("\\s+")));
 		}
 
 		//since

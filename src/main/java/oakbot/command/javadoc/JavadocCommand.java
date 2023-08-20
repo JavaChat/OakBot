@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -109,7 +108,7 @@ public class JavadocCommand implements Command, Listener {
 
 	@Override
 	public Collection<String> aliases() {
-		return Arrays.asList("javadocs");
+		return List.of("javadocs");
 	}
 
 	@Override

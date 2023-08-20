@@ -7,7 +7,6 @@ import static oakbot.bot.ChatActions.reply;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,7 +40,7 @@ public class AfkCommand implements Command, Listener {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("brb");
+		return List.of("brb");
 	}
 
 	@Override

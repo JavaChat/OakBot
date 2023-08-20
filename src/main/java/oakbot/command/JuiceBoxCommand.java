@@ -3,7 +3,6 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.http.client.utils.URIBuilder;
@@ -69,7 +68,7 @@ public class JuiceBoxCommand implements Command {
 
 		UserInfo matchingUserInfo;
 		try {
-			List<UserInfo> list = currentRoom.getUserInfo(Arrays.asList(matchingUser.getUserId()));
+			List<UserInfo> list = currentRoom.getUserInfo(List.of(matchingUser.getUserId()));
 			matchingUserInfo = list.isEmpty() ? null : list.get(0);
 		} catch (IOException e) {
 			return reply(new ChatBuilder("Problem getting user info: ").code(e.getMessage()), chatCommand);

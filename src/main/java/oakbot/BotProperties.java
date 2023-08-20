@@ -3,7 +3,6 @@ package oakbot;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,7 +40,7 @@ public class BotProperties extends PropertiesWrapper {
 		String value = get("hideOneboxesAfter");
 		hideOneboxesAfter = (value == null) ? null : Duration.parse(value);
 
-		homeRooms = getIntegerList("rooms.home", Arrays.asList(1)); //default to "Sandbox"
+		homeRooms = getIntegerList("rooms.home", List.of(1)); //default to "Sandbox"
 		quietRooms = getIntegerList("rooms.quiet");
 
 		admins = getIntegerList("users.admins");

@@ -6,7 +6,6 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,7 @@ public class MornListener implements Listener {
 	 * longest messages must be specified first.
 	 */
 	//@formatter:off
-	private final List<String[]> responses = Arrays.asList(
+	private final List<String[]> responses = List.of(
 		new String[] {"good morning", "Good morning."},
 		new String[] {"morning", "Morning."},
 		new String[] {"morn", "morn"}

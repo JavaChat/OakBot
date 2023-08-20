@@ -3,7 +3,6 @@ package oakbot.listener;
 import static oakbot.bot.ChatActions.doNothing;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -81,7 +80,7 @@ public class WelcomeListener implements Listener {
 		List<UserInfo> userInfo;
 		try {
 			IRoom room = bot.getRoom(roomId);
-			userInfo = room.getUserInfo(Arrays.asList(userId));
+			userInfo = room.getUserInfo(List.of(userId));
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Could not get user info for user " + userId, e);
 			return doNothing();

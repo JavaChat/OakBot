@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,7 +29,7 @@ public class CommandListenerTest {
 	@Test
 	public void onMessage() {
 		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("/upper test").build();
 		
@@ -45,7 +44,7 @@ public class CommandListenerTest {
 	@Test
 	public void onMessage_alias() {
 		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("/capital test").build();
 		
@@ -60,7 +59,7 @@ public class CommandListenerTest {
 	@Test
 	public void onMessage_no_trigger() {
 		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("upper test").build();
 		
@@ -77,7 +76,7 @@ public class CommandListenerTest {
 		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("foo").output("bar").build());
 		learnedCommands.add(new LearnedCommand.Builder().name("name").output("reply").build());
-		CommandListener listener = new CommandListener(Arrays.asList(), learnedCommands);
+		CommandListener listener = new CommandListener(List.of(), learnedCommands);
 
 		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
 		
@@ -92,7 +91,7 @@ public class CommandListenerTest {
 	@Test
 	public void onMessage_unrecognized() {
 		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao());
+		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
 		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
 		
@@ -107,7 +106,7 @@ public class CommandListenerTest {
 	@Test
 	public void onMessage_unrecognized_with_handler() {
 		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(Arrays.asList(command), new LearnedCommandsDao(), (message, context) -> {
+		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao(), (message, context) -> {
 			return ChatActions.post("Unknown command.");
 		});
 
@@ -123,7 +122,7 @@ public class CommandListenerTest {
 
 	@Test
 	public void checkForDuplicateNames_no_duplicates() {
-		List<Command> commands = Arrays.asList( //@formatter:off
+		List<Command> commands = List.of( //@formatter:off
 			new SimpleCommand("one"),
 			new SimpleCommand("two")
 		); //@formatter:on
@@ -142,7 +141,7 @@ public class CommandListenerTest {
 		Command b = new SimpleCommand("two");
 		Command c = new SimpleCommand("TWO");
 		Command d = new SimpleCommand("three", "ONE");
-		List<Command> commands = Arrays.asList(a, b, c, d);
+		List<Command> commands = List.of(a, b, c, d);
 
 		LearnedCommand e = new LearnedCommand.Builder().name("one").build();
 		LearnedCommand f = new LearnedCommand.Builder().name("ltwo").build();
@@ -173,7 +172,7 @@ public class CommandListenerTest {
 
 		public SimpleCommand(String name, String... aliases) {
 			this.name = name;
-			this.aliases = Arrays.asList(aliases);
+			this.aliases = List.of(aliases);
 		}
 
 		@Override
@@ -205,7 +204,7 @@ public class CommandListenerTest {
 
 		@Override
 		public Collection<String> aliases() {
-			return Arrays.asList("capital");
+			return List.of("capital");
 		}
 
 		@Override

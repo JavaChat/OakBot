@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
@@ -51,10 +52,10 @@ public class JuiceBoxCommandTest {
 			new PingableUser(1, 100, "Michael", LocalDateTime.now()),
 			new PingableUser(1, 200, "OakBot", LocalDateTime.now())
 		));
-		when(room.getUserInfo(Arrays.asList(100))).thenReturn(Arrays.asList(
+		when(room.getUserInfo(List.of(100))).thenReturn(List.of(
 			new UserInfo.Builder().profilePicture("https://www.gravatar.com/avatar/29d7c49f6f174710788c79011219bae1").build()
 		));
-		when(room.getUserInfo(Arrays.asList(200))).thenReturn(Arrays.asList(
+		when(room.getUserInfo(List.of(200))).thenReturn(List.of(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
 
@@ -86,10 +87,10 @@ public class JuiceBoxCommandTest {
 			new PingableUser(1, 100, "Michael", LocalDateTime.now()),
 			new PingableUser(1, 200, "OakBot", LocalDateTime.now())
 		));
-		when(room.getUserInfo(Arrays.asList(100))).thenReturn(Arrays.asList(
+		when(room.getUserInfo(List.of(100))).thenReturn(List.of(
 			new UserInfo.Builder().profilePicture("https://www.gravatar.com/avatar/29d7c49f6f174710788c79011219bae1").build()
 		));
-		when(room.getUserInfo(Arrays.asList(200))).thenReturn(Arrays.asList(
+		when(room.getUserInfo(List.of(200))).thenReturn(List.of(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
 
@@ -121,10 +122,10 @@ public class JuiceBoxCommandTest {
 			new PingableUser(1, 100, "Michael", LocalDateTime.now()),
 			new PingableUser(1, 200, "OakBot", LocalDateTime.now())
 		));
-		when(room.getUserInfo(Arrays.asList(100))).thenReturn(Arrays.asList(
+		when(room.getUserInfo(List.of(100))).thenReturn(List.of(
 			new UserInfo.Builder().profilePicture("https://www.gravatar.com/avatar/29d7c49f6f174710788c79011219bae1").build()
 		));
-		when(room.getUserInfo(Arrays.asList(200))).thenReturn(Arrays.asList(
+		when(room.getUserInfo(List.of(200))).thenReturn(List.of(
 			new UserInfo.Builder().profilePicture("https://i.stack.imgur.com/SmeIn.jpg").build()
 		)); //@formatter:on
 

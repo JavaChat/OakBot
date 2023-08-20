@@ -2,7 +2,6 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,7 +47,7 @@ public class ReactCommand implements Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("reaction");
+		return List.of("reaction");
 	}
 
 	@Override

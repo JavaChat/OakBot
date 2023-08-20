@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -84,7 +84,7 @@ public class WaveListenerTest {
 		//@formatter:on
 
 		IBot bot = mock(IBot.class);
-		when(bot.getAdminUsers()).thenReturn(Arrays.asList(10));
+		when(bot.getAdminUsers()).thenReturn(List.of(10));
 
 		MentionListenerMock mentionListener = new MentionListenerMock();
 		WaveListener listener = new WaveListener("PT0S", mentionListener);

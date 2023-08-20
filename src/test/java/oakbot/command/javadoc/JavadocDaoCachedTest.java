@@ -11,9 +11,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -42,7 +42,7 @@ public class JavadocDaoCachedTest {
 	public void search_multiple_results() {
 		Collection<String> names = dao.search("list");
 		Set<String> actual = new HashSet<>(names);
-		Set<String> expected = new HashSet<>(Arrays.asList("java.awt.List", "java.util.List"));
+		Set<String> expected = new HashSet<>(List.of("java.awt.List", "java.util.List"));
 		assertEquals(expected, actual);
 	}
 
@@ -50,7 +50,7 @@ public class JavadocDaoCachedTest {
 	public void search_single_result() {
 		Collection<String> names = dao.search("java.awt.list");
 		Set<String> actual = new HashSet<>(names);
-		Set<String> expected = new HashSet<>(Arrays.asList("java.awt.List"));
+		Set<String> expected = new HashSet<>(List.of("java.awt.List"));
 		assertEquals(expected, actual);
 	}
 

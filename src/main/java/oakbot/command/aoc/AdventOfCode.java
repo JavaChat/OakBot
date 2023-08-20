@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +67,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("advent");
+		return List.of("advent");
 	}
 
 	@Override

@@ -5,9 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -851,7 +849,7 @@ public class Bot implements IBot {
 		private String userName, trigger = "=", greeting;
 		private Integer userId;
 		private Duration hideOneboxesAfter;
-		private Rooms rooms = new Rooms(Arrays.asList(1), Collections.emptyList());
+		private Rooms rooms = new Rooms(List.of(1), List.of());
 		private Integer maxRooms;
 		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
 		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
@@ -895,7 +893,7 @@ public class Bot implements IBot {
 		}
 
 		public Builder rooms(Integer... roomIds) {
-			return rooms(new Rooms(Arrays.asList(roomIds), Collections.emptyList()));
+			return rooms(new Rooms(List.of(roomIds), List.of()));
 		}
 
 		public Builder maxRooms(Integer maxRooms) {
@@ -904,7 +902,7 @@ public class Bot implements IBot {
 		}
 
 		public Builder admins(Integer... admins) {
-			return admins(Arrays.asList(admins));
+			return admins(List.of(admins));
 		}
 
 		public Builder admins(Collection<Integer> admins) {
@@ -913,7 +911,7 @@ public class Bot implements IBot {
 		}
 
 		public Builder bannedUsers(Integer... bannedUsers) {
-			return bannedUsers(Arrays.asList(bannedUsers));
+			return bannedUsers(List.of(bannedUsers));
 		}
 
 		public Builder bannedUsers(Collection<Integer> bannedUsers) {
@@ -922,7 +920,7 @@ public class Bot implements IBot {
 		}
 
 		public Builder allowedUsers(Integer... allowedUsers) {
-			return allowedUsers(Arrays.asList(allowedUsers));
+			return allowedUsers(List.of(allowedUsers));
 		}
 
 		public Builder allowedUsers(Collection<Integer> allowedUsers) {
@@ -931,7 +929,7 @@ public class Bot implements IBot {
 		}
 
 		public Builder listeners(Listener... listeners) {
-			return listeners(Arrays.asList(listeners));
+			return listeners(List.of(listeners));
 		}
 
 		public Builder listeners(Collection<Listener> listeners) {
@@ -940,7 +938,7 @@ public class Bot implements IBot {
 		}
 
 		public Builder tasks(ScheduledTask... tasks) {
-			return tasks(Arrays.asList(tasks));
+			return tasks(List.of(tasks));
 		}
 
 		public Builder tasks(Collection<ScheduledTask> tasks) {
@@ -949,7 +947,7 @@ public class Bot implements IBot {
 		}
 
 		public Builder inactivityTasks(InactivityTask... tasks) {
-			return inactivityTasks(Arrays.asList(tasks));
+			return inactivityTasks(List.of(tasks));
 		}
 
 		public Builder inactivityTasks(Collection<InactivityTask> tasks) {
@@ -958,7 +956,7 @@ public class Bot implements IBot {
 		}
 
 		public Builder responseFilters(ChatResponseFilter... filters) {
-			return responseFilters(Arrays.asList(filters));
+			return responseFilters(List.of(filters));
 		}
 
 		public Builder responseFilters(Collection<ChatResponseFilter> filters) {

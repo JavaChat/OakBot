@@ -1,7 +1,6 @@
 package oakbot.bot;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +22,7 @@ public class ChatActions implements Iterable<ChatAction> {
 	 * @return the created object
 	 */
 	public static ChatActions create(ChatAction... actions) {
-		return new ChatActions(Arrays.asList(actions));
+		return new ChatActions(List.of(actions));
 	}
 
 	/**

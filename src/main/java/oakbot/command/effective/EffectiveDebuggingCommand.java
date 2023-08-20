@@ -2,7 +2,6 @@ package oakbot.command.effective;
 
 import static oakbot.bot.ChatActions.reply;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -23,7 +22,7 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class EffectiveDebuggingCommand implements Command {
-	final List<Item> items = Arrays.asList( //@formatter:off
+	final List<Item> items = List.of( //@formatter:off
 		new Item.Builder().number(1).title("Handle All Problems through an Issue-Tracking System").page(1).build(),
         new Item.Builder().number(2).title("Use Focused Queries to Search the Web for Insights into Your Problem").page(3).build(),
         new Item.Builder().number(3).title("Confirm That Preconditions and Postconditions Are Satisfied").page(5).build(),
@@ -191,7 +190,7 @@ public class EffectiveDebuggingCommand implements Command {
 	}
 
 	private ChatActions displayItem(ChatCommand chatCommand, Item item) {
-		return displayItems(chatCommand, Arrays.asList(item));
+		return displayItems(chatCommand, List.of(item));
 	}
 
 	private ChatActions displayItems(ChatCommand chatCommand, List<Item> items) {

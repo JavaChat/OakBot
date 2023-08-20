@@ -39,14 +39,14 @@ public class JsonDatabaseTest {
 
 			Map<String, Object> submap = new HashMap<>();
 			submap.put("five", "5");
-			map.put("four", Arrays.asList(1, "2", null, Arrays.asList(3, 4), submap));
+			map.put("four", Arrays.asList(1, "2", null, List.of(3, 4), submap));
 
 			map.put("five", date("2017-03-26 00:00:00"));
 			map.put("six", null);
 			map.put("seven", Integer.MAX_VALUE + 1L); //long value
 		}
 
-		List<Object> list = Arrays.asList(1, 2);
+		List<Object> list = List.of(1, 2);
 		Object value = "three";
 
 		JsonDatabase db = new JsonDatabase(file);

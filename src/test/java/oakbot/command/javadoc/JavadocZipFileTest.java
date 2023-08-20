@@ -8,8 +8,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -73,7 +73,7 @@ public class JavadocZipFileTest {
 		}
 
 		//@formatter:off
-			Set<String> expected = new HashSet<>(Arrays.asList(
+			Set<String> expected = new HashSet<>(List.of(
 				"java.lang.Object",
 				"java.awt.List",
 				"java.util.List",
