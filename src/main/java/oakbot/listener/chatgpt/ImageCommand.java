@@ -68,7 +68,7 @@ public class ImageCommand implements Command {
 		}
 
 		try {
-			String url = sendRequest(prompt);
+			String url = sendRequest(prompt) + "&a=.png";
 			return create(new PostMessage(url).bypassFilters(true));
 		} catch (ChatGPTException e) {
 			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
