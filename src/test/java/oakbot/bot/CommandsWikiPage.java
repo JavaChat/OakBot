@@ -47,6 +47,7 @@ import oakbot.listener.MornListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
 import oakbot.listener.chatgpt.ChatGPT;
+import oakbot.listener.chatgpt.ImageCommand;
 import oakbot.task.FOTD;
 import oakbot.task.LinuxHealthMonitor;
 import oakbot.task.QOTD;
@@ -106,6 +107,7 @@ public class CommandsWikiPage {
 			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
 			commands.add(new HttpCommand());
+			commands.add(new ImageCommand(""));
 			commands.add(new JavadocCommand(null));
 			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));

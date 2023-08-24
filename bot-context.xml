@@ -328,6 +328,9 @@
 			</util:list>
 		</constructor-arg>
 	</bean>
+	<bean class="oakbot.listener.chatgpt.ImageCommand">
+		<constructor-arg value="API_KEY" />
+	</bean>
 	
 	<!-- fact of the day task -->
 	<bean class="oakbot.task.FOTD" />

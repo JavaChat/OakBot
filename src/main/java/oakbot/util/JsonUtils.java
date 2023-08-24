@@ -1,13 +1,11 @@
 package oakbot.util;
 
-import java.io.IOException;
-import java.io.StringWriter;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * JSON utility methods.
@@ -20,17 +18,24 @@ public final class JsonUtils {
 	 * @return the pretty-printed JSON
 	 */
 	public static String prettyPrint(JsonNode node) {
+		return toString(node, new DefaultPrettyPrinter());
+	}
+
+	/**
+	 * Converts the given JSON node to a string.
+	 * @param node the JSON node
+	 * @return the JSON string
+	 */
+	public static String toString(JsonNode node) {
+		return toString(node, null);
+	}
+
+	private static String toString(JsonNode node, PrettyPrinter pp) {
 		ObjectMapper mapper = new ObjectMapper();
-		JsonFactory factory = new JsonFactory();
-		StringWriter writer = new StringWriter();
+		ObjectWriter writer = mapper.writer(pp);
 		try {
-			JsonGenerator generator = factory.createGenerator(writer);
-			generator.setPrettyPrinter(new DefaultPrettyPrinter());
-			mapper.writeTree(generator, node);
-			generator.close();
-			return writer.toString();
-		} catch (IOException e) {
-			//should never be thrown
+			return writer.writeValueAsString(node);
+		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
 	}
