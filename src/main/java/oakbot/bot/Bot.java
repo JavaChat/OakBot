@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.IChatClient;
 import com.github.mangstadt.sochat4j.IRoom;
+import com.github.mangstadt.sochat4j.PrivateRoomException;
 import com.github.mangstadt.sochat4j.RoomNotFoundException;
 import com.github.mangstadt.sochat4j.RoomPermissionException;
 import com.github.mangstadt.sochat4j.event.MessageEditedEvent;
@@ -524,7 +525,7 @@ public class Bot implements IBot {
 								logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
 							}
 						}
-					} catch (RoomPermissionException e) {
+					} catch (PrivateRoomException | RoomPermissionException e) {
 						/*
 						 * Thrown if the bot tries to post a greeting
 						 * message after joining the room, but does not
@@ -538,7 +539,7 @@ public class Bot implements IBot {
 						}
 					} catch (RoomNotFoundException e) {
 						response = joinRoom.ifRoomDoesNotExist().get();
-					} catch (IOException e) {
+					} catch (Exception e) {
 						response = joinRoom.onError().apply(e);
 					}
 				}
