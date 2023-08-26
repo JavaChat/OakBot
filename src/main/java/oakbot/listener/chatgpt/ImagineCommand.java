@@ -4,6 +4,7 @@ import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +47,7 @@ public class ImagineCommand implements Command {
 		return new HelpDoc.Builder(this)
 			.summary("Creates images using OpenAI's DALL·E.")
 			.example("a cute Java programmer", "Generates an image using the given prompt.")
+			.example("https://example.com/image.png", "Generates an image variation using the given image as input. Image must be a PNG.")
 		.build();
 		//@formatter:on
 	}
@@ -54,11 +56,11 @@ public class ImagineCommand implements Command {
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String prompt = chatCommand.getContent().trim();
 		if (prompt.isEmpty()) {
-			return reply("Image prompt is missing.", chatCommand);
+			return reply("Image prompt or URI is missing.", chatCommand);
 		}
 
 		try {
-			String url = openAIClient.createImage(prompt);
+			String url = isUri(prompt) ? openAIClient.createImageVariation(prompt) : openAIClient.createImage(prompt);
 
 			/*
 			 * Add a fake parameter onto the end of the URL so SO Chat one-boxes
@@ -69,11 +71,20 @@ public class ImagineCommand implements Command {
 			urlWithFakeParam.addParameter("a", ".png");
 
 			return create(new PostMessage(urlWithFakeParam.toString()).bypassFilters(true));
-		} catch (OpenAIException e) {
+		} catch (URISyntaxException | OpenAIException e) {
 			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
-		} catch (URISyntaxException | IOException e) {
+		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Problem communicating with OpenAI.", e);
-			return reply("Problem communicating with OpenAI.", chatCommand);
+			return reply(new ChatBuilder().append("Problem communicating with OpenAI: ").code(e.getMessage()), chatCommand);
+		}
+	}
+
+	private boolean isUri(String s) {
+		try {
+			URI.create(s);
+			return true;
+		} catch (IllegalArgumentException e) {
+			return false;
 		}
 	}
 }
