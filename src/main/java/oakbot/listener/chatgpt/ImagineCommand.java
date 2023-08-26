@@ -72,15 +72,18 @@ public class ImagineCommand implements Command {
 		}
 
 		int userId = chatCommand.getMessage().getUserId();
-		if (isUserOverQuota(userId)) {
-			return reply("Bad human! You are over quota and can't make any more requests right now.", chatCommand);
+		boolean isAdmin = bot.getAdminUsers().contains(userId);
+		if (!isAdmin && isUserOverQuota(userId)) {
+			return reply("Bad human! You are over quota and can't make any more requests right now. Try again later.", chatCommand);
 		}
 
 		try {
 			boolean isUri = prompt.matches("^https?://.*");
 			String url = isUri ? openAIClient.createImageVariation(prompt) : openAIClient.createImage(prompt);
 
-			logQuota(userId);
+			if (!isAdmin) {
+				logQuota(userId);
+			}
 
 			/*
 			 * Add a fake parameter onto the end of the URL so SO Chat one-boxes
