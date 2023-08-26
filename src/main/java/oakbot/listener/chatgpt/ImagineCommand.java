@@ -4,7 +4,6 @@ import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
@@ -78,7 +77,8 @@ public class ImagineCommand implements Command {
 		}
 
 		try {
-			String url = isUri(prompt) ? openAIClient.createImageVariation(prompt) : openAIClient.createImage(prompt);
+			boolean isUri = prompt.matches("^https?://.*");
+			String url = isUri ? openAIClient.createImageVariation(prompt) : openAIClient.createImage(prompt);
 
 			logQuota(userId);
 
@@ -121,14 +121,5 @@ public class ImagineCommand implements Command {
 
 	private List<Instant> getRequestTimes(int userId) {
 		return requestTimesByUser.computeIfAbsent(userId, key -> new ArrayList<Instant>());
-	}
-
-	private boolean isUri(String s) {
-		try {
-			URI.create(s);
-			return true;
-		} catch (IllegalArgumentException e) {
-			return false;
-		}
 	}
 }
