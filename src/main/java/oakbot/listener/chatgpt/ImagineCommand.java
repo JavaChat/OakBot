@@ -23,21 +23,21 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  * @see "https://platform.openai.com/docs/api-reference/images"
  */
-public class ImageCommand implements Command {
-	private static final Logger logger = Logger.getLogger(ImageCommand.class.getName());
+public class ImagineCommand implements Command {
+	private static final Logger logger = Logger.getLogger(ImagineCommand.class.getName());
 
 	private final OpenAIClient openAIClient;
 
 	/**
 	 * @param apiKey the OpenAI API key
 	 */
-	public ImageCommand(OpenAIClient openAIClient) {
+	public ImagineCommand(OpenAIClient openAIClient) {
 		this.openAIClient = openAIClient;
 	}
 
 	@Override
 	public String name() {
-		return "image";
+		return "imagine";
 	}
 
 	@Override

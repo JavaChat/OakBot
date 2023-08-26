@@ -331,7 +331,7 @@
 			</util:list>
 		</constructor-arg>
 	</bean>
-	<bean class="oakbot.listener.chatgpt.ImageCommand">
+	<bean class="oakbot.listener.chatgpt.ImagineCommand">
 		<constructor-arg ref="openAIClient" />
 	</bean>
 	

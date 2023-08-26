@@ -47,7 +47,8 @@ import oakbot.listener.MornListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
 import oakbot.listener.chatgpt.ChatGPT;
-import oakbot.listener.chatgpt.ImageCommand;
+import oakbot.listener.chatgpt.ImagineCommand;
+import oakbot.listener.chatgpt.OpenAIClient;
 import oakbot.task.FOTD;
 import oakbot.task.LinuxHealthMonitor;
 import oakbot.task.QOTD;
@@ -81,7 +82,7 @@ public class CommandsWikiPage {
 		List<Listener> listeners = new ArrayList<>();
 		{
 			listeners.add(new MentionListener());
-			listeners.add(new ChatGPT("", "", 0, "PT0S", 0, 0, Collections.emptyList()));
+			listeners.add(new ChatGPT(new OpenAIClient(""), "", 0, "PT0S", 0, 0, Collections.emptyList()));
 			listeners.add(new MornListener("PT1S", null));
 			listeners.add(new WaveListener("PT1S", null));
 			listeners.add(new WelcomeListener(db, Collections.emptyMap()));
@@ -107,7 +108,7 @@ public class CommandsWikiPage {
 			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
 			commands.add(new HttpCommand());
-			commands.add(new ImageCommand(""));
+			commands.add(new ImagineCommand(new OpenAIClient("")));
 			commands.add(new JavadocCommand(null));
 			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));
