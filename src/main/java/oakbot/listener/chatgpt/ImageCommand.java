@@ -4,19 +4,11 @@ import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.http.client.utils.URIBuilder;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -25,8 +17,6 @@ import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
-import oakbot.util.HttpFactory;
-import oakbot.util.JsonUtils;
 
 /**
  * Generates images using OpenAI's DALL·E.
@@ -36,13 +26,13 @@ import oakbot.util.JsonUtils;
 public class ImageCommand implements Command {
 	private static final Logger logger = Logger.getLogger(ImageCommand.class.getName());
 
-	private final String apiKey;
+	private final OpenAIClient openAIClient;
 
 	/**
 	 * @param apiKey the OpenAI API key
 	 */
-	public ImageCommand(String apiKey) {
-		this.apiKey = apiKey;
+	public ImageCommand(OpenAIClient openAIClient) {
+		this.openAIClient = openAIClient;
 	}
 
 	@Override
@@ -68,78 +58,22 @@ public class ImageCommand implements Command {
 		}
 
 		try {
-			String url = sendRequest(prompt) + "&a=.png";
-			return create(new PostMessage(url).bypassFilters(true));
-		} catch (ChatGPTException e) {
+			String url = openAIClient.createImage(prompt);
+
+			/*
+			 * Add a fake parameter onto the end of the URL so SO Chat one-boxes
+			 * the image. SO Chat will only one-box an image if the URL ends in
+			 * an image extension.
+			 */
+			URIBuilder urlWithFakeParam = new URIBuilder(url);
+			urlWithFakeParam.addParameter("a", ".png");
+
+			return create(new PostMessage(urlWithFakeParam.toString()).bypassFilters(true));
+		} catch (OpenAIException e) {
 			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
-		} catch (IOException e) {
+		} catch (URISyntaxException | IOException e) {
 			logger.log(Level.SEVERE, "Problem communicating with OpenAI.", e);
 			return reply("Problem communicating with OpenAI.", chatCommand);
-		}
-	}
-
-	private String sendRequest(String prompt) throws IOException, ChatGPTException {
-		ObjectMapper mapper = new ObjectMapper();
-		ObjectNode requestRoot = mapper.createObjectNode();
-		requestRoot.put("prompt", prompt);
-		requestRoot.put("size", "256x256");
-
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Sending request to ChatGPT: " + JsonUtils.prettyPrint(requestRoot));
-		}
-
-		HttpPost request = new HttpPost("https://api.openai.com/v1/images/generations");
-		request.setHeader("Authorization", "Bearer " + apiKey);
-		request.setEntity(new StringEntity(JsonUtils.toString(requestRoot), ContentType.APPLICATION_JSON));
-
-		JsonNode responseBody = null;
-		int responseStatusCode = 0;
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				responseStatusCode = response.getStatusLine().getStatusCode();
-				try (InputStream in = response.getEntity().getContent()) {
-					responseBody = mapper.readTree(in);
-				}
-			}
-			if (logger.isLoggable(Level.FINE)) {
-				logger.fine("Response from ChatGPT: " + JsonUtils.prettyPrint(responseBody));
-			}
-
-			JsonNode error = responseBody.get("error");
-			if (error != null) {
-				JsonNode node = error.get("message");
-				String message = (node == null) ? null : node.asText();
-
-				node = error.get("type");
-				String type = (node == null) ? null : node.asText();
-
-				node = error.get("param");
-				String param = (node == null) ? null : node.asText();
-
-				node = error.get("code");
-				String code = (node == null) ? null : node.asText();
-
-				throw new ChatGPTException(message, type, param, code);
-			}
-
-			try {
-				return responseBody.get("data").get(0).get("url").asText();
-			} catch (NullPointerException e) {
-				throw new IOException("JSON response not structured as expected.", e);
-			}
-		} catch (IOException e) {
-			String requestBodyStr = JsonUtils.prettyPrint(requestRoot);
-
-			StringBuilder sb = new StringBuilder();
-			sb.append("Problem communicating with ChatGPT API.");
-			sb.append("\nRequest: ").append(requestBodyStr);
-
-			if (responseBody != null) {
-				String responseBodyStr = JsonUtils.prettyPrint(responseBody);
-				sb.append("\nResponse (HTTP ").append(responseStatusCode).append("): ").append(responseBodyStr);
-			}
-
-			throw new IOException(sb.toString(), e);
 		}
 	}
 }

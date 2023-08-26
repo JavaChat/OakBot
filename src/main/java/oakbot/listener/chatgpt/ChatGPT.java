@@ -37,14 +37,15 @@ import oakbot.util.HttpFactory;
 public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private static final Logger logger = Logger.getLogger(ChatGPT.class.getName());
 
-	private final String apiKey, prompt;
+	private final OpenAIClient openAIClient;
+	private final String prompt;
 	private final Duration timeBetweenSpontaneousPosts;
 	private final int completionMaxTokens, numLatestMessagesToIncludeInRequest, latestMessageCharacterLimit;
 	private final Map<Integer, Instant> spontaneousPostTimes;
 	private boolean ignoreNextMessage;
 
 	/**
-	 * @param apiKey the ChatGPT API key
+	 * @param openAIClient the OpenAI client
 	 * @param prompt one or more sentences that define the bot's personality
 	 * (e.g. "You are a helpful assistant"). This counts against your usage
 	 * quota. Each word costs around 1.33 tokens.
@@ -66,8 +67,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * timer when the bot first starts up. Mentioning the bot in a room causes
 	 * the spontaneous post timer to start/reset in that room.
 	 */
-	public ChatGPT(String apiKey, String prompt, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, List<Integer> roomIds) {
-		this.apiKey = apiKey;
+	public ChatGPT(OpenAIClient openAIClient, String prompt, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, List<Integer> roomIds) {
+		this.openAIClient = openAIClient;
 		this.prompt = prompt;
 		this.completionMaxTokens = completionMaxTokens;
 		this.timeBetweenSpontaneousPosts = Duration.parse(timeBetweenSpontaneousPosts);
@@ -130,8 +131,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 				continue;
 			}
 
-			ChatGPTRequest request = buildChatGPTRequest(messages, bot);
-			String response = sendChatGPTRequest(request);
+			ChatCompletionRequest request = buildChatCompletionRequest(messages, bot);
+			String response = sendChatCompletionRequest(request);
 
 			PostMessage postMessage = new PostMessage(response).splitStrategy(SplitStrategy.WORD);
 			bot.sendMessage(roomId, postMessage);
@@ -173,8 +174,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		try {
 			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
 
-			ChatGPTRequest request = buildChatGPTRequest(prevMessages, bot);
-			String response = sendChatGPTRequest(request);
+			ChatCompletionRequest request = buildChatCompletionRequest(prevMessages, bot);
+			String response = sendChatCompletionRequest(request);
 
 			resetSpontaneousPostTimer(message.getRoomId());
 
@@ -220,8 +221,9 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		return roomIds;
 	}
 
-	private ChatGPTRequest buildChatGPTRequest(List<ChatMessage> messages, IBot bot) {
-		ChatGPTRequest request = new ChatGPTRequest(apiKey, prompt, completionMaxTokens);
+	private ChatCompletionRequest buildChatCompletionRequest(List<ChatMessage> messages, IBot bot) {
+		ChatCompletionRequest request = new ChatCompletionRequest(prompt);
+		request.setMaxTokensForCompletion(completionMaxTokens);
 
 		for (ChatMessage message : messages) {
 			Content content = message.getContent();
@@ -253,11 +255,11 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		return request;
 	}
 
-	private String sendChatGPTRequest(ChatGPTRequest request) throws IOException {
+	private String sendChatCompletionRequest(ChatCompletionRequest request) throws IOException {
 		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			String response = request.send(client);
+			String response = openAIClient.chatCompletion(request);
 			return removeMentionsFromBeginningOfMessage(response);
-		} catch (ChatGPTException e) {
+		} catch (OpenAIException e) {
 			//@formatter:off
 			return new ChatBuilder()
 				.code()

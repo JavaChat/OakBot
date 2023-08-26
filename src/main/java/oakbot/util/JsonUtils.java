@@ -1,17 +1,42 @@
 package oakbot.util;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * JSON utility methods.
  * @author Michael Angstadt
  */
 public final class JsonUtils {
+	private static final ObjectMapper mapper = new ObjectMapper();
+
+	/**
+	 * Creates a new object node that's not attached to anything.
+	 * @return the object node
+	 */
+	public static ObjectNode newObject() {
+		return mapper.createObjectNode();
+	}
+
+	/**
+	 * Parses JSON from an input stream.
+	 * @param in the input stream
+	 * @return the parsed JSON
+	 * @throws IOException if there's a problem reading from the input stream or
+	 * parsing the JSON
+	 */
+	public static JsonNode parse(InputStream in) throws IOException {
+		return mapper.readTree(in);
+	}
+
 	/**
 	 * Pretty prints the given JSON node.
 	 * @param node the JSON node
@@ -31,7 +56,6 @@ public final class JsonUtils {
 	}
 
 	private static String toString(JsonNode node, PrettyPrinter pp) {
-		ObjectMapper mapper = new ObjectMapper();
 		ObjectWriter writer = mapper.writer(pp);
 		try {
 			return writer.writeValueAsString(node);

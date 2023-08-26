@@ -315,8 +315,11 @@
 	</bean>
 
 	<!-- ChatGPT -->
-	<bean class="oakbot.listener.chatgpt.ChatGPT" id="chatGPT">
+	<bean class="oakbot.listener.chatgpt.OpenAIClient" id="openAIClient">
 		<constructor-arg value="API_KEY" />
+	</bean>
+	<bean class="oakbot.listener.chatgpt.ChatGPT" id="chatGPT">
+		<constructor-arg ref="openAIClient" />
 		<constructor-arg value="You are a grumpy Java developer named 'OakBot'." /> <!-- one or more sentences that define the bot's personality (e.g. "You are a helpful assistant"). This counts against your usage quota. Each word costs around 1.33 tokens. -->
 		<constructor-arg value="100" /> <!-- places a limit on the length of ChatGPT's completion (response). If this number is too short, then the completion may end abruptly (e.g. in an unfinished sentence). Each word costs around 1.33 tokens. -->
 		<constructor-arg value="PT12H" /> <!-- the amount of time to wait before posting a message (duration string) -->
@@ -329,7 +332,7 @@
 		</constructor-arg>
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ImageCommand">
-		<constructor-arg value="API_KEY" />
+		<constructor-arg ref="openAIClient" />
 	</bean>
 	
 	<!-- fact of the day task -->
