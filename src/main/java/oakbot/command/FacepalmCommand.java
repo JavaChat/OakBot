@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import org.apache.http.client.utils.URIBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
@@ -27,7 +26,6 @@ import oakbot.util.HttpFactory;
 public class FacepalmCommand implements Command {
 	private static final Logger logger = Logger.getLogger(FacepalmCommand.class.getName());
 
-	private final ObjectMapper mapper = new ObjectMapper();
 	private final String uri;
 
 	/**
@@ -68,13 +66,15 @@ public class FacepalmCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String imageUrl, response = null;
+		String imageUrl;
+		Http.Response response = null;
 		try (Http http = HttpFactory.connect()) {
-			response = http.get(uri).getBody();
-			JsonNode node = mapper.readTree(response);
+			response = http.get(uri);
+			JsonNode node = response.getBodyAsJson();
 			imageUrl = node.get("results").get(0).get("media").get(0).get("tinygif").get("url").asText();
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Problem querying Tenor API.\nURI = " + uri + "\nResponse = " + response, e);
+			String body = (response == null) ? null : response.getBody();
+			logger.log(Level.SEVERE, "Problem querying Tenor API.\nURI = " + uri + "\nResponse = " + body, e);
 			return reply("Sorry, an error occurred. >.>", chatCommand);
 		}
 

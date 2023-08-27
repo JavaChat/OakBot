@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -19,7 +20,6 @@ import org.junit.After;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import oakbot.bot.ChatActions;
@@ -29,6 +29,7 @@ import oakbot.bot.PostMessage;
 import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
+import oakbot.util.JsonUtils;
 import oakbot.util.MockHttpClientBuilder;
 import oakbot.util.Now;
 
@@ -211,43 +212,44 @@ public class AdventOfCodeTest {
 			Now.setNow(start);
 
 			//REQUEST 1====================
-			ObjectMapper mapper = new ObjectMapper();
-
-			JsonNode root = mapper.readTree(getClass().getResourceAsStream("advent-of-code-2018.json"));
+			JsonNode root;
+			try (InputStream in = getClass().getResourceAsStream("advent-of-code-2018.json")) {
+				root = JsonUtils.parse(in);
+			}
 
 			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
-			mockHttp.responseOk(mapper.writeValueAsString(root));
+			mockHttp.responseOk(JsonUtils.toString(root));
 
 			//REQUEST 2====================
 			Now.fastForward(Duration.ofMinutes(15));
 
 			ObjectNode user = (ObjectNode) root.get("members").get("55305").get("completion_day_level");
-			ObjectNode day11 = mapper.createObjectNode();
-			ObjectNode day11Part1 = mapper.createObjectNode();
+			ObjectNode day11 = user.objectNode();
+			ObjectNode day11Part1 = day11.objectNode();
 			day11Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
 			day11.set("1", day11Part1);
 			user.set("11", day11);
 
 			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
-			mockHttp.responseOk(mapper.writeValueAsString(root));
+			mockHttp.responseOk(JsonUtils.toString(root));
 
 			//REQUEST 3====================
 			Now.fastForward(Duration.ofMinutes(15));
 
-			ObjectNode day11Part2 = mapper.createObjectNode();
+			ObjectNode day11Part2 = day11.objectNode();
 
 			day11Part2.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
 			day11.set("2", day11Part2);
 
 			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
-			mockHttp.responseOk(mapper.writeValueAsString(root));
+			mockHttp.responseOk(JsonUtils.toString(root));
 
 			//REQUEST 4====================
 			Now.fastForward(Duration.ofMinutes(15));
 
-			ObjectNode day12 = mapper.createObjectNode();
-			ObjectNode day12Part1 = mapper.createObjectNode();
-			ObjectNode day12Part2 = mapper.createObjectNode();
+			ObjectNode day12 = user.objectNode();
+			ObjectNode day12Part1 = day12.objectNode();
+			ObjectNode day12Part2 = day12.objectNode();
 			day12Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
 			day12Part2.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(1)).getEpochSecond());
 			day12.set("1", day12Part1);
@@ -255,7 +257,7 @@ public class AdventOfCodeTest {
 			user.set("12", day12);
 
 			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
-			mockHttp.responseOk(mapper.writeValueAsString(root));
+			mockHttp.responseOk(JsonUtils.toString(root));
 		}
 
 		Now.setNow(start);
@@ -301,25 +303,26 @@ public class AdventOfCodeTest {
 			Now.setNow(start);
 
 			//REQUEST 1====================
-			ObjectMapper mapper = new ObjectMapper();
-
-			JsonNode root = mapper.readTree(getClass().getResourceAsStream("advent-of-code-2018.json"));
+			JsonNode root;
+			try (InputStream in = getClass().getResourceAsStream("advent-of-code-2018.json")) {
+				root = JsonUtils.parse(in);
+			}
 
 			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
-			mockHttp.responseOk(mapper.writeValueAsString(root));
+			mockHttp.responseOk(JsonUtils.toString(root));
 
 			//REQUEST 2====================
 			Now.fastForward(Duration.ofMinutes(15));
 
 			ObjectNode user = (ObjectNode) root.get("members").get("376542").get("completion_day_level");
-			ObjectNode day11 = mapper.createObjectNode();
-			ObjectNode day11Part1 = mapper.createObjectNode();
+			ObjectNode day11 = user.objectNode();
+			ObjectNode day11Part1 = day11.objectNode();
 			day11Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
 			day11.set("1", day11Part1);
 			user.set("11", day11);
 
 			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
-			mockHttp.responseOk(mapper.writeValueAsString(root));
+			mockHttp.responseOk(JsonUtils.toString(root));
 		}
 
 		Now.setNow(start);
@@ -353,25 +356,26 @@ public class AdventOfCodeTest {
 			Now.setNow(start);
 
 			//REQUEST 1====================
-			ObjectMapper mapper = new ObjectMapper();
-
-			JsonNode root = mapper.readTree(getClass().getResourceAsStream("advent-of-code-2018.json"));
+			JsonNode root;
+			try (InputStream in = getClass().getResourceAsStream("advent-of-code-2018.json")) {
+				root = JsonUtils.parse(in);
+			}
 
 			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
-			mockHttp.responseOk(mapper.writeValueAsString(root));
+			mockHttp.responseOk(JsonUtils.toString(root));
 
 			//REQUEST 2====================
 			Now.fastForward(Duration.ofMinutes(15));
 
 			ObjectNode user = (ObjectNode) root.get("members").get("376568").get("completion_day_level");
-			ObjectNode day11 = mapper.createObjectNode();
-			ObjectNode day11Part1 = mapper.createObjectNode();
+			ObjectNode day11 = user.objectNode();
+			ObjectNode day11Part1 = day11.objectNode();
 			day11Part1.put("get_star_ts", Now.instant().minus(Duration.ofMinutes(5)).getEpochSecond());
 			day11.set("1", day11Part1);
 			user.set("11", day11);
 
 			mockHttp.requestGet("http://adventofcode.com/2018/leaderboard/private/view/123456.json");
-			mockHttp.responseOk(mapper.writeValueAsString(root));
+			mockHttp.responseOk(JsonUtils.toString(root));
 		}
 
 		Now.setNow(start);

@@ -23,7 +23,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import oakbot.util.JsonUtils;
 
 /**
  * A database that persists its values to a JSON file.
@@ -54,9 +55,8 @@ public class JsonDatabase implements Database {
 	 */
 	private void load() throws IOException {
 		JsonNode root;
-		ObjectMapper mapper = new ObjectMapper();
 		try (Reader reader = Files.newBufferedReader(file)) {
-			root = mapper.readTree(reader);
+			root = JsonUtils.parse(reader);
 		}
 
 		root.fields().forEachRemaining(field -> { //@formatter:off
@@ -68,9 +68,11 @@ public class JsonDatabase implements Database {
 
 	private Object parseNode(JsonNode node) {
 		if (node.isArray()) {
-			return stream(node) //@formatter:off
+			//@formatter:off
+			return stream(node)
 				.map(this::parseNode)
-			.collect(Collectors.toList()); //@formatter:on
+			.collect(Collectors.toList());
+			//@formatter:on
 		}
 
 		if (node.isObject()) {

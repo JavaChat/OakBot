@@ -2,6 +2,7 @@ package oakbot.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.PrettyPrinter;
@@ -35,6 +36,17 @@ public final class JsonUtils {
 	 */
 	public static JsonNode parse(InputStream in) throws IOException {
 		return mapper.readTree(in);
+	}
+
+	/**
+	 * Parses JSON from a reader.
+	 * @param reader the reader
+	 * @return the parsed JSON
+	 * @throws IOException if there's a problem reading from the reader or
+	 * parsing the JSON
+	 */
+	public static JsonNode parse(Reader reader) throws IOException {
+		return mapper.readTree(reader);
 	}
 
 	/**
