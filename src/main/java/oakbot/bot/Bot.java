@@ -291,26 +291,35 @@ public class Bot implements IBot {
 	}
 
 	private void handleInvitation(InvitationEvent event) {
+		/*
+		 * If the bot is currently connected to multiple rooms, the
+		 * invitation event will be sent to each room and this method will
+		 * be called multiple times. Check to see if the bot has already
+		 * joined the room it was invited to.
+		 */
+		int roomId = event.getRoomId();
+		boolean alreadyInTheRoom = rooms.contains(roomId);
+		if (alreadyInTheRoom) {
+			return;
+		}
+
 		boolean maxRoomsExceeded = (maxRooms != null && connection.getRooms().size() >= maxRooms);
 		if (maxRoomsExceeded) {
 			return;
 		}
 
-		int roomId = event.getRoomId();
-		IRoom joinedRoom;
 		try {
-			joinedRoom = joinRoom(roomId);
+			joinRoom(roomId);
+		} catch (RoomPermissionException e) {
+			/*
+			 * If the bot doesn't have permission to post messages to the room
+			 * it was invited to, this exception will be thrown when it tries to
+			 * post the "OakBot Online" message. Ignore this exception because
+			 * we still want the bot to be able to join rooms it can't post to.
+			 */
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Bot was invited to join room " + roomId + ", but couldn't join it.", e);
 			return;
-		}
-
-		if (!joinedRoom.canPost()) {
-			try {
-				leave(roomId);
-			} catch (IOException e) {
-				logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
-			}
 		}
 	}
 
