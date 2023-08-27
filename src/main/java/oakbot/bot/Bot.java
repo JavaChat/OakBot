@@ -26,6 +26,8 @@ import com.github.mangstadt.sochat4j.IRoom;
 import com.github.mangstadt.sochat4j.PrivateRoomException;
 import com.github.mangstadt.sochat4j.RoomNotFoundException;
 import com.github.mangstadt.sochat4j.RoomPermissionException;
+import com.github.mangstadt.sochat4j.event.Event;
+import com.github.mangstadt.sochat4j.event.InvitationEvent;
 import com.github.mangstadt.sochat4j.event.MessageEditedEvent;
 import com.github.mangstadt.sochat4j.event.MessagePostedEvent;
 import com.github.mangstadt.sochat4j.util.Sleeper;
@@ -52,8 +54,8 @@ public class Bot implements IBot {
 	private final String userName, trigger, greeting;
 	private final Integer userId;
 	private final IChatClient connection;
-	private final BlockingQueue<ChatMessage> newMessages = new LinkedBlockingQueue<>();
-	private final ChatMessage CLOSE_MESSAGE = new ChatMessage.Builder().build();
+	private final BlockingQueue<Event> newEvents = new LinkedBlockingQueue<>();
+	private final MessagePostedEvent CLOSE_EVENT = new MessagePostedEvent.Builder().build();
 	private final List<Integer> admins, bannedUsers, allowedUsers;
 	private final Duration hideOneboxesAfter;
 	private final Rooms rooms;
@@ -165,20 +167,29 @@ public class Bot implements IBot {
 				}
 
 				while (true) {
-					ChatMessage message;
+					Event event;
 					try {
-						message = newMessages.take();
+						event = newEvents.take();
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 						logger.log(Level.SEVERE, "Thread interrupted while waiting for new chat messages.", e);
 						break;
 					}
 
-					if (message == CLOSE_MESSAGE) {
+					if (event == CLOSE_EVENT) {
 						break;
 					}
 
-					handleMessage(message);
+					if (event instanceof MessagePostedEvent) {
+						MessagePostedEvent mpe = (MessagePostedEvent) event;
+						handleMessage(mpe.getMessage());
+					} else if (event instanceof MessageEditedEvent) {
+						MessageEditedEvent mee = (MessageEditedEvent) event;
+						handleMessage(mee.getMessage());
+					} else if (event instanceof InvitationEvent) {
+						InvitationEvent ie = (InvitationEvent) event;
+						handleInvitation(ie);
+					}
 				}
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "Bot terminated due to unexpected exception.", e);
@@ -279,6 +290,30 @@ public class Bot implements IBot {
 		}
 	}
 
+	private void handleInvitation(InvitationEvent event) {
+		boolean maxRoomsExceeded = (maxRooms != null && connection.getRooms().size() >= maxRooms);
+		if (maxRoomsExceeded) {
+			return;
+		}
+
+		int roomId = event.getRoomId();
+		IRoom joinedRoom;
+		try {
+			joinedRoom = joinRoom(roomId);
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Bot was invited to join room " + roomId + ", but couldn't join it.", e);
+			return;
+		}
+
+		if (!joinedRoom.canPost()) {
+			try {
+				leave(roomId);
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
+			}
+		}
+	}
+
 	@Override
 	public List<ChatMessage> getLatestMessages(int roomId, int count) throws IOException {
 		IRoom room = connection.getRoom(roomId);
@@ -370,12 +405,9 @@ public class Bot implements IBot {
 		logger.info("Joining room " + roomId + "...");
 		room = connection.joinRoom(roomId);
 
-		room.addEventListener(MessagePostedEvent.class, (event) -> {
-			newMessages.add(event.getMessage());
-		});
-		room.addEventListener(MessageEditedEvent.class, (event) -> {
-			newMessages.add(event.getMessage());
-		});
+		room.addEventListener(MessagePostedEvent.class, newEvents::add);
+		room.addEventListener(MessageEditedEvent.class, newEvents::add);
+		room.addEventListener(InvitationEvent.class, newEvents::add);
 
 		if (!quiet && greeting != null) {
 			sendMessage(room, greeting);
@@ -566,7 +598,7 @@ public class Bot implements IBot {
 			}
 
 			if (action instanceof Shutdown) {
-				newMessages.clear();
+				newEvents.clear();
 				stop();
 				continue;
 			}
@@ -587,7 +619,7 @@ public class Bot implements IBot {
 	 * existing messages in its queue.
 	 */
 	public void stop() {
-		newMessages.add(CLOSE_MESSAGE);
+		newEvents.add(CLOSE_EVENT);
 	}
 
 	/**
