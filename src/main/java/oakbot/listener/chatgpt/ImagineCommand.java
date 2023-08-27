@@ -79,21 +79,27 @@ public class ImagineCommand implements Command {
 
 		try {
 			boolean isUri = prompt.matches("^https?://.*");
-			String url = isUri ? openAIClient.createImageVariation(prompt) : openAIClient.createImage(prompt);
+			String openAiImageUrl = isUri ? openAIClient.createImageVariation(prompt) : openAIClient.createImage(prompt);
 
 			if (!isAdmin) {
 				logQuota(userId);
 			}
 
-			/*
-			 * Add a fake parameter onto the end of the URL so SO Chat one-boxes
-			 * the image. SO Chat will only one-box an image if the URL ends in
-			 * an image extension.
-			 */
-			URIBuilder urlWithFakeParam = new URIBuilder(url);
-			urlWithFakeParam.addParameter("a", ".png");
+			String urlToPost;
+			try {
+				urlToPost = bot.uploadImage(openAiImageUrl);
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, "Problem uploading image to imgur.", e);
 
-			return create(new PostMessage(urlWithFakeParam.toString()).bypassFilters(true));
+				/*
+				 * Add a fake parameter onto the end of the URL so SO Chat
+				 * one-boxes the image. SO Chat will only one-box an image if
+				 * the URL ends in an image extension.
+				 */
+				urlToPost = new URIBuilder(openAiImageUrl).addParameter("a", ".png").toString();
+			}
+
+			return create(new PostMessage(urlToPost).bypassFilters(true));
 		} catch (URISyntaxException | OpenAIException e) {
 			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
 		} catch (IOException e) {

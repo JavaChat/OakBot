@@ -291,6 +291,11 @@ public class Bot implements IBot {
 	}
 
 	@Override
+	public String uploadImage(String url) throws IOException {
+		return connection.uploadImage(url);
+	}
+
+	@Override
 	public void sendMessage(int roomId, PostMessage message) throws IOException {
 		IRoom room = connection.getRoom(roomId);
 		if (room != null) {

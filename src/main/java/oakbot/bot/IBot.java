@@ -118,7 +118,15 @@ public interface IBot {
 	 * @return the plain text message
 	 * @throws IOException if there's a problem getting the message
 	 */
-	public String getOriginalMessageContent(long messageId) throws IOException;
+	String getOriginalMessageContent(long messageId) throws IOException;
+
+	/**
+	 * Uploads an image to Stack Overflow's imgur.com service.
+	 * @param url the image URL
+	 * @return the imgur.com URL
+	 * @throws IOException if there's a problem uploading the image
+	 */
+	String uploadImage(String url) throws IOException;
 
 	/**
 	 * Posts a message to a room. If the bot has not joined the given room, then

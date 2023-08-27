@@ -111,4 +111,14 @@ public class FileChatClient implements IChatClient {
 	public Site getSite() {
 		return null;
 	}
+
+	@Override
+	public String uploadImage(String url) throws IOException {
+		throw new IOException("Method not implemented.");
+	}
+
+	@Override
+	public String uploadImage(byte[] data) throws IOException {
+		throw new IOException("Method not implemented.");
+	}
 }

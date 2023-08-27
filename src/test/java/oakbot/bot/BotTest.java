@@ -980,6 +980,16 @@ public class BotTest {
 		public Site getSite() {
 			return null;
 		}
+
+		@Override
+		public String uploadImage(String url) throws IOException {
+			return null;
+		}
+
+		@Override
+		public String uploadImage(byte[] data) throws IOException {
+			return null;
+		}
 	}
 
 	private void run(Bot bot, MessagePostedEvent... events) throws Exception {
