@@ -1,8 +1,12 @@
 package oakbot;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -189,28 +193,21 @@ public final class Main {
 		.build();
 		//@formatter:on
 
-		/*
-		 * Don't catch unhandled exceptions until the bot has started. Any
-		 * exceptions that are thrown during the initial boot up process should
-		 * be dumped to the console.
-		 */
-		Thread.setDefaultUncaughtExceptionHandler((thread, thrown) -> {
-			logger.log(Level.SEVERE, "Uncaught exception thrown.", thrown);
-		});
+		createShutdownHook(bot);
+		createSocket(botProperties.getSocketPort(), bot);
 
 		System.out.println("Joining rooms...");
 
 		Thread t = bot.connect(arguments.quiet());
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				logger.info("Running shutdown hook.");
-				bot.stop();
-			}
-		});
-
 		System.out.println("Bot has launched successfully. To move this process to the background, press Ctrl+Z then type \"bg\".");
+
+		/*
+		 * Don't catch unhandled exceptions until the bot has started. Any
+		 * exceptions that are thrown during the initial boot up process should
+		 * be dumped to the console.
+		 */
+		createDefaultExceptionHandler();
 
 		t.join();
 
@@ -244,6 +241,52 @@ public final class Main {
 
 			System.out.println("  " + trigger + name + ": " + list);
 		}
+	}
+
+	private static void createDefaultExceptionHandler() {
+		Thread.setDefaultUncaughtExceptionHandler((thread, thrown) -> {
+			logger.log(Level.SEVERE, "Uncaught exception thrown.", thrown);
+		});
+	}
+
+	private static void createShutdownHook(Bot bot) {
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			logger.info("Running shutdown hook.");
+			bot.stop();
+		}));
+	}
+
+	private static void createSocket(int port, Bot bot) throws IOException {
+		ServerSocket serverSocket = new ServerSocket(port);
+		if (port == 0) {
+			port = serverSocket.getLocalPort();
+		}
+
+		Thread t = new Thread(() -> {
+			while (true) {
+				try (Socket socket = serverSocket.accept(); BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+					String line;
+					while ((line = reader.readLine()) != null) {
+						if ("shutdown".equalsIgnoreCase(line)) {
+							bot.stop();
+
+							try {
+								serverSocket.close();
+							} catch (IOException e) {
+								logger.log(Level.SEVERE, "Problem closing server socket.", e);
+							}
+
+							return;
+						}
+					}
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Problem accepting new socket connection or reading from socket.", e);
+				}
+			}
+		});
+		t.start();
+
+		System.out.println("Listening for socket commands on port " + port + ".");
 	}
 
 	private static Site getSite(BotProperties props) {

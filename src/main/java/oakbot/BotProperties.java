@@ -17,6 +17,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final String site, loginEmail, password, botUserName, trigger, greeting, helpWebpage;
 	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, allowedUsers;
 	private final Integer botUserId;
+	private final int socketPort;
 	private final Duration hideOneboxesAfter;
 	private boolean enableLearnedCommands;
 
@@ -50,6 +51,8 @@ public class BotProperties extends PropertiesWrapper {
 		enableLearnedCommands = getBoolean("enableLearnedCommands", true);
 
 		helpWebpage = get("help.webpage");
+
+		socketPort = getInteger("socket.port", 0);
 	}
 
 	/**
@@ -173,5 +176,13 @@ public class BotProperties extends PropertiesWrapper {
 
 	public String getHelpWebpage() {
 		return helpWebpage;
+	}
+
+	/**
+	 * Gets the port number to use for the local command socket.
+	 * @return the port number or 0 to automatically choose a port
+	 */
+	public int getSocketPort() {
+		return socketPort;
 	}
 }
