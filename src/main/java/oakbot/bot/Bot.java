@@ -14,11 +14,13 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.IChatClient;
@@ -54,8 +56,8 @@ public class Bot implements IBot {
 	private final String userName, trigger, greeting;
 	private final Integer userId;
 	private final IChatClient connection;
-	private final BlockingQueue<Event> newEvents = new LinkedBlockingQueue<>();
-	private final MessagePostedEvent CLOSE_EVENT = new MessagePostedEvent.Builder().build();
+	private final MutableLong choreIdCounter = new MutableLong();
+	private final BlockingQueue<Chore> choreQueue = new PriorityBlockingQueue<>();
 	private final List<Integer> admins, bannedUsers, allowedUsers;
 	private final Duration hideOneboxesAfter;
 	private final Rooms rooms;
@@ -63,10 +65,12 @@ public class Bot implements IBot {
 	private final List<Listener> listeners;
 	private final List<ChatResponseFilter> responseFilters;
 	private final List<ScheduledTask> scheduledTasks;
+	private final List<InactivityTask> inactivityTasks;
+	private final Map<Integer, LocalDateTime> timeOfLastMessageByRoom = new HashMap<>();
+	private final Multimap<Integer, TimerTask> inactivityTimerTasksByRoom = ArrayListMultimap.create();
 	private final Statistics stats;
 	private final Database database;
 	private final Timer timer = new Timer();
-	private final InactivityTasks inactivityTasks;
 
 	/**
 	 * <p>
@@ -104,7 +108,7 @@ public class Bot implements IBot {
 		database = builder.database;
 		listeners = builder.listeners.build();
 		scheduledTasks = builder.tasks.build();
-		inactivityTasks = new InactivityTasks(builder.inactivityTasks.build());
+		inactivityTasks = builder.inactivityTasks.build();
 		responseFilters = builder.responseFilters.build();
 	}
 
@@ -117,14 +121,21 @@ public class Bot implements IBot {
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				try {
-					task.run(Bot.this);
-				} catch (Exception e) {
-					logger.log(Level.SEVERE, "Problem running task " + task.getClass().getSimpleName() + ".", e);
-				}
-				scheduleTask(task);
+				choreQueue.add(new ScheduledTaskChore(task));
 			}
 		}, nextRun);
+	}
+
+	private void scheduleTask(InactivityTask task, IRoom room, Duration nextRun) {
+		TimerTask timerTask = new TimerTask() {
+			@Override
+			public void run() {
+				choreQueue.add(new InactivityTaskChore(task, room));
+			}
+		};
+
+		inactivityTimerTasksByRoom.put(room.getRoomId(), timerTask);
+		timer.schedule(timerTask, nextRun.toMillis());
 	}
 
 	/**
@@ -162,34 +173,23 @@ public class Bot implements IBot {
 
 		Thread thread = new Thread(() -> {
 			try {
-				for (ScheduledTask task : scheduledTasks) {
-					scheduleTask(task);
-				}
+				scheduledTasks.forEach(this::scheduleTask);
 
 				while (true) {
-					Event event;
+					Chore chore;
 					try {
-						event = newEvents.take();
+						chore = choreQueue.take();
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
-						logger.log(Level.SEVERE, "Thread interrupted while waiting for new chat messages.", e);
+						logger.log(Level.SEVERE, "Thread interrupted while waiting for new chores.", e);
 						break;
 					}
 
-					if (event == CLOSE_EVENT) {
+					if (chore instanceof StopChore || chore instanceof FinishChore) {
 						break;
 					}
 
-					if (event instanceof MessagePostedEvent) {
-						MessagePostedEvent mpe = (MessagePostedEvent) event;
-						handleMessage(mpe.getMessage());
-					} else if (event instanceof MessageEditedEvent) {
-						MessageEditedEvent mee = (MessageEditedEvent) event;
-						handleMessage(mee.getMessage());
-					} else if (event instanceof InvitationEvent) {
-						InvitationEvent ie = (InvitationEvent) event;
-						handleInvitation(ie);
-					}
+					chore.complete();
 				}
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "Bot terminated due to unexpected exception.", e);
@@ -213,120 +213,11 @@ public class Bot implements IBot {
 		return thread;
 	}
 
-	private void handleMessage(ChatMessage message) {
-		if (message.getContent() == null) {
-			//user deleted their message, ignore
-			return;
-		}
-
-		if (!allowedUsers.isEmpty() && !allowedUsers.contains(message.getUserId())) {
-			//message was posted by a user who is not in the white list, ignore
-			return;
-		}
-
-		if (bannedUsers.contains(message.getUserId())) {
-			//message was posted by a banned user, ignore
-			return;
-		}
-
-		IRoom room = connection.getRoom(message.getRoomId());
-		if (room == null) {
-			//the bot is no longer in the room
-			return;
-		}
-
-		if (message.getUserId() == userId) {
-			//message was posted by this bot
-
-			PostedMessage postedMessage;
-			synchronized (postedMessages) {
-				postedMessage = postedMessages.remove(message.getMessageId());
-			}
-
-			/*
-			 * Check to see if the message should be edited for brevity after a
-			 * short time so it doesn't spam the chat history.
-			 * 
-			 * This could happen if (1) the bot posted something that Stack
-			 * Overflow Chat converted to a onebox (e.g. an image) or (2) the
-			 * message itself has asked to be edited (e.g. a javadoc
-			 * description).
-			 * 
-			 * ===What is a onebox?===
-			 * 
-			 * Stack Overflow Chat converts certain URLs to "oneboxes". Oneboxes
-			 * can be fairly large and can spam the chat. For example, if the
-			 * message is a URL to an image, the image itself will be displayed
-			 * in the chat room. This is nice, but gets annoying if the image is
-			 * large or if it's an animated GIF.
-			 * 
-			 * After giving people some time to see the onebox, the bot will
-			 * edit the message so that the onebox no longer displays, but the
-			 * URL is still preserved.
-			 */
-			boolean messageIsOnebox = message.getContent().isOnebox();
-			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
-				Duration postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
-				Duration hideIn = hideOneboxesAfter.minus(postedMessageAge);
-				if (logger.isLoggable(Level.INFO)) {
-					String action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
-					logger.info(action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
-				}
-
-				TimerTask task = new CondenseMessageTask(postedMessage, room);
-				timer.schedule(task, hideIn.toMillis());
-			}
-
-			return;
-		}
-
-		inactivityTasks.touch(message);
-
-		ChatActions actions = handleListeners(message);
-		handleActions(message, actions);
-
-		if (database != null) {
-			database.commit();
-		}
-	}
-
-	private void handleInvitation(InvitationEvent event) {
-		/*
-		 * If the bot is currently connected to multiple rooms, the
-		 * invitation event will be sent to each room and this method will
-		 * be called multiple times. Check to see if the bot has already
-		 * joined the room it was invited to.
-		 */
-		int roomId = event.getRoomId();
-		boolean alreadyInTheRoom = rooms.contains(roomId);
-		if (alreadyInTheRoom) {
-			return;
-		}
-
-		boolean maxRoomsExceeded = (maxRooms != null && connection.getRooms().size() >= maxRooms);
-		if (maxRoomsExceeded) {
-			return;
-		}
-
-		try {
-			joinRoom(roomId);
-		} catch (RoomPermissionException e) {
-			/*
-			 * If the bot doesn't have permission to post messages to the room
-			 * it was invited to, this exception will be thrown when it tries to
-			 * post the "OakBot Online" message. Ignore this exception because
-			 * we still want the bot to be able to join rooms it can't post to.
-			 */
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Bot was invited to join room " + roomId + ", but couldn't join it.", e);
-			return;
-		}
-	}
-
 	@Override
 	public List<ChatMessage> getLatestMessages(int roomId, int count) throws IOException {
 		IRoom room = connection.getRoom(roomId);
-		return room.getMessages(count);
+		boolean notInRoom = (room == null);
+		return notInRoom ? List.of() : room.getMessages(count);
 	}
 
 	@Override
@@ -374,7 +265,7 @@ public class Bot implements IBot {
 			String condensedMessage = message.condensedMessage();
 			boolean ephemeral = message.ephemeral();
 
-			PostedMessage postedMessage = new PostedMessage(Instant.now(), filteredMessage, condensedMessage, ephemeral, messageIds);
+			PostedMessage postedMessage = new PostedMessage(Instant.now(), filteredMessage, condensedMessage, ephemeral, room.getRoomId(), messageIds);
 			postedMessages.put(messageIds.get(0), postedMessage);
 		}
 	}
@@ -389,10 +280,11 @@ public class Bot implements IBot {
 	 * @param roomId the room ID
 	 * @return the connection to the room
 	 * @throws RoomNotFoundException if the room does not exist
-	 * @throws RoomPermissionException if messages cannot be posted to this room
+	 * @throws PrivateRoomException if the room can't be joined because it is
+	 * private
 	 * @throws IOException if there's a problem connecting to the room
 	 */
-	private IRoom joinRoom(int roomId) throws IOException {
+	private IRoom joinRoom(int roomId) throws RoomNotFoundException, PrivateRoomException, IOException {
 		return joinRoom(roomId, false);
 	}
 
@@ -402,43 +294,64 @@ public class Bot implements IBot {
 	 * @param quiet true to not post an announcement message, false to post one
 	 * @return the connection to the room
 	 * @throws RoomNotFoundException if the room does not exist
+	 * @throws PrivateRoomException if the room can't be joined because it is
+	 * private
 	 * @throws IOException if there's a problem connecting to the room
 	 */
-	private IRoom joinRoom(int roomId, boolean quiet) throws RoomNotFoundException, IOException {
-		//already in the room?
+	private IRoom joinRoom(int roomId, boolean quiet) throws RoomNotFoundException, PrivateRoomException, IOException {
 		IRoom room = connection.getRoom(roomId);
 		if (room != null) {
 			return room;
 		}
 
-		logger.info("Joining room " + roomId + "...");
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info("Joining room " + roomId + "...");
+		}
+
 		room = connection.joinRoom(roomId);
 
-		room.addEventListener(MessagePostedEvent.class, newEvents::add);
-		room.addEventListener(MessageEditedEvent.class, newEvents::add);
-		room.addEventListener(InvitationEvent.class, newEvents::add);
+		room.addEventListener(MessagePostedEvent.class, event -> choreQueue.add(new ChatEventChore(event)));
+		room.addEventListener(MessageEditedEvent.class, event -> choreQueue.add(new ChatEventChore(event)));
+		room.addEventListener(InvitationEvent.class, event -> choreQueue.add(new ChatEventChore(event)));
 
 		if (!quiet && greeting != null) {
-			sendMessage(room, greeting);
+			try {
+				sendMessage(room, greeting);
+			} catch (RoomPermissionException e) {
+				if (logger.isLoggable(Level.WARNING)) {
+					logger.log(Level.WARNING, "Unable to post greeting when joining room " + roomId + ".", e);
+				}
+			}
 		}
 
 		rooms.add(roomId);
-		inactivityTasks.joinRoom(room);
+
+		for (InactivityTask task : inactivityTasks) {
+			Duration nextRun = task.getInactivityTime(room, this);
+			if (nextRun == null) {
+				continue;
+			}
+
+			scheduleTask(task, room, nextRun);
+		}
 
 		return room;
 	}
 
 	@Override
 	public void leave(int roomId) throws IOException {
-		logger.info("Leaving room " + roomId + "...");
-		IRoom room = connection.getRoom(roomId);
-		if (room == null) {
-			return;
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info("Leaving room " + roomId + "...");
 		}
 
-		inactivityTasks.leaveRoom(room);
+		inactivityTimerTasksByRoom.removeAll(roomId).forEach(TimerTask::cancel);
+		timeOfLastMessageByRoom.remove(roomId);
 		rooms.remove(roomId);
-		room.leave();
+
+		IRoom room = connection.getRoom(roomId);
+		if (room != null) {
+			room.leave();
+		}
 	}
 
 	@Override
@@ -486,134 +399,6 @@ public class Bot implements IBot {
 		return maxRooms;
 	}
 
-	private ChatActions handleListeners(ChatMessage message) {
-		ChatActions actions = new ChatActions();
-		for (Listener listener : listeners) {
-			try {
-				actions.addAll(listener.onMessage(message, this));
-			} catch (Exception e) {
-				logger.log(Level.SEVERE, "A listener threw an exception responding to a message.", e);
-			}
-		}
-		return actions;
-	}
-
-	private void handleActions(ChatMessage message, ChatActions actions) {
-		if (actions.isEmpty()) {
-			return;
-		}
-
-		if (logger.isLoggable(Level.INFO)) {
-			logger.info("Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
-		}
-
-		if (stats != null) {
-			stats.incMessagesRespondedTo();
-		}
-
-		LinkedList<ChatAction> queue = new LinkedList<>(actions.getActions());
-		while (!queue.isEmpty()) {
-			ChatAction action = queue.removeFirst();
-
-			if (action instanceof PostMessage) {
-				PostMessage postMessage = (PostMessage) action;
-
-				try {
-					if (postMessage.broadcast()) {
-						broadcastMessage(postMessage);
-					} else {
-						sendMessage(message.getRoomId(), postMessage);
-					}
-				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem posting message [room=" + message.getRoomId() + "]: " + postMessage.message(), e);
-				}
-
-				continue;
-			}
-
-			if (action instanceof DeleteMessage) {
-				DeleteMessage deleteMessage = (DeleteMessage) action;
-				ChatActions response;
-				try {
-					IRoom room = connection.getRoom(message.getRoomId());
-					room.deleteMessage(deleteMessage.messageId());
-					response = deleteMessage.onSuccess().get();
-				} catch (Exception e) {
-					response = deleteMessage.onError().apply(e);
-				}
-
-				queue.addAll(response.getActions());
-				continue;
-			}
-
-			if (action instanceof JoinRoom) {
-				JoinRoom joinRoom = (JoinRoom) action;
-
-				ChatActions response;
-				if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
-					response = joinRoom.onError().apply(new IOException("Cannot join room. Max rooms reached."));
-				} else {
-					try {
-						IRoom joinedRoom = joinRoom(joinRoom.roomId());
-						if (joinedRoom.canPost()) {
-							response = joinRoom.onSuccess().get();
-						} else {
-							/*
-							 * This block of code runs if the bot is not
-							 * configured to post a greeting message after
-							 * joining a room, and the bot does not have
-							 * permission to post to the room.
-							 */
-							response = joinRoom.ifLackingPermissionToPost().get();
-							try {
-								leave(joinRoom.roomId());
-							} catch (IOException e) {
-								logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
-							}
-						}
-					} catch (PrivateRoomException | RoomPermissionException e) {
-						/*
-						 * Thrown if the bot tries to post a greeting
-						 * message after joining the room, but does not
-						 * have permission to post.
-						 */
-						response = joinRoom.ifLackingPermissionToPost().get();
-						try {
-							leave(joinRoom.roomId());
-						} catch (IOException e2) {
-							logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
-						}
-					} catch (RoomNotFoundException e) {
-						response = joinRoom.ifRoomDoesNotExist().get();
-					} catch (Exception e) {
-						response = joinRoom.onError().apply(e);
-					}
-				}
-
-				queue.addAll(response.getActions());
-				continue;
-			}
-
-			if (action instanceof LeaveRoom) {
-				LeaveRoom leaveRoom = (LeaveRoom) action;
-
-				try {
-					leave(leaveRoom.roomId());
-				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem leaving room " + leaveRoom.roomId(), e);
-				}
-
-				continue;
-			}
-
-			if (action instanceof Shutdown) {
-				newEvents.clear();
-				stop();
-				continue;
-			}
-		}
-	}
-
 	@Override
 	public void broadcastMessage(PostMessage message) throws IOException {
 		for (IRoom room : connection.getRooms()) {
@@ -624,115 +409,19 @@ public class Bot implements IBot {
 	}
 
 	/**
-	 * Terminates the bot. This method blocks until it finishes processing all
-	 * existing messages in its queue.
+	 * Sends a signal to immediately stop processing tasks. The bot thread will
+	 * stop running once it is done processing the current task.
 	 */
 	public void stop() {
-		newEvents.add(CLOSE_EVENT);
+		choreQueue.add(new StopChore());
 	}
 
 	/**
-	 * Manages all inactivity tasks.
+	 * Sends a signal to finish processing the tasks in the queue, and then
+	 * terminate.
 	 */
-	private class InactivityTasks {
-		private final List<InactivityTask> tasks;
-		private final Map<Integer, LocalDateTime> timeOfLastMessage = new HashMap<>();
-		private final Multimap<Integer, TimerTask> timerTasks = ArrayListMultimap.create();
-
-		public InactivityTasks(List<InactivityTask> tasks) {
-			this.tasks = tasks;
-		}
-
-		private void scheduleTimerTask(InactivityTask task, IRoom room, Duration delay) {
-			TimerTask timerTask = new InactivityTimerTask(task, room);
-			synchronized (this) {
-				timerTasks.put(room.getRoomId(), timerTask);
-			}
-			timer.schedule(timerTask, delay.toMillis());
-		}
-
-		public void joinRoom(IRoom room) {
-			for (InactivityTask task : tasks) {
-				Duration delay = task.getInactivityTime(room, Bot.this);
-				if (delay == null) {
-					return;
-				}
-
-				scheduleTimerTask(task, room, delay);
-			}
-		}
-
-		/**
-		 * Records the time of the latest message that was posted in a room.
-		 * @param message the message that was posted
-		 */
-		public void touch(ChatMessage message) {
-			Integer roomId = message.getRoomId();
-			LocalDateTime timestamp = message.getTimestamp();
-			synchronized (this) {
-				timeOfLastMessage.put(roomId, timestamp);
-			}
-		}
-
-		public void leaveRoom(IRoom room) {
-			Integer roomId = room.getRoomId();
-			synchronized (this) {
-				Collection<TimerTask> roomTasks = timerTasks.removeAll(roomId);
-				roomTasks.stream().forEach(TimerTask::cancel);
-
-				timeOfLastMessage.remove(roomId);
-			}
-		}
-
-		private class InactivityTimerTask extends TimerTask {
-			private final InactivityTask task;
-			private final IRoom room;
-
-			public InactivityTimerTask(InactivityTask task, IRoom room) {
-				this.task = task;
-				this.room = room;
-			}
-
-			@Override
-			public void run() {
-				synchronized (InactivityTasks.this) {
-					try {
-						/**
-						 * Synchronize this whole method to account for the edge
-						 * case where an inactivity task causes the bot to leave
-						 * the room while another inactivity task in the same
-						 * room is running concurrently (or a user makes the bot
-						 * leave a room while these tasks are running).
-						 */
-
-						if (!connection.isInRoom(room.getRoomId())) {
-							return;
-						}
-
-						Duration inactivityTime = task.getInactivityTime(room, Bot.this);
-						if (inactivityTime == null) {
-							return;
-						}
-
-						LocalDateTime lastMessage = timeOfLastMessage.get(room.getRoomId());
-						Duration roomInactiveFor = (lastMessage == null) ? inactivityTime : Duration.between(lastMessage, LocalDateTime.now());
-						boolean runNow = (roomInactiveFor.compareTo(inactivityTime) >= 0);
-						if (runNow) {
-							try {
-								task.run(room, Bot.this);
-							} catch (Exception e) {
-								logger.log(Level.SEVERE, "Problem running inactivity task in room " + room.getRoomId() + ".", e);
-							}
-						}
-
-						Duration nextCheck = runNow ? inactivityTime : inactivityTime.minus(roomInactiveFor);
-						scheduleTimerTask(task, room, nextCheck);
-					} finally {
-						timerTasks.remove(room, this);
-					}
-				}
-			}
-		}
+	public void finish() {
+		choreQueue.add(new FinishChore());
 	}
 
 	/**
@@ -743,6 +432,7 @@ public class Bot implements IBot {
 		private final Instant timePosted;
 		private final String originalContent, condensedContent;
 		private final boolean ephemeral;
+		private final int roomId;
 		private final List<Long> messageIds;
 
 		/**
@@ -754,15 +444,17 @@ public class Bot implements IBot {
 		 * setting
 		 * @param ephemeral true to delete the message after the amount of time
 		 * specified in the "hideOneboxesAfter" setting, false not to
+		 * @param roomId the ID of the room the message was posted in
 		 * @param messageIds the ID of each message that was actually posted to
 		 * the room (the chat client may split up the original message due to
 		 * length limitations)
 		 */
-		public PostedMessage(Instant timePosted, String originalContent, String condensedContent, boolean ephemeral, List<Long> messageIds) {
+		public PostedMessage(Instant timePosted, String originalContent, String condensedContent, boolean ephemeral, int roomId, List<Long> messageIds) {
 			this.timePosted = timePosted;
 			this.originalContent = originalContent;
 			this.condensedContent = condensedContent;
 			this.ephemeral = ephemeral;
+			this.roomId = roomId;
 			this.messageIds = messageIds;
 		}
 
@@ -803,6 +495,14 @@ public class Bot implements IBot {
 		}
 
 		/**
+		 * Gets the ID of the room the message was posted in.
+		 * @return the room ID
+		 */
+		public int getRoomId() {
+			return roomId;
+		}
+
+		/**
 		 * Determines if the message has requested that it be condensed or
 		 * deleted after the amount of time specified in the "hideOneboxesAfter"
 		 * setting. Does not include messages that were converted to oneboxes.
@@ -824,19 +524,332 @@ public class Bot implements IBot {
 		}
 	}
 
-	private static class CondenseMessageTask extends TimerTask {
-		private static final Pattern replyRegex = Pattern.compile("^:(\\d+) (.*)", Pattern.DOTALL);
+	private abstract class Chore implements Comparable<Chore> {
+		private final long choreId;
 
-		private final PostedMessage postedMessage;
-		private final IRoom room;
+		public Chore() {
+			synchronized (choreIdCounter) {
+				choreId = choreIdCounter.getAndIncrement();
+			}
+		}
 
-		public CondenseMessageTask(PostedMessage postedMessage, IRoom room) {
-			this.postedMessage = postedMessage;
-			this.room = room;
+		public abstract void complete();
+
+		@Override
+		public int compareTo(Chore that) {
+			/*
+			 * The "lowest" value will be popped off the queue first.
+			 */
+
+			if (this instanceof StopChore && that instanceof StopChore) {
+				return 0;
+			}
+			if (this instanceof StopChore) {
+				return -1;
+			}
+			if (that instanceof StopChore) {
+				return 1;
+			}
+
+			if (this instanceof CondenseMessageChore && that instanceof CondenseMessageChore) {
+				return Long.compare(this.choreId, that.choreId);
+			}
+			if (this instanceof CondenseMessageChore) {
+				return -1;
+			}
+			if (that instanceof CondenseMessageChore) {
+				return 1;
+			}
+
+			return Long.compare(this.choreId, that.choreId);
+		}
+	}
+
+	private class StopChore extends Chore {
+		@Override
+		public void complete() {
+			//empty
+		}
+	}
+
+	private class FinishChore extends Chore {
+		@Override
+		public void complete() {
+			//empty
+		}
+	}
+
+	private class ChatEventChore extends Chore {
+		private final Event event;
+
+		public ChatEventChore(Event event) {
+			this.event = event;
 		}
 
 		@Override
-		public void run() {
+		public void complete() {
+			if (event instanceof MessagePostedEvent) {
+				MessagePostedEvent mpe = (MessagePostedEvent) event;
+				handleMessage(mpe.getMessage());
+			} else if (event instanceof MessageEditedEvent) {
+				MessageEditedEvent mee = (MessageEditedEvent) event;
+				handleMessage(mee.getMessage());
+			} else if (event instanceof InvitationEvent) {
+				InvitationEvent ie = (InvitationEvent) event;
+				handleInvitation(ie);
+			} else {
+				logger.severe("Ignoring event: " + event.getClass().getName());
+			}
+		}
+
+		private void handleMessage(ChatMessage message) {
+			if (message.getContent() == null) {
+				//user deleted their message, ignore
+				return;
+			}
+
+			if (!allowedUsers.isEmpty() && !allowedUsers.contains(message.getUserId())) {
+				//message was posted by a user who is not in the green list, ignore
+				return;
+			}
+
+			if (bannedUsers.contains(message.getUserId())) {
+				//message was posted by a banned user, ignore
+				return;
+			}
+
+			IRoom room = connection.getRoom(message.getRoomId());
+			if (room == null) {
+				//the bot is no longer in the room
+				return;
+			}
+
+			if (message.getUserId() == userId) {
+				//message was posted by this bot
+
+				PostedMessage postedMessage;
+				synchronized (postedMessages) {
+					postedMessage = postedMessages.remove(message.getMessageId());
+				}
+
+				/*
+				 * Check to see if the message should be edited for brevity
+				 * after a short time so it doesn't spam the chat history.
+				 * 
+				 * This could happen if (1) the bot posted something that Stack
+				 * Overflow Chat converted to a onebox (e.g. an image) or (2)
+				 * the message itself has asked to be edited (e.g. a javadoc
+				 * description).
+				 * 
+				 * ===What is a onebox?===
+				 * 
+				 * Stack Overflow Chat converts certain URLs to "oneboxes".
+				 * Oneboxes can be fairly large and can spam the chat. For
+				 * example, if the message is a URL to an image, the image
+				 * itself will be displayed in the chat room. This is nice, but
+				 * gets annoying if the image is large or if it's an animated
+				 * GIF.
+				 * 
+				 * After giving people some time to see the onebox, the bot will
+				 * edit the message so that the onebox no longer displays, but
+				 * the URL is still preserved.
+				 */
+				boolean messageIsOnebox = message.getContent().isOnebox();
+				if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
+					Duration postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
+					Duration hideIn = hideOneboxesAfter.minus(postedMessageAge);
+					if (logger.isLoggable(Level.INFO)) {
+						String action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
+						logger.info(action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+					}
+
+					timer.schedule(new TimerTask() {
+						@Override
+						public void run() {
+							choreQueue.add(new CondenseMessageChore(postedMessage));
+						}
+
+					}, hideIn.toMillis());
+				}
+
+				return;
+			}
+
+			timeOfLastMessageByRoom.put(message.getRoomId(), message.getTimestamp());
+
+			ChatActions actions = handleListeners(message);
+			handleActions(message, actions);
+
+			if (database != null) {
+				database.commit();
+			}
+		}
+
+		private ChatActions handleListeners(ChatMessage message) {
+			ChatActions actions = new ChatActions();
+			for (Listener listener : listeners) {
+				try {
+					actions.addAll(listener.onMessage(message, Bot.this));
+				} catch (Exception e) {
+					logger.log(Level.SEVERE, "Problem running listener.", e);
+				}
+			}
+			return actions;
+		}
+
+		private void handleActions(ChatMessage message, ChatActions actions) {
+			if (actions.isEmpty()) {
+				return;
+			}
+
+			if (logger.isLoggable(Level.INFO)) {
+				logger.info("Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+			}
+
+			if (stats != null) {
+				stats.incMessagesRespondedTo();
+			}
+
+			LinkedList<ChatAction> queue = new LinkedList<>(actions.getActions());
+			while (!queue.isEmpty()) {
+				ChatAction action = queue.removeFirst();
+
+				if (action instanceof PostMessage) {
+					PostMessage postMessage = (PostMessage) action;
+
+					try {
+						if (postMessage.broadcast()) {
+							broadcastMessage(postMessage);
+						} else {
+							sendMessage(message.getRoomId(), postMessage);
+						}
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "Problem posting message [room=" + message.getRoomId() + "]: " + postMessage.message(), e);
+					}
+
+					continue;
+				}
+
+				if (action instanceof DeleteMessage) {
+					DeleteMessage deleteMessage = (DeleteMessage) action;
+					ChatActions response;
+					try {
+						IRoom room = connection.getRoom(message.getRoomId());
+						room.deleteMessage(deleteMessage.messageId());
+						response = deleteMessage.onSuccess().get();
+					} catch (Exception e) {
+						response = deleteMessage.onError().apply(e);
+					}
+
+					queue.addAll(response.getActions());
+					continue;
+				}
+
+				if (action instanceof JoinRoom) {
+					JoinRoom joinRoom = (JoinRoom) action;
+
+					ChatActions response;
+					if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
+						response = joinRoom.onError().apply(new IOException("Cannot join room. Max rooms reached."));
+					} else {
+						try {
+							IRoom joinedRoom = joinRoom(joinRoom.roomId());
+							if (joinedRoom.canPost()) {
+								response = joinRoom.onSuccess().get();
+							} else {
+								response = joinRoom.ifLackingPermissionToPost().get();
+								try {
+									leave(joinRoom.roomId());
+								} catch (IOException e) {
+									logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
+								}
+							}
+						} catch (PrivateRoomException | RoomPermissionException e) {
+							response = joinRoom.ifLackingPermissionToPost().get();
+							try {
+								leave(joinRoom.roomId());
+							} catch (IOException e2) {
+								logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't join or post messages to it.", e);
+							}
+						} catch (RoomNotFoundException e) {
+							response = joinRoom.ifRoomDoesNotExist().get();
+						} catch (Exception e) {
+							response = joinRoom.onError().apply(e);
+						}
+					}
+
+					queue.addAll(response.getActions());
+					continue;
+				}
+
+				if (action instanceof LeaveRoom) {
+					LeaveRoom leaveRoom = (LeaveRoom) action;
+
+					try {
+						leave(leaveRoom.roomId());
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "Problem leaving room " + leaveRoom.roomId(), e);
+					}
+
+					continue;
+				}
+
+				if (action instanceof Shutdown) {
+					stop();
+					continue;
+				}
+			}
+		}
+
+		private void handleInvitation(InvitationEvent event) {
+			/*
+			 * If the bot is currently connected to multiple rooms, the
+			 * invitation event will be sent to each room and this method will
+			 * be called multiple times. Check to see if the bot has already
+			 * joined the room it was invited to.
+			 */
+			int roomId = event.getRoomId();
+			if (connection.isInRoom(roomId)) {
+				return;
+			}
+
+			/*
+			 * Ignore the invitation if the bot is connected to the maximum
+			 * number of rooms allowed. We can't really post an error message
+			 * because the invitation event is not linked to a specific chat
+			 * room.
+			 */
+			boolean maxRoomsExceeded = (maxRooms != null && connection.getRooms().size() >= maxRooms);
+			if (maxRoomsExceeded) {
+				return;
+			}
+
+			try {
+				joinRoom(roomId);
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Bot was invited to join room " + roomId + ", but couldn't join it.", e);
+			}
+		}
+	}
+
+	private class CondenseMessageChore extends Chore {
+		private final Pattern replyRegex = Pattern.compile("^:(\\d+) (.*)", Pattern.DOTALL);
+		private final PostedMessage postedMessage;
+
+		public CondenseMessageChore(PostedMessage postedMessage) {
+			this.postedMessage = postedMessage;
+		}
+
+		@Override
+		public void complete() {
+			int roomId = postedMessage.getRoomId();
+			IRoom room = connection.getRoom(roomId);
+
+			boolean botIsNoLongerInTheRoom = (room == null);
+			if (botIsNoLongerInTheRoom) {
+				return;
+			}
+
 			try {
 				List<Long> messagesToDelete;
 				if (postedMessage.isEphemeral()) {
@@ -864,7 +877,7 @@ public class Bot implements IBot {
 					room.deleteMessage(id);
 				}
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Problem editing chat message [room=" + room.getRoomId() + ", id=" + postedMessage.getMessageIds().get(0) + "]", e);
+				logger.log(Level.SEVERE, "Problem editing chat message [room=" + roomId + ", id=" + postedMessage.getMessageIds().get(0) + "]", e);
 			}
 		}
 
@@ -884,6 +897,64 @@ public class Bot implements IBot {
 			}
 
 			return cb.quote().append(content).toString();
+		}
+	}
+
+	private class ScheduledTaskChore extends Chore {
+		private final ScheduledTask task;
+
+		public ScheduledTaskChore(ScheduledTask task) {
+			this.task = task;
+		}
+
+		@Override
+		public void complete() {
+			try {
+				task.run(Bot.this);
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Problem running scheduled task.", e);
+			}
+			scheduleTask(task);
+		}
+	}
+
+	private class InactivityTaskChore extends Chore {
+		private final InactivityTask task;
+		private final IRoom room;
+
+		public InactivityTaskChore(InactivityTask task, IRoom room) {
+			this.task = task;
+			this.room = room;
+		}
+
+		@Override
+		public void complete() {
+			try {
+				if (!connection.isInRoom(room.getRoomId())) {
+					return;
+				}
+
+				Duration inactivityTime = task.getInactivityTime(room, Bot.this);
+				if (inactivityTime == null) {
+					return;
+				}
+
+				LocalDateTime lastMessageTimestamp = timeOfLastMessageByRoom.get(room.getRoomId());
+				Duration roomInactiveFor = (lastMessageTimestamp == null) ? inactivityTime : Duration.between(lastMessageTimestamp, LocalDateTime.now());
+				boolean runNow = (roomInactiveFor.compareTo(inactivityTime) >= 0);
+				if (runNow) {
+					try {
+						task.run(room, Bot.this);
+					} catch (Exception e) {
+						logger.log(Level.SEVERE, "Problem running inactivity task in room " + room.getRoomId() + ".", e);
+					}
+				}
+
+				Duration nextCheck = runNow ? inactivityTime : inactivityTime.minus(roomInactiveFor);
+				scheduleTask(task, room, nextCheck);
+			} finally {
+				inactivityTimerTasksByRoom.remove(room, this);
+			}
 		}
 	}
 

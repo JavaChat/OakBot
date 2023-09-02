@@ -112,7 +112,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, false);
+		runNonQuiet(bot);
 
 		/*
 		 * Verify.
@@ -142,7 +142,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, true);
+		runQuiet(bot);
 
 		/*
 		 * Verify.
@@ -171,7 +171,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, false);
+		runNonQuiet(bot);
 
 		/*
 		 * Verify.
@@ -213,7 +213,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, event1, event2);
+		runQuiet(bot, event1, event2);
 
 		/*
 		 * Verify.
@@ -266,7 +266,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, event1, event2, event3, event4);
+		runQuiet(bot, event1, event2, event3, event4);
 
 		/*
 		 * Verify.
@@ -311,7 +311,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, event1, event2);
+		runQuiet(bot, event1, event2);
 
 		/*
 		 * Verify.
@@ -416,7 +416,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, false, event1, event2);
+		runNonQuiet(bot, event1, event2);
 
 		/*
 		 * Verify.
@@ -484,7 +484,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, event1, event2, event3, event4, event5, event6, event7, event8);
+		runQuiet(bot, event1, event2, event3, event4, event5, event6, event7, event8);
 
 		/*
 		 * Verify.
@@ -540,7 +540,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, event1);
+		runQuiet(bot, event1);
 
 		/*
 		 * Verify.
@@ -633,7 +633,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, event1);
+		runQuiet(bot, event1);
 
 		/*
 		 * Verify.
@@ -673,7 +673,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, event1, event2);
+		runQuiet(bot, event1, event2);
 
 		/*
 		 * Verify.
@@ -714,7 +714,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, event1, event2);
+		runQuiet(bot, event1, event2);
 
 		/*
 		 * Verify.
@@ -831,7 +831,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		run(bot, event1, event2);
+		runQuiet(bot, event1, event2);
 
 		/*
 		 * Verify.
@@ -992,14 +992,18 @@ public class BotTest {
 		}
 	}
 
-	private void run(Bot bot, MessagePostedEvent... events) throws Exception {
+	private void runQuiet(Bot bot, MessagePostedEvent... events) throws Exception {
 		run(bot, true, events);
+	}
+
+	private void runNonQuiet(Bot bot, MessagePostedEvent... events) throws Exception {
+		run(bot, false, events);
 	}
 
 	private void run(Bot bot, boolean quiet, MessagePostedEvent... events) throws Exception {
 		Thread t = bot.connect(quiet);
 		chatServer.pushEvents(events);
-		bot.stop();
+		bot.finish();
 		t.join();
 	}
 }
