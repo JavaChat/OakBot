@@ -81,22 +81,18 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 	@Override
 	public long nextRun() {
-		long lowest;
-
-		synchronized (spontaneousPostTimes) {
-			if (spontaneousPostTimes.isEmpty()) {
-				return timeBetweenSpontaneousPosts.toMillis();
-			}
-
-			Instant now = Instant.now();
-
-			//@formatter:off
-			lowest = spontaneousPostTimes.values().stream()
-				.map(runTime -> Duration.between(now, runTime))
-				.mapToLong(Duration::toMillis)
-			.min().getAsLong();
-			//@formatter:on
+		if (spontaneousPostTimes.isEmpty()) {
+			return timeBetweenSpontaneousPosts.toMillis();
 		}
+
+		Instant now = Instant.now();
+
+		//@formatter:off
+		long lowest = spontaneousPostTimes.values().stream()
+			.map(runTime -> Duration.between(now, runTime))
+			.mapToLong(Duration::toMillis)
+		.min().getAsLong();
+		//@formatter:on
 
 		return (lowest < 1) ? 1 : lowest;
 	}
@@ -192,30 +188,26 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private void removeRoomsBotIsNotIn(IBot bot) {
-		synchronized (spontaneousPostTimes) {
-			List<Integer> roomsBotIsIn = bot.getRooms();
-			List<Integer> roomIds = spontaneousPostTimes.keySet().stream().filter(id -> {
-				return !roomsBotIsIn.contains(id);
-			}).collect(Collectors.toList());
+		List<Integer> roomsBotIsIn = bot.getRooms();
+		List<Integer> roomIds = spontaneousPostTimes.keySet().stream().filter(id -> {
+			return !roomsBotIsIn.contains(id);
+		}).collect(Collectors.toList());
 
-			roomIds.forEach(spontaneousPostTimes::remove);
-		}
+		roomIds.forEach(spontaneousPostTimes::remove);
 	}
 
 	private List<Integer> findRoomsToSpontaneouslyPostTo() {
 		List<Integer> roomIds = new ArrayList<>();
 
-		synchronized (spontaneousPostTimes) {
-			for (Map.Entry<Integer, Instant> entry : spontaneousPostTimes.entrySet()) {
-				Integer roomId = entry.getKey();
-				Instant runTime = entry.getValue();
+		for (Map.Entry<Integer, Instant> entry : spontaneousPostTimes.entrySet()) {
+			Integer roomId = entry.getKey();
+			Instant runTime = entry.getValue();
 
-				if (runTime.isAfter(Instant.now())) {
-					continue;
-				}
-
-				roomIds.add(roomId);
+			if (runTime.isAfter(Instant.now())) {
+				continue;
 			}
+
+			roomIds.add(roomId);
 		}
 
 		return roomIds;
@@ -288,8 +280,6 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 */
 	public void resetSpontaneousPostTimer(int roomId) {
 		Instant nextRunTime = Instant.now().plus(timeBetweenSpontaneousPosts);
-		synchronized (spontaneousPostTimes) {
-			spontaneousPostTimes.put(roomId, nextRunTime);
-		}
+		spontaneousPostTimes.put(roomId, nextRunTime);
 	}
 }

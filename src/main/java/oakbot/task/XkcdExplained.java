@@ -77,40 +77,39 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 	@Override
 	public void run(IBot bot) throws Exception {
-		synchronized (comicsByRoom) {
-			List<Integer> stopChecking = new ArrayList<>();
-			for (Map.Entry<Integer, Comic> entry : comicsByRoom.entrySet()) {
-				int roomId = entry.getKey();
-				Comic comic = entry.getValue();
+		List<Integer> stopChecking = new ArrayList<>();
+		for (Map.Entry<Integer, Comic> entry : comicsByRoom.entrySet()) {
+			int roomId = entry.getKey();
+			Comic comic = entry.getValue();
 
-				if (stillNeedToWait(comic)) {
-					continue;
+			if (stillNeedToWait(comic)) {
+				continue;
+			}
+
+			String url = url(comic.comicId);
+			String explanationHtml;
+			try {
+				explanationHtml = scrapeExplanationHtml(url);
+			} catch (Exception e) {
+				comic.checkedWiki();
+				if (comic.timesCheckedWiki >= maxTimesToCheckWikiBeforeGivingUp) {
+					stopChecking.add(roomId);
+					logger.severe("Still no explanation posted for comic #" + comic.comicId + " after checking wiki " + comic.timesCheckedWiki + " times. Giving up.");
 				}
+				continue;
+			}
 
-				String url = url(comic.comicId);
-				String explanationHtml;
-				try {
-					explanationHtml = scrapeExplanationHtml(url);
-				} catch (Exception e) {
-					comic.checkedWiki();
-					if (comic.timesCheckedWiki >= maxTimesToCheckWikiBeforeGivingUp) {
-						stopChecking.add(roomId);
-						logger.severe("Still no explanation posted for comic #" + comic.comicId + " after checking wiki " + comic.timesCheckedWiki + " times. Giving up.");
-					}
-					continue;
-				}
+			stopChecking.add(roomId);
 
-				stopChecking.add(roomId);
+			/**
+			 * Ensure the content has no newlines. Newlines prevent the
+			 * markdown conversion from happening.
+			 */
+			explanationHtml = explanationHtml.replaceAll("(\\r\\n|\\n|\\r)", " ");
 
-				/**
-				 * Ensure the content has no newlines. Newlines prevent the
-				 * markdown conversion from happening.
-				 */
-				explanationHtml = explanationHtml.replaceAll("(\\r\\n|\\n|\\r)", " ");
+			String explanationMd = ChatBuilder.toMarkdown(explanationHtml, false, false, url);
 
-				String explanationMd = ChatBuilder.toMarkdown(explanationHtml, false, false, url);
-
-				//@formatter:off
+			//@formatter:off
 				String beginningMd = new ChatBuilder()
 					.reply(comic.messageContainingComic.getMessageId())
 					.bold().link("XKCD #" + comic.comicId + " Explained", url).append(":").bold()
@@ -118,18 +117,17 @@ public class XkcdExplained implements ScheduledTask, Listener {
 				.toString();
 				//@formatter:on
 
-				final int MAX_MESSAGE_LENGTH = 500;
-				int trimLength = MAX_MESSAGE_LENGTH - beginningMd.length();
+			final int MAX_MESSAGE_LENGTH = 500;
+			int trimLength = MAX_MESSAGE_LENGTH - beginningMd.length();
 
-				explanationMd = SplitStrategy.WORD.split(explanationMd, trimLength).get(0);
-				String message = beginningMd + explanationMd;
+			explanationMd = SplitStrategy.WORD.split(explanationMd, trimLength).get(0);
+			String message = beginningMd + explanationMd;
 
-				PostMessage postMessage = new PostMessage(message);
-				bot.sendMessage(roomId, postMessage);
-			}
-
-			stopChecking.forEach(comicsByRoom::remove);
+			PostMessage postMessage = new PostMessage(message);
+			bot.sendMessage(roomId, postMessage);
 		}
+
+		stopChecking.forEach(comicsByRoom::remove);
 	}
 
 	private String url(int comicId) {
@@ -243,9 +241,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 			Matcher m = regex.matcher(message.getContent().getContent());
 			if (m.find()) {
 				int comicId = Integer.parseInt(m.group(1));
-				synchronized (comicsByRoom) {
-					comicsByRoom.put(message.getRoomId(), new Comic(message, comicId));
-				}
+				comicsByRoom.put(message.getRoomId(), new Comic(message, comicId));
 			}
 		}
 

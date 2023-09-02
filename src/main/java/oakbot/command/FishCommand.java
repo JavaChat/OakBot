@@ -118,7 +118,7 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	@Override
-	public synchronized ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		int roomId = chatCommand.getMessage().getRoomId();
 		int userId = chatCommand.getMessage().getUserId();
 		String username = chatCommand.getMessage().getUsername();
@@ -218,7 +218,7 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	@Override
-	public synchronized void run(IBot bot) throws Exception {
+	public void run(IBot bot) throws Exception {
 		Instant now = Now.instant();
 
 		for (Map.Entry<Integer, Map<Integer, PendingCatch>> entry : currentlyFishingByRoom.entrySet()) {
