@@ -184,11 +184,11 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 			//output name
 			String playerName = names.get(i);
-			cb.append(playerName).append(' ', lengthOfLongestName - playerName.length());
+			cb.append(playerName).repeat(' ', lengthOfLongestName - playerName.length());
 
 			//output score
 			cb.append(" (score: ");
-			cb.append(' ', digitsInHighestScore - numberOfDigits(player.getScore()));
+			cb.repeat(' ', digitsInHighestScore - numberOfDigits(player.getScore()));
 			cb.append(player.getScore()).append(") ");
 
 			//output stars

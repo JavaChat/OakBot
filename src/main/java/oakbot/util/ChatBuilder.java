@@ -229,7 +229,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param repeat the number of times to repeat the character
 	 * @return this
 	 */
-	public ChatBuilder append(char c, int repeat) {
+	public ChatBuilder repeat(char c, int repeat) {
 		for (int i = 0; i < repeat; i++) {
 			append(c);
 		}
