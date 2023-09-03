@@ -2,18 +2,19 @@ package oakbot.command.aoc;
 
 import static oakbot.bot.ChatActions.reply;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -92,10 +93,9 @@ public class AdventOfCode implements ScheduledTask, Command {
 		boolean displayDefaultLeaderboard = leaderboardId.isEmpty();
 		if (displayDefaultLeaderboard) {
 			leaderboardId = monitoredLeaderboardByRoom.get(chatCommand.getMessage().getRoomId());
-		}
-
-		if (leaderboardId == null) {
-			return reply("Please specify a leaderboard ID (e.g. " + bot.getTrigger() + name() + " 123456).", chatCommand);
+			if (leaderboardId == null) {
+				return reply("Please specify a leaderboard ID (e.g. " + bot.getTrigger() + name() + " 123456).", chatCommand);
+			}
 		}
 
 		List<Player> players;
@@ -106,59 +106,37 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 			//@formatter:off
 			return reply(new ChatBuilder()
-				.append("I couldn't query that leaderboard. It might not exist. Or the user that my adventofcode.com session token belongs to might not have access to that leaderboard. Or the token might have expired. Or you're trolling me. Error message: ")
+				.append("I couldn't query that leaderboard. It might not exist. Or the user that my adventofcode.com session token belongs to might not have access to that leaderboard. Or the token might have expired. Or you're trolling me: ")
 				.code(e.getMessage()),
 			chatCommand);
 			//@formatter:on
 		}
 
-		//sort by score descending
-		Collections.sort(players, (a, b) -> {
-			int c = b.getScore() - a.getScore();
-			if (c != 0) {
-				return c;
-			}
+		String websiteUrl = api.getLeaderboardWebsite(leaderboardId);
+		String leaderboardStr = buildLeaderboard(players, websiteUrl);
 
-			return b.getStars() - a.getStars();
-		});
-
-		//build names
-		List<String> names = new ArrayList<>(players.size());
-		int lengthOfLongestName = 0;
-		for (Player player : players) {
-			String name;
-			if (player.getName() == null) {
-				name = "(user #" + player.getId() + ")";
-			} else {
-				/*
-				 * Remove '@' symbols to prevent people from trolling by
-				 * putting chat mentions in their AoC names.
-				 */
-				name = player.getName().replace("@", "");
-			}
-
-			if (name.length() > lengthOfLongestName) {
-				lengthOfLongestName = name.length();
-			}
-			names.add(name);
+		ChatBuilder condensed = new ChatBuilder();
+		condensed.append("Type ").code().append(bot.getTrigger()).append(name());
+		if (!displayDefaultLeaderboard) {
+			condensed.append(" " + leaderboardId);
 		}
+		condensed.code().append(" to see the leaderboard again (or go here: ").append(websiteUrl).append(")");
 
-		//find number of digits in highest score
-		int digitsInHighestScore = 0;
-		{
-			int highestScore = -1;
-			for (Player player : players) {
-				if (player.getScore() > highestScore) {
-					highestScore = player.getScore();
-				}
-			}
-			digitsInHighestScore = numberOfDigits(highestScore);
-		}
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(leaderboardStr).bypassFilters(true).condensedMessage(condensed)
+		);
+		//@formatter:on
+	}
 
-		//output leaderboard
+	private String buildLeaderboard(List<Player> players, String websiteUrl) {
+		sortPlayersByScoreDescending(players);
+		List<String> names = buildPlayerNameStrings(players);
+		int lengthOfLongestName = lengthOfLongestName(names);
+		int lengthOfHighestScore = lengthOfHighestScore(players);
+
 		ChatBuilder cb = new ChatBuilder();
-		String htmlUrl = api.getLeaderboardWebsite(leaderboardId);
-		cb.fixed().append("Leaderboard URL: ").append(htmlUrl).nl();
+		cb.fixed().append("Leaderboard URL: ").append(websiteUrl).nl();
 
 		int rank = 0;
 		int prevScore = -1;
@@ -188,12 +166,12 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 			//output score
 			cb.append(" (score: ");
-			cb.repeat(' ', digitsInHighestScore - numberOfDigits(player.getScore()));
+			cb.repeat(' ', lengthOfHighestScore - numberOfDigits(player.getScore()));
 			cb.append(player.getScore()).append(") ");
 
 			//output stars
 			Map<Integer, Instant[]> days = player.getCompletionTimes();
-			for (int day = 1; day <= 25; day++) {
+			IntStream.rangeClosed(1, 25).forEach(day -> {
 				Instant[] parts = days.get(day);
 				if (parts == null) {
 					//did not finish anything
@@ -209,7 +187,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 				if (day != 25 && day % 5 == 0) {
 					cb.append('|');
 				}
-			}
+			});
 
 			//output star count
 			cb.append(' ');
@@ -222,28 +200,66 @@ public class AdventOfCode implements ScheduledTask, Command {
 			prevStars = player.getStars();
 		}
 
-		ChatBuilder condensed = new ChatBuilder();
-		condensed.append("Type ").code().append(bot.getTrigger()).append(name());
-		if (!displayDefaultLeaderboard) {
-			condensed.append(" " + leaderboardId);
-		}
-		condensed.code().append(" to see the leaderboard again (or go here: ").append(htmlUrl).append(")");
+		return cb.toString();
+	}
 
+	private void sortPlayersByScoreDescending(List<Player> players) {
+		players.sort((a, b) -> {
+			int c = b.getScore() - a.getScore();
+			if (c != 0) {
+				return c;
+			}
+
+			return b.getStars() - a.getStars();
+		});
+	}
+
+	private List<String> buildPlayerNameStrings(List<Player> players) {
 		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(cb).bypassFilters(true).condensedMessage(condensed)
-		);
+		return players.stream()
+			.map(this::buildPlayerNameForLeaderboard)
+		.collect(Collectors.toList());
 		//@formatter:on
 	}
 
-	private static int numberOfDigits(int number) {
+	private String buildPlayerNameForLeaderboard(Player player) {
+		if (player.getName() == null) {
+			return "(user #" + player.getId() + ")";
+		}
+
+		/*
+		 * Remove '@' symbols to prevent people from trolling by putting chat
+		 * mentions in their AoC names.
+		 */
+		return player.getName().replace("@", "");
+	}
+
+	private int lengthOfLongestName(List<String> names) {
+		//@formatter:off
+		return names.stream()
+			.mapToInt(String::length)
+		.max().getAsInt();
+		//@formatter:on
+	}
+
+	private int lengthOfHighestScore(List<Player> players) {
+		//@formatter:off
+		int highestScore = players.stream()
+			.mapToInt(Player::getScore)
+		.max().getAsInt();
+		//@formatter:on
+
+		return numberOfDigits(highestScore);
+	}
+
+	private int numberOfDigits(int number) {
 		if (number == 0) {
 			return 1;
 		}
 
 		int digits = 0;
 		while (number > 0) {
-			number = number / 10;
+			number /= 10;
 			digits++;
 		}
 		return digits;
@@ -279,7 +295,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 			try {
 				leaderboard = api.getLeaderboard(leaderboardId);
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Could not get leaderboard for " + leaderboardId, e);
+				logger.log(Level.SEVERE, "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.", e);
 				continue;
 			}
 
@@ -287,43 +303,46 @@ public class AdventOfCode implements ScheduledTask, Command {
 			lastChecked.put(roomId, Now.instant());
 
 			for (Player player : leaderboard) {
-				for (Map.Entry<Integer, Instant[]> entry2 : player.getCompletionTimes().entrySet()) {
-					Instant[] completionTime = entry2.getValue();
-					boolean justFinishedPart1 = completionTime[0].isAfter(prevChecked);
-					boolean justFinishedPart2 = completionTime[1] != null && completionTime[1].isAfter(prevChecked);
-
-					if (!justFinishedPart1 && !justFinishedPart2) {
-						continue;
-					}
-
-					Integer day = entry2.getKey();
-
-					String playerName;
-					if (player.getName() == null) {
-						playerName = "anonymous user #" + player.getId();
-					} else {
-						/*
-						 * Remove '@' symbols to prevent people from trolling by
-						 * putting chat mentions in their AoC names.
-						 */
-						playerName = player.getName().replace("@", "");
-					}
-
-					ChatBuilder cb;
-					if (justFinishedPart1 && justFinishedPart2) {
-						cb = new ChatBuilder() //@formatter:off
-							.bold(playerName)
-							.append(" completed parts 1 and 2 of day ").append(day).append("! \\o/"); //@formatter:on
-					} else {
-						int part = justFinishedPart1 ? 1 : 2;
-						cb = new ChatBuilder() //@formatter:off
-							.bold(playerName)
-							.append(" completed part ").append(part).append(" of day ").append(day).append("! \\o/"); //@formatter:on
-					}
-
-					bot.sendMessage(roomId, new PostMessage(cb));
-				}
+				sendAnnouncementMessage(player, prevChecked, roomId, bot);
 			}
 		}
+	}
+
+	private void sendAnnouncementMessage(Player player, Instant prevChecked, int roomId, IBot bot) throws IOException {
+		for (Map.Entry<Integer, Instant[]> entry : player.getCompletionTimes().entrySet()) {
+			Instant[] completionTime = entry.getValue();
+			boolean justFinishedPart1 = completionTime[0].isAfter(prevChecked);
+			boolean justFinishedPart2 = completionTime[1] != null && completionTime[1].isAfter(prevChecked);
+
+			if (!justFinishedPart1 && !justFinishedPart2) {
+				continue;
+			}
+
+			Integer day = entry.getKey();
+			String playerName = buildPlayerNameForAnnouncements(player);
+
+			ChatBuilder cb = new ChatBuilder().bold(playerName);
+			if (justFinishedPart1 && justFinishedPart2) {
+				cb.append(" completed parts 1 and 2");
+			} else {
+				int part = justFinishedPart1 ? 1 : 2;
+				cb.append(" completed part ").append(part);
+			}
+			cb.append(" of day ").append(day).append("! \\o/");
+
+			bot.sendMessage(roomId, new PostMessage(cb));
+		}
+	}
+
+	private String buildPlayerNameForAnnouncements(Player player) {
+		if (player.getName() == null) {
+			return "anonymous user #" + player.getId();
+		}
+
+		/*
+		 * Remove '@' symbols to prevent people from trolling by putting chat
+		 * mentions in their AoC names.
+		 */
+		return player.getName().replace("@", "");
 	}
 }
