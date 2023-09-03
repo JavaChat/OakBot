@@ -148,7 +148,14 @@ public class Bot implements IBot {
 	 * @throws IOException if there's a network problem
 	 */
 	public Thread connect(boolean quiet) throws IOException {
-		//connect to each room
+		joinRoomsOnStart(quiet);
+
+		Thread thread = new ChoreThread();
+		thread.start();
+		return thread;
+	}
+
+	private void joinRoomsOnStart(boolean quiet) {
 		boolean first = true;
 		List<Integer> roomsCopy = new ArrayList<>(rooms.getRooms());
 		for (Integer room : roomsCopy) {
@@ -170,10 +177,13 @@ public class Bot implements IBot {
 
 			first = false;
 		}
+	}
 
-		Thread thread = new Thread(() -> {
+	private class ChoreThread extends Thread {
+		@Override
+		public void run() {
 			try {
-				scheduledTasks.forEach(this::scheduleTask);
+				scheduledTasks.forEach(Bot.this::scheduleTask);
 
 				while (true) {
 					Chore chore;
@@ -206,11 +216,7 @@ public class Bot implements IBot {
 
 				timer.cancel();
 			}
-		});
-
-		thread.start();
-
-		return thread;
+		}
 	}
 
 	@Override
