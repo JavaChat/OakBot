@@ -133,7 +133,7 @@ public class AfkCommand implements Command, Listener {
 
 		String sanitizedMention = mention.toLowerCase();
 		return afkUsersById.values().stream().filter(user -> {
-			String sanitizedUserName = user.getUsername().replaceAll(" ", "").toLowerCase();
+			String sanitizedUserName = user.getUsername().replace(" ", "").toLowerCase();
 			return sanitizedUserName.startsWith(sanitizedMention);
 		}).collect(Collectors.toList());
 	}
