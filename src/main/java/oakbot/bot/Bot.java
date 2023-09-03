@@ -626,52 +626,7 @@ public class Bot implements IBot {
 
 			if (message.getUserId() == userId) {
 				//message was posted by this bot
-
-				PostedMessage postedMessage;
-				synchronized (postedMessages) {
-					postedMessage = postedMessages.remove(message.getMessageId());
-				}
-
-				/*
-				 * Check to see if the message should be edited for brevity
-				 * after a short time so it doesn't spam the chat history.
-				 * 
-				 * This could happen if (1) the bot posted something that Stack
-				 * Overflow Chat converted to a onebox (e.g. an image) or (2)
-				 * the message itself has asked to be edited (e.g. a javadoc
-				 * description).
-				 * 
-				 * ===What is a onebox?===
-				 * 
-				 * Stack Overflow Chat converts certain URLs to "oneboxes".
-				 * Oneboxes can be fairly large and can spam the chat. For
-				 * example, if the message is a URL to an image, the image
-				 * itself will be displayed in the chat room. This is nice, but
-				 * gets annoying if the image is large or if it's an animated
-				 * GIF.
-				 * 
-				 * After giving people some time to see the onebox, the bot will
-				 * edit the message so that the onebox no longer displays, but
-				 * the URL is still preserved.
-				 */
-				boolean messageIsOnebox = message.getContent().isOnebox();
-				if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
-					Duration postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
-					Duration hideIn = hideOneboxesAfter.minus(postedMessageAge);
-					if (logger.isLoggable(Level.INFO)) {
-						String action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
-						logger.info(action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
-					}
-
-					timer.schedule(new TimerTask() {
-						@Override
-						public void run() {
-							choreQueue.add(new CondenseMessageChore(postedMessage));
-						}
-
-					}, hideIn.toMillis());
-				}
-
+				handleBotMessage(message);
 				return;
 			}
 
@@ -682,6 +637,53 @@ public class Bot implements IBot {
 
 			if (database != null) {
 				database.commit();
+			}
+		}
+
+		private void handleBotMessage(ChatMessage message) {
+			PostedMessage postedMessage;
+			synchronized (postedMessages) {
+				postedMessage = postedMessages.remove(message.getMessageId());
+			}
+
+			/*
+			 * Check to see if the message should be edited for brevity
+			 * after a short time so it doesn't spam the chat history.
+			 * 
+			 * This could happen if (1) the bot posted something that Stack
+			 * Overflow Chat converted to a onebox (e.g. an image) or (2)
+			 * the message itself has asked to be edited (e.g. a javadoc
+			 * description).
+			 * 
+			 * ===What is a onebox?===
+			 * 
+			 * Stack Overflow Chat converts certain URLs to "oneboxes".
+			 * Oneboxes can be fairly large and can spam the chat. For
+			 * example, if the message is a URL to an image, the image
+			 * itself will be displayed in the chat room. This is nice, but
+			 * gets annoying if the image is large or if it's an animated
+			 * GIF.
+			 * 
+			 * After giving people some time to see the onebox, the bot will
+			 * edit the message so that the onebox no longer displays, but
+			 * the URL is still preserved.
+			 */
+			boolean messageIsOnebox = message.getContent().isOnebox();
+			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
+				Duration postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
+				Duration hideIn = hideOneboxesAfter.minus(postedMessageAge);
+				if (logger.isLoggable(Level.INFO)) {
+					String action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
+					logger.info(action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+				}
+
+				timer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						choreQueue.add(new CondenseMessageChore(postedMessage));
+					}
+
+				}, hideIn.toMillis());
 			}
 		}
 
@@ -715,82 +717,24 @@ public class Bot implements IBot {
 				ChatAction action = queue.removeFirst();
 
 				if (action instanceof PostMessage) {
-					PostMessage postMessage = (PostMessage) action;
-
-					try {
-						if (postMessage.broadcast()) {
-							broadcastMessage(postMessage);
-						} else {
-							sendMessage(message.getRoomId(), postMessage);
-						}
-					} catch (IOException e) {
-						logger.log(Level.SEVERE, "Problem posting message [room=" + message.getRoomId() + "]: " + postMessage.message(), e);
-					}
-
+					handlePostMessageAction((PostMessage) action, message);
 					continue;
 				}
 
 				if (action instanceof DeleteMessage) {
-					DeleteMessage deleteMessage = (DeleteMessage) action;
-					ChatActions response;
-					try {
-						IRoom room = connection.getRoom(message.getRoomId());
-						room.deleteMessage(deleteMessage.messageId());
-						response = deleteMessage.onSuccess().get();
-					} catch (Exception e) {
-						response = deleteMessage.onError().apply(e);
-					}
-
+					ChatActions response = handleDeleteMessageAction((DeleteMessage) action, message);
 					queue.addAll(response.getActions());
 					continue;
 				}
 
 				if (action instanceof JoinRoom) {
-					JoinRoom joinRoom = (JoinRoom) action;
-
-					ChatActions response;
-					if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
-						response = joinRoom.onError().apply(new IOException("Cannot join room. Max rooms reached."));
-					} else {
-						try {
-							IRoom joinedRoom = joinRoom(joinRoom.roomId());
-							if (joinedRoom.canPost()) {
-								response = joinRoom.onSuccess().get();
-							} else {
-								response = joinRoom.ifLackingPermissionToPost().get();
-								try {
-									leave(joinRoom.roomId());
-								} catch (IOException e) {
-									logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't post messages to it.", e);
-								}
-							}
-						} catch (PrivateRoomException | RoomPermissionException e) {
-							response = joinRoom.ifLackingPermissionToPost().get();
-							try {
-								leave(joinRoom.roomId());
-							} catch (IOException e2) {
-								logger.log(Level.SEVERE, "Problem leaving room after it was found that the bot can't join or post messages to it.", e);
-							}
-						} catch (RoomNotFoundException e) {
-							response = joinRoom.ifRoomDoesNotExist().get();
-						} catch (Exception e) {
-							response = joinRoom.onError().apply(e);
-						}
-					}
-
+					ChatActions response = handleJoinRoomAction((JoinRoom) action);
 					queue.addAll(response.getActions());
 					continue;
 				}
 
 				if (action instanceof LeaveRoom) {
-					LeaveRoom leaveRoom = (LeaveRoom) action;
-
-					try {
-						leave(leaveRoom.roomId());
-					} catch (IOException e) {
-						logger.log(Level.SEVERE, "Problem leaving room " + leaveRoom.roomId(), e);
-					}
-
+					handleLeaveRoomAction((LeaveRoom) action);
 					continue;
 				}
 
@@ -798,6 +742,70 @@ public class Bot implements IBot {
 					stop();
 					continue;
 				}
+			}
+		}
+
+		private void handlePostMessageAction(PostMessage action, ChatMessage message) {
+			try {
+				if (action.broadcast()) {
+					broadcastMessage(action);
+				} else {
+					sendMessage(message.getRoomId(), action);
+				}
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Problem posting message [room=" + message.getRoomId() + "]: " + action.message(), e);
+			}
+		}
+
+		private ChatActions handleDeleteMessageAction(DeleteMessage action, ChatMessage message) {
+			try {
+				IRoom room = connection.getRoom(message.getRoomId());
+				room.deleteMessage(action.messageId());
+				return action.onSuccess().get();
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Problem deleting message [room=" + message.getRoomId() + ", messageId=" + action.messageId() + "]", e);
+				return action.onError().apply(e);
+			}
+		}
+
+		private ChatActions handleJoinRoomAction(JoinRoom action) {
+			if (maxRooms != null && connection.getRooms().size() >= maxRooms) {
+				return action.onError().apply(new IOException("Cannot join room. Max rooms reached."));
+			}
+
+			try {
+				IRoom joinedRoom = joinRoom(action.roomId());
+				if (joinedRoom.canPost()) {
+					return action.onSuccess().get();
+				}
+
+				try {
+					leave(action.roomId());
+				} catch (Exception e) {
+					logger.log(Level.SEVERE, "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.", e);
+				}
+
+				return action.ifLackingPermissionToPost().get();
+			} catch (PrivateRoomException | RoomPermissionException e) {
+				try {
+					leave(action.roomId());
+				} catch (Exception e2) {
+					logger.log(Level.SEVERE, "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.", e2);
+				}
+
+				return action.ifLackingPermissionToPost().get();
+			} catch (RoomNotFoundException e) {
+				return action.ifRoomDoesNotExist().get();
+			} catch (Exception e) {
+				return action.onError().apply(e);
+			}
+		}
+
+		private void handleLeaveRoomAction(LeaveRoom action) {
+			try {
+				leave(action.roomId());
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Problem leaving room " + action.roomId() + ".", e);
 			}
 		}
 

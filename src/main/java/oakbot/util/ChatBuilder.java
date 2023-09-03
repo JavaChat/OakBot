@@ -339,100 +339,13 @@ public class ChatBuilder implements CharSequence {
 				 * Note: Stack Overflow Chat does not convert "blockquote"
 				 * syntax (">" character) to an HTML tag.
 				 */
-				ChatBuilder chatBuilder = new ChatBuilder();
 				if (baseUrl == null) {
 					baseUrl = "";
 				}
 
-				Jsoup.parse(content, baseUrl).traverse(new NodeVisitor() {
-					private boolean inTag = false;
-					private ChatBuilder linkText = null;
-
-					@Override
-					public void head(Node node, int depth) {
-						ChatBuilder cb = cb();
-
-						//escape characters used in Markdown syntax
-						if (node instanceof TextNode) {
-							TextNode text = (TextNode) node;
-							cb.append(text.text().replaceAll("[\\*_\\`()\\[\\]]", "\\\\$0"));
-							return;
-						}
-
-						if (node instanceof Element) {
-							Element element = (Element) node;
-							switch (element.tagName()) {
-							case "b":
-								cb.bold();
-								break;
-							case "i":
-								cb.italic();
-								break;
-							case "code":
-								cb.code();
-								break;
-							case "strike":
-								cb.strike();
-								break;
-							case "a":
-								linkText = new ChatBuilder();
-								break;
-							case "span":
-								if (linkText != null && element.classNames().contains("ob-post-tag")) {
-									inTag = true;
-								}
-								break;
-							}
-						}
-					}
-
-					@Override
-					public void tail(Node node, int depth) {
-						ChatBuilder cb = cb();
-
-						if (node instanceof Element) {
-							Element element = (Element) node;
-							switch (element.tagName()) {
-							case "b":
-								cb.bold();
-								break;
-							case "i":
-								cb.italic();
-								break;
-							case "code":
-								cb.code();
-								break;
-							case "strike":
-								cb.strike();
-								break;
-							case "a":
-								String text = linkText.toString();
-								if (inTag) {
-									chatBuilder.tag(text);
-								} else {
-									String url = element.absUrl("href");
-									if (url.isEmpty()) {
-										//just in case a <a> tag without a URL sneaks in there
-										chatBuilder.append(text);
-									} else {
-										String title = includeTitleInLinks ? element.attr("title") : "";
-										chatBuilder.link(text, url, title);
-									}
-								}
-
-								linkText = null;
-								inTag = false;
-								break;
-							}
-						}
-					}
-
-					private ChatBuilder cb() {
-						return (linkText == null) ? chatBuilder : linkText;
-					}
-				});
-
-				markdown = chatBuilder.toString();
+				MarkdownNodeVisitor nodeVisitor = new MarkdownNodeVisitor(includeTitleInLinks);
+				Jsoup.parse(content, baseUrl).traverse(nodeVisitor);
+				markdown = nodeVisitor.getMarkdown();
 			}
 		}
 
@@ -440,5 +353,112 @@ public class ChatBuilder implements CharSequence {
 		markdown = StringEscapeUtils.unescapeHtml4(markdown);
 
 		return markdown;
+	}
+
+	private static class MarkdownNodeVisitor implements NodeVisitor {
+		private final ChatBuilder chatBuilder = new ChatBuilder();
+		private final boolean includeTitleInLinks;
+
+		private boolean inTag = false;
+		private ChatBuilder linkText = null;
+
+		public MarkdownNodeVisitor(boolean includeTitleInLinks) {
+			this.includeTitleInLinks = includeTitleInLinks;
+		}
+
+		@Override
+		public void head(Node node, int depth) {
+			ChatBuilder cb = cb();
+
+			//escape characters used in Markdown syntax
+			if (node instanceof TextNode) {
+				TextNode text = (TextNode) node;
+				cb.append(text.text().replaceAll("[\\*_\\`()\\[\\]]", "\\\\$0"));
+				return;
+			}
+
+			if (node instanceof Element) {
+				Element element = (Element) node;
+				switch (element.tagName()) {
+				case "b":
+					cb.bold();
+					break;
+				case "i":
+					cb.italic();
+					break;
+				case "code":
+					cb.code();
+					break;
+				case "strike":
+					cb.strike();
+					break;
+				case "a":
+					linkText = new ChatBuilder();
+					break;
+				case "span":
+					if (linkText != null && element.classNames().contains("ob-post-tag")) {
+						inTag = true;
+					}
+					break;
+				}
+			}
+		}
+
+		@Override
+		public void tail(Node node, int depth) {
+			ChatBuilder cb = cb();
+
+			if (node instanceof Element) {
+				Element element = (Element) node;
+				switch (element.tagName()) {
+				case "b":
+					cb.bold();
+					break;
+				case "i":
+					cb.italic();
+					break;
+				case "code":
+					cb.code();
+					break;
+				case "strike":
+					cb.strike();
+					break;
+				case "a":
+					processLink(element);
+					break;
+				}
+			}
+		}
+
+		private void processLink(Element element) {
+			String text = linkText.toString();
+
+			if (inTag) {
+				chatBuilder.tag(text);
+			} else {
+				String url = element.absUrl("href");
+				if (url.isEmpty()) {
+					/*
+					 * If the <a> tag doesn't have an "href" attribute, treat it
+					 * as plain text.
+					 */
+					chatBuilder.append(text);
+				} else {
+					String title = includeTitleInLinks ? element.attr("title") : "";
+					chatBuilder.link(text, url, title);
+				}
+			}
+
+			linkText = null;
+			inTag = false;
+		}
+
+		private ChatBuilder cb() {
+			return (linkText == null) ? chatBuilder : linkText;
+		}
+
+		public String getMarkdown() {
+			return chatBuilder.toString();
+		}
 	}
 }
