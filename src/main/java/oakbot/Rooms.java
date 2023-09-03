@@ -131,7 +131,7 @@ public class Rooms {
 	 * @return true if it's in the list, false if not
 	 */
 	public boolean contains(int roomId) {
-		return rooms.contains((Integer) roomId);
+		return rooms.contains(roomId);
 	}
 
 	private void save() {
