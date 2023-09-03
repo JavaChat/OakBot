@@ -267,9 +267,7 @@ public class AfkCommand implements Command, Listener {
 			if (obj == null) return false;
 			if (getClass() != obj.getClass()) return false;
 			AfkUser other = (AfkUser) obj;
-			if (userId != other.userId) return false;
-			if (!username.equals(other.username)) return false;
-			return true;
+			return userId == other.userId;
 		}
 	}
 }

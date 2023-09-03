@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -328,10 +329,7 @@ public class JavadocZipFile {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + file.hashCode();
-		return result;
+		return Objects.hash(file);
 	}
 
 	@Override
@@ -340,8 +338,7 @@ public class JavadocZipFile {
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		JavadocZipFile other = (JavadocZipFile) obj;
-		if (!file.equals(other.file)) return false;
-		return true;
+		return Objects.equals(file, other.file);
 	}
 
 	/**
