@@ -1,5 +1,6 @@
 package oakbot.listener.chatgpt;
 
+import static java.util.function.Predicate.not;
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.reply;
 
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 
@@ -189,11 +189,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 	private void removeRoomsBotIsNotIn(IBot bot) {
 		List<Integer> roomsBotIsIn = bot.getRooms();
-		List<Integer> roomIds = spontaneousPostTimes.keySet().stream().filter(id -> {
-			return !roomsBotIsIn.contains(id);
-		}).collect(Collectors.toList());
-
-		roomIds.forEach(spontaneousPostTimes::remove);
+		spontaneousPostTimes.keySet().removeIf(not(roomsBotIsIn::contains));
 	}
 
 	private List<Integer> findRoomsToSpontaneouslyPostTo() {
