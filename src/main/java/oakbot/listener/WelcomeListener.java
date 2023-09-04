@@ -31,10 +31,11 @@ public class WelcomeListener implements Listener {
 	private final Database db;
 	private final Map<Integer, String> welcomeMessagesByRoom;
 	private final Map<Integer, Set<Integer>> welcomedUsersByRoom = new HashMap<>();
-	private final int minReputation = 1000;
+	private final int minReputation;
 
-	public WelcomeListener(Database db, Map<Integer, String> welcomeMessagesByRoom) {
+	public WelcomeListener(Database db, int minReputation, Map<Integer, String> welcomeMessagesByRoom) {
 		this.db = db;
+		this.minReputation = minReputation;
 		this.welcomeMessagesByRoom = welcomeMessagesByRoom;
 
 		loadData();

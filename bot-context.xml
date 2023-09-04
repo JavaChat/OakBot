@@ -311,6 +311,7 @@
 	<!-- welcome listener -->
 	<bean class="oakbot.listener.WelcomeListener">
 		<constructor-arg ref="database" />
+		<constructor-arg value="1000" /> <!-- min rep user must have to NOT be welcomed -->
 		<constructor-arg> <!-- the welcome message to post for new users that join the room (can be empty, markdown can be used) -->
 			<util:map>
 				<entry key="1" value="Welcome to the Sandbox! Use this room to experiment with the features of Stack Overflow Chat." />
