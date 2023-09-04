@@ -209,9 +209,7 @@ public class ClassInfoXmlParser {
 		//parameters
 		for (Leaf parameterElement : element.select("parameter")) {
 			ParameterInfo parameter = parseParameter(parameterElement);
-			if (parameter != null) {
-				builder.parameter(parameter);
-			}
+			builder.parameter(parameter);
 		}
 
 		return builder.build();
