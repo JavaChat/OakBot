@@ -52,19 +52,14 @@ public class EffectiveJavaCommand implements Command {
 			int page = Integer.parseInt(itemElement.attribute("page"));
 			String title = itemElement.selectFirst("title").text().trim();
 
-			String summary;
-			{
-				Leaf summaryElement = itemElement.selectFirst("summary");
-				summary = summaryElement.text().trim();
-
+			//@formatter:off
+			String summary = itemElement.selectFirst("summary").text().trim()
 				/*
 				 * Remove any XML indentation whitespace at the beginning of
 				 * each line.
 				 */
-				summary = summary.replaceAll("(\r\n|\r|\n)\\s+", "$1");
-			}
+				.replaceAll("(\r\n|\r|\n)\\s+", "$1");
 
-			//@formatter:off
 			Item item = new Item.Builder()
 				.number(number)
 				.page(page)
