@@ -108,22 +108,24 @@ public class ChatCommand {
 				continue;
 			}
 
-			if (Character.isWhitespace(c)) {
-				if (!inQuotes) {
-					if (sb.length() > 0) {
-						args.add(sb.toString());
-						sb.setLength(0);
-					}
-					continue;
+			if (Character.isWhitespace(c) && !inQuotes) {
+				if (sb.length() > 0) {
+					args.add(sb.toString());
+					sb.setLength(0);
 				}
-			} else if (c == '"') {
+				continue;
+			}
+
+			if (c == '"') {
 				if (inQuotes) {
 					args.add(sb.toString());
 					sb.setLength(0);
 				}
 				inQuotes = !inQuotes;
 				continue;
-			} else if (c == '\\') {
+			}
+
+			if (c == '\\') {
 				escapeNext = true;
 				continue;
 			}
