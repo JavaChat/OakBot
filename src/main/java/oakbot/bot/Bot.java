@@ -15,12 +15,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.IChatClient;
@@ -56,7 +55,7 @@ public class Bot implements IBot {
 	private final String userName, trigger, greeting;
 	private final Integer userId;
 	private final IChatClient connection;
-	private final MutableLong choreIdCounter = new MutableLong();
+	private final AtomicLong choreIdCounter = new AtomicLong();
 	private final BlockingQueue<Chore> choreQueue = new PriorityBlockingQueue<>();
 	private final List<Integer> admins, bannedUsers, allowedUsers;
 	private final Duration hideOneboxesAfter;
@@ -538,9 +537,7 @@ public class Bot implements IBot {
 		private final long choreId;
 
 		public Chore() {
-			synchronized (choreIdCounter) {
-				choreId = choreIdCounter.getAndIncrement();
-			}
+			choreId = choreIdCounter.getAndIncrement();
 		}
 
 		public abstract void complete();
