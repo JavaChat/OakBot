@@ -72,7 +72,7 @@ public class HelpCommand implements Command {
 		Multimap<String, String> listenerDescriptions = getListenerSummaries();
 		Multimap<String, String> taskDescriptions = getTaskSummaries();
 
-		int longestNameLength = longestNameLength(commandSummaries, listenerDescriptions, taskDescriptions);
+		int longestNameLength = longestNameLength(bot.getTrigger(), commandSummaries, listenerDescriptions, taskDescriptions);
 		final int bufferSpace = 2;
 
 		//build message
@@ -84,7 +84,7 @@ public class HelpCommand implements Command {
 				String description = entry.getValue();
 
 				cb.fixed().append(bot.getTrigger()).append(name);
-				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
+				cb.repeat(' ', longestNameLength - (bot.getTrigger().length() + name.length()) + bufferSpace);
 				cb.append(description).nl();
 			}
 			cb.fixed().nl();
@@ -145,14 +145,18 @@ public class HelpCommand implements Command {
 		//@formatter:on
 	}
 
-	private static int longestNameLength(Multimap<String, String> commandSummaries, Multimap<String, String> listenerDescriptions, Multimap<String, String> taskDescriptions) {
-		Collection<String> names = new ArrayList<>();
-		names.addAll(commandSummaries.keySet());
-		names.addAll(listenerDescriptions.keySet());
-		names.addAll(taskDescriptions.keySet());
+	private static int longestNameLength(String trigger, Multimap<String, String> commandSummaries, Multimap<String, String> listenerDescriptions, Multimap<String, String> taskDescriptions) {
+		int longestCommandNameLength = longestString(commandSummaries.keySet()) + trigger.length();
+		int longestListenerNameLength = longestString(listenerDescriptions.keySet());
+		int longestTaskNameLength = longestString(taskDescriptions.keySet());
 
+		int m = Math.max(longestCommandNameLength, longestListenerNameLength);
+		return Math.max(m, longestTaskNameLength);
+	}
+
+	private static int longestString(Collection<String> c) {
 		//@formatter:off
-		return names.stream()
+		return c.stream()
 			.mapToInt(String::length)
 		.max().orElse(0);
 		//@formatter:on
