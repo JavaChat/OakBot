@@ -39,12 +39,6 @@ public class WelcomeListener implements Listener {
 		this.welcomeMessagesByRoom = welcomeMessagesByRoom;
 
 		loadData();
-
-		for (Integer roomId : welcomeMessagesByRoom.keySet()) {
-			if (!welcomedUsersByRoom.containsKey(roomId)) {
-				welcomedUsersByRoom.put(roomId, new HashSet<>());
-			}
-		}
 	}
 
 	@Override
@@ -70,7 +64,7 @@ public class WelcomeListener implements Listener {
 		}
 
 		int userId = message.getUserId();
-		Set<Integer> userIds = welcomedUsersByRoom.get(roomId);
+		Set<Integer> userIds = welcomedUsersByRoom.computeIfAbsent(roomId, k -> new HashSet<>());
 		if (hasSeenUserBefore(userId, userIds)) {
 			return doNothing();
 		}
@@ -83,7 +77,7 @@ public class WelcomeListener implements Listener {
 			IRoom room = bot.getRoom(roomId);
 			userInfo = room.getUserInfo(List.of(userId));
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Could not get user info for user " + userId, e);
+			logger.log(Level.SEVERE, "Could not get user info for user " + userId + ".", e);
 			return doNothing();
 		}
 
