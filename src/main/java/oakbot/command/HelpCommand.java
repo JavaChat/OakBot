@@ -1,6 +1,5 @@
 package oakbot.command;
 
-import static com.google.common.base.Strings.repeat;
 import static oakbot.bot.ChatActions.reply;
 
 import java.util.ArrayList;
@@ -91,7 +90,7 @@ public class HelpCommand implements Command {
 				String description = entry.getValue();
 
 				cb.fixed().append(bot.getTrigger()).append(name);
-				cb.append(repeat(" ", longestNameLength - name.length() + 2));
+				cb.repeat(' ', longestNameLength - name.length() + 2);
 				cb.append(description).nl();
 			}
 			cb.fixed().nl();
@@ -118,7 +117,7 @@ public class HelpCommand implements Command {
 				String description = entry.getValue();
 
 				cb.fixed().append(name);
-				cb.append(repeat(" ", longestNameLength - name.length() + 2));
+				cb.repeat(' ', longestNameLength - name.length() + 2);
 				cb.append(description).nl();
 			}
 			cb.fixed().nl();
@@ -131,7 +130,7 @@ public class HelpCommand implements Command {
 				String description = entry.getValue();
 
 				cb.fixed().append(name);
-				cb.append(repeat(" ", longestNameLength - name.length() + 2));
+				cb.repeat(' ', longestNameLength - name.length() + 2);
 				cb.append(description).nl();
 			}
 		}
