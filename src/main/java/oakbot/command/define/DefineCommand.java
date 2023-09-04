@@ -164,13 +164,16 @@ public class DefineCommand implements Command {
 
 			if (child instanceof Element) {
 				Element element = (Element) child;
-				switch (element.getNodeName()) {
-				case "vi":
+				String nodeName = element.getNodeName();
+
+				if ("vi".equals(nodeName)) {
 					/*
 					 * Examples are parsed separately.
 					 */
 					continue;
-				case "un":
+				}
+
+				if ("un".equals(nodeName)) {
 					sb.append(":").append(getDefinition(element)).append(":");
 					continue;
 				}
@@ -194,11 +197,9 @@ public class DefineCommand implements Command {
 
 	private List<String> parseSuggestions(Leaf document) {
 		//@formatter:off
-		return
-			 document.select("/entry_list/suggestion")
-			.stream()
-			.map(e -> e.text())
-			.collect(Collectors.toList());
+		return document.select("/entry_list/suggestion").stream()
+			.map(Leaf::text)
+		.collect(Collectors.toList());
 		//@formatter:on
 	}
 
