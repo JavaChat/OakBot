@@ -238,7 +238,7 @@ public class FishCommandTest {
 		.build(), bot);
 
 		List<ChatAction> expected = List.of(
-			new PostMessage("🐟 *Zagreus pulls up nothing.*")
+			new PostMessage("🐟 *Zagreus pulls up nothing. They weren't quick enough.*")
 		);
 		//@formatter:on
 
@@ -399,7 +399,7 @@ public class FishCommandTest {
 		.build(), bot);
 		//@formatter:on
 
-		assertMessage(":10 🐟 *Your line hasn't caught anything yet.*", actual);
+		assertMessage(":10 🐟 *Your line doesn't have anything. You should wait until it quivers.*", actual);
 
 		/*
 		 * Check status after quiver.

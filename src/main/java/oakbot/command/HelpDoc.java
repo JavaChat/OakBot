@@ -74,69 +74,81 @@ public class HelpDoc {
 	 */
 	public String getHelpText(String trigger) {
 		if (command != null) {
-			ChatBuilder cb = new ChatBuilder();
-			cb.append(command.name()).append(':').nl();
-
-			if (includeSummaryWithDetail) {
-				cb.append(summary);
-			}
-			if (detail != null) {
-				cb.append(' ').append(detail);
-			}
-
-			if (!examples.isEmpty()) {
-				cb.nl().nl().append(plural("Example", examples.size())).append(":");
-				for (String[] example : examples) {
-					String parameters = example[0];
-					String description = example[1];
-
-					cb.nl().append(trigger).append(command.name());
-					if (!parameters.isEmpty()) {
-						cb.append(' ').append(parameters);
-					}
-					if (!description.isEmpty()) {
-						cb.append(" : ").append(description);
-					}
-				}
-			}
-
-			Collection<String> aliases = command.aliases();
-			if (!aliases.isEmpty()) {
-				cb.nl().nl().append(plural("Alias", aliases.size())).append(": ").append(String.join(",", aliases));
-			}
-
-			return cb.toString();
+			return getHelpText(command, trigger);
 		}
 
 		if (listener != null) {
-			ChatBuilder cb = new ChatBuilder();
-			cb.append(listener.name()).append(':').nl();
-
-			if (includeSummaryWithDetail) {
-				cb.append(summary);
-			}
-			if (detail != null) {
-				cb.append(' ').append(detail);
-			}
-
-			return cb.toString();
+			return getHelpText(listener);
 		}
 
 		if (task != null) {
-			ChatBuilder cb = new ChatBuilder();
-			cb.append(task.name()).append(':').nl();
-
-			if (includeSummaryWithDetail) {
-				cb.append(summary);
-			}
-			if (detail != null) {
-				cb.append(' ').append(detail);
-			}
-
-			return cb.toString();
+			return getHelpText(task);
 		}
 
 		return null;
+	}
+
+	private String getHelpText(Command command, String trigger) {
+		ChatBuilder cb = new ChatBuilder();
+		cb.append(command.name()).append(':').nl();
+
+		if (includeSummaryWithDetail) {
+			cb.append(summary);
+		}
+		if (detail != null) {
+			cb.append(' ').append(detail);
+		}
+
+		if (!examples.isEmpty()) {
+			cb.nl().nl().append(plural("Example", examples.size())).append(":");
+			for (String[] example : examples) {
+				String parameters = example[0];
+				String description = example[1];
+
+				cb.nl().append(trigger).append(command.name());
+				if (!parameters.isEmpty()) {
+					cb.append(' ').append(parameters);
+				}
+				if (!description.isEmpty()) {
+					cb.append(" : ").append(description);
+				}
+			}
+		}
+
+		Collection<String> aliases = command.aliases();
+		if (!aliases.isEmpty()) {
+			cb.nl().nl().append(plural("Alias", aliases.size())).append(": ").append(String.join(",", aliases));
+		}
+
+		return cb.toString();
+	}
+
+	private String getHelpText(Listener listener) {
+		ChatBuilder cb = new ChatBuilder();
+		cb.append(listener.name()).append(':').nl();
+
+		if (includeSummaryWithDetail) {
+			cb.append(summary);
+		}
+		if (detail != null) {
+			cb.append(' ').append(detail);
+		}
+
+		return cb.toString();
+	}
+
+	private String getHelpText(ScheduledTask task) {
+		ChatBuilder cb = new ChatBuilder();
+		cb.append(task.name()).append(':').nl();
+
+		if (includeSummaryWithDetail) {
+			cb.append(summary);
+		}
+		if (detail != null) {
+			cb.append(' ').append(detail);
+		}
+
+		return cb.toString();
 	}
 
 	/**

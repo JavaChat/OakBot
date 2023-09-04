@@ -3,6 +3,7 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -57,28 +58,6 @@ public class FishCommand implements Command, ScheduledTask {
 		new Fish("Trout", 0.1, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/6/66/Trout.png"),
 		new Fish("Bass", 0.05, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/b/bd/Bass.png"),
 		new Fish("Sturgeon", 0.01, "https://static.wikia.nocookie.net/hades_gamepedia_en/images/4/42/Sturgeon.png")
-		
-		//https://programming.guide/java/list-of-java-exceptions.html
-		//new Fish("IOException", 0.9),
-		//new Fish("FileNotFoundException", 0.8),
-		//new Fish("InterruptedException", 0.8),
-		//new Fish("ClassNotFoundException", 0.7),
-		//new Fish("ClassCastException", 0.7),
-		//new Fish("IllegalArgumentException", 0.7),
-		//new Fish("IllegalStateException", 0.6),
-		//new Fish("IndexOutOfBoundsException", 0.5),
-		//new Fish("NullPointerException", 0.5),
-		//new Fish("NoSuchElementException", 0.4),
-		//new Fish("URISyntaxException", 0.4),
-		//new Fish("UnsupportedCharsetException", 0.3),
-		//new Fish("UncheckedIOException", 0.3),
-		//new Fish("NegativeArraySizeException", 0.3),
-		//new Fish("ArithmeticException", 0.2),
-		//new Fish("CloneNotSupportedException ", 0.2),
-		//new Fish("StackOverflowError ", 0.2),
-		//new Fish("UnsupportedFlavorException ", 0.2),
-		//new Fish("ThreadDeath ", 0.1),
-		//new Fish("UnknownError ", 0.1)
 	));
 	//@formatter:on
 
@@ -112,6 +91,7 @@ public class FishCommand implements Command, ScheduledTask {
 			.detail("The fish are from the game \"Hades\".")
 			.example("", "Throws in or pulls up the fishing line. Users must wait until their line quivers before pulling up their line in order to get a fish.")
 			.example("inv", "Displays the user's inventory of caught fish.")
+			.example("status", "Displays the status of the user's fishing line.")
 			.example("release bass", "Releases a fish back into the wild.")
 		.build();
 		//@formatter:on
@@ -119,61 +99,117 @@ public class FishCommand implements Command, ScheduledTask {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		int roomId = chatCommand.getMessage().getRoomId();
-		int userId = chatCommand.getMessage().getUserId();
-		String username = chatCommand.getMessage().getUsername();
-		Inventory inv = inventoryByUser.get(userId);
-		Map<Integer, PendingCatch> pendingCatchesInThisRoom = currentlyFishingByRoom.computeIfAbsent(roomId, k -> new HashMap<Integer, PendingCatch>());
-
 		List<String> args = chatCommand.getContentAsArgs();
 		if (!args.isEmpty()) {
 			String subCommand = args.get(0);
 
 			if ("inv".equalsIgnoreCase(subCommand)) {
-				String message = displayCaughtFish(inv);
-				return reply(fishMessage(message), chatCommand);
+				return handleInvCommand(chatCommand);
 			}
 
 			if ("status".equalsIgnoreCase(subCommand)) {
-				PendingCatch pendingCatch = pendingCatchesInThisRoom.get(userId);
-				String message;
-				if (pendingCatch == null) {
-					message = "You don't have any lines out.";
-				} else {
-					Duration sinceLineQuivered = Duration.between(pendingCatch.time, Now.instant());
-					boolean currentlyQuivering = (!sinceLineQuivered.isNegative() && sinceLineQuivered.compareTo(timeUserHasToCatchFish) < 0);
-					if (currentlyQuivering) {
-						message = "Your line is quivering. Better pull it up.";
-					} else {
-						message = "Your line hasn't caught anything yet.";
-					}
-				}
-
-				return reply(fishMessage(message), chatCommand);
+				return handleStatusCommand(chatCommand);
 			}
 
 			if ("release".equalsIgnoreCase(subCommand)) {
-				if (args.size() < 2) {
-					return reply(fishMessage("Specify a fish to release."), chatCommand);
-				}
-
-				Fish fish = Fish.findOrNull(args.get(1));
-				if (fish == null || inv == null || !inv.has(fish)) {
-					return reply(fishMessage("You don't have any of that fish."), chatCommand);
-				}
-
-				inv.remove(fish);
-				saveInventories();
-
-				//@formatter:off
-				return post(fishMessage(new ChatBuilder()
-					.append(username).append(" releases a ").bold(fish.name).append(" back into the wild.")
-				));
-				//@formatter:on
+				String fishName = (args.size() < 2) ? null : args.get(1);
+				return handleReleaseCommand(fishName, chatCommand);
 			}
 
 			return reply(fishMessage("Unknown fish command."), chatCommand);
 		}
+
+		return throwOrPullLine(chatCommand);
+	}
+
+	private ChatActions handleInvCommand(ChatCommand chatCommand) {
+		int userId = chatCommand.getMessage().getUserId();
+		Inventory inv = inventoryByUser.get(userId);
+
+		String message;
+		if (inv == null || inv.isEmpty()) {
+			message = "Your inventory is empty.";
+		} else {
+			//@formatter:off
+			message = "Your inventory: " + inv.map.entrySet().stream()
+				.sorted((a, b) -> {
+					//sort by quantity descending
+					int c = b.getValue().compareTo(a.getValue());
+					if (c != 0) {
+						return c;
+					}
+					
+					//then sort by fish name ascending
+					return a.getKey().name.compareTo(b.getKey().name);
+				})
+				.map(entry -> {
+					String fish = entry.getKey().name;
+					MutableInt count = entry.getValue();
+					if (count.intValue() == 1) {
+						return fish;
+					} else {
+						return fish + " (x" + count + ")";
+					}
+				})
+			.collect(Collectors.joining(", "));
+			//@formatter:on
+		}
+
+		return reply(fishMessage(message), chatCommand);
+	}
+
+	private ChatActions handleStatusCommand(ChatCommand chatCommand) {
+		int roomId = chatCommand.getMessage().getRoomId();
+		int userId = chatCommand.getMessage().getUserId();
+		Map<Integer, PendingCatch> pendingCatchesInThisRoom = getPendingCatchesInRoom(roomId);
+		PendingCatch pendingCatch = pendingCatchesInThisRoom.get(userId);
+
+		if (pendingCatch == null) {
+			return reply(fishMessage("You don't have any lines out."), chatCommand);
+		}
+
+		Duration sinceLineQuivered = Duration.between(pendingCatch.time, Now.instant());
+		boolean currentlyQuivering = (!sinceLineQuivered.isNegative() && sinceLineQuivered.compareTo(timeUserHasToCatchFish) < 0);
+		String message;
+		if (currentlyQuivering) {
+			message = "Your line is quivering. Better pull it up.";
+		} else {
+			message = "Your line doesn't have anything. You should wait until it quivers.";
+		}
+
+		return reply(fishMessage(message), chatCommand);
+	}
+
+	private ChatActions handleReleaseCommand(String fishName, ChatCommand chatCommand) {
+		int userId = chatCommand.getMessage().getUserId();
+		String username = chatCommand.getMessage().getUsername();
+		Inventory inv = inventoryByUser.get(userId);
+
+		if (fishName == null) {
+			return reply(fishMessage("Specify a fish to release."), chatCommand);
+		}
+
+		Fish fish = Fish.findOrNull(fishName);
+		if (fish == null || inv == null || !inv.has(fish)) {
+			return reply(fishMessage("You don't have any of that fish."), chatCommand);
+		}
+
+		inv.remove(fish);
+		saveInventories();
+
+		//@formatter:off
+		return post(fishMessage(new ChatBuilder()
+			.append(username).append(" releases a ").bold(fish.name).append(" back into the wild.")
+		));
+		//@formatter:on
+	}
+
+	private ChatActions throwOrPullLine(ChatCommand chatCommand) {
+		int roomId = chatCommand.getMessage().getRoomId();
+		int userId = chatCommand.getMessage().getUserId();
+		String username = chatCommand.getMessage().getUsername();
+		Inventory inv = inventoryByUser.get(userId);
+		Map<Integer, PendingCatch> pendingCatchesInThisRoom = getPendingCatchesInRoom(roomId);
 
 		PendingCatch pendingCatch = pendingCatchesInThisRoom.remove(userId);
 
@@ -188,74 +224,88 @@ public class FishCommand implements Command, ScheduledTask {
 			return post(fishMessage(username + " pulls up nothing."));
 		}
 
-		boolean caughtInTime = (sinceLineQuivered.compareTo(timeUserHasToCatchFish) < 0);
-		if (caughtInTime) {
-			if (inv == null) {
-				inv = new Inventory();
-				inventoryByUser.put(userId, inv);
-			}
-
-			inv.add(pendingCatch.fish);
-			saveInventories();
-
-			ChatActions actions = new ChatActions();
-			String word = (inv.count(pendingCatch.fish) > 1) ? "another" : "a";
-
-			//@formatter:off
-			actions.addAction(new PostMessage(fishMessage(new ChatBuilder()
-				.append(username).append(" caught ").append(word).append(" ").bold(pendingCatch.fish.name).append("!")
-			)));
-			//@formatter:on
-
-			if (pendingCatch.fish.imageUrl != null) {
-				actions.addAction(new PostMessage(pendingCatch.fish.imageUrl));
-			}
-
-			return actions;
-		} else {
-			return post(fishMessage(username + " pulls up nothing."));
+		boolean tooLate = (sinceLineQuivered.compareTo(timeUserHasToCatchFish) >= 0);
+		if (tooLate) {
+			return post(fishMessage(username + " pulls up nothing. They weren't quick enough."));
 		}
+
+		if (inv == null) {
+			inv = new Inventory();
+			inventoryByUser.put(userId, inv);
+		}
+
+		inv.add(pendingCatch.fish);
+		saveInventories();
+
+		ChatActions actions = new ChatActions();
+		String word = (inv.count(pendingCatch.fish) > 1) ? "another" : "a";
+
+		//@formatter:off
+		actions.addAction(new PostMessage(fishMessage(new ChatBuilder()
+			.append(username).append(" caught ").append(word).append(" ").bold(pendingCatch.fish.name).append("!")
+		)));
+		//@formatter:on
+
+		if (pendingCatch.fish.imageUrl != null) {
+			actions.addAction(new PostMessage(pendingCatch.fish.imageUrl));
+		}
+
+		return actions;
+	}
+
+	private Map<Integer, PendingCatch> getPendingCatchesInRoom(int roomId) {
+		return currentlyFishingByRoom.computeIfAbsent(roomId, k -> new HashMap<Integer, PendingCatch>());
 	}
 
 	@Override
 	public void run(IBot bot) throws Exception {
-		Instant now = Now.instant();
-
 		for (Map.Entry<Integer, Map<Integer, PendingCatch>> entry : currentlyFishingByRoom.entrySet()) {
 			int roomId = entry.getKey();
-			List<Integer> userIdsToRemove = new ArrayList<>();
-
 			Map<Integer, PendingCatch> pendingCatchesInRoom = entry.getValue();
-			for (Map.Entry<Integer, PendingCatch> entry2 : pendingCatchesInRoom.entrySet()) {
-				int userId = entry2.getKey();
-				PendingCatch pendingCatch = entry2.getValue();
+			checkFishingLines(roomId, pendingCatchesInRoom, bot);
+		}
+	}
 
-				if (pendingCatch.userWarned) {
-					Duration sinceQuiver = Duration.between(pendingCatch.time, now);
-					boolean fishGotAway = (sinceQuiver.compareTo(timeUserHasToCatchFish) > 0);
-					if (fishGotAway) {
-						if (pendingCatch.timesWarned < MAX_QUIVERS) {
-							pendingCatch.resetTime();
-						} else {
-							userIdsToRemove.add(userId);
-						}
+	private void checkFishingLines(int roomId, Map<Integer, PendingCatch> pendingCatchesInRoom, IBot bot) throws IOException {
+		List<Integer> userIdsToRemove = new ArrayList<>();
+		Instant now = Now.instant();
+
+		for (Map.Entry<Integer, PendingCatch> entry : pendingCatchesInRoom.entrySet()) {
+			int userId = entry.getKey();
+			PendingCatch pendingCatch = entry.getValue();
+
+			if (pendingCatch.userWarned) {
+				Duration sinceQuiver = Duration.between(pendingCatch.time, now);
+				boolean fishGotAway = (sinceQuiver.compareTo(timeUserHasToCatchFish) > 0);
+				if (fishGotAway) {
+					if (pendingCatch.timesWarned < MAX_QUIVERS) {
+						/*
+						 * User must wait until the line quivers again.
+						 */
+						pendingCatch.resetTime();
+					} else {
+						/*
+						 * Line will stop quivering. User will have to throw
+						 * their line back in.
+						 */
+						userIdsToRemove.add(userId);
 					}
-					continue;
 				}
-
-				boolean fishSnagged = pendingCatch.time.isBefore(now);
-				if (fishSnagged) {
-					pendingCatch.userWarned = true;
-					pendingCatch.timesWarned++;
-
-					PostMessage message = new PostMessage(fishMessage(possessive(pendingCatch.username) + " line quivers."));
-					bot.sendMessage(roomId, message);
-					continue;
-				}
+				continue;
 			}
 
-			userIdsToRemove.forEach(pendingCatchesInRoom::remove);
+			boolean fishSnagged = pendingCatch.time.isBefore(now);
+			if (fishSnagged) {
+				pendingCatch.userWarned = true;
+				pendingCatch.timesWarned++;
+
+				PostMessage message = new PostMessage(fishMessage(possessive(pendingCatch.username) + " line quivers."));
+				bot.sendMessage(roomId, message);
+				continue;
+			}
 		}
+
+		userIdsToRemove.forEach(pendingCatchesInRoom::remove);
 	}
 
 	private String fishMessage(CharSequence message) {
@@ -278,52 +328,20 @@ public class FishCommand implements Command, ScheduledTask {
 		return Duration.ofMinutes(1).toMillis();
 	}
 
-	private String displayCaughtFish(Inventory fishCollection) {
-		if (fishCollection == null || fishCollection.map.isEmpty()) {
-			return "Your inventory is empty.";
-		}
-
-		List<Map.Entry<Fish, MutableInt>> list = new ArrayList<>(fishCollection.map.entrySet());
-
-		//@formatter:off
-		return "Your inventory: " + list.stream()
-			.sorted((a, b) -> {
-				//sort by quantity descending
-				int c = b.getValue().compareTo(a.getValue());
-				if (c != 0) {
-					return c;
-				}
-				
-				//then sort by fish name ascending
-				return a.getKey().name.compareTo(b.getKey().name);
-			})
-			.map(entry -> {
-				String fish = entry.getKey().name;
-				MutableInt count = entry.getValue();
-				if (count.intValue() == 1) {
-					return fish;
-				} else {
-					return fish + " (x" + count + ")";
-				}
-			})
-		.collect(Collectors.joining(", "));
-		//@formatter:on
-	}
-
 	@SuppressWarnings("unchecked")
 	private Map<Integer, Inventory> loadInventories() {
 		Map<Integer, Inventory> inventories = new HashMap<>();
 
-		Map<String, Object> userObj = db.getMap("fish.caught");
-		if (userObj != null) {
-			for (Map.Entry<String, Object> userObjEntry : userObj.entrySet()) {
-				int userId = Integer.parseInt(userObjEntry.getKey());
-				Map<String, Integer> fishCountObj = (Map<String, Integer>) userObjEntry.getValue();
+		Map<String, Object> fishesByUser = db.getMap("fish.caught");
+		if (fishesByUser != null) {
+			for (Map.Entry<String, Object> userFishes : fishesByUser.entrySet()) {
+				int userId = Integer.parseInt(userFishes.getKey());
+				Map<String, Integer> fishes = (Map<String, Integer>) userFishes.getValue();
 
 				Inventory inv = new Inventory();
-				for (Map.Entry<String, Integer> fishCountEntry : fishCountObj.entrySet()) {
-					Fish fish = Fish.find(fishCountEntry.getKey());
-					Integer count = fishCountEntry.getValue();
+				for (Map.Entry<String, Integer> fishesEntry : fishes.entrySet()) {
+					Fish fish = Fish.find(fishesEntry.getKey());
+					Integer count = fishesEntry.getValue();
 					inv.set(fish, count);
 				}
 
@@ -335,20 +353,20 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private void saveInventories() {
-		Map<String, Object> userObj = new HashMap<>();
+		Map<String, Object> fishesByUser = new HashMap<>();
 		for (Map.Entry<Integer, Inventory> entry : inventoryByUser.entrySet()) {
 			int userId = entry.getKey();
 			Inventory inv = entry.getValue();
 
-			Map<String, Integer> fishCountObj = new HashMap<>();
+			Map<String, Integer> fishes = new HashMap<>();
 			for (Map.Entry<Fish, MutableInt> fish : inv.map.entrySet()) {
-				fishCountObj.put(fish.getKey().name, fish.getValue().toInteger());
+				fishes.put(fish.getKey().name, fish.getValue().toInteger());
 			}
 
-			userObj.put(userId + "", fishCountObj);
+			fishesByUser.put(userId + "", fishes);
 		}
 
-		db.set("fish.caught", userObj);
+		db.set("fish.caught", fishesByUser);
 	}
 
 	private class PendingCatch {
@@ -402,6 +420,10 @@ public class FishCommand implements Command, ScheduledTask {
 
 		public boolean has(Fish fish) {
 			return count(fish) > 0;
+		}
+
+		public boolean isEmpty() {
+			return map.isEmpty();
 		}
 	}
 

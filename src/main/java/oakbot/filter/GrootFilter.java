@@ -3,6 +3,8 @@ package oakbot.filter;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
@@ -12,9 +14,13 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class GrootFilter extends ToggleableFilter {
-	private final Pattern whitespaceRegex = Pattern.compile("\\s+");
-	private final Pattern replyRegex = Pattern.compile("^:\\d+\\s");
-	private final String[] grootWords = { "I", "am", "Groot" };
+	private static final Pattern whitespaceRegex = Pattern.compile("\\s+");
+	private static final Pattern replyRegex = Pattern.compile("^:\\d+\\s");
+
+	private static final String[] grootWords = { "I", "am", "Groot" };
+	private static final int I = 0;
+	private static final int AM = 1;
+	private static final int GROOT = 2;
 
 	@Override
 	public String name() {
@@ -47,100 +53,23 @@ public class GrootFilter extends ToggleableFilter {
 			cb.append(m.group());
 		}
 
-		Random random = new Random(message.hashCode());
+		GrootRng rng = new GrootRng(message.hashCode());
 		String[] lines = message.split("\r\n|\r|\n");
 		boolean applyFormatting = !fixed && lines.length == 1;
-		boolean firstLine = true;
 		for (String line : lines) {
-			if (!firstLine) {
-				cb.nl();
-			}
-			firstLine = false;
-
 			if (fixed) {
 				cb.fixed();
 			}
 
-			if (line.trim().isEmpty()) {
-				continue;
-			}
+			int grootSentencesToGenerate = line.trim().isEmpty() ? 0 : (countWords(line) / (grootWords.length * 2) + 1);
 
-			int grootSentenceCount = countWords(line) / (grootWords.length * 2) + 1;
-			for (int i = 0; i < grootSentenceCount; i++) {
-				boolean contraction = random.nextInt(10) < 1;
-				for (int j = 0; j < grootWords.length; j++) {
-					String grootWord = grootWords[j];
+			//@formatter:off
+			String grootLine = IntStream.range(0, grootSentencesToGenerate)
+				.mapToObj(i -> grootSentence(applyFormatting, rng))
+			.collect(Collectors.joining(" "));
+			//@formatter:on
 
-					if (contraction && j == 1) {
-						//skip "am"
-						continue;
-					}
-
-					if (j > 0) {
-						cb.append(' ');
-					}
-
-					boolean bold = random.nextInt(10) < 2;
-					boolean italic = random.nextInt(10) < 2;
-					if (applyFormatting) {
-						if (bold) {
-							cb.bold();
-						}
-
-						if (italic) {
-							cb.italic();
-						}
-					}
-
-					if (contraction && j == 0) {
-						grootWord = "I'm";
-					}
-
-					if (j == 2) {
-						switch (random.nextInt(10)) {
-						case 0:
-							grootWord = "Grooot";
-						case 1:
-							grootWord = "Groooot";
-						}
-					}
-
-					boolean caps = random.nextInt(10) < 2;
-					if (caps) {
-						grootWord = grootWord.toUpperCase();
-					}
-
-					cb.append(grootWord);
-
-					if (applyFormatting) {
-						if (italic) {
-							cb.italic();
-						}
-
-						if (bold) {
-							cb.bold();
-						}
-					}
-				}
-
-				switch (random.nextInt(10)) {
-				case 0:
-				case 1:
-					cb.append('!');
-					break;
-				case 2:
-					cb.append("!!");
-					break;
-				case 3:
-					cb.append("...");
-					break;
-				default:
-					cb.append('.');
-					break;
-				}
-
-				cb.append(' ');
-			}
+			cb.append(grootLine).nl();
 		}
 
 		return cb.toString();
@@ -153,5 +82,118 @@ public class GrootFilter extends ToggleableFilter {
 			count++;
 		}
 		return count;
+	}
+
+	private CharSequence grootSentence(boolean applyFormatting, GrootRng rng) {
+		ChatBuilder cb = new ChatBuilder();
+
+		boolean contraction = rng.useContractionForIAm();
+		for (int i = 0; i < grootWords.length; i++) {
+			String grootWord = grootWords[i];
+
+			if (i == AM && contraction) {
+				/*
+				 * Do not output "am" if the contraction "I'm" was used.
+				 */
+				continue;
+			}
+
+			/*
+			 * Insert space between each word.
+			 */
+			if (i > 0) {
+				cb.append(' ');
+			}
+
+			boolean bold = rng.formatBold();
+			boolean italic = rng.formatItalic();
+			if (applyFormatting) {
+				if (bold) {
+					cb.bold();
+				}
+
+				if (italic) {
+					cb.italic();
+				}
+			}
+
+			if (i == I && contraction) {
+				grootWord = "I'm";
+			}
+			if (i == GROOT) {
+				grootWord = rng.grootWithVariableOs();
+			}
+
+			if (rng.useCaps()) {
+				grootWord = grootWord.toUpperCase();
+			}
+
+			cb.append(grootWord);
+
+			if (applyFormatting) {
+				if (italic) {
+					cb.italic();
+				}
+
+				if (bold) {
+					cb.bold();
+				}
+			}
+		}
+
+		return cb.append(rng.endSentence());
+	}
+
+	private class GrootRng {
+		private final Random random;
+
+		public GrootRng(int seed) {
+			this.random = new Random(seed);
+		}
+
+		private boolean formatBold() {
+			return rand() < 2;
+		}
+
+		private boolean formatItalic() {
+			return rand() < 2;
+		}
+
+		private boolean useCaps() {
+			return rand() < 2;
+		}
+
+		private boolean useContractionForIAm() {
+			return rand() < 1;
+		}
+
+		private String grootWithVariableOs() {
+			switch (rand()) {
+			case 0:
+				return "Grooot";
+			case 1:
+				return "Groooot";
+			default:
+				return "Groot";
+			}
+		}
+
+		private String endSentence() {
+			switch (rand()) {
+			case 0:
+			case 1:
+				return "!";
+			case 2:
+				return "!!";
+			case 3:
+				return "...";
+			default:
+				return ".";
+			}
+		}
+
+		private int rand() {
+			return random.nextInt(10);
+		}
 	}
 }
