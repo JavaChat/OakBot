@@ -44,7 +44,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 	/**
 	 * @param roomIds the rooms to post the messages to
 	 */
-	public HealthMonitor(List<Integer> roomIds) {
+	protected HealthMonitor(List<Integer> roomIds) {
 		this.roomIds = roomIds;
 	}
 
