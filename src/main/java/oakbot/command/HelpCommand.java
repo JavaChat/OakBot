@@ -72,14 +72,8 @@ public class HelpCommand implements Command {
 		Multimap<String, String> listenerDescriptions = getListenerSummaries();
 		Multimap<String, String> taskDescriptions = getTaskSummaries();
 
-		int longestNameLength;
-		{
-			Collection<String> allNames = new ArrayList<>(commandSummaries.size() + listenerDescriptions.size());
-			allNames.addAll(commandSummaries.keySet());
-			allNames.addAll(listenerDescriptions.keySet());
-			allNames.addAll(taskDescriptions.keySet());
-			longestNameLength = longestStringLength(allNames);
-		}
+		int longestNameLength = longestNameLength(commandSummaries, listenerDescriptions, taskDescriptions);
+		final int bufferSpace = 2;
 
 		//build message
 		ChatBuilder cb = new ChatBuilder();
@@ -90,7 +84,7 @@ public class HelpCommand implements Command {
 				String description = entry.getValue();
 
 				cb.fixed().append(bot.getTrigger()).append(name);
-				cb.repeat(' ', longestNameLength - name.length() + 2);
+				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
 			}
 			cb.fixed().nl();
@@ -99,10 +93,9 @@ public class HelpCommand implements Command {
 		List<String> learnedCommandNames = getLearnedCommandNames();
 		if (!learnedCommandNames.isEmpty()) {
 			cb.fixed().append("Learned Commands=============").nl();
-			cb.fixed();
 
 			//@formatter:off
-			cb.append(learnedCommandNames.stream()
+			cb.fixed().append(learnedCommandNames.stream()
 				.map(name -> bot.getTrigger() + name)
 			.collect(Collectors.joining(", ")));
 			//@formatter:on
@@ -117,7 +110,7 @@ public class HelpCommand implements Command {
 				String description = entry.getValue();
 
 				cb.fixed().append(name);
-				cb.repeat(' ', longestNameLength - name.length() + 2);
+				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
 			}
 			cb.fixed().nl();
@@ -130,7 +123,7 @@ public class HelpCommand implements Command {
 				String description = entry.getValue();
 
 				cb.fixed().append(name);
-				cb.repeat(' ', longestNameLength - name.length() + 2);
+				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
 			}
 		}
@@ -152,15 +145,17 @@ public class HelpCommand implements Command {
 		//@formatter:on
 	}
 
-	private static int longestStringLength(Collection<String> strings) {
-		int longestLength = 0;
-		for (String string : strings) {
-			int length = string.length();
-			if (length > longestLength) {
-				longestLength = length;
-			}
-		}
-		return longestLength;
+	private static int longestNameLength(Multimap<String, String> commandSummaries, Multimap<String, String> listenerDescriptions, Multimap<String, String> taskDescriptions) {
+		Collection<String> names = new ArrayList<>();
+		names.addAll(commandSummaries.keySet());
+		names.addAll(listenerDescriptions.keySet());
+		names.addAll(taskDescriptions.keySet());
+
+		//@formatter:off
+		return names.stream()
+			.mapToInt(String::length)
+		.max().orElse(0);
+		//@formatter:on
 	}
 
 	private Multimap<String, String> getCommandSummaries() {
