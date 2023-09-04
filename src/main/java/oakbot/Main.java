@@ -284,6 +284,7 @@ public final class Main {
 				}
 			}
 		});
+		t.setDaemon(true);
 		t.start();
 
 		System.out.println("Listening for socket commands on port " + port + ".");
