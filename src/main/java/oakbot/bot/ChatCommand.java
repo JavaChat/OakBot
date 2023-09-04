@@ -1,8 +1,10 @@
 package oakbot.bot;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -96,8 +98,9 @@ public class ChatCommand {
 		boolean inQuotes = false;
 		boolean escapeNext = false;
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < md.length(); i++) {
-			char c = md.charAt(i);
+		CharIterator it = new CharIterator(md);
+		while (it.hasNext()) {
+			char c = it.next();
 
 			if (escapeNext) {
 				sb.append(c);
@@ -168,96 +171,9 @@ public class ChatCommand {
 		}
 
 		String content = contentObj.getContent();
-		StringBuilder nameBuffer = new StringBuilder();
-		List<String[]> openTags = new ArrayList<>();
-		boolean inTag = false, inTagName = false, inClosingTag = false;
-		boolean nonWhitespaceCharEncountered = false;
-		int tagNameStart = -1;
-		int startOfText = -1;
-		String curTagName = null;
-		char prev = 0;
-		for (int i = 0; i < content.length(); i++) {
-			char c = content.charAt(i);
+		CommandStringParts parts = extractParts(content);
 
-			if (Character.isWhitespace(c)) {
-				if (!nonWhitespaceCharEncountered) {
-					/*
-					 * Ignore all whitespace at the beginning of the message.
-					 */
-					prev = c;
-					continue;
-				}
-
-				if (inTag) {
-					if (inTagName) {
-						curTagName = content.substring(tagNameStart, i);
-						openTags.add(new String[] { curTagName, null });
-						inTagName = false;
-					}
-					prev = c;
-					continue;
-				}
-
-				/*
-				 * The first whitespace character signals the end of the command
-				 * name.
-				 */
-				startOfText = i + 1;
-				break;
-			}
-
-			nonWhitespaceCharEncountered = true;
-
-			switch (c) {
-			case '<':
-				inTag = inTagName = true;
-				inClosingTag = false;
-				tagNameStart = i + 1;
-				curTagName = null;
-				break;
-			case '>':
-				if (curTagName == null) {
-					curTagName = content.substring(tagNameStart, i);
-					if (!inClosingTag) {
-						openTags.add(new String[] { curTagName, null });
-					}
-				}
-
-				if (inClosingTag) {
-					while (true) {
-						if (openTags.isEmpty()) {
-							break;
-						}
-
-						String[] tag = openTags.remove(openTags.size() - 1);
-						if (tag[0].equals(curTagName)) {
-							break;
-						}
-					}
-				} else {
-					openTags.get(openTags.size() - 1)[1] = content.substring(tagNameStart - 1, i + 1);
-				}
-
-				inTag = inTagName = inClosingTag = false;
-				break;
-			case '/':
-				if (prev == '<') {
-					inClosingTag = true;
-					tagNameStart = i + 1;
-					break;
-				}
-				//break; don't break, go to default
-			default:
-				if (!inTag) {
-					nameBuffer.append(c);
-				}
-				break;
-			}
-
-			prev = c;
-		}
-
-		String name = StringEscapeUtils.unescapeHtml4(nameBuffer.toString());
+		String name = StringEscapeUtils.unescapeHtml4(parts.firstWord);
 		if (trigger != null) {
 			if (!name.startsWith(trigger)) {
 				return null;
@@ -271,23 +187,173 @@ public class ChatCommand {
 			return null;
 		}
 
-		String text;
-		if (startOfText < 0) {
-			text = "";
+		String commandContent;
+		if (parts.startOfContent < 0) {
+			commandContent = "";
 		} else {
-			text = content.substring(startOfText);
+			commandContent = content.substring(parts.startOfContent);
 			if (!contentObj.isFixedWidthFont()) {
-				text = text.trim();
+				commandContent = commandContent.trim();
 			}
 		}
 
-		StringBuilder sb = new StringBuilder();
-		for (String[] tag : openTags) {
-			sb.append(tag[1]);
-		}
-		text = sb + text;
+		String openTags = parts.openTagsBeforeFirstWord.stream().collect(Collectors.joining());
+		commandContent = openTags + commandContent;
 
-		return new ChatCommand(message, name, text);
+		return new ChatCommand(message, name, commandContent);
+	}
+
+	private static CommandStringParts extractParts(String content) {
+		StringBuilder firstWordBuffer = new StringBuilder();
+		boolean inTag = false;
+		boolean inTagName = false;
+		boolean inClosingTag = false;
+		boolean firstNonWhitespaceCharEncountered = false;
+		int tagNameStart = -1;
+		int startOfContent = -1;
+		String curTagName = null;
+
+		/*
+		 * Index 0: The tag name.
+		 * Index 1: The entire opening tag, including the <> characters and
+		 * attributes.
+		 */
+		LinkedList<String[]> openTags = new LinkedList<>();
+
+		CharIterator it = new CharIterator(content);
+		while (it.hasNext()) {
+			char c = it.next();
+
+			if (Character.isWhitespace(c)) {
+				if (!firstNonWhitespaceCharEncountered) {
+					/*
+					 * Ignore all whitespace at the beginning of the message.
+					 */
+					continue;
+				}
+
+				if (inTag) {
+					/*
+					 * If we're inside of a tag name, this marks the end of the
+					 * tag name and the start of the tag's attributes.
+					 */
+					if (inTagName) {
+						curTagName = content.substring(tagNameStart, it.index());
+						openTags.add(new String[] { curTagName, null });
+						inTagName = false;
+					}
+					continue;
+				}
+
+				/*
+				 * The first whitespace character signals the end of the command
+				 * name.
+				 */
+				startOfContent = it.index() + 1;
+				break;
+			}
+
+			firstNonWhitespaceCharEncountered = true;
+
+			if (c == '<') {
+				inTag = inTagName = true;
+				inClosingTag = false;
+				tagNameStart = it.index() + 1;
+				curTagName = null;
+				continue;
+			}
+
+			if (c == '>') {
+				if (curTagName == null) {
+					curTagName = content.substring(tagNameStart, it.index());
+					if (!inClosingTag) {
+						openTags.add(new String[] { curTagName, null });
+					}
+				}
+
+				if (inClosingTag) {
+					/*
+					 * Remove any tags from the list that start and end before
+					 * the command name is reached.
+					 */
+					while (!openTags.isEmpty()) {
+						String[] tag = openTags.removeLast();
+						if (tag[0].equals(curTagName)) {
+							break;
+						}
+					}
+				} else {
+					/*
+					 * Save the entire opening tag, including the <> characters
+					 * and attributes.
+					 */
+					String[] tag = openTags.getLast();
+					String entireOpenTag = content.substring(tagNameStart - 1, it.index() + 1);
+					tag[1] = entireOpenTag;
+				}
+
+				inTag = inTagName = inClosingTag = false;
+				continue;
+			}
+
+			if (c == '/' && it.prev() == '<') {
+				inClosingTag = true;
+				tagNameStart = it.index() + 1;
+				continue;
+			}
+
+			if (!inTag) {
+				firstWordBuffer.append(c);
+				continue;
+			}
+		}
+
+		//@formatter:off
+		List<String> openTagsBeforeFirstWord = openTags.stream()
+			.map(tag -> tag[1])
+		.collect(Collectors.toList());
+		//@formatter:on
+
+		String firstWord = firstWordBuffer.toString();
+
+		return new CommandStringParts(openTagsBeforeFirstWord, firstWord, startOfContent);
+	}
+
+	private static class CommandStringParts {
+		private final List<String> openTagsBeforeFirstWord;
+		private final String firstWord;
+		private final int startOfContent;
+
+		public CommandStringParts(List<String> openTagsBeforeFirstWord, String firstWord, int startOfContent) {
+			this.openTagsBeforeFirstWord = openTagsBeforeFirstWord;
+			this.firstWord = firstWord;
+			this.startOfContent = startOfContent;
+		}
+	}
+
+	private static class CharIterator {
+		private final String s;
+		private int i = -1;
+
+		public CharIterator(String s) {
+			this.s = s;
+		}
+
+		public boolean hasNext() {
+			return i + 1 < s.length();
+		}
+
+		public char next() {
+			return s.charAt(++i);
+		}
+
+		public char prev() {
+			return (i <= 0) ? 0 : s.charAt(i - 1);
+		}
+
+		public int index() {
+			return i;
+		}
 	}
 
 	@Override

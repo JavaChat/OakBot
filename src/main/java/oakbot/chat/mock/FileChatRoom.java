@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.IRoom;
@@ -29,8 +28,6 @@ import com.github.mangstadt.sochat4j.event.MessagePostedEvent;
  * @author Michael Angstadt
  */
 public class FileChatRoom implements IRoom {
-	private static final Logger logger = Logger.getLogger(FileChatRoom.class.getName());
-
 	private final int roomId;
 	private final int humanUserId, botUserId;
 	private final String humanUsername, humanProfilePicture, botUsername;
@@ -42,7 +39,7 @@ public class FileChatRoom implements IRoom {
 
 	private Consumer<MessagePostedEvent> listener;
 
-	public FileChatRoom(int roomId, int humanUserId, String humanUsername, String humanProfilePicture, int botUserId, String botUsername, AtomicLong eventId, AtomicLong messageId, Path inputFile, FileChatClient connection) throws IOException {
+	public FileChatRoom(int roomId, int humanUserId, String humanUsername, String humanProfilePicture, int botUserId, String botUsername, AtomicLong eventId, AtomicLong messageId, Path inputFile, FileChatClient connection) {
 		this.roomId = roomId;
 		this.humanUserId = humanUserId;
 		this.humanUsername = humanUsername;
@@ -55,43 +52,76 @@ public class FileChatRoom implements IRoom {
 		this.messageId = messageId;
 
 		fileMonitor = new Thread(() -> {
-			try (BufferedReader reader = Files.newBufferedReader(inputFile)) {
-				while (true) {
-					String line = reader.readLine();
-					if (line == null) {
-						//wait for more input
-						Thread.sleep(1000);
-						continue;
-					}
-
-					/*
-					 * Read the next line.
-					 * 
-					 * Multi-line messages can be specified by ending each line
-					 * with a backslash.
-					 */
-					StringBuilder sb = new StringBuilder(line.length());
-					while (line != null) {
-						boolean multiline = line.endsWith("\\");
-						if (!multiline) {
-							sb.append(line);
-							break;
-						}
-
-						sb.append(line, 0, line.length() - 1).append('\n');
-						line = reader.readLine();
-					}
-
-					postMessage(humanUserId, humanUsername, sb.toString());
+			try (ChatRoomFileReader reader = new ChatRoomFileReader(inputFile)) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					postMessage(humanUserId, humanUsername, line);
 				}
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				logger.log(Level.SEVERE, "Thread interrupted while waiting for input from \"" + inputFile.getFileName() + "\".", e);
 			}
 		});
 		fileMonitor.start();
+	}
+
+	private class ChatRoomFileReader extends BufferedReader {
+		public ChatRoomFileReader(Path file) throws IOException {
+			super(Files.newBufferedReader(file));
+		}
+
+		@Override
+		public String readLine() throws IOException {
+			while (true) {
+				String line = super.readLine();
+
+				/*
+				 * Wait for more content to be added to the file.
+				 */
+				if (line == null) {
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						/*
+						 * The program has been terminated.
+						 */
+						Thread.currentThread().interrupt();
+						return null;
+					}
+					continue;
+				}
+
+				/*
+				 * Most lines are not multiline, so return early for
+				 * performance.
+				 */
+				if (!isMultiline(line)) {
+					return line;
+				}
+
+				/*
+				 * Read the next line, combining multi-line messages into a
+				 * single string.
+				 * 
+				 * Multi-line messages can be specified by ending each line
+				 * with a backslash.
+				 */
+				List<String> lines = new ArrayList<>();
+				do {
+					if (isMultiline(line)) {
+						lines.add(line.substring(0, line.length() - 1));
+					} else {
+						lines.add(line);
+						break;
+					}
+				} while ((line = super.readLine()) != null);
+
+				return lines.stream().collect(Collectors.joining("\n"));
+			}
+		}
+
+		private boolean isMultiline(String line) {
+			return line.endsWith("\\");
+		}
 	}
 
 	@Override
