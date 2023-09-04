@@ -349,7 +349,6 @@ public class FishCommand implements Command, ScheduledTask {
 		}
 
 		db.set("fish.caught", userObj);
-		db.commit();
 	}
 
 	private class PendingCatch {

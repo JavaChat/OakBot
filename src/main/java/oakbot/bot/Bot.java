@@ -200,6 +200,10 @@ public class Bot implements IBot {
 					}
 
 					chore.complete();
+
+					if (database != null) {
+						database.commit();
+					}
 				}
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "Bot terminated due to unexpected exception.", e);
@@ -640,10 +644,6 @@ public class Bot implements IBot {
 
 			ChatActions actions = handleListeners(message);
 			handleActions(message, actions);
-
-			if (database != null) {
-				database.commit();
-			}
 		}
 
 		private void handleBotMessage(ChatMessage message) {
