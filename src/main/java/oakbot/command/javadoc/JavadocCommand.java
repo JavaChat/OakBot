@@ -14,6 +14,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -37,6 +39,8 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class JavadocCommand implements Command, Listener {
+	private static final Logger logger = Logger.getLogger(JavadocCommand.class.getName());
+
 	/**
 	 * Stop responding to numeric choices the user enters after this amount of
 	 * time.
@@ -133,38 +137,34 @@ public class JavadocCommand implements Command, Listener {
 			return reply("Type the name of a Java class (e.g. \"java.lang.String\") or a method (e.g. \"Integer#parseInt\").", chatCommand);
 		}
 
-		//parse the command arguments
 		JavadocCommandArguments arguments = JavadocCommandArguments.parse(content);
 
-		//search for the class
-		Collection<String> fullyQualifiedNames;
 		try {
-			fullyQualifiedNames = dao.search(arguments.getClassName());
-		} catch (IOException e) {
-			throw new RuntimeException("Problem searching for fully-qualified name.", e);
-		}
+			Collection<String> fullyQualifiedNames = dao.search(arguments.getClassName());
 
-		if (fullyQualifiedNames.isEmpty()) {
+			if (fullyQualifiedNames.isEmpty()) {
+				return handleNoMatch(chatCommand);
+			}
+
+			if (fullyQualifiedNames.size() > 1) {
+				return handleMultipleMatches(arguments, fullyQualifiedNames, chatCommand);
+			}
+
+			String fullyQualifiedName = fullyQualifiedNames.iterator().next();
+			ClassInfo info = dao.getClassInfo(fullyQualifiedName);
+			if (info != null) {
+				return handleSingleMatch(arguments, info, chatCommand);
+			}
+
+			/*
+			 * We should never get here, since we got the fully-qualified name
+			 * from "dao.search()".
+			 */
 			return handleNoMatch(chatCommand);
-		}
-
-		if (fullyQualifiedNames.size() > 1) {
-			return handleMultipleMatches(arguments, fullyQualifiedNames, chatCommand);
-		}
-
-		String fullyQualifiedName = fullyQualifiedNames.iterator().next();
-		ClassInfo info;
-		try {
-			info = dao.getClassInfo(fullyQualifiedName);
 		} catch (IOException e) {
-			throw new RuntimeException("Problem getting Javadoc info.", e);
+			logger.log(Level.SEVERE, "Problem getting Javadoc info from the DAO.", e);
+			return reply(new ChatBuilder().append("Error getting Javadoc info: ").code(e.getMessage()), chatCommand);
 		}
-
-		if (info == null) {
-			//this should never happen, since we got the fully-qualified name from "dao.search()"
-			return handleNoMatch(chatCommand);
-		}
-		return handleSingleMatch(arguments, info, chatCommand);
 	}
 
 	@Override
@@ -175,31 +175,29 @@ public class JavadocCommand implements Command, Listener {
 		}
 
 		String content = message.getContent().getContent();
+
+		int num;
 		try {
-			int num = Integer.parseInt(content);
-			return showChoice(message, num);
+			num = Integer.parseInt(content);
 		} catch (NumberFormatException e) {
 			return doNothing();
 		}
+
+		return showChoice(message, num);
 	}
 
 	private ChatActions handleNoMatch(ChatCommand message) {
 		return reply("Sorry, I never heard of that class. :(", message);
 	}
 
-	private ChatActions handleSingleMatch(JavadocCommandArguments arguments, ClassInfo info, ChatCommand message) {
+	private ChatActions handleSingleMatch(JavadocCommandArguments arguments, ClassInfo info, ChatCommand message) throws IOException {
 		if (arguments.getMethodName() == null) {
 			//method name not specified, so print the class docs
 			return printClass(info, arguments, message);
 		}
 
 		//print the method docs
-		MatchingMethods matchingMethods;
-		try {
-			matchingMethods = findMatchingMethods(info, arguments.getMethodName(), arguments.getParameters());
-		} catch (IOException e) {
-			throw new RuntimeException("Problem getting Javadoc info.", e);
-		}
+		MatchingMethods matchingMethods = findMatchingMethods(info, arguments.getMethodName(), arguments.getParameters());
 
 		if (matchingMethods.isEmpty()) {
 			//no matches found
@@ -221,7 +219,7 @@ public class JavadocCommand implements Command, Listener {
 		return printMethodChoices(map, arguments, message);
 	}
 
-	private ChatActions handleMultipleMatches(JavadocCommandArguments arguments, Collection<String> matches, ChatCommand message) {
+	private ChatActions handleMultipleMatches(JavadocCommandArguments arguments, Collection<String> matches, ChatCommand message) throws IOException {
 		if (arguments.getMethodName() == null) {
 			//user is just querying for a class, so print the class choices
 			return printClassChoices(matches, arguments, message);
@@ -233,16 +231,12 @@ public class JavadocCommand implements Command, Listener {
 		Map<ClassInfo, MethodInfo> exactMatches = new HashMap<>();
 		Multimap<ClassInfo, MethodInfo> matchingNames = ArrayListMultimap.create();
 		for (String className : matches) {
-			try {
-				ClassInfo classInfo = dao.getClassInfo(className);
-				MatchingMethods methods = findMatchingMethods(classInfo, arguments.getMethodName(), arguments.getParameters());
-				if (methods.exactSignature != null) {
-					exactMatches.put(classInfo, methods.exactSignature);
-				}
-				matchingNames.putAll(classInfo, methods.matchingName);
-			} catch (IOException e) {
-				throw new RuntimeException("Problem getting Javadoc info.", e);
+			ClassInfo classInfo = dao.getClassInfo(className);
+			MatchingMethods methods = findMatchingMethods(classInfo, arguments.getMethodName(), arguments.getParameters());
+			if (methods.exactSignature != null) {
+				exactMatches.put(classInfo, methods.exactSignature);
 			}
+			matchingNames.putAll(classInfo, methods.matchingName);
 		}
 
 		if (exactMatches.isEmpty() && matchingNames.isEmpty()) {
