@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  * @author Michael Angstadt
  */
 class JavadocCommandArguments {
-	private final static Pattern messageRegex = Pattern.compile("(.*?)(\\((.*?)\\))?(#(.*?)(\\((.*?)\\))?)?(\\s+(.*?))?$");
+	private static final Pattern messageRegex = Pattern.compile("(.*?)(\\((.*?)\\))?(#(.*?)(\\((.*?)\\))?)?(\\s+(.*))?$");
 
 	private final String className;
 	private final String methodName;
