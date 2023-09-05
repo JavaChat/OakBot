@@ -360,7 +360,7 @@ public class JavadocCommand implements Command, Listener {
 		if (deprecated) cb.strike();
 
 		String signature = info.getSignatureString();
-		String url = info.getClassInfo().getUrl(false);
+		String url = info.getClassInfo().getUrlWithoutFrames();
 		if (url == null) {
 			cb.bold().code(signature).bold();
 		} else {
@@ -386,7 +386,7 @@ public class JavadocCommand implements Command, Listener {
 
 		if (info.isDeprecated()) cb.strike();
 		String signature = info.getSignatureString();
-		String url = info.getClassInfo().getUrl(false);
+		String url = info.getClassInfo().getUrlWithoutFrames();
 		if (url == null) {
 			cb.bold().code(signature).bold();
 		} else {
@@ -607,7 +607,7 @@ public class JavadocCommand implements Command, Listener {
 
 		if (deprecated) cb.strike();
 		String fullName = info.getName().getFullyQualifiedName();
-		String url = info.getUrl(true);
+		String url = info.getUrlWithFrames();
 		if (url == null) {
 			cb.bold().code(fullName).bold();
 		} else {
@@ -631,7 +631,7 @@ public class JavadocCommand implements Command, Listener {
 
 		if (info.isDeprecated()) cb.strike();
 		String fullName = info.getName().getFullyQualifiedName();
-		String url = info.getUrl(true);
+		String url = info.getUrlWithFrames();
 		if (url == null) {
 			cb.bold().code(fullName).bold();
 		} else {

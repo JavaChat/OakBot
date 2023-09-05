@@ -77,12 +77,30 @@ public class ClassInfo {
 	}
 
 	/**
+	 * Gets the URL to this class's Javadoc page. Gets the version that uses
+	 * frames.
+	 * @return the URL or null if no base URL was given
+	 */
+	public String getUrlWithFrames() {
+		return getUrl(true);
+	}
+
+	/**
+	 * Gets the URL to this class's Javadoc page. Gets the version that doesn't
+	 * use frames.
+	 * @return the URL or null if no base URL was given
+	 */
+	public String getUrlWithoutFrames() {
+		return getUrl(false);
+	}
+
+	/**
 	 * Gets the URL to this class's Javadoc page.
 	 * @param frames true to return the version of the page with frames, false
 	 * not to
 	 * @return the URL or null if no base URL was given
 	 */
-	public String getUrl(boolean frames) {
+	private String getUrl(boolean frames) {
 		return zipFile.getUrl(this, frames);
 	}
 
