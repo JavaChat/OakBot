@@ -8,13 +8,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.SplitStrategy;
@@ -169,6 +169,11 @@ public class JavadocCommand implements Command, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
+		boolean waitingForChoice = conversations.containsKey(message.getRoomId());
+		if (!waitingForChoice) {
+			return doNothing();
+		}
+
 		String content = message.getContent().getContent();
 		try {
 			int num = Integer.parseInt(content);
@@ -191,7 +196,7 @@ public class JavadocCommand implements Command, Listener {
 		//print the method docs
 		MatchingMethods matchingMethods;
 		try {
-			matchingMethods = getMatchingMethods(info, arguments.getMethodName(), arguments.getParameters());
+			matchingMethods = findMatchingMethods(info, arguments.getMethodName(), arguments.getParameters());
 		} catch (IOException e) {
 			throw new RuntimeException("Problem getting Javadoc info.", e);
 		}
@@ -230,7 +235,7 @@ public class JavadocCommand implements Command, Listener {
 		for (String className : matches) {
 			try {
 				ClassInfo classInfo = dao.getClassInfo(className);
-				MatchingMethods methods = getMatchingMethods(classInfo, arguments.getMethodName(), arguments.getParameters());
+				MatchingMethods methods = findMatchingMethods(classInfo, arguments.getMethodName(), arguments.getParameters());
 				if (methods.exactSignature != null) {
 					exactMatches.put(classInfo, methods.exactSignature);
 				}
@@ -312,12 +317,12 @@ public class JavadocCommand implements Command, Listener {
 
 	/**
 	 * Prints the Javadoc info of a particular method.
-	 * @param methodinfo the method
+	 * @param info the method
 	 * @param arguments the command arguments
-	 * @param cb the chat builder
+	 * @param message the chat message
 	 * @return the chat response
 	 */
-	private ChatActions printMethod(MethodInfo methodInfo, JavadocCommandArguments arguments, ChatCommand message) {
+	private ChatActions printMethod(MethodInfo info, JavadocCommandArguments arguments, ChatCommand message) {
 		ChatBuilder cb = new ChatBuilder();
 
 		String username = arguments.getTargetUser();
@@ -329,84 +334,75 @@ public class JavadocCommand implements Command, Listener {
 
 		int paragraph = arguments.getParagraph();
 		if (paragraph == 1) {
-			//print library name
-			JavadocZipFile zipFile = methodInfo.getClassInfo().getZipFile();
-			if (zipFile != null) {
-				String name = zipFile.getName();
-				if (name != null && !name.equalsIgnoreCase("java")) {
-					name = name.replace(' ', '-');
-					cb.bold();
-					cb.tag(name);
-					cb.bold();
-					cb.append(' ');
-				}
-			}
-
-			//print modifiers
-			boolean deprecated = methodInfo.isDeprecated();
-			Collection<String> modifiersToPrint = new ArrayList<String>(methodInfo.getModifiers());
-			modifiersToPrint.removeAll(methodModifiersToIgnore);
-			for (String modifier : modifiersToPrint) {
-				if (deprecated) cb.strike();
-				cb.tag(modifier);
-				if (deprecated) cb.strike();
-				cb.append(' ');
-			}
-
-			//print signature
-			if (deprecated) cb.strike();
-			String signature = methodInfo.getSignatureString();
-			String url = methodInfo.getClassInfo().getUrl(false);
-			if (url == null) {
-				cb.bold().code(signature).bold();
-			} else {
-				url += "#" + methodInfo.getUrlAnchor();
-				cb.link(new ChatBuilder().bold().code(signature).bold().toString(), url);
-			}
-			if (deprecated) cb.strike();
-			cb.append(": ");
+			appendPreamble(info, cb);
 		}
 
-		//print the method description
-		String description = methodInfo.getDescription();
-		if (description == null || description.isEmpty()) {
-			description = new ChatBuilder().italic("no description").toString();
-		}
-		String since = methodInfo.getSince();
-		Paragraphs paragraphs = new Paragraphs(description, since);
-		paragraphs.append(paragraph, cb);
+		appendDescription(info, paragraph, cb);
 
 		//@formatter:off
 		return ChatActions.create(
 			new PostMessage(cb)
 			.splitStrategy(SplitStrategy.WORD)
-			.condensedMessage(buildHideMessage(methodInfo))
+			.condensedMessage(buildCondensedMessage(info))
 		);
 		//@formatter:on
 	}
 
-	private String buildHideMessage(MethodInfo methodInfo) {
-		ChatBuilder sig = new ChatBuilder();
+	private void appendPreamble(MethodInfo info, ChatBuilder cb) {
+		appendLibraryName(info.getClassInfo(), cb);
+		appendModifiers(info, cb);
+		appendMethodSignature(info, cb);
+		cb.append(": ");
+	}
 
-		if (methodInfo.isDeprecated()) sig.strike();
-		String signature = methodInfo.getSignatureString();
-		String url = methodInfo.getClassInfo().getUrl(false);
+	private void appendMethodSignature(MethodInfo info, ChatBuilder cb) {
+		boolean deprecated = info.isDeprecated();
+		if (deprecated) cb.strike();
+
+		String signature = info.getSignatureString();
+		String url = info.getClassInfo().getUrl(false);
 		if (url == null) {
-			sig.bold().code(signature).bold();
+			cb.bold().code(signature).bold();
 		} else {
-			url += "#" + methodInfo.getUrlAnchor();
-			sig.link(new ChatBuilder().bold().code(signature).bold().toString(), url);
+			url += "#" + info.getUrlAnchor();
+			cb.link(new ChatBuilder().bold().code(signature).bold().toString(), url);
 		}
-		if (methodInfo.isDeprecated()) sig.strike();
 
-		return sig.toString();
+		if (deprecated) cb.strike();
+	}
+
+	private void appendDescription(MethodInfo info, int paragraph, ChatBuilder cb) {
+		String description = info.getDescription();
+		if (description == null || description.isEmpty()) {
+			description = new ChatBuilder().italic("no description").toString();
+		}
+		String since = info.getSince();
+		Paragraphs paragraphs = new Paragraphs(description, since);
+		paragraphs.append(paragraph, cb);
+	}
+
+	private String buildCondensedMessage(MethodInfo info) {
+		ChatBuilder cb = new ChatBuilder();
+
+		if (info.isDeprecated()) cb.strike();
+		String signature = info.getSignatureString();
+		String url = info.getClassInfo().getUrl(false);
+		if (url == null) {
+			cb.bold().code(signature).bold();
+		} else {
+			url += "#" + info.getUrlAnchor();
+			cb.link(new ChatBuilder().bold().code(signature).bold().toString(), url);
+		}
+		if (info.isDeprecated()) cb.strike();
+
+		return cb.toString();
 	}
 
 	/**
 	 * Prints the methods to choose from when multiple methods are found.
 	 * @param matchingMethods the methods to choose from
 	 * @param arguments the command arguments
-	 * @param cb the chat builder
+	 * @param message the chat message
 	 * @return the chat response
 	 */
 	private ChatActions printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, JavadocCommandArguments arguments, ChatCommand message) {
@@ -414,32 +410,7 @@ public class JavadocCommand implements Command, Listener {
 		cb.reply(message);
 
 		List<String> methodParams = arguments.getParameters();
-
-		if (matchingMethods.size() == 1) {
-			if (methodParams == null) {
-				cb.append("Did you mean this one? (type the number)");
-			} else {
-				if (methodParams.isEmpty()) {
-					cb.append("I couldn't find a zero-arg signature for that method.");
-				} else {
-					cb.append("I couldn't find a signature with ");
-					cb.append((methodParams.size() == 1) ? "that parameter." : "those parameters.");
-				}
-				cb.append(" Did you mean this one? (type the number)");
-			}
-		} else {
-			if (methodParams == null) {
-				cb.append("Which one do you mean? (type the number)");
-			} else {
-				if (methodParams.isEmpty()) {
-					cb.append("I couldn't find a zero-arg signature for that method.");
-				} else {
-					cb.append("I couldn't find a signature with ");
-					cb.append((methodParams.size() == 1) ? "that parameter." : "those parameters.");
-				}
-				cb.append(" Did you mean one of these? (type the number)");
-			}
-		}
+		cb.append(buildChoicesQuestion(matchingMethods, methodParams));
 
 		int count = 1;
 		List<String> choices = new ArrayList<>();
@@ -447,19 +418,7 @@ public class JavadocCommand implements Command, Listener {
 			ClassInfo classInfo = entry.getKey();
 			MethodInfo methodInfo = entry.getValue();
 
-			String signature;
-			{
-				StringBuilder sb = new StringBuilder();
-				sb.append(classInfo.getName().getFullyQualifiedName()).append("#").append(methodInfo.getName());
-
-				List<String> paramList = new ArrayList<>();
-				for (ParameterInfo param : methodInfo.getParameters()) {
-					paramList.add(param.getType().getSimpleName() + (param.isArray() ? "[]" : ""));
-				}
-				sb.append('(').append(String.join(", ", paramList)).append(')');
-
-				signature = sb.toString();
-			}
+			String signature = buildSignature(classInfo, methodInfo);
 
 			cb.nl().append(count).append(". ").append(signature);
 			choices.add(signature);
@@ -479,6 +438,45 @@ public class JavadocCommand implements Command, Listener {
 		//@formatter:on
 	}
 
+	private String buildChoicesQuestion(Multimap<ClassInfo, MethodInfo> matchingMethods, List<String> methodParams) {
+		boolean oneMethodFound = (matchingMethods.size() == 1);
+
+		String one;
+		if (methodParams == null) {
+			one = "";
+		} else {
+			if (methodParams.isEmpty()) {
+				one = "I couldn't find a zero-arg signature for that method. ";
+			} else {
+				String thatParameter = oneMethodFound ? "that parameter" : "those parameters";
+				one = "I couldn't find a signature with " + thatParameter + ". ";
+			}
+		}
+
+		//@formatter:off
+		String two = oneMethodFound ?
+			"Did you mean this one? (type the number)" :
+			"Did you mean one of these? (type the number)";
+		//@formatter:on
+
+		return one + two;
+	}
+
+	private String buildSignature(ClassInfo classInfo, MethodInfo methodInfo) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(classInfo.getName().getFullyQualifiedName()).append("#").append(methodInfo.getName());
+
+		//@formatter:off
+		String paramList = methodInfo.getParameters().stream()
+			.map(param -> param.getType().getSimpleName() + (param.isArray() ? "[]" : ""))
+		.collect(Collectors.joining(", "));
+		//@formatter:on
+
+		sb.append('(').append(paramList).append(')');
+
+		return sb.toString();
+	}
+
 	/**
 	 * Prints the classes to choose from when multiple class are found.
 	 * @param classes the fully-qualified names of the classes
@@ -488,7 +486,7 @@ public class JavadocCommand implements Command, Listener {
 	 */
 	private ChatActions printClassChoices(Collection<String> classes, JavadocCommandArguments arguments, ChatCommand message) {
 		List<String> choices = new ArrayList<>(classes);
-		Collections.sort(choices);
+		choices.sort(null);
 
 		ChatBuilder cb = new ChatBuilder();
 		cb.reply(message);
@@ -525,59 +523,100 @@ public class JavadocCommand implements Command, Listener {
 
 		int paragraph = arguments.getParagraph();
 		if (paragraph == 1) {
-			//print the library name
-			JavadocZipFile zipFile = info.getZipFile();
-			if (zipFile != null) {
-				String name = zipFile.getName();
-				if (name != null && !name.equalsIgnoreCase("Java")) {
-					name = name.replace(" ", "-");
-					cb.bold();
-					cb.tag(name);
-					cb.bold();
-					cb.append(' ');
-				}
-			}
-
-			//print modifiers
-			boolean deprecated = info.isDeprecated();
-			Collection<String> infoModifiers = info.getModifiers();
-			List<String> modifiersToPrint = new ArrayList<>(classModifiers);
-			modifiersToPrint.retainAll(infoModifiers);
-
-			//add class modifiers
-			for (String classModifier : modifiersToPrint) {
-				cb.italic();
-				if (deprecated) cb.strike();
-				cb.tag(classModifier);
-				if (deprecated) cb.strike();
-				cb.italic();
-				cb.append(' ');
-			}
-
-			Collection<String> classType = new HashSet<>(classTypes);
-			classType.retainAll(infoModifiers);
-			//there should be only one remaining element in the collection, but use a foreach loop just incase
-			for (String modifier : classType) {
-				if (deprecated) cb.strike();
-				cb.tag(modifier);
-				if (deprecated) cb.strike();
-				cb.append(' ');
-			}
-
-			//print class name
-			if (deprecated) cb.strike();
-			String fullName = info.getName().getFullyQualifiedName();
-			String url = info.getUrl(true);
-			if (url == null) {
-				cb.bold().code(fullName).bold();
-			} else {
-				cb.link(new ChatBuilder().bold().code(fullName).bold().toString(), url);
-			}
-			if (deprecated) cb.strike();
-			cb.append(": ");
+			appendPreamble(info, cb);
 		}
 
-		//print the class description
+		appendDescription(info, paragraph, cb);
+
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(cb)
+			.splitStrategy(SplitStrategy.WORD)
+			.condensedMessage(buildCondensedMessage(info))
+		);
+		//@formatter:on
+	}
+
+	private void appendPreamble(ClassInfo info, ChatBuilder cb) {
+		appendLibraryName(info, cb);
+		appendModifiers(info, cb);
+		appendClassName(info, cb);
+		cb.append(": ");
+	}
+
+	private void appendLibraryName(ClassInfo info, ChatBuilder cb) {
+		JavadocZipFile zipFile = info.getZipFile();
+		if (zipFile == null) {
+			return;
+		}
+
+		String name = zipFile.getName();
+		if (name == null || name.equalsIgnoreCase("java")) {
+			return;
+		}
+
+		name = name.replace(" ", "-");
+		cb.bold();
+		cb.tag(name);
+		cb.bold();
+		cb.append(' ');
+	}
+
+	private void appendModifiers(ClassInfo info, ChatBuilder cb) {
+		boolean deprecated = info.isDeprecated();
+		Collection<String> infoModifiers = info.getModifiers();
+		List<String> modifiersToPrint = new ArrayList<>(classModifiers);
+		modifiersToPrint.retainAll(infoModifiers);
+
+		//add class modifiers
+		for (String classModifier : modifiersToPrint) {
+			cb.italic();
+			if (deprecated) cb.strike();
+			cb.tag(classModifier);
+			if (deprecated) cb.strike();
+			cb.italic();
+			cb.append(' ');
+		}
+
+		Collection<String> classType = new HashSet<>(classTypes);
+		classType.retainAll(infoModifiers);
+		//there should be only one remaining element in the collection, but use a foreach loop just incase
+		for (String modifier : classType) {
+			if (deprecated) cb.strike();
+			cb.tag(modifier);
+			if (deprecated) cb.strike();
+			cb.append(' ');
+		}
+	}
+
+	private void appendModifiers(MethodInfo info, ChatBuilder cb) {
+		boolean deprecated = info.isDeprecated();
+		Collection<String> modifiersToPrint = new ArrayList<>(info.getModifiers());
+		modifiersToPrint.removeAll(methodModifiersToIgnore);
+
+		for (String modifier : modifiersToPrint) {
+			if (deprecated) cb.strike();
+			cb.tag(modifier);
+			if (deprecated) cb.strike();
+			cb.append(' ');
+		}
+	}
+
+	private void appendClassName(ClassInfo info, ChatBuilder cb) {
+		boolean deprecated = info.isDeprecated();
+
+		if (deprecated) cb.strike();
+		String fullName = info.getName().getFullyQualifiedName();
+		String url = info.getUrl(true);
+		if (url == null) {
+			cb.bold().code(fullName).bold();
+		} else {
+			cb.link(new ChatBuilder().bold().code(fullName).bold().toString(), url);
+		}
+		if (deprecated) cb.strike();
+	}
+
+	private void appendDescription(ClassInfo info, int paragraph, ChatBuilder cb) {
 		String description = info.getDescription();
 		if (description == null || description.isEmpty()) {
 			description = new ChatBuilder().italic("no description").toString();
@@ -585,17 +624,9 @@ public class JavadocCommand implements Command, Listener {
 		String since = info.getSince();
 		Paragraphs paragraphs = new Paragraphs(description, since);
 		paragraphs.append(paragraph, cb);
-
-		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(cb)
-			.splitStrategy(SplitStrategy.WORD)
-			.condensedMessage(buildHideMessage(info))
-		);
-		//@formatter:on
 	}
 
-	private String buildHideMessage(ClassInfo info) {
+	private String buildCondensedMessage(ClassInfo info) {
 		ChatBuilder cb = new ChatBuilder();
 
 		if (info.isDeprecated()) cb.strike();
@@ -615,66 +646,29 @@ public class JavadocCommand implements Command, Listener {
 	 * Finds the methods in a given class that matches the given method
 	 * signature.
 	 * @param info the class to search
-	 * @param methodName the name of the method to search for
-	 * @param methodParameters the parameters that the method should have, or
-	 * null not to look at the parameters.
+	 * @param searchMethodName the name of the method to search for
+	 * @param searchMethodParameters the parameters that the method should have,
+	 * or null not to look at the parameters.
 	 * @return the matching methods
 	 * @throws IOException if there's a problem loading Javadoc info from the
 	 * DAO
 	 */
-	private MatchingMethods getMatchingMethods(ClassInfo info, String methodName, List<String> methodParameters) throws IOException {
-		MatchingMethods matchingMethods = new MatchingMethods();
+	private MatchingMethods findMatchingMethods(ClassInfo info, String searchMethodName, List<String> searchMethodParameters) throws IOException {
+		MatchingMethods searchResult = new MatchingMethods();
 		Set<String> matchingNameSignatures = new HashSet<>();
 
-		//search the class, all its parent classes, and all its interfaces and the interfaces of its super classes
+		/*
+		 * Search the class, all of its parent classes, and all of its
+		 * interfaces, and the interfaces of its super classes.
+		 */
 		LinkedList<ClassInfo> stack = new LinkedList<>();
 		stack.add(info);
 
 		while (!stack.isEmpty()) {
 			ClassInfo curInfo = stack.removeLast();
+
 			for (MethodInfo curMethod : curInfo.getMethods()) {
-				if (!curMethod.getName().equalsIgnoreCase(methodName)) {
-					//name doesn't match
-					continue;
-				}
-
-				String signature = curMethod.getSignature();
-				if (matchingNameSignatures.contains(signature)) {
-					//this method is already in the matching name list
-					continue;
-				}
-
-				matchingNameSignatures.add(signature);
-				matchingMethods.matchingName.add(curMethod);
-
-				if (methodParameters == null) {
-					//user is not searching based on parameters
-					continue;
-				}
-
-				List<ParameterInfo> curParameters = curMethod.getParameters();
-				if (curParameters.size() != methodParameters.size()) {
-					//parameter size doesn't match
-					continue;
-				}
-
-				//check the parameters
-				boolean exactMatch = true;
-				for (int i = 0; i < curParameters.size(); i++) {
-					ParameterInfo curParameter = curParameters.get(i);
-					String curParameterName = curParameter.getType().getSimpleName() + (curParameter.isArray() ? "[]" : "");
-
-					String methodParameter = methodParameters.get(i);
-
-					if (!curParameterName.equalsIgnoreCase(methodParameter)) {
-						//parameter types don't match
-						exactMatch = false;
-						break;
-					}
-				}
-				if (exactMatch) {
-					matchingMethods.exactSignature = curMethod;
-				}
+				checkForMatch(curMethod, searchMethodName, searchMethodParameters, matchingNameSignatures, searchResult);
 			}
 
 			//add parent class to the stack
@@ -695,7 +689,52 @@ public class JavadocCommand implements Command, Listener {
 			}
 		}
 
-		return matchingMethods;
+		return searchResult;
+	}
+
+	private void checkForMatch(MethodInfo info, String searchMethodName, List<String> searchMethodParameters, Set<String> matchingNameSignatures, MatchingMethods searchResult) {
+		if (!info.getName().equalsIgnoreCase(searchMethodName)) {
+			//name doesn't match
+			return;
+		}
+
+		String signature = info.getSignature();
+		if (matchingNameSignatures.contains(signature)) {
+			//this method is already in the matching name list
+			return;
+		}
+
+		matchingNameSignatures.add(signature);
+		searchResult.matchingName.add(info);
+
+		if (searchMethodParameters == null) {
+			//user is not searching based on parameters
+			return;
+		}
+
+		List<ParameterInfo> curParameters = info.getParameters();
+		if (curParameters.size() != searchMethodParameters.size()) {
+			//parameter size doesn't match
+			return;
+		}
+
+		//check the parameters
+		boolean exactMatch = true;
+		for (int i = 0; i < curParameters.size(); i++) {
+			ParameterInfo curParameter = curParameters.get(i);
+			String curParameterName = curParameter.getType().getSimpleName() + (curParameter.isArray() ? "[]" : "");
+
+			String methodParameter = searchMethodParameters.get(i);
+
+			if (!curParameterName.equalsIgnoreCase(methodParameter)) {
+				//parameter types don't match
+				exactMatch = false;
+				break;
+			}
+		}
+		if (exactMatch) {
+			searchResult.exactSignature = info;
+		}
 	}
 
 	private static class MatchingMethods {
@@ -708,7 +747,7 @@ public class JavadocCommand implements Command, Listener {
 	}
 
 	private static class Paragraphs {
-		private final String paragraphs[];
+		private final String[] paragraphs;
 		private final String since;
 
 		public Paragraphs(String text, String since) {
@@ -744,7 +783,7 @@ public class JavadocCommand implements Command, Listener {
 		}
 	}
 
-	private class Conversation {
+	private static class Conversation {
 		/**
 		 * The list of suggestions that were posted to the chat room.
 		 */
