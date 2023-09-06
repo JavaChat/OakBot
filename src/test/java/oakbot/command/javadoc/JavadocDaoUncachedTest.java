@@ -11,17 +11,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 /**
  * @author Michael Angstadt
  */
 public class JavadocDaoUncachedTest {
-	@Rule
-	public final TemporaryFolder temporaryFolder = new TemporaryFolder();
-
 	private final Path root = Paths.get("src", "test", "resources", "oakbot", "command", "javadoc");
 	private final JavadocDaoUncached dao;
 	{
