@@ -262,20 +262,31 @@ public final class Main {
 			port = serverSocket.getLocalPort();
 		}
 
-		Thread t = new Thread(() -> {
+		Thread t = new SocketThread(serverSocket, bot);
+		t.start();
+
+		System.out.println("Listening for socket commands on port " + port + ".");
+	}
+
+	private static class SocketThread extends Thread {
+		private final ServerSocket serverSocket;
+		private final Bot bot;
+
+		public SocketThread(ServerSocket serverSocket, Bot bot) {
+			this.serverSocket = serverSocket;
+			this.bot = bot;
+			setDaemon(true);
+		}
+
+		@Override
+		public void run() {
 			while (true) {
 				try (Socket socket = serverSocket.accept(); BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 					String line;
 					while ((line = reader.readLine()) != null) {
 						if ("shutdown".equalsIgnoreCase(line)) {
 							bot.stop();
-
-							try {
-								serverSocket.close();
-							} catch (IOException e) {
-								logger.log(Level.SEVERE, "Problem closing server socket.", e);
-							}
-
+							closeSocket();
 							return;
 						}
 					}
@@ -283,11 +294,15 @@ public final class Main {
 					logger.log(Level.SEVERE, "Problem accepting new socket connection or reading from socket.", e);
 				}
 			}
-		});
-		t.setDaemon(true);
-		t.start();
+		}
 
-		System.out.println("Listening for socket commands on port " + port + ".");
+		private void closeSocket() {
+			try {
+				serverSocket.close();
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, "Problem closing server socket.", e);
+			}
+		}
 	}
 
 	private static Site getSite(BotProperties props) {

@@ -1,6 +1,7 @@
 package oakbot.filter;
 
 import oakbot.command.HelpDoc;
+import oakbot.util.CharIterator;
 
 /**
  * Turns text upside down.
@@ -26,14 +27,8 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 		upsideDown += "><⅋'؛˙¿¡,„";
 		//@formatter:on
 
-		int max = -1;
-		for (int i = 0; i < normal.length(); i++) {
-			char n = normal.charAt(i);
-			if (n > max) {
-				max = n;
-			}
-		}
-		map = new char[max + 1];
+		int highestAsciiValue = normal.chars().max().getAsInt();
+		map = new char[highestAsciiValue + 1];
 
 		for (int i = 0; i < normal.length(); i++) {
 			char n = normal.charAt(i);
@@ -62,54 +57,54 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 	public String filter(String message) {
 		StringBuilder sb = new StringBuilder(message.length());
 
-		char prev = 0;
-		boolean flip = true, reply = false;
-		for (int i = 0; i < message.length(); i++) {
-			char n = message.charAt(i);
+		boolean flip = true, inReplySyntax = false;
+		CharIterator it = new CharIterator(message);
+		while (it.hasNext()) {
+			char n = it.next();
 
-			if (i == 0 && n == ':') {
-				reply = true;
+			if (it.index() == 0 && n == ':') {
+				//preserve reply syntax
+				inReplySyntax = true;
 				sb.append(n);
-				prev = n;
 				continue;
 			}
 
-			if (reply) {
+			if (inReplySyntax) {
 				if (Character.isDigit(n)) {
 					sb.append(n);
-					prev = n;
 					continue;
 				}
-				reply = false;
+				inReplySyntax = false;
 			}
 
-			if (prev == ']' && n == '(') {
-				//URL
+			if (it.prev() == ']' && n == '(') {
+				//preserve the URL that links are linked to
 				flip = false;
 				sb.append(n);
-				prev = n;
 				continue;
 			}
 
 			if (!flip) {
 				if (n == ')') {
+					//end of link URL
 					flip = true;
 				}
 				sb.append(n);
-				prev = n;
 				continue;
 			}
 
-			if (n < map.length) {
-				char u = map[n];
-				sb.append((u == 0) ? n : u);
-			} else {
-				sb.append(n);
-			}
-
-			prev = n;
+			sb.append(flipIfPossible(n));
 		}
 
 		return sb.toString();
+	}
+
+	private char flipIfPossible(char c) {
+		if (c >= map.length) {
+			return c;
+		}
+
+		char flipped = map[c];
+		return (flipped == 0) ? c : flipped;
 	}
 }

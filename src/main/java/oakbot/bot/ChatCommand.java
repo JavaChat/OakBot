@@ -11,6 +11,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.Content;
 
+import oakbot.util.CharIterator;
 import oakbot.util.ChatBuilder;
 
 /**
@@ -330,31 +331,6 @@ public class ChatCommand {
 			this.openTagsBeforeFirstWord = openTagsBeforeFirstWord;
 			this.firstWord = firstWord;
 			this.startOfContent = startOfContent;
-		}
-	}
-
-	private static class CharIterator {
-		private final String s;
-		private int i = -1;
-
-		public CharIterator(String s) {
-			this.s = s;
-		}
-
-		public boolean hasNext() {
-			return i + 1 < s.length();
-		}
-
-		public char next() {
-			return s.charAt(++i);
-		}
-
-		public char prev() {
-			return (i <= 0) ? 0 : s.charAt(i - 1);
-		}
-
-		public int index() {
-			return i;
 		}
 	}
 

@@ -12,6 +12,7 @@ import java.nio.file.WatchService;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -155,45 +156,47 @@ public class JavadocDaoCached implements JavadocDao {
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					logger.log(Level.WARNING, "Thread interrupted while watching for changes to the Javadoc ZIP files.", e);
-					return;
+					break;
 				}
 
-				for (WatchEvent<?> event : key.pollEvents()) {
-					WatchEvent.Kind<?> kind = event.kind();
-					if (kind == StandardWatchEventKinds.OVERFLOW) {
-						continue;
-					}
-
-					@SuppressWarnings("unchecked")
-					Path file = ((WatchEvent<Path>) event).context();
-					if (!isZipFile(file)) {
-						continue;
-					}
-
-					file = dir.resolve(file);
-
-					if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-						add(file);
-						continue;
-					}
-
-					if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-						remove(file);
-						continue;
-					}
-
-					if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-						remove(file);
-						add(file);
-						continue;
-					}
-				}
+				key.pollEvents().forEach(this::handleEvent);
 
 				boolean valid = key.reset();
 				if (!valid) {
 					logger.warning("Javadoc ZIP file watch thread has been terminated due to the watch key becoming invalid.");
 					break;
 				}
+			}
+		}
+
+		private void handleEvent(WatchEvent<?> event) {
+			WatchEvent.Kind<?> kind = event.kind();
+			if (kind == StandardWatchEventKinds.OVERFLOW) {
+				return;
+			}
+
+			@SuppressWarnings("unchecked")
+			Path file = ((WatchEvent<Path>) event).context();
+			if (!isZipFile(file)) {
+				return;
+			}
+
+			file = dir.resolve(file);
+
+			if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+				add(file);
+				return;
+			}
+
+			if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+				remove(file);
+				return;
+			}
+
+			if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+				remove(file);
+				add(file);
+				return;
 			}
 		}
 
@@ -214,19 +217,18 @@ public class JavadocDaoCached implements JavadocDao {
 
 			synchronized (JavadocDaoCached.this) {
 				//find the corresponding JavadocZipFile object
-				JavadocZipFile found = null;
-				for (JavadocZipFile zip : libraryClasses.keys()) {
-					if (zip.getPath().getFileName().equals(fileName)) {
-						found = zip;
-						break;
-					}
-				}
-				if (found == null) {
+				//@formatter:off
+				Optional<JavadocZipFile> found = libraryClasses.keys().stream()
+					.filter(zip -> zip.getPath().getFileName().equals(fileName))
+				.findAny();
+				//@formatter:on
+
+				if (!found.isPresent()) {
 					logger.warning("Tried to remove ZIP file \"" + file + "\", but it was not found in the JavadocDao.");
 					return;
 				}
 
-				Collection<String> classNames = libraryClasses.removeAll(found);
+				Collection<String> classNames = libraryClasses.removeAll(found.get());
 				aliases.values().removeAll(classNames);
 				cache.keySet().removeAll(classNames);
 			}

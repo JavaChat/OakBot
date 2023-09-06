@@ -59,7 +59,7 @@ public class SummonCommand implements Command {
 
 		Integer maxRooms = bot.getMaxRooms();
 		if (maxRooms != null && bot.getRooms().size() >= maxRooms) {
-			return reply("I can't join anymore rooms, I've reached my limit (" + maxRooms + ").", chatCommand);
+			return reply("I can't join any more rooms, I've reached my limit (" + maxRooms + ").", chatCommand);
 		}
 
 		int roomToJoin;
@@ -81,37 +81,12 @@ public class SummonCommand implements Command {
 			return reply("I'm already there... -_-", chatCommand);
 		}
 
-		boolean authorIsAdmin = bot.getAdminUsers().contains(chatCommand.getMessage().getUserId());
+		int userId = chatCommand.getMessage().getUserId();
+		boolean authorIsAdmin = bot.getAdminUsers().contains(userId);
 		if (!authorIsAdmin) {
-			Pending pending = pendingSummons.get(roomToJoin);
-			if (pending == null) {
-				pending = new Pending(roomToJoin);
-				pendingSummons.put(roomToJoin, pending);
-			} else {
-				Duration elapsed = Duration.between(pending.getStarted(), Instant.now());
-				if (elapsed.compareTo(summonTime) > 0) {
-					pending = new Pending(roomToJoin);
-					pendingSummons.put(roomToJoin, pending);
-				}
-			}
-
-			int userId = chatCommand.getMessage().getUserId();
-			boolean alreadyVoted = !pending.getUserIds().add(userId);
-			int votesNeeded = minSummonsRequired - pending.getUserIds().size();
-			if (alreadyVoted) {
-				if (votesNeeded == 1) {
-					return reply("I need a vote from " + votesNeeded + " other person.", chatCommand);
-				} else {
-					return reply("I need votes from " + votesNeeded + " other people.", chatCommand);
-				}
-			}
-
-			if (votesNeeded > 0) {
-				if (votesNeeded == 1) {
-					return reply(votesNeeded + " more vote needed.", chatCommand);
-				} else {
-					return reply(votesNeeded + " more votes needed.", chatCommand);
-				}
+			String response = checkForEnoughSummonVotes(roomToJoin, userId);
+			if (response != null) {
+				return reply(response, chatCommand);
 			}
 		}
 
@@ -123,9 +98,58 @@ public class SummonCommand implements Command {
 			.onSuccess(() -> reply("Joined.", chatCommand))
 			.ifRoomDoesNotExist(() -> reply("That room doesn't exist...", chatCommand))
 			.ifLackingPermissionToPost(() -> reply("I don't seem to have permission to post there.", chatCommand))
-			.onError((thrown) -> reply("Hmm, I can't seem to join that room: " + thrown.getMessage(), chatCommand))
+			.onError(thrown -> reply("I can't seem to join that room: " + thrown.getMessage(), chatCommand))
 		);
 		//@formatter:on
+	}
+
+	private String checkForEnoughSummonVotes(int roomToJoin, int userId) {
+		Pending pending = getPendingSummons(roomToJoin);
+
+		boolean alreadyVoted = !pending.getUserIds().add(userId);
+		int votesNeeded = minSummonsRequired - pending.getUserIds().size();
+
+		if (alreadyVoted) {
+			//@formatter:off
+			return (votesNeeded == 1) ?
+				"I need a vote from " + votesNeeded + " other person." :
+				"I need votes from " + votesNeeded + " other people.";
+			//@formatter:on
+		}
+
+		if (votesNeeded > 0) {
+			//@formatter:off
+			return (votesNeeded == 1) ?
+				votesNeeded + " more vote needed." :
+				votesNeeded + " more votes needed.";
+			//@formatter:on
+		}
+
+		return null;
+	}
+
+	private Pending getPendingSummons(int roomToJoin) {
+		Pending pending = pendingSummons.get(roomToJoin);
+		if (pending == null) {
+			/*
+			 * This is the first person to vote for joining this room.
+			 */
+			pending = new Pending(roomToJoin);
+			pendingSummons.put(roomToJoin, pending);
+			return pending;
+		}
+
+		Duration elapsed = Duration.between(pending.getStarted(), Instant.now());
+		boolean prevVoteWasTooLongAgo = (elapsed.compareTo(summonTime) > 0);
+		if (prevVoteWasTooLongAgo) {
+			/*
+			 * Reset everything if the previous vote was too long ago.
+			 */
+			pending = new Pending(roomToJoin);
+			pendingSummons.put(roomToJoin, pending);
+		}
+
+		return pending;
 	}
 
 	private static class Pending {

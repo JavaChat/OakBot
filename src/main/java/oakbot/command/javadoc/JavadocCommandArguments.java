@@ -1,6 +1,5 @@
 package oakbot.command.javadoc;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,17 +43,27 @@ class JavadocCommandArguments {
 		m.find();
 
 		String className = m.group(1);
+		String methodName = parseMethodName(m);
+		List<String> parameters = parseParameters(m);
+		int paragraph = parseParagraph(m);
+		String targetUser = parseTargetUser(m);
 
-		String methodName;
-		if (m.group(2) != null) { //e.g. java.lang.string(string, string)
-			int dot = className.lastIndexOf('.');
-			String simpleName = (dot < 0) ? className : className.substring(dot + 1);
-			methodName = simpleName;
-		} else {
-			methodName = m.group(5); //e.g. java.lang.string#indexOf(int)
+		return new JavadocCommandArguments(className, methodName, parameters, paragraph, targetUser);
+	}
+
+	private static String parseMethodName(Matcher m) {
+		if (m.group(2) == null) {
+			//e.g. java.lang.string#indexOf(int)
+			return m.group(5);
 		}
 
-		List<String> parameters;
+		//e.g. java.lang.string(string, string)
+		String className = m.group(1);
+		int dot = className.lastIndexOf('.');
+		return (dot < 0) ? className : className.substring(dot + 1);
+	}
+
+	private static List<String> parseParameters(Matcher m) {
 		String parametersStr = m.group(4); //e.g. java.lang.string(string, string)
 		if (parametersStr == null || parametersStr.startsWith("#")) {
 			parametersStr = m.group(7); //e.g. java.lang.string#string(string, string)
@@ -62,46 +71,52 @@ class JavadocCommandArguments {
 				parametersStr = m.group(3);
 			}
 		}
+
 		if (parametersStr == null || parametersStr.equals("*")) {
-			parameters = null;
-		} else if (parametersStr.isEmpty()) {
-			parameters = Collections.emptyList();
-		} else {
-			parameters = List.of(parametersStr.split("\\s*,\\s*"));
+			return null;
 		}
 
+		if (parametersStr.isEmpty()) {
+			return List.of();
+		}
+
+		return List.of(parametersStr.split("\\s*,\\s*"));
+	}
+
+	private static int parseParagraph(Matcher m) {
 		String rest = m.group(9);
-		int paragraph = 1;
-		String targetUser = null;
-		if (rest != null && !rest.isEmpty()) {
-			String[] split = rest.split("\\s+");
-			if (split.length == 1) {
-				String token = split[0];
-				try {
-					int i = Integer.parseInt(token);
-					if (i > 0) {
-						paragraph = i;
-					}
-				} catch (NumberFormatException e) {
-					targetUser = (token.charAt(0) == '@') ? token.substring(1) : token;
-				}
-			} else {
-				String token = split[0];
-				try {
-					int i = Integer.parseInt(token);
-					if (i > 0) {
-						paragraph = i;
-					}
-				} catch (NumberFormatException e) {
-					//ignore
-				}
-
-				token = split[1];
-				targetUser = (token.charAt(0) == '@') ? token.substring(1) : token;
-			}
+		if (rest == null || rest.isEmpty()) {
+			return 1;
 		}
 
-		return new JavadocCommandArguments(className, methodName, parameters, paragraph, targetUser);
+		String[] split = rest.split("\\s+");
+		String token = split[0];
+
+		int num;
+		try {
+			num = Integer.parseInt(token);
+		} catch (NumberFormatException e) {
+			return 1;
+		}
+
+		return (num > 0) ? num : 1;
+	}
+
+	private static String parseTargetUser(Matcher m) {
+		String rest = m.group(9);
+		if (rest == null || rest.isEmpty()) {
+			return null;
+		}
+
+		String[] split = rest.split("\\s+");
+		int index = (split.length == 1) ? 0 : 1;
+		String token = split[index];
+		if (token.matches("-?\\d+")) {
+			//paragraph number
+			return null;
+		}
+
+		return (token.charAt(0) == '@') ? token.substring(1) : token;
 	}
 
 	/**
