@@ -1,6 +1,7 @@
 package oakbot.command.javadoc;
 
 import static oakbot.bot.ChatActions.doNothing;
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -163,7 +164,7 @@ public class JavadocCommand implements Command, Listener {
 			return handleNoMatch(chatCommand);
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Problem getting Javadoc info from the DAO.", e);
-			return reply(new ChatBuilder().append("Error getting Javadoc info: ").code(e.getMessage()), chatCommand);
+			return error("Error getting Javadoc info: ", e, chatCommand);
 		}
 	}
 

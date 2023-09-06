@@ -1,6 +1,7 @@
 package oakbot.command;
 
 import static oakbot.bot.ChatActions.create;
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.util.List;
@@ -11,7 +12,6 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.DeleteMessage;
 import oakbot.bot.IBot;
-import oakbot.util.ChatBuilder;
 
 /**
  * Deletes a message the bot has posted.
@@ -59,13 +59,7 @@ public class DeleteCommand implements Command {
 		}
 
 		return create(new DeleteMessage(messageId).onError(e -> {
-			//@formatter:off
-			ChatBuilder cb = new ChatBuilder()
-				.append("Unable to delete message: ")
-				.code(e.getMessage());
-			//@formatter:on
-
-			return reply(cb, chatCommand);
+			return error("Unable to delete message: ", e, chatCommand);
 		}));
 	}
 }

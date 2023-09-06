@@ -1,6 +1,6 @@
 package oakbot.command.urban;
 
-import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -83,14 +83,7 @@ public class UrbanCommand implements Command {
 			response = http.get(url).getBodyAsJson(UrbanResponse.class);
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Problem getting word from Urban Dictionary.", e);
-
-			//@formatter:off
-			return post(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Sorry, an unexpected error occurred: ")
-				.code(e.getMessage())
-			);
-			//@formatter:on
+			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 
 		List<UrbanDefinition> words = response.getDefinitions();

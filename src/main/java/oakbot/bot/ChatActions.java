@@ -1,7 +1,6 @@
 package oakbot.bot;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -30,47 +29,72 @@ public class ChatActions implements Iterable<ChatAction> {
 	 * @return the created object
 	 */
 	public static ChatActions doNothing() {
-		return new ChatActions(Collections.emptyList());
+		return ChatActions.create();
 	}
 
 	/**
-	 * Convenience method for creating a list with a single
-	 * {@link PostMessage} action.
+	 * Convenience method for creating a list with a single {@link PostMessage}
+	 * action.
 	 * @param message the message to post
 	 * @return the created object
 	 */
 	public static ChatActions post(CharSequence message) {
-		return ChatActions.create( //@formatter:off
+		//@formatter:off
+		return ChatActions.create(
 			new PostMessage(message)
-		); //@formatter:on
+		);
+		//@formatter:on
 	}
 
 	/**
 	 * Convenience method for creating a list with a single
-	 * {@link PostMessage} action that is a reply to the chat message.
+	 * {@link PostMessage} action that is a reply to a chat message.
 	 * @param message the message to post
 	 * @param parent the message to reply to
 	 * @return the created object
 	 */
 	public static ChatActions reply(CharSequence message, ChatMessage parent) {
-		ChatBuilder cb = new ChatBuilder();
-		cb.reply(parent).append(message);
-
-		return post(cb);
+		//@formatter:off
+		return post(new ChatBuilder()
+			.reply(parent)
+			.append(message)
+		);
+		//@formatter:on
 	}
 
 	/**
 	 * Convenience method for creating a list with a single
-	 * {@link PostMessage} action that is a reply to a a chat message.
+	 * {@link PostMessage} action that is a reply to a chat message.
 	 * @param message the message to post
 	 * @param parent the message to reply to
 	 * @return the created object
 	 */
 	public static ChatActions reply(CharSequence message, ChatCommand parent) {
-		ChatBuilder cb = new ChatBuilder();
-		cb.reply(parent).append(message);
+		//@formatter:off
+		return post(new ChatBuilder()
+			.reply(parent)
+			.append(message)
+		);
+		//@formatter:on
+	}
 
-		return post(cb);
+	/**
+	 * Convenience method for creating a list with a single {@link PostMessage}
+	 * action that is a reply to a chat message and that contains an exception
+	 * message.
+	 * @param message the message to post (should end in ": ")
+	 * @param exception the exception that was thrown
+	 * @param parent the message to reply to
+	 * @return the created object
+	 */
+	public static ChatActions error(CharSequence message, Exception exception, ChatCommand parent) {
+		//@formatter:off
+		return post(new ChatBuilder()
+			.reply(parent)
+			.append(message)
+			.code(exception.getMessage())
+		);
+		//@formatter:on
 	}
 
 	/**

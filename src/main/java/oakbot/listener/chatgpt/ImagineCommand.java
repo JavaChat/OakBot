@@ -1,6 +1,7 @@
 package oakbot.listener.chatgpt;
 
 import static oakbot.bot.ChatActions.create;
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -104,7 +105,7 @@ public class ImagineCommand implements Command {
 			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Problem communicating with OpenAI.", e);
-			return reply(new ChatBuilder().append("Problem communicating with OpenAI: ").code(e.getMessage()), chatCommand);
+			return error("Problem communicating with OpenAI: ", e, chatCommand);
 		}
 	}
 

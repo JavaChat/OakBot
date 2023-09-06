@@ -1,5 +1,6 @@
 package oakbot.command;
 
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -17,7 +18,6 @@ import com.github.mangstadt.sochat4j.util.Http;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
 
 /**
@@ -60,7 +60,7 @@ public class JuiceBoxCommand implements Command {
 			.orElse(null);
 			//@formatter:on
 		} catch (IOException e) {
-			return reply(new ChatBuilder("Problem getting the room's list of pingable users: ").code(e.getMessage()), chatCommand);
+			return error("Problem getting the room's list of pingable users: ", e, chatCommand);
 		}
 		if (matchingUser == null) {
 			return reply("User not found (they must be in this room).", chatCommand);
@@ -71,7 +71,7 @@ public class JuiceBoxCommand implements Command {
 			List<UserInfo> list = currentRoom.getUserInfo(List.of(matchingUser.getUserId()));
 			matchingUserInfo = list.isEmpty() ? null : list.get(0);
 		} catch (IOException e) {
-			return reply(new ChatBuilder("Problem getting user info: ").code(e.getMessage()), chatCommand);
+			return error("Problem getting user info: ", e, chatCommand);
 		}
 		if (matchingUserInfo == null) {
 			return reply("Couldn't get the user info for that user.", chatCommand);
@@ -81,7 +81,7 @@ public class JuiceBoxCommand implements Command {
 		try {
 			juicifiedPhotoUrl = juicifyPhoto(matchingUserInfo.getProfilePicture());
 		} catch (IOException e) {
-			return reply(new ChatBuilder("Problem juicifying user: ").code(e.getMessage()), chatCommand);
+			return error("Problem juicifying user: ", e, chatCommand);
 		}
 		if (juicifiedPhotoUrl == null) {
 			return reply("User has no face.", chatCommand);

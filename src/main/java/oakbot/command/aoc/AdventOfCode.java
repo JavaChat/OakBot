@@ -1,5 +1,6 @@
 package oakbot.command.aoc;
 
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -103,13 +104,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 			players = api.getLeaderboard(leaderboardId);
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.", e);
-
-			//@formatter:off
-			return reply(new ChatBuilder()
-				.append("I couldn't query that leaderboard. It might not exist. Or the user that my adventofcode.com session token belongs to might not have access to that leaderboard. Or the token might have expired. Or you're trolling me: ")
-				.code(e.getMessage()),
-			chatCommand);
-			//@formatter:on
+			return error("I couldn't query that leaderboard. It might not exist. Or the user that my adventofcode.com session token belongs to might not have access to that leaderboard. Or the token might have expired. Or you're trolling me: ", e, chatCommand);
 		}
 
 		String websiteUrl = api.getLeaderboardWebsite(leaderboardId);

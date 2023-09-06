@@ -1,6 +1,6 @@
 package oakbot.command;
 
-import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -19,7 +19,6 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
 
 /**
@@ -89,14 +88,7 @@ public class CatCommand implements Command {
 			}
 		} catch (IOException | SAXException e) {
 			logger.log(Level.SEVERE, "Problem getting cat.", e);
-
-			//@formatter:off
-			return post(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Error getting cat: ")
-				.code(e.getMessage())
-			);
-			//@formatter:on
+			return error("Error getting cat: ", e, chatCommand);
 		}
 
 		return reply("No cats found. Try again. :(", chatCommand);

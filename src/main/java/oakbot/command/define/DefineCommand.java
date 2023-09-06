@@ -1,6 +1,6 @@
 package oakbot.command.define;
 
-import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -72,14 +72,7 @@ public class DefineCommand implements Command {
 			response = http.get(url).getBodyAsXml();
 		} catch (IOException | SAXException e) {
 			logger.log(Level.SEVERE, "Problem getting word from dictionary.", e);
-
-			//@formatter:off
-			return post(new ChatBuilder()
-				.reply(chatCommand)
-				.append("Sorry, an unexpected error occurred while getting the definition: ")
-				.code(e.getMessage())
-			);
-			//@formatter:on
+			return error("Sorry, an unexpected error occurred while getting the definition: ", e, chatCommand);
 		}
 
 		List<Definition> definitions = parseResponse(word, response);

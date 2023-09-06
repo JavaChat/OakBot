@@ -1,6 +1,6 @@
 package oakbot.command;
 
-import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -59,14 +59,7 @@ public class TagCommand implements Command {
 			document = http.get(url).getBodyAsHtml();
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Error getting tag description.", e);
-
-			//@formatter:off
-			return post(new ChatBuilder()
-				.reply(chatCommand)
-				.append("An error occurred retrieving the tag description: ")
-				.code(e.getMessage())
-			);
-			//@formatter:on
+			return error("An error occurred retrieving the tag description: ", e, chatCommand);
 		}
 
 		Element element = document.getElementById("wiki-excerpt");
