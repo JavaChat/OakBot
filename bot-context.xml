@@ -179,6 +179,15 @@
 		<constructor-arg ref="aocApi" />
 	</bean>
 
+	<!-- /botler -->
+	<bean class="oakbot.listener.BotlerListener">
+		<constructor-arg value="Botler," /> <!-- trigger -->
+		<constructor-arg value="13750349" /> <!-- user ID -->
+		<constructor-arg value="Hello friends!" /> <!-- message to respond to -->
+		<constructor-arg value="Hi, Botler." /> <!-- response -->
+		<constructor-arg value="P1D" /> <!-- time between responses -->
+	</bean>
+
 	<!-- /cat -->
 	<bean class="oakbot.command.CatCommand">
 		<constructor-arg value="" /> <!-- API key for thecatapi.com (can be blank) -->
