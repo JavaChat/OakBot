@@ -22,15 +22,22 @@ import oakbot.util.ChatBuilder;
 public class MentionListener implements CatchAllMentionListener {
 	private final Duration cooldownTimeBetweenResponses = Duration.ofMinutes(1);
 	private final Map<Integer, Instant> timeOfLastResponseByRoom = new HashMap<>();
-	private final Map<String, String> responses = new HashMap<>();
+
+	private final Map<String, String> responses;
 	{
 		String response = "You're welcome.";
-		responses.put("thank you", response);
-		responses.put("thank u", response);
-		responses.put("thanks", response);
-		responses.put("thx", response);
-		responses.put("ty", response);
+
+		//@formatter:off
+		responses = Map.of(
+			"thank you", response,
+			"thank u", response,
+			"thanks", response,
+			"thx", response,
+			"ty", response
+		);
+		//@formatter:on
 	}
+
 	private boolean ignore = false;
 
 	@Override
@@ -74,10 +81,12 @@ public class MentionListener implements CatchAllMentionListener {
 			return reply(response, message);
 		}
 
-		return reply(new ChatBuilder() //@formatter:off
+		//@formatter:off
+		return reply(new ChatBuilder()
 			.append("Type ").code().append(bot.getTrigger()).append("help").code().append(" to see all my commands."),
 			message
-		); //@formatter:on
+		);
+		//@formatter:on
 	}
 
 	@Override
