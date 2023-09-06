@@ -7,7 +7,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -225,7 +224,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @return the value or null if not found
 	 * @throws DateTimeParseException if it could not parse the value as a date
 	 */
-	public LocalDateTime getDate(String key) throws ParseException {
+	public LocalDateTime getDate(String key) throws DateTimeParseException {
 		String value = get(key);
 		return (value == null) ? null : LocalDateTime.parse(value, dateTimeFormatter);
 	}
