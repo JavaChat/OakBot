@@ -72,7 +72,7 @@ public class GrootFilter extends ToggleableFilter {
 			cb.append(grootLine).nl();
 		}
 
-		return cb.toString();
+		return cb.toString().stripTrailing();
 	}
 
 	private int countWords(String message) {

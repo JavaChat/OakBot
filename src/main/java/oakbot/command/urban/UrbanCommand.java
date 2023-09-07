@@ -54,32 +54,11 @@ public class UrbanCommand implements Command {
 			return reply("You have to type a word to see its definition... -_-", chatCommand);
 		}
 
-		//parse the user's input
-		String word;
-		int definitionToDisplay;
-		{
-			int lastSpace = content.lastIndexOf(' ');
-			if (lastSpace < 0) {
-				word = content;
-				definitionToDisplay = 1;
-			} else {
-				String afterLastSpace = content.substring(lastSpace + 1);
-				try {
-					definitionToDisplay = Integer.parseInt(afterLastSpace);
-					if (definitionToDisplay < 1) {
-						definitionToDisplay = 1;
-					}
-					word = content.substring(0, lastSpace);
-				} catch (NumberFormatException e) {
-					word = content;
-					definitionToDisplay = 1;
-				}
-			}
-		}
+		Input input = parseInput(content);
+		String url = apiUrl(input.word);
 
 		UrbanResponse response;
 		try (Http http = HttpFactory.connect()) {
-			String url = url(word);
 			response = http.get(url).getBodyAsJson(UrbanResponse.class);
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Problem getting word from Urban Dictionary.", e);
@@ -91,10 +70,7 @@ public class UrbanCommand implements Command {
 			return reply("No definition found.", chatCommand);
 		}
 
-		if (definitionToDisplay > words.size()) {
-			definitionToDisplay = words.size();
-		}
-
+		int definitionToDisplay = Math.min(input.definitionToDisplay, words.size());
 		UrbanDefinition urbanWord = words.get(definitionToDisplay - 1);
 		String definition = urbanWord.getDefinition();
 		if (containsNewlines(definition)) {
@@ -131,7 +107,38 @@ public class UrbanCommand implements Command {
 		//@formatter:on
 	}
 
-	private String url(String word) {
+	private Input parseInput(String content) {
+		int lastSpace = content.lastIndexOf(' ');
+		if (lastSpace < 0) {
+			return new Input(content, 1);
+		}
+
+		String afterLastSpace = content.substring(lastSpace + 1);
+		int definitionToDisplay;
+		try {
+			definitionToDisplay = Integer.parseInt(afterLastSpace);
+		} catch (NumberFormatException e) {
+			return new Input(content, 1);
+		}
+
+		if (definitionToDisplay < 1) {
+			definitionToDisplay = 1;
+		}
+		String word = content.substring(0, lastSpace);
+		return new Input(word, definitionToDisplay);
+	}
+
+	private class Input {
+		private final String word;
+		private final int definitionToDisplay;
+
+		public Input(String word, int definitionToDisplay) {
+			this.word = word;
+			this.definitionToDisplay = definitionToDisplay;
+		}
+	}
+
+	private String apiUrl(String word) {
 		//@formatter:off
 		return new URIBuilder()
 			.setScheme("http")
@@ -142,35 +149,40 @@ public class UrbanCommand implements Command {
 		//@formatter:on
 	}
 
-	private static boolean containsNewlines(String definition) {
+	private String websiteUrl(String word) {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("http")
+			.setHost("www.urbandictionary.com")
+			.setPath("/define.php")
+			.setParameter("term", word)
+		.toString();
+		//@formatter:on
+	}
+
+	private boolean containsNewlines(String definition) {
 		return definition.contains("\n") || definition.contains("\r");
 	}
 
-	private static String removeLinks(String definition) {
+	private String removeLinks(String definition) {
 		return definition.replaceAll("[\\[\\]]", "");
 	}
 
-	private static String encodeLinks(String definition) {
+	private String encodeLinks(String definition) {
 		Pattern p = Pattern.compile("\\[(.*?)\\]");
 		Matcher m = p.matcher(definition);
 		StringBuilder sb = new StringBuilder();
+
 		while (m.find()) {
 			String word = m.group(1);
-
-			//@formatter:off
-			String url = new URIBuilder()
-				.setScheme("http")
-				.setHost("www.urbandictionary.com")
-				.setPath("/define.php")
-				.setParameter("term", word)
-			.toString();
-			//@formatter:on
+			String url = websiteUrl(word);
 
 			ChatBuilder cb = new ChatBuilder();
 			cb.link(word, url);
 			m.appendReplacement(sb, cb.toString());
 		}
 		m.appendTail(sb);
+
 		return sb.toString();
 	}
 }

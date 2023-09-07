@@ -46,172 +46,20 @@ public class WaduFilter extends ToggleableFilter {
 			cb.append(m.group());
 		}
 
-		Random random = new Random(message.hashCode());
+		WaduRng rng = new WaduRng(message.hashCode());
 		String[] lines = message.split("\r\n|\r|\n");
 		boolean applyFormatting = !fixed && lines.length == 1;
-		boolean firstLine = true;
 		for (String line : lines) {
-			if (!firstLine) {
-				cb.nl();
-			}
-			firstLine = false;
-
 			if (fixed) {
 				cb.fixed();
 			}
 
-			if (line.trim().isEmpty()) {
-				continue;
-			}
-
-			int waduWordCount = countWords(line) / 5 + 1;
-			boolean previousWordWasWadu = false;
-			boolean startOfNewSentence = true;
-			for (int i = 0; i < waduWordCount || previousWordWasWadu; i++) {
-				boolean sayWadu;
-				if (i == 0) {
-					sayWadu = true;
-				} else if (previousWordWasWadu) {
-					//say "wadu" again?
-					sayWadu = random.nextInt(10) < 1;
-				} else {
-					sayWadu = true;
-				}
-
-				if (sayWadu) {
-					int letterACount;
-					switch (random.nextInt(10)) {
-					case 0:
-						letterACount = 3;
-						break;
-					case 1:
-					case 2:
-						letterACount = 2;
-						break;
-					default:
-						letterACount = 1;
-						break;
-					}
-
-					int letterUCount;
-					switch (random.nextInt(10)) {
-					case 0:
-						letterUCount = 3;
-						break;
-					case 1:
-					case 2:
-						letterUCount = 2;
-						break;
-					default:
-						letterUCount = 1;
-						break;
-					}
-
-					boolean italics = random.nextInt(10) < 1;
-					boolean bold = random.nextInt(10) < 1;
-					if (applyFormatting) {
-						if (italics) {
-							cb.italic();
-						}
-						if (bold) {
-							cb.bold();
-						}
-					}
-
-					String wadu;
-					{
-						StringBuilder sb = new StringBuilder();
-						sb.append(startOfNewSentence ? 'W' : 'w');
-						for (int j = 0; j < letterACount; j++) {
-							sb.append('a');
-						}
-						sb.append('d');
-						for (int j = 0; j < letterUCount; j++) {
-							sb.append('u');
-						}
-						wadu = sb.toString();
-					}
-
-					boolean allCaps = random.nextInt(20) < 1;
-					if (allCaps) {
-						wadu = wadu.toUpperCase();
-					}
-					cb.append(wadu);
-
-					if (applyFormatting) {
-						if (italics) {
-							cb.italic();
-						}
-						if (bold) {
-							cb.bold();
-						}
-					}
-
-					previousWordWasWadu = true;
-					startOfNewSentence = false;
-				} else {
-					boolean italics = random.nextInt(10) < 1;
-					boolean bold = random.nextInt(10) < 1;
-					if (applyFormatting) {
-						if (italics) {
-							cb.italic();
-						}
-						if (bold) {
-							cb.bold();
-						}
-					}
-
-					boolean allCaps = random.nextInt(20) < 1;
-					cb.append(allCaps ? "HEK" : "hek");
-
-					if (applyFormatting) {
-						if (italics) {
-							cb.italic();
-						}
-						if (bold) {
-							cb.bold();
-						}
-					}
-
-					boolean lastWord = (i >= waduWordCount - 1);
-					boolean endSentence = lastWord || random.nextInt(10) < 3;
-					if (endSentence) {
-						String ending;
-						switch (random.nextInt(20)) {
-						case 0:
-							ending = "!!!";
-							break;
-						case 1:
-						case 2:
-							ending = "!!";
-							break;
-						case 3:
-						case 4:
-							ending = "!";
-							break;
-						case 5:
-						case 6:
-							ending = "?";
-							break;
-						case 7:
-							ending = "...";
-							break;
-						default:
-							ending = ".";
-							break;
-						}
-						cb.append(ending);
-					}
-
-					startOfNewSentence = endSentence;
-					previousWordWasWadu = false;
-				}
-
-				cb.append(' ');
-			}
+			int waduWordsToGenerate = line.trim().isEmpty() ? 0 : countWords(line) / 5 + 1;
+			appendWaduLine(waduWordsToGenerate, applyFormatting, rng, cb);
+			cb.nl();
 		}
 
-		return cb.toString();
+		return cb.toString().stripTrailing();
 	}
 
 	private int countWords(String message) {
@@ -221,5 +69,172 @@ public class WaduFilter extends ToggleableFilter {
 			count++;
 		}
 		return count;
+	}
+
+	private void appendWaduLine(int waduWordsToGenerate, boolean applyFormatting, WaduRng rng, ChatBuilder cb) {
+		boolean previousWordWasWadu = false;
+		boolean startOfNewSentence = true;
+		for (int i = 0; i < waduWordsToGenerate || previousWordWasWadu; i++) {
+			boolean sayWadu;
+			if (i == 0) {
+				sayWadu = true;
+			} else if (previousWordWasWadu) {
+				sayWadu = rng.sayWaduAgain();
+			} else {
+				sayWadu = true;
+			}
+
+			if (sayWadu) {
+				appendWadu(applyFormatting, startOfNewSentence, rng, cb);
+
+				startOfNewSentence = false;
+			} else {
+				appendHek(applyFormatting, rng, cb);
+
+				boolean lastWord = (i >= waduWordsToGenerate - 1);
+				boolean endSentence = lastWord || rng.endSentence();
+				if (endSentence) {
+					cb.append(rng.ending());
+				}
+
+				startOfNewSentence = endSentence;
+			}
+
+			previousWordWasWadu = sayWadu;
+			cb.append(' ');
+		}
+	}
+
+	private void appendWadu(boolean applyFormatting, boolean startOfNewSentence, WaduRng rng, ChatBuilder cb) {
+		int letterACount = rng.letterACount();
+		int letterUCount = rng.letterUCount();
+		boolean italics = rng.formatItalic();
+		boolean bold = rng.formatBold();
+		boolean allCaps = rng.caps();
+
+		if (applyFormatting) {
+			if (italics) {
+				cb.italic();
+			}
+			if (bold) {
+				cb.bold();
+			}
+		}
+
+		cb.append((allCaps || startOfNewSentence) ? 'W' : 'w');
+		cb.repeat(allCaps ? 'A' : 'a', letterACount);
+		cb.append(allCaps ? 'D' : 'd');
+		cb.repeat(allCaps ? 'U' : 'u', letterUCount);
+
+		if (applyFormatting) {
+			if (bold) {
+				cb.bold();
+			}
+			if (italics) {
+				cb.italic();
+			}
+		}
+	}
+
+	private void appendHek(boolean applyFormatting, WaduRng rng, ChatBuilder cb) {
+		boolean italics = rng.formatItalic();
+		boolean bold = rng.formatBold();
+		boolean allCaps = rng.caps();
+
+		if (applyFormatting) {
+			if (italics) {
+				cb.italic();
+			}
+			if (bold) {
+				cb.bold();
+			}
+		}
+
+		cb.append(allCaps ? "HEK" : "hek");
+
+		if (applyFormatting) {
+			if (bold) {
+				cb.bold();
+			}
+			if (italics) {
+				cb.italic();
+			}
+		}
+	}
+
+	private class WaduRng {
+		private final Random random;
+
+		public WaduRng(int seed) {
+			this.random = new Random(seed);
+		}
+
+		private boolean sayWaduAgain() {
+			return rand(10) < 1;
+		}
+
+		private boolean formatBold() {
+			return rand(10) < 1;
+		}
+
+		private boolean formatItalic() {
+			return rand(10) < 1;
+		}
+
+		private int letterACount() {
+			switch (rand(10)) {
+			case 0:
+				return 3;
+			case 1:
+			case 2:
+				return 2;
+			default:
+				return 1;
+			}
+		}
+
+		private int letterUCount() {
+			switch (rand(10)) {
+			case 0:
+				return 3;
+			case 1:
+			case 2:
+				return 2;
+			default:
+				return 1;
+			}
+		}
+
+		private boolean caps() {
+			return rand(20) < 1;
+		}
+
+		private boolean endSentence() {
+			return rand(10) < 3;
+		}
+
+		private String ending() {
+			switch (rand(20)) {
+			case 0:
+				return "!!!";
+			case 1:
+			case 2:
+				return "!!";
+			case 3:
+			case 4:
+				return "!";
+			case 5:
+			case 6:
+				return "?";
+			case 7:
+				return "...";
+			default:
+				return ".";
+			}
+		}
+
+		private int rand(int i) {
+			return random.nextInt(i);
+		}
 	}
 }

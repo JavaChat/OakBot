@@ -173,12 +173,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 		 * top of the Explanation section. These notices are inside of a <table>
 		 * element.
 		 */
-		if (next instanceof Element) {
-			Element element = (Element) next;
-			if ("table".equals(element.tagName())) {
-				next = nextSiblingThatsNotJustWhitespace(next);
-			}
-		}
+		next = skipExplanationIncompleteTable(next);
 
 		if (next instanceof Element) {
 			Element element = (Element) next;
@@ -224,6 +219,17 @@ public class XkcdExplained implements ScheduledTask, Listener {
 			}
 		}
 		return firstParagraph.toString().trim();
+	}
+
+	private Node skipExplanationIncompleteTable(Node node) {
+		if (node instanceof Element) {
+			Element element = (Element) node;
+			if ("table".equals(element.tagName())) {
+				return nextSiblingThatsNotJustWhitespace(node);
+			}
+		}
+
+		return node;
 	}
 
 	private Node nextSiblingThatsNotJustWhitespace(Node node) {
