@@ -149,7 +149,13 @@
 	<bean id="statistics" class="oakbot.Statistics">
 		<constructor-arg ref="database" />
 	</bean>
-	
+
+	<!-- /abbr -->
+	<bean class="oakbot.command.AbbreviationCommand">
+		<constructor-arg value="API_USER_ID" /> <!-- API user ID -->
+		<constructor-arg value="API_TOKEN" /> <!-- API token -->
+	</bean>
+
 	<!-- /about -->
 	<bean class="oakbot.command.AboutCommand">
 		<constructor-arg ref="statistics" />

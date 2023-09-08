@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import oakbot.Database;
+import oakbot.command.AbbreviationCommand;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
@@ -94,6 +95,7 @@ public class CommandsWikiPage {
 
 		List<Command> commands = new ArrayList<>();
 		{
+			commands.add(new AbbreviationCommand(null, null));
 			commands.add(new AboutCommand(null, null));
 			commands.add(new AdventOfCode("PT0S", Collections.emptyMap(), null));
 			commands.add(new AfkCommand());
