@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -37,6 +38,14 @@ public class JsonDatabase implements Database {
 	private final Map<String, Object> fields = new HashMap<>();
 	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	private boolean changed = false;
+
+	/**
+	 * @param path the path to the JSON file the data is stored in
+	 * @throws IOException if there's a problem reading the file
+	 */
+	public JsonDatabase(String path) throws IOException {
+		this(Paths.get(path));
+	}
 
 	/**
 	 * @param file the JSON file the data is stored in

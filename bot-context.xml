@@ -132,14 +132,9 @@
 		<prop key="socket.port">6243</prop>
 	</util:properties>
 	<context:property-placeholder properties-ref="settings"/>
-	
+
 	<bean id="database" class="oakbot.JsonDatabase">
-		<constructor-arg>
-			<bean class="java.nio.file.Paths" factory-method="get">
-				<constructor-arg value="db.json" />
-				<constructor-arg><array /></constructor-arg>
-			</bean>
-		</constructor-arg>
+		<constructor-arg value="db.json" />
 	</bean>
 	<!--
 	Use this bean if you don't want to persist anything to a file:
