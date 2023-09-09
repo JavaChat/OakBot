@@ -1,4 +1,4 @@
-package oakbot.command;
+package oakbot.command.stands4;
 
 import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
@@ -9,20 +9,21 @@ import java.util.List;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
+import oakbot.command.Command;
+import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
 /**
  * Gets abbreviation definitions from abbreviations.com.
  * @author Michael Angstadt
  * @see "https://www.abbreviations.com/abbr_api.php"
- * @see "https://www.abbreviations.com/api.php"
  */
 public class AbbreviationCommand implements Command {
 	private final Stands4Client client;
 	private final int maxResultsToDisplay = 10;
 
 	/**
-	 * @param client the STAND4 API client
+	 * @param client the STANDS4 API client
 	 */
 	public AbbreviationCommand(Stands4Client client) {
 		this.client = client;
@@ -50,18 +51,20 @@ public class AbbreviationCommand implements Command {
 			return reply("Enter an abbreviation.", chatCommand);
 		}
 
+		List<String> results;
 		try {
-			List<String> results = client.getAbbreviations(abbr, maxResultsToDisplay);
-			String url = client.getAbbreviationsAttributionUrl(abbr);
-
-			//@formatter:off
-			return reply(new ChatBuilder()
-				.append(String.join(" | ", results))
-				.append(" (").link("source", url).append(")"), 
-			chatCommand);
-			//@formatter:on
+			results = client.getAbbreviations(abbr, maxResultsToDisplay);
 		} catch (IOException e) {
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
+
+		String url = client.getAbbreviationsAttributionUrl(abbr);
+
+		//@formatter:off
+		return reply(new ChatBuilder()
+			.append(results.isEmpty() ? "No results found." : String.join(" | ", results))
+			.append(" (").link("source", url).append(")"), 
+		chatCommand);
+		//@formatter:on
 	}
 }

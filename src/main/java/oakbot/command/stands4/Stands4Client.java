@@ -1,10 +1,11 @@
-package oakbot.command;
+package oakbot.command.stands4;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.http.client.utils.URIBuilder;
 
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.mangstadt.sochat4j.util.Http;
 import com.github.mangstadt.sochat4j.util.JsonUtils;
+import com.google.common.collect.Streams;
 
 import oakbot.util.HttpFactory;
 
@@ -93,6 +95,51 @@ public class Stands4Client {
 			.setScheme("https")
 			.setHost("www.abbreviations.com")
 			.setPathSegments(abbr)
+		.toString();
+		//@formatter:on
+	}
+	
+	/**
+	 * Checks a sentence for grammar.
+	 * @param sentence the sentence
+	 * @return the grammatical errors
+	 * @throws IOException if there's a problem querying the API
+	 */
+	public List<String> checkGrammar(String sentence) throws IOException {
+		//@formatter:off
+		String url = baseUri("grammar.php")
+			.setParameter("text", sentence)
+		.toString();
+		//@formatter:on
+
+		JsonNode response = send(url);
+
+		try {
+			JsonNode matches = response.get("matches");
+			if (matches == null || matches.size() == 0) {
+				return List.of();
+			}
+
+			//@formatter:off
+			return Streams.stream(matches.iterator())
+				.map(result -> result.get("message").asText())
+			.collect(Collectors.toList());
+			//@formatter:on
+		} catch (NullPointerException e) {
+			logBadStructure(response, e);
+			throw badStructure(e);
+		}
+	}
+	
+	/**
+	 * Gets the attribution URL to use for a grammar check.
+	 * @return the URL
+	 */
+	public String getGrammarAttributionUrl() {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("https")
+			.setHost("www.grammar.com")
 		.toString();
 		//@formatter:on
 	}

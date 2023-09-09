@@ -151,11 +151,11 @@
 	</bean>
 
 	<!-- /abbr -->
-	<bean class="oakbot.command.Stands4Client" id="stands4Client">
+	<bean class="oakbot.command.stands4.Stands4Client" id="stands4Client">
 		<constructor-arg value="API_USER_ID" /> <!-- API user ID -->
 		<constructor-arg value="API_TOKEN" /> <!-- API token -->
 	</bean>
-	<bean class="oakbot.command.AbbreviationCommand">
+	<bean class="oakbot.command.stands4.AbbreviationCommand">
 		<constructor-arg ref="stands4Client" />
 	</bean>
 
@@ -243,6 +243,11 @@
 		<constructor-arg value="PT15M" /> <!-- min time until quiver -->
 		<constructor-arg value="PT2H" /> <!-- max time until quiver -->
 		<constructor-arg value="PT30M" /> <!-- time able to pull up fish after quiver -->
+	</bean>
+	
+	<!-- /grammar -->
+	<bean class="oakbot.command.stands4.GrammarCommand">
+		<constructor-arg ref="stands4Client" />
 	</bean>
 
 	<!-- /groot -->

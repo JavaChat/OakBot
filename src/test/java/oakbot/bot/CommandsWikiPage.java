@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import oakbot.Database;
-import oakbot.command.AbbreviationCommand;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
@@ -38,6 +37,8 @@ import oakbot.command.javadoc.JavadocCommand;
 import oakbot.command.learn.LearnCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.command.learn.UnlearnCommand;
+import oakbot.command.stands4.AbbreviationCommand;
+import oakbot.command.stands4.GrammarCommand;
 import oakbot.command.urban.UrbanCommand;
 import oakbot.filter.GrootFilter;
 import oakbot.filter.UpsidedownTextFilter;
@@ -95,7 +96,7 @@ public class CommandsWikiPage {
 
 		List<Command> commands = new ArrayList<>();
 		{
-			commands.add(new AbbreviationCommand(null, null));
+			commands.add(new AbbreviationCommand(null));
 			commands.add(new AboutCommand(null, null));
 			commands.add(new AdventOfCode("PT0S", Collections.emptyMap(), null));
 			commands.add(new AfkCommand());
@@ -107,6 +108,7 @@ public class CommandsWikiPage {
 			commands.add(new EightBallCommand());
 			commands.add(new FacepalmCommand(""));
 			commands.add(new FatCatCommand(db));
+			commands.add(new GrammarCommand(null));
 			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
 			commands.add(new HttpCommand());
