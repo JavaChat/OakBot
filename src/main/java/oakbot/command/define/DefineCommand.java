@@ -71,7 +71,7 @@ public class DefineCommand implements Command {
 			String url = url(word);
 			response = http.get(url).getBodyAsXml();
 		} catch (IOException | SAXException e) {
-			logger.log(Level.SEVERE, "Problem getting word from dictionary.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem getting word from dictionary.");
 			return error("Sorry, an unexpected error occurred while getting the definition: ", e, chatCommand);
 		}
 

@@ -60,7 +60,7 @@ public class FOTD implements ScheduledTask {
 
 		String fact = parseFact(response);
 		if (fact == null) {
-			logger.warning("Unable to parse FOTD from " + url + ".");
+			logger.warning(() -> "Unable to parse FOTD from " + url + ".");
 			return;
 		}
 

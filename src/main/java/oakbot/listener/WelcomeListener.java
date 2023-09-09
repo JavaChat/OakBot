@@ -77,7 +77,7 @@ public class WelcomeListener implements Listener {
 			IRoom room = bot.getRoom(roomId);
 			userInfo = room.getUserInfo(List.of(userId));
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Could not get user info for user " + userId + ".", e);
+			logger.log(Level.SEVERE, e, () -> "Could not get user info for user " + userId + ".");
 			return doNothing();
 		}
 

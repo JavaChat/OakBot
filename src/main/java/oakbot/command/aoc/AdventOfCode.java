@@ -90,20 +90,25 @@ public class AdventOfCode implements ScheduledTask, Command {
 			return reply("This command is only active during the month of December.", chatCommand);
 		}
 
-		String leaderboardId = chatCommand.getContent().trim();
-		boolean displayDefaultLeaderboard = leaderboardId.isEmpty();
+		String content = chatCommand.getContent();
+		boolean displayDefaultLeaderboard = content.isEmpty();
+
+		String leaderboardId;
 		if (displayDefaultLeaderboard) {
-			leaderboardId = monitoredLeaderboardByRoom.get(chatCommand.getMessage().getRoomId());
+			int roomId = chatCommand.getMessage().getRoomId();
+			leaderboardId = monitoredLeaderboardByRoom.get(roomId);
 			if (leaderboardId == null) {
 				return reply("Please specify a leaderboard ID (e.g. " + bot.getTrigger() + name() + " 123456).", chatCommand);
 			}
+		} else {
+			leaderboardId = content;
 		}
 
 		List<Player> players;
 		try {
 			players = api.getLeaderboard(leaderboardId);
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.");
 			return error("I couldn't query that leaderboard. It might not exist. Or the user that my adventofcode.com session token belongs to might not have access to that leaderboard. Or the token might have expired. Or you're trolling me: ", e, chatCommand);
 		}
 
@@ -290,7 +295,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 			try {
 				leaderboard = api.getLeaderboard(leaderboardId);
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.", e);
+				logger.log(Level.SEVERE, e, () -> "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.");
 				continue;
 			}
 

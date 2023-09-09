@@ -71,7 +71,7 @@ public class AbbreviationCommand implements Command {
 		try (Http http = HttpFactory.connect()) {
 			response = http.get(url);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Problem getting abbreviation from STANDS4 API.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem getting abbreviation from STANDS4 API.");
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 
@@ -94,7 +94,7 @@ public class AbbreviationCommand implements Command {
 			chatCommand);
 			//@formatter:on
 		} catch (JsonProcessingException | NullPointerException e) {
-			logger.log(Level.SEVERE, "JSON response was not structured as expected: " + response.getBody(), e);
+			logger.log(Level.SEVERE, e, () -> "JSON response was not structured as expected: " + response.getBody());
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 	}

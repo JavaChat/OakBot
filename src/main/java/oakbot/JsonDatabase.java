@@ -146,7 +146,7 @@ public class JsonDatabase implements Database {
 				generator.writeEndObject();
 			}
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Could not persist database.", e);
+			logger.log(Level.SEVERE, e, () -> "Could not persist database.");
 		}
 
 		changed = false;

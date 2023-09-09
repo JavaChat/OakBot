@@ -177,7 +177,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			return reply(response, message);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Problem communicating with ChatGPT.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem communicating with ChatGPT.");
 			return reply("I don't really feel like talking right now.", message);
 		}
 	}

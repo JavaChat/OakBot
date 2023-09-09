@@ -155,7 +155,7 @@ public class JavadocDaoCached implements JavadocDao {
 					key = watcher.take();
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
-					logger.log(Level.WARNING, "Thread interrupted while watching for changes to the Javadoc ZIP files.", e);
+					logger.log(Level.WARNING, e, () -> "Thread interrupted while watching for changes to the Javadoc ZIP files.");
 					break;
 				}
 
@@ -163,7 +163,7 @@ public class JavadocDaoCached implements JavadocDao {
 
 				boolean valid = key.reset();
 				if (!valid) {
-					logger.warning("Javadoc ZIP file watch thread has been terminated due to the watch key becoming invalid.");
+					logger.warning(() -> "Javadoc ZIP file watch thread has been terminated due to the watch key becoming invalid.");
 					break;
 				}
 			}
@@ -201,18 +201,18 @@ public class JavadocDaoCached implements JavadocDao {
 		}
 
 		private void add(Path file) {
-			logger.info("Loading ZIP file " + file + "...");
+			logger.info(() -> "Loading ZIP file " + file + "...");
 			try {
 				register(file);
-				logger.info("ZIP file " + file + " loaded.");
+				logger.info(() -> "ZIP file " + file + " loaded.");
 			} catch (Exception e) {
 				//catch RuntimeExceptions too
-				logger.log(Level.SEVERE, "Could not parse Javadoc ZIP file.  ZIP file was not added to the JavadocDao.", e);
+				logger.log(Level.SEVERE, e, () -> "Could not parse Javadoc ZIP file.  ZIP file was not added to the JavadocDao.");
 			}
 		}
 
 		private void remove(Path file) {
-			logger.info("Removing ZIP file " + file + "...");
+			logger.info(() -> "Removing ZIP file " + file + "...");
 			Path fileName = file.getFileName();
 
 			synchronized (JavadocDaoCached.this) {
@@ -224,7 +224,7 @@ public class JavadocDaoCached implements JavadocDao {
 				//@formatter:on
 
 				if (!found.isPresent()) {
-					logger.warning("Tried to remove ZIP file \"" + file + "\", but it was not found in the JavadocDao.");
+					logger.warning(() -> "Tried to remove ZIP file \"" + file + "\", but it was not found in the JavadocDao.");
 					return;
 				}
 
@@ -233,7 +233,7 @@ public class JavadocDaoCached implements JavadocDao {
 				cache.keySet().removeAll(classNames);
 			}
 
-			logger.info("ZIP file " + file + " removed.");
+			logger.info(() -> "ZIP file " + file + " removed.");
 		}
 	}
 

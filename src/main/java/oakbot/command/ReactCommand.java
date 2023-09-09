@@ -85,7 +85,7 @@ public class ReactCommand implements Command {
 			);
 			//@formatter:on
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Problem querying reaction API.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem querying reaction API.");
 
 			return reply("Sorry, an error occurred >.> : " + e.getMessage(), chatCommand);
 		}

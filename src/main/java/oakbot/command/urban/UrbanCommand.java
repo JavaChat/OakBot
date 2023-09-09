@@ -61,7 +61,7 @@ public class UrbanCommand implements Command {
 		try (Http http = HttpFactory.connect()) {
 			response = http.get(url).getBodyAsJson(UrbanResponse.class);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Problem getting word from Urban Dictionary.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem getting word from Urban Dictionary.");
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 

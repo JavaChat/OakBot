@@ -38,7 +38,7 @@ public class LeaveRoomTask implements InactivityTask {
 		try {
 			bot.sendMessage(room.getRoomId(), new PostMessage("*quietly closes the door behind him*"));
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Could not post message to room " + room.getRoomId() + ".", e);
+			logger.log(Level.SEVERE, e, () -> "Could not post message to room " + room.getRoomId() + ".");
 		}
 
 		bot.leave(room.getRoomId());

@@ -184,9 +184,7 @@ public class OpenAIClient {
 	}
 
 	private void logResponse(int statusCode, JsonNode body) {
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Response from OpenAI: HTTP " + statusCode + ": " + JsonUtils.prettyPrint(body));
-		}
+		logger.fine(() -> "Response from OpenAI: HTTP " + statusCode + ": " + JsonUtils.prettyPrint(body));
 	}
 
 	private void logError(HttpPost request, int responseStatusCode, JsonNode responseBody, IOException e) throws IOException {

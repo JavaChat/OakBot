@@ -53,7 +53,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 		if (first) {
 			first = false;
 
-			logger.info("Starting health monitor...");
+			logger.info(() -> "Starting health monitor...");
 
 			/*
 			 * Do not start the health monitor if there is a problem checking
@@ -62,11 +62,11 @@ public abstract class HealthMonitor implements ScheduledTask {
 			try {
 				securityUpdates = getNumSecurityUpdates();
 			} catch (Exception e) {
-				logger.log(Level.INFO, "Could not query system for security updates.  Health monitor disabled.", e);
+				logger.log(Level.INFO, e, () -> "Could not query system for security updates.  Health monitor disabled.");
 				return 0;
 			}
 
-			logger.info("Health monitor started.  There are " + securityUpdates + " security updates available.");
+			logger.info(() -> "Health monitor started.  There are " + securityUpdates + " security updates available.");
 		}
 
 		/*
@@ -89,7 +89,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 		try {
 			securityUpdates = getNumSecurityUpdates();
 		} catch (Exception e) {
-			logger.log(Level.WARNING, "Problem querying for security updates.", e);
+			logger.log(Level.WARNING, e, () -> "Problem querying for security updates.");
 			securityUpdates = 0;
 		}
 
@@ -101,7 +101,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 				try {
 					bot.sendMessage(roomId, response);
 				} catch (Exception e) {
-					logger.log(Level.WARNING, "Problem sending cough message [room=" + roomId + "].", e);
+					logger.log(Level.WARNING, e, () -> "Problem sending cough message [room=" + roomId + "].");
 				}
 			}
 		}

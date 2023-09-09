@@ -90,7 +90,7 @@ public class ImagineCommand implements Command {
 			try {
 				urlToPost = bot.uploadImage(openAiImageUrl);
 			} catch (IOException e) {
-				logger.log(Level.SEVERE, "Problem uploading image to imgur.", e);
+				logger.log(Level.SEVERE, e, () -> "Problem uploading image to imgur.");
 
 				/*
 				 * Add a fake parameter onto the end of the URL so SO Chat
@@ -104,7 +104,7 @@ public class ImagineCommand implements Command {
 		} catch (URISyntaxException | OpenAIException e) {
 			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Problem communicating with OpenAI.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem communicating with OpenAI.");
 			return error("Problem communicating with OpenAI: ", e, chatCommand);
 		}
 	}

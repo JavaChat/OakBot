@@ -87,7 +87,7 @@ public class CatCommand implements Command {
 				repeats++;
 			}
 		} catch (IOException | SAXException e) {
-			logger.log(Level.SEVERE, "Problem getting cat.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem getting cat.");
 			return error("Error getting cat: ", e, chatCommand);
 		}
 

@@ -163,7 +163,7 @@ public class JavadocCommand implements Command, Listener {
 			 */
 			return handleNoMatch(chatCommand);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Problem getting Javadoc info from the DAO.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem getting Javadoc info from the DAO.");
 			return error("Error getting Javadoc info: ", e, chatCommand);
 		}
 	}

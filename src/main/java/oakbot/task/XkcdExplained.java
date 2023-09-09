@@ -94,7 +94,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 				comic.checkedWiki();
 				if (comic.timesCheckedWiki >= maxTimesToCheckWikiBeforeGivingUp) {
 					stopChecking.add(roomId);
-					logger.severe("Still no explanation posted for comic #" + comic.comicId + " after checking wiki " + comic.timesCheckedWiki + " times. Giving up.");
+					logger.severe(() -> "Still no explanation posted for comic #" + comic.comicId + " after checking wiki " + comic.timesCheckedWiki + " times. Giving up.");
 				}
 				continue;
 			}

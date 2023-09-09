@@ -88,10 +88,10 @@ public class LearnCommand implements Command {
 			if (m.find()) {
 				commandOutput = m.group(1) + m.group(2);
 			} else {
-				logger.severe("Could not parse command output from plaintext chat message. Falling back to manually converting the HTML-encoded message to Markdown: " + plainText);
+				logger.severe(() -> "Could not parse command output from plaintext chat message. Falling back to manually converting the HTML-encoded message to Markdown: " + plainText);
 			}
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Problem querying chat service for original message content. Falling back to manually converting the HTML-encoded message to Markdown.", e);
+			logger.log(Level.SEVERE, e, () -> "Problem querying chat service for original message content. Falling back to manually converting the HTML-encoded message to Markdown.");
 		}
 
 		if (commandOutput == null) {

@@ -170,7 +170,7 @@ public class Bot implements IBot {
 			try {
 				joinRoom(room, quiet);
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Could not join room " + room + ". Removing from rooms list.", e);
+				logger.log(Level.SEVERE, e, () -> "Could not join room " + room + ". Removing from rooms list.");
 				rooms.remove(room);
 			}
 
@@ -190,7 +190,7 @@ public class Bot implements IBot {
 						chore = choreQueue.take();
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
-						logger.log(Level.SEVERE, "Thread interrupted while waiting for new chores.", e);
+						logger.log(Level.SEVERE, e, () -> "Thread interrupted while waiting for new chores.");
 						break;
 					}
 
@@ -205,12 +205,12 @@ public class Bot implements IBot {
 					}
 				}
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Bot terminated due to unexpected exception.", e);
+				logger.log(Level.SEVERE, e, () -> "Bot terminated due to unexpected exception.");
 			} finally {
 				try {
 					connection.close();
 				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem closing ChatClient connection.", e);
+					logger.log(Level.SEVERE, e, () -> "Problem closing ChatClient connection.");
 				}
 
 				if (database != null) {
@@ -265,9 +265,7 @@ public class Bot implements IBot {
 			filteredMessage = messageText;
 		}
 
-		if (logger.isLoggable(Level.INFO)) {
-			logger.info("Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);
-		}
+		logger.info(() -> "Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);
 
 		synchronized (postedMessages) {
 			List<Long> messageIds = room.sendMessage(filteredMessage, message.splitStrategy());
@@ -313,9 +311,7 @@ public class Bot implements IBot {
 			return room;
 		}
 
-		if (logger.isLoggable(Level.INFO)) {
-			logger.info("Joining room " + roomId + "...");
-		}
+		logger.info(() -> "Joining room " + roomId + "...");
 
 		room = connection.joinRoom(roomId);
 
@@ -327,9 +323,7 @@ public class Bot implements IBot {
 			try {
 				sendMessage(room, greeting);
 			} catch (RoomPermissionException e) {
-				if (logger.isLoggable(Level.WARNING)) {
-					logger.log(Level.WARNING, "Unable to post greeting when joining room " + roomId + ".", e);
-				}
+				logger.log(Level.WARNING, e, () -> "Unable to post greeting when joining room " + roomId + ".");
 			}
 		}
 
@@ -349,9 +343,7 @@ public class Bot implements IBot {
 
 	@Override
 	public void leave(int roomId) throws IOException {
-		if (logger.isLoggable(Level.INFO)) {
-			logger.info("Leaving room " + roomId + "...");
-		}
+		logger.info(() -> "Leaving room " + roomId + "...");
 
 		inactivityTimerTasksByRoom.removeAll(roomId).forEach(TimerTask::cancel);
 		timeOfLastMessageByRoom.remove(roomId);
@@ -605,7 +597,7 @@ public class Bot implements IBot {
 				InvitationEvent ie = (InvitationEvent) event;
 				handleInvitation(ie);
 			} else {
-				logger.severe("Ignoring event: " + event.getClass().getName());
+				logger.severe(() -> "Ignoring event: " + event.getClass().getName());
 			}
 		}
 
@@ -696,7 +688,7 @@ public class Bot implements IBot {
 				try {
 					actions.addAll(listener.onMessage(message, Bot.this));
 				} catch (Exception e) {
-					logger.log(Level.SEVERE, "Problem running listener.", e);
+					logger.log(Level.SEVERE, e, () -> "Problem running listener.");
 				}
 			}
 			return actions;
@@ -707,9 +699,7 @@ public class Bot implements IBot {
 				return;
 			}
 
-			if (logger.isLoggable(Level.INFO)) {
-				logger.info("Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
-			}
+			logger.info(() -> "Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
 
 			if (stats != null) {
 				stats.incMessagesRespondedTo();
@@ -756,7 +746,7 @@ public class Bot implements IBot {
 					sendMessage(message.getRoomId(), action);
 				}
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Problem posting message [room=" + message.getRoomId() + "]: " + action.message(), e);
+				logger.log(Level.SEVERE, e, () -> "Problem posting message [room=" + message.getRoomId() + "]: " + action.message());
 			}
 		}
 
@@ -766,7 +756,7 @@ public class Bot implements IBot {
 				room.deleteMessage(action.messageId());
 				return action.onSuccess().get();
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Problem deleting message [room=" + message.getRoomId() + ", messageId=" + action.messageId() + "]", e);
+				logger.log(Level.SEVERE, e, () -> "Problem deleting message [room=" + message.getRoomId() + ", messageId=" + action.messageId() + "]");
 				return action.onError().apply(e);
 			}
 		}
@@ -785,7 +775,7 @@ public class Bot implements IBot {
 				try {
 					leave(action.roomId());
 				} catch (Exception e) {
-					logger.log(Level.SEVERE, "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.", e);
+					logger.log(Level.SEVERE, e, () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.");
 				}
 
 				return action.ifLackingPermissionToPost().get();
@@ -793,7 +783,7 @@ public class Bot implements IBot {
 				try {
 					leave(action.roomId());
 				} catch (Exception e2) {
-					logger.log(Level.SEVERE, "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.", e2);
+					logger.log(Level.SEVERE, e2, () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.");
 				}
 
 				return action.ifLackingPermissionToPost().get();
@@ -808,7 +798,7 @@ public class Bot implements IBot {
 			try {
 				leave(action.roomId());
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Problem leaving room " + action.roomId() + ".", e);
+				logger.log(Level.SEVERE, e, () -> "Problem leaving room " + action.roomId() + ".");
 			}
 		}
 
@@ -838,7 +828,7 @@ public class Bot implements IBot {
 			try {
 				joinRoom(roomId);
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Bot was invited to join room " + roomId + ", but couldn't join it.", e);
+				logger.log(Level.SEVERE, e, () -> "Bot was invited to join room " + roomId + ", but couldn't join it.");
 			}
 		}
 	}
@@ -888,7 +878,7 @@ public class Bot implements IBot {
 					room.deleteMessage(id);
 				}
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Problem editing chat message [room=" + roomId + ", id=" + postedMessage.getMessageIds().get(0) + "]", e);
+				logger.log(Level.SEVERE, e, () -> "Problem editing chat message [room=" + roomId + ", id=" + postedMessage.getMessageIds().get(0) + "]");
 			}
 		}
 
@@ -923,7 +913,7 @@ public class Bot implements IBot {
 			try {
 				task.run(Bot.this);
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Problem running scheduled task.", e);
+				logger.log(Level.SEVERE, e, () -> "Problem running scheduled task.");
 			}
 			scheduleTask(task);
 		}
@@ -957,7 +947,7 @@ public class Bot implements IBot {
 					try {
 						task.run(room, Bot.this);
 					} catch (Exception e) {
-						logger.log(Level.SEVERE, "Problem running inactivity task in room " + room.getRoomId() + ".", e);
+						logger.log(Level.SEVERE, e, () -> "Problem running inactivity task in room " + room.getRoomId() + ".");
 					}
 				}
 

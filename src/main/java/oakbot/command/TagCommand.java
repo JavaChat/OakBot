@@ -58,7 +58,7 @@ public class TagCommand implements Command {
 		try (Http http = HttpFactory.connect()) {
 			document = http.get(url).getBodyAsHtml();
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Error getting tag description.", e);
+			logger.log(Level.SEVERE, e, () -> "Error getting tag description.");
 			return error("An error occurred retrieving the tag description: ", e, chatCommand);
 		}
 

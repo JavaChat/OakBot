@@ -211,7 +211,7 @@ public final class Main {
 
 		t.join();
 
-		logger.info("Terminating.");
+		logger.info(() -> "Terminating.");
 	}
 
 	private static void setupLogging(Path config) throws IOException {
@@ -251,7 +251,7 @@ public final class Main {
 
 	private static void createShutdownHook(Bot bot) {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			logger.info("Running shutdown hook.");
+			logger.info(() -> "Running shutdown hook.");
 			bot.stop();
 		}));
 	}
@@ -291,7 +291,7 @@ public final class Main {
 						}
 					}
 				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Problem accepting new socket connection or reading from socket.", e);
+					logger.log(Level.SEVERE, e, () -> "Problem accepting new socket connection or reading from socket.");
 				}
 			}
 		}
@@ -300,7 +300,7 @@ public final class Main {
 			try {
 				serverSocket.close();
 			} catch (IOException e) {
-				logger.log(Level.SEVERE, "Problem closing server socket.", e);
+				logger.log(Level.SEVERE, e, () -> "Problem closing server socket.");
 			}
 		}
 	}
