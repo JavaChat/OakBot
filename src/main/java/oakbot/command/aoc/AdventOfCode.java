@@ -170,24 +170,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 			cb.append(player.getScore()).append(") ");
 
 			//output stars
-			Map<Integer, Instant[]> days = player.getCompletionTimes();
-			IntStream.rangeClosed(1, 25).forEach(day -> {
-				Instant[] parts = days.get(day);
-				if (parts == null) {
-					//did not finish anything
-					cb.append('.');
-				} else if (parts[1] == null) {
-					//only finished part 1
-					cb.append('^');
-				} else {
-					//finished part 1 and 2
-					cb.append('*');
-				}
-
-				if (day != 25 && day % 5 == 0) {
-					cb.append('|');
-				}
-			});
+			appendStars(player, cb);
 
 			//output star count
 			cb.append(' ');
@@ -201,6 +184,27 @@ public class AdventOfCode implements ScheduledTask, Command {
 		}
 
 		return cb.toString();
+	}
+
+	private void appendStars(Player player, ChatBuilder cb) {
+		Map<Integer, Instant[]> days = player.getCompletionTimes();
+		IntStream.rangeClosed(1, 25).forEach(day -> {
+			Instant[] parts = days.get(day);
+			if (parts == null) {
+				//did not finish anything
+				cb.append('.');
+			} else if (parts[1] == null) {
+				//only finished part 1
+				cb.append('^');
+			} else {
+				//finished part 1 and 2
+				cb.append('*');
+			}
+
+			if (day != 25 && day % 5 == 0) {
+				cb.append('|');
+			}
+		});
 	}
 
 	private void sortPlayersByScoreDescending(List<Player> players) {
