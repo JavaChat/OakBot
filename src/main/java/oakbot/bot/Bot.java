@@ -33,10 +33,10 @@ import com.github.mangstadt.sochat4j.event.MessageEditedEvent;
 import com.github.mangstadt.sochat4j.event.MessagePostedEvent;
 import com.github.mangstadt.sochat4j.util.Sleeper;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 
 import oakbot.Database;
+import oakbot.MemoryDatabase;
 import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.filter.ChatResponseFilter;
@@ -98,17 +98,17 @@ public class Bot implements IBot {
 		hideOneboxesAfter = builder.hideOneboxesAfter;
 		trigger = Objects.requireNonNull(builder.trigger);
 		greeting = builder.greeting;
-		rooms = builder.rooms;
 		maxRooms = builder.maxRooms;
-		admins = builder.admins.build();
-		bannedUsers = builder.bannedUsers.build();
-		allowedUsers = builder.allowedUsers.build();
+		admins = builder.admins;
+		bannedUsers = builder.bannedUsers;
+		allowedUsers = builder.allowedUsers;
 		stats = builder.stats;
-		database = builder.database;
-		listeners = builder.listeners.build();
-		scheduledTasks = builder.tasks.build();
-		inactivityTasks = builder.inactivityTasks.build();
-		responseFilters = builder.responseFilters.build();
+		database = (builder.database == null) ? new MemoryDatabase() : builder.database;
+		rooms = new Rooms(database, builder.roomsHome, builder.roomsQuiet);
+		listeners = builder.listeners;
+		scheduledTasks = builder.tasks;
+		inactivityTasks = builder.inactivityTasks;
+		responseFilters = builder.responseFilters;
 	}
 
 	private void scheduleTask(ScheduledTask task) {
@@ -199,10 +199,7 @@ public class Bot implements IBot {
 					}
 
 					chore.complete();
-
-					if (database != null) {
-						database.commit();
-					}
+					database.commit();
 				}
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, e, () -> "Bot terminated due to unexpected exception.");
@@ -213,10 +210,7 @@ public class Bot implements IBot {
 					logger.log(Level.SEVERE, e, () -> "Problem closing ChatClient connection.");
 				}
 
-				if (database != null) {
-					database.commit();
-				}
-
+				database.commit();
 				timer.cancel();
 			}
 		}
@@ -968,15 +962,16 @@ public class Bot implements IBot {
 		private String userName, trigger = "=", greeting;
 		private Integer userId;
 		private Duration hideOneboxesAfter;
-		private Rooms rooms = new Rooms(List.of(1), List.of());
 		private Integer maxRooms;
-		private ImmutableList.Builder<Integer> admins = ImmutableList.builder();
-		private ImmutableList.Builder<Integer> bannedUsers = ImmutableList.builder();
-		private ImmutableList.Builder<Integer> allowedUsers = ImmutableList.builder();
-		private ImmutableList.Builder<Listener> listeners = ImmutableList.builder();
-		private ImmutableList.Builder<ScheduledTask> tasks = ImmutableList.builder();
-		private ImmutableList.Builder<InactivityTask> inactivityTasks = ImmutableList.builder();
-		private ImmutableList.Builder<ChatResponseFilter> responseFilters = ImmutableList.builder();
+		private List<Integer> roomsHome = List.of(1);
+		private List<Integer> roomsQuiet = List.of();
+		private List<Integer> admins = List.of();
+		private List<Integer> bannedUsers = List.of();
+		private List<Integer> allowedUsers = List.of();
+		private List<Listener> listeners = List.of();
+		private List<ScheduledTask> tasks = List.of();
+		private List<InactivityTask> inactivityTasks = List.of();
+		private List<ChatResponseFilter> responseFilters = List.of();
 		private Statistics stats;
 		private Database database;
 
@@ -1006,13 +1001,24 @@ public class Bot implements IBot {
 			return this;
 		}
 
-		public Builder rooms(Rooms rooms) {
-			this.rooms = rooms;
+		public Builder roomsHome(Integer... roomIds) {
+			roomsHome = List.of(roomIds);
 			return this;
 		}
 
-		public Builder rooms(Integer... roomIds) {
-			return rooms(new Rooms(List.of(roomIds), List.of()));
+		public Builder roomsHome(Collection<Integer> roomIds) {
+			roomsHome = List.copyOf(roomIds);
+			return this;
+		}
+
+		public Builder roomsQuiet(Integer... roomIds) {
+			roomsQuiet = List.of(roomIds);
+			return this;
+		}
+
+		public Builder roomsQuiet(Collection<Integer> roomIds) {
+			roomsQuiet = List.copyOf(roomIds);
+			return this;
 		}
 
 		public Builder maxRooms(Integer maxRooms) {
@@ -1021,65 +1027,72 @@ public class Bot implements IBot {
 		}
 
 		public Builder admins(Integer... admins) {
-			return admins(List.of(admins));
+			this.admins = List.of(admins);
+			return this;
 		}
 
 		public Builder admins(Collection<Integer> admins) {
-			this.admins.addAll(admins);
+			this.admins = List.copyOf(admins);
 			return this;
 		}
 
 		public Builder bannedUsers(Integer... bannedUsers) {
-			return bannedUsers(List.of(bannedUsers));
+			this.bannedUsers = List.of(bannedUsers);
+			return this;
 		}
 
 		public Builder bannedUsers(Collection<Integer> bannedUsers) {
-			this.bannedUsers.addAll(bannedUsers);
+			this.bannedUsers = List.copyOf(bannedUsers);
 			return this;
 		}
 
 		public Builder allowedUsers(Integer... allowedUsers) {
-			return allowedUsers(List.of(allowedUsers));
+			this.allowedUsers = List.of(allowedUsers);
+			return this;
 		}
 
 		public Builder allowedUsers(Collection<Integer> allowedUsers) {
-			this.allowedUsers.addAll(allowedUsers);
+			this.allowedUsers = List.copyOf(allowedUsers);
 			return this;
 		}
 
 		public Builder listeners(Listener... listeners) {
-			return listeners(List.of(listeners));
+			this.listeners = List.of(listeners);
+			return this;
 		}
 
 		public Builder listeners(Collection<Listener> listeners) {
-			this.listeners.addAll(listeners);
+			this.listeners = List.copyOf(listeners);
 			return this;
 		}
 
 		public Builder tasks(ScheduledTask... tasks) {
-			return tasks(List.of(tasks));
+			this.tasks = List.of(tasks);
+			return this;
 		}
 
 		public Builder tasks(Collection<ScheduledTask> tasks) {
-			this.tasks.addAll(tasks);
+			this.tasks = List.copyOf(tasks);
 			return this;
 		}
 
 		public Builder inactivityTasks(InactivityTask... tasks) {
-			return inactivityTasks(List.of(tasks));
+			inactivityTasks = List.of(tasks);
+			return this;
 		}
 
 		public Builder inactivityTasks(Collection<InactivityTask> tasks) {
-			this.inactivityTasks.addAll(tasks);
+			inactivityTasks = List.copyOf(tasks);
 			return this;
 		}
 
 		public Builder responseFilters(ChatResponseFilter... filters) {
-			return responseFilters(List.of(filters));
+			responseFilters = List.of(filters);
+			return this;
 		}
 
 		public Builder responseFilters(Collection<ChatResponseFilter> filters) {
-			this.responseFilters.addAll(filters);
+			responseFilters = List.copyOf(filters);
 			return this;
 		}
 

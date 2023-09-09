@@ -150,7 +150,7 @@ public final class Main {
 			UnlearnCommand unlearnCommand = new UnlearnCommand(commands, learnedCommands);
 			commands.add(unlearnCommand);
 		} else {
-			learnedCommands = new LearnedCommandsDao(new MemoryDatabase());
+			learnedCommands = new LearnedCommandsDao();
 		}
 
 		HelpCommand helpCommand = new HelpCommand(commands, learnedCommands, listeners, tasks, botProperties.getHelpWebpage());
@@ -161,8 +161,6 @@ public final class Main {
 
 		Multimap<String, Command> duplicateNames = commandListener.checkForDuplicateNames();
 		outputDuplicateNamesWarning(duplicateNames, botProperties.getTrigger());
-
-		Rooms rooms = new Rooms(database, botProperties.getHomeRooms(), botProperties.getQuietRooms());
 
 		IChatClient connection;
 		if (mock) {
@@ -186,7 +184,8 @@ public final class Main {
 			.user(botProperties.getBotUserName(), botProperties.getBotUserId())
 			.trigger(botProperties.getTrigger())
 			.greeting(botProperties.getGreeting())
-			.rooms(rooms)
+			.roomsHome(botProperties.getHomeRooms())
+			.roomsQuiet(botProperties.getQuietRooms())
 			.stats(stats)
 			.database(database)
 			.hideOneboxesAfter(botProperties.getHideOneboxesAfter()) //TODO more generic name for this property

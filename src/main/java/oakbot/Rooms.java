@@ -14,15 +14,6 @@ public class Rooms {
 	private final List<Integer> homeRooms, quietRooms;
 
 	/**
-	 * This constructor will not persist any of the rooms the bot joins.
-	 * @param homeRooms the bot's home rooms
-	 * @param quietRooms the rooms the bot will not post inactivity messages to
-	 */
-	public Rooms(List<Integer> homeRooms, List<Integer> quietRooms) {
-		this(null, homeRooms, quietRooms);
-	}
-
-	/**
 	 * This constructor will persist the rooms the bot joins.
 	 * @param db the database
 	 * @param homeRooms the bot's home rooms
@@ -33,12 +24,10 @@ public class Rooms {
 		this.homeRooms = homeRooms;
 		this.quietRooms = quietRooms;
 
-		if (db != null) {
-			@SuppressWarnings("unchecked")
-			List<Integer> rooms = (List<Integer>) db.get("rooms");
-			if (rooms != null) {
-				this.rooms.addAll(rooms);
-			}
+		@SuppressWarnings("unchecked")
+		List<Integer> rooms = (List<Integer>) db.get("rooms");
+		if (rooms != null) {
+			this.rooms.addAll(rooms);
 		}
 
 		/*

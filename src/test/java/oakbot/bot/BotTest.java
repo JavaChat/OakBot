@@ -104,7 +104,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1, 2)
+			.roomsHome(1, 2)
 			.greeting("Greetings.")
 		.build();
 		//@formatter:on
@@ -134,7 +134,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1, 2)
+			.roomsHome(1, 2)
 			.greeting("Greetings.")
 		.build();
 		//@formatter:on
@@ -164,7 +164,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1, 2)
+			.roomsHome(1, 2)
 		.build();
 		//@formatter:on
 
@@ -205,7 +205,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1)
+			.roomsHome(1)
 			.listeners(listener)
 		.build();
 		//@formatter:on
@@ -258,7 +258,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1)
+			.roomsHome(1)
 			.listeners(commandListener)
 		.build();
 		//@formatter:on
@@ -303,7 +303,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1)
+			.roomsHome(1)
 			.listeners(commandListener)
 		.build();
 		//@formatter:on
@@ -406,7 +406,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1)
+			.roomsHome(1)
 			.listeners(commandListener, listener)
 			.greeting("reply")
 			.responseFilters(filter)
@@ -476,7 +476,7 @@ public class BotTest {
 		//@formatter:off
 		Bot bot = bot()
 			.greeting("Greetings.")
-			.rooms(1)
+			.roomsHome(1)
 			.listeners(commandListener)
 		.build();
 		//@formatter:on
@@ -532,7 +532,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1, 2)
+			.roomsHome(1, 2)
 			.listeners(commandListener)
 		.build();
 		//@formatter:on
@@ -578,7 +578,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1, 2)
+			.roomsHome(1, 2)
 			.listeners(commandListener)
 			.database(db)
 		.build();
@@ -625,7 +625,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1)
+			.roomsHome(1)
 			.listeners(listener)
 		.build();
 		//@formatter:on
@@ -664,7 +664,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1)
+			.roomsHome(1)
 			.bannedUsers(100)
 			.listeners(listener)
 		.build();
@@ -705,7 +705,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1)
+			.roomsHome(1)
 			.allowedUsers(2)
 			.listeners(listener)
 		.build();
@@ -762,7 +762,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1)
+			.roomsHome(1)
 			.hideOneboxesAfter(Duration.ofSeconds(1))
 			.listeners(listener)
 		.build();
@@ -823,7 +823,7 @@ public class BotTest {
 		 */
 		//@formatter:off
 		Bot bot = bot()
-			.rooms(1)
+			.roomsHome(1)
 			.listeners(commandListener)
 		.build();
 		//@formatter:on

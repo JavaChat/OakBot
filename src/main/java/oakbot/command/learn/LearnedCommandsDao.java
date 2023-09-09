@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import oakbot.Database;
+import oakbot.MemoryDatabase;
 
 /**
  * Manages all of the bot's learned commands
@@ -21,7 +22,7 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 	 * Using this constructor will not persist any learned commands.
 	 */
 	public LearnedCommandsDao() {
-		this(null);
+		this(new MemoryDatabase());
 	}
 
 	/**
@@ -47,10 +48,12 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 	 * @return the command or null if not found
 	 */
 	public LearnedCommand get(String commandName) {
-		return commands.stream() //@formatter:off
+		//@formatter:off
+		return commands.stream()
 			.filter(c -> commandName.equalsIgnoreCase(c.name()))
 			.findFirst()
-		.orElse(null); //@formatter:on
+		.orElse(null);
+		//@formatter:on
 	}
 
 	/**
@@ -77,10 +80,6 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 	}
 
 	private void load() {
-		if (db == null) {
-			return;
-		}
-
 		List<Object> list = db.getList("learned-commands");
 		if (list == null) {
 			return;
@@ -122,10 +121,6 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 	 * Persists the commands to the file system.
 	 */
 	private void save() {
-		if (db == null) {
-			return;
-		}
-
 		List<Map<String, Object>> list = new ArrayList<>(commands.size());
 		for (LearnedCommand command : commands) {
 			Map<String, Object> map = new HashMap<>();
