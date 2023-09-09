@@ -4,22 +4,12 @@ import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.apache.http.client.utils.URIBuilder;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.util.ChatBuilder;
-import oakbot.util.HttpFactory;
 
 /**
  * Gets abbreviation definitions from abbreviations.com.
@@ -28,19 +18,14 @@ import oakbot.util.HttpFactory;
  * @see "https://www.abbreviations.com/api.php"
  */
 public class AbbreviationCommand implements Command {
-	private static final Logger logger = Logger.getLogger(AbbreviationCommand.class.getName());
-
-	private final String apiUserId;
-	private final String apiToken;
+	private final Stands4Client client;
 	private final int maxResultsToDisplay = 10;
 
 	/**
-	 * @param apiUserId the API user ID
-	 * @param apiToken the API token
+	 * @param client the STAND4 API client
 	 */
-	public AbbreviationCommand(String apiUserId, String apiToken) {
-		this.apiUserId = apiUserId;
-		this.apiToken = apiToken;
+	public AbbreviationCommand(Stands4Client client) {
+		this.client = client;
 	}
 
 	@Override
@@ -65,100 +50,18 @@ public class AbbreviationCommand implements Command {
 			return reply("Enter an abbreviation.", chatCommand);
 		}
 
-		String url = apiUrl(abbr);
-
-		Http.Response response;
-		try (Http http = HttpFactory.connect()) {
-			response = http.get(url);
-		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem getting abbreviation from STANDS4 API.");
-			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
-		}
-
 		try {
-			JsonNode root = response.getBodyAsJson().get("result");
-			if (root == null || root.size() == 0) {
-				return reply("No results found.", chatCommand);
-			}
-
-			/*
-			 * Results often contain duplicate definitions under different
-			 * categories--do not display duplicates.
-			 */
-			List<String> topUniqueResults = getTopUniqueResults(root);
+			List<String> results = client.getAbbreviations(abbr, maxResultsToDisplay);
+			String url = client.getAbbreviationsAttributionUrl(abbr);
 
 			//@formatter:off
 			return reply(new ChatBuilder()
-				.append(String.join(" | ", topUniqueResults))
-				.append(" (").link("source", websiteUrl(abbr)).append(")"),
+				.append(String.join(" | ", results))
+				.append(" (").link("source", url).append(")"), 
 			chatCommand);
 			//@formatter:on
-		} catch (JsonProcessingException | NullPointerException e) {
-			logger.log(Level.SEVERE, e, () -> "JSON response was not structured as expected: " + response.getBody());
+		} catch (IOException e) {
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 	}
-
-	private List<String> getTopUniqueResults(JsonNode root) {
-		List<String> topUniqueResults = new ArrayList<>(maxResultsToDisplay);
-
-		for (JsonNode result : root) {
-			String definition = result.get("definition").asText();
-			if (topUniqueResults.contains(definition)) {
-				continue;
-			}
-
-			topUniqueResults.add(definition);
-			if (topUniqueResults.size() >= maxResultsToDisplay) {
-				break;
-			}
-		}
-
-		return topUniqueResults;
-	}
-
-	private String apiUrl(String abbr) {
-		//@formatter:off
-		return new URIBuilder()
-			.setScheme("https")
-			.setHost("www.stands4.com")
-			.setPath("/services/v2/abbr.php")
-			.setParameter("uid", apiUserId)
-			.setParameter("tokenid", apiToken)
-			.setParameter("format", "json")
-			.setParameter("term", abbr)
-		.toString();
-		//@formatter:on
-	}
-
-	private String websiteUrl(String abbr) {
-		//@formatter:off
-		return new URIBuilder()
-			.setScheme("https")
-			.setHost("www.abbreviations.com")
-			.setPathSegments(abbr)
-		.toString();
-		//@formatter:on
-	}
-
-	//@formatter:off
-	/*
-	Example response:
-	{
-		"result": [
-			{
-				"id" : "374690",
-				"term" : "ASAP",
-				"definition" : "As Soon As Possible",
-				"category" : "GENERALBUS",
-				"categoryname" : "General Business",
-				"parentcategory" : "BUSINESS",
-				"parentcategoryname" : "Business",
-				"score" : "3.67"
-			},
-			...
-		]
-	}
-	*/
-	//@formatter:on
 }

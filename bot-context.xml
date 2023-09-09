@@ -151,9 +151,12 @@
 	</bean>
 
 	<!-- /abbr -->
-	<bean class="oakbot.command.AbbreviationCommand">
+	<bean class="oakbot.command.Stands4Client" id="stands4Client">
 		<constructor-arg value="API_USER_ID" /> <!-- API user ID -->
 		<constructor-arg value="API_TOKEN" /> <!-- API token -->
+	</bean>
+	<bean class="oakbot.command.AbbreviationCommand">
+		<constructor-arg ref="stands4Client" />
 	</bean>
 
 	<!-- /about -->
