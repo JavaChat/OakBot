@@ -222,6 +222,11 @@
 	<!-- /8ball -->
 	<bean class="oakbot.command.EightBallCommand" />
 
+	<!-- /explain -->
+	<bean class="oakbot.command.stands4.ExplainCommand">
+		<constructor-arg ref="stands4Client" />
+	</bean>
+
 	<!-- /facepalm -->
 	<bean class="oakbot.command.FacepalmCommand">
 		<constructor-arg value="" /> <!-- API key for tenor.com -->

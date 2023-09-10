@@ -175,7 +175,7 @@ public class Stands4Client {
 	}
 
 	/**
-	 * Gets the attribution URL to use for a grammar check.
+	 * Gets the attribution URL to use conversions.
 	 * @return the URL
 	 */
 	public String getConvertAttributionUrl() {
@@ -183,6 +183,67 @@ public class Stands4Client {
 		return new URIBuilder()
 			.setScheme("https")
 			.setHost("www.convert.net")
+		.toString();
+		//@formatter:on
+	}
+
+	/**
+	 * Explains a common phrase, idiom, or casual expression.
+	 * @param phrase the phrase to explain
+	 * @return the result or null if none were found
+	 * @throws IOException if there's a problem querying the API
+	 */
+	public Explanation explain(String phrase) throws IOException {
+		//@formatter:off
+		String url = baseUri("phrases.php")
+			.setParameter("phrase", phrase)
+		.toString();
+		//@formatter:on
+
+		JsonNode response = send(url);
+
+		try {
+			JsonNode results = response.get("result");
+			if (results == null || results.size() == 0) {
+				return null;
+			}
+
+			/*
+			 * If the response only contains one result, the value of the
+			 * "results" field will be an object. If there are multiple results,
+			 * the field will be an array.
+			 */
+			JsonNode firstResult = results.isArray() ? results.get(0) : results;
+
+			String explanation = firstResult.get("explanation").asText();
+
+			/*
+			 * The example field will be set to an empty object if there is no
+			 * example.
+			 */
+			String example = firstResult.get("example").asText();
+			if (example.isEmpty()) {
+				example = null;
+			}
+
+			return new Explanation(explanation, example);
+		} catch (NullPointerException e) {
+			logBadStructure(response, e);
+			throw badStructure(e);
+		}
+	}
+
+	/**
+	 * Gets the attribution URL for phrase explanation.
+	 * @param phrase the phrase
+	 * @return the URL
+	 */
+	public String getExplainAttributionUrl(String phrase) {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("https")
+			.setHost("www.phrases.com")
+			.setPathSegments("psearch", phrase)
 		.toString();
 		//@formatter:on
 	}

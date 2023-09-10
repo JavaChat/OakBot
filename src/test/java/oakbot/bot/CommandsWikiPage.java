@@ -39,6 +39,7 @@ import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.command.learn.UnlearnCommand;
 import oakbot.command.stands4.AbbreviationCommand;
 import oakbot.command.stands4.ConvertCommand;
+import oakbot.command.stands4.ExplainCommand;
 import oakbot.command.stands4.GrammarCommand;
 import oakbot.command.urban.UrbanCommand;
 import oakbot.filter.GrootFilter;
@@ -108,6 +109,7 @@ public class CommandsWikiPage {
 			commands.add(new EffectiveDebuggingCommand());
 			commands.add(new EffectiveJavaCommand());
 			commands.add(new EightBallCommand());
+			commands.add(new ExplainCommand(null));
 			commands.add(new FacepalmCommand(""));
 			commands.add(new FatCatCommand(db));
 			commands.add(new GrammarCommand(null));
