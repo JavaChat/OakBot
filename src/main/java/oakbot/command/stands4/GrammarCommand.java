@@ -69,7 +69,7 @@ public class GrammarCommand implements Command {
 
 		//@formatter:off
 		return reply(new ChatBuilder()
-			.append(String.join("\\n", results))
+			.append(String.join("\n", results))
 			.nl().append("checked by: ").append(url), 
 		chatCommand);
 		//@formatter:on
