@@ -38,6 +38,7 @@ import oakbot.command.learn.LearnCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.command.learn.UnlearnCommand;
 import oakbot.command.stands4.AbbreviationCommand;
+import oakbot.command.stands4.ConvertCommand;
 import oakbot.command.stands4.GrammarCommand;
 import oakbot.command.urban.UrbanCommand;
 import oakbot.filter.GrootFilter;
@@ -101,6 +102,7 @@ public class CommandsWikiPage {
 			commands.add(new AdventOfCode("PT0S", Collections.emptyMap(), null));
 			commands.add(new AfkCommand());
 			commands.add(new CatCommand(null));
+			commands.add(new ConvertCommand(null));
 			commands.add(new DeleteCommand());
 			commands.add(new DefineCommand(null));
 			commands.add(new EffectiveDebuggingCommand());

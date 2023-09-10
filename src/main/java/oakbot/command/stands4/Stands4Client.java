@@ -98,7 +98,7 @@ public class Stands4Client {
 		.toString();
 		//@formatter:on
 	}
-	
+
 	/**
 	 * Checks a sentence for grammar.
 	 * @param sentence the sentence
@@ -130,7 +130,7 @@ public class Stands4Client {
 			throw badStructure(e);
 		}
 	}
-	
+
 	/**
 	 * Gets the attribution URL to use for a grammar check.
 	 * @return the URL
@@ -140,6 +140,49 @@ public class Stands4Client {
 		return new URIBuilder()
 			.setScheme("https")
 			.setHost("www.grammar.com")
+		.toString();
+		//@formatter:on
+	}
+
+	/**
+	 * Performs a unit conversion.
+	 * @param query the conversion query (e.g. "5 km in miles")
+	 * @return the result
+	 * @throws ConvertException if the given query wasn't understood
+	 * @throws IOException if there's a problem querying the API
+	 */
+	public String convert(String query) throws ConvertException, IOException {
+		//@formatter:off
+		String url = baseUri("conv.php")
+			.setParameter("expression", query)
+		.toString();
+		//@formatter:on
+
+		JsonNode response = send(url);
+
+		try {
+			int errorCode = response.get("errorCode").asInt();
+			if (errorCode != 0) {
+				String errorMessage = response.get("errorMessage").asText();
+				throw new ConvertException(errorCode, errorMessage);
+			}
+
+			return response.get("result").asText();
+		} catch (NullPointerException e) {
+			logBadStructure(response, e);
+			throw badStructure(e);
+		}
+	}
+
+	/**
+	 * Gets the attribution URL to use for a grammar check.
+	 * @return the URL
+	 */
+	public String getConvertAttributionUrl() {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("https")
+			.setHost("www.convert.net")
 		.toString();
 		//@formatter:on
 	}

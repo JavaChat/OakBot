@@ -197,6 +197,11 @@
 		<constructor-arg value="" /> <!-- API key for thecatapi.com (can be blank) -->
 	</bean>
 
+	<!-- /convert -->
+	<bean class="oakbot.command.stands4.ConvertCommand">
+		<constructor-arg ref="stands4Client" />
+	</bean>
+
 	<!-- /define -->
 	<bean class="oakbot.command.define.DefineCommand">
 		<constructor-arg value="" /> <!-- API key for dictionaryapi.com -->
