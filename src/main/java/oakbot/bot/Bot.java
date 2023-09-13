@@ -117,24 +117,12 @@ public class Bot implements IBot {
 			return;
 		}
 
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				choreQueue.add(new ScheduledTaskChore(task));
-			}
-		}, nextRun);
+		scheduleChore(nextRun, new ScheduledTaskChore(task));
 	}
 
 	private void scheduleTask(InactivityTask task, IRoom room, Duration nextRun) {
-		TimerTask timerTask = new TimerTask() {
-			@Override
-			public void run() {
-				choreQueue.add(new InactivityTaskChore(task, room));
-			}
-		};
-
+		TimerTask timerTask = scheduleChore(nextRun, new InactivityTaskChore(task, room));
 		inactivityTimerTasksByRoom.put(room.getRoomId(), timerTask);
-		timer.schedule(timerTask, nextRun.toMillis());
 	}
 
 	/**
@@ -419,6 +407,22 @@ public class Bot implements IBot {
 		choreQueue.add(new FinishChore());
 	}
 
+	private TimerTask scheduleChore(long delay, Chore chore) {
+		TimerTask timerTask = new TimerTask() {
+			@Override
+			public void run() {
+				choreQueue.add(chore);
+			}
+		};
+		timer.schedule(timerTask, delay);
+
+		return timerTask;
+	}
+
+	private TimerTask scheduleChore(Duration delay, Chore chore) {
+		return scheduleChore(delay.toMillis(), chore);
+	}
+
 	/**
 	 * Represents a message that was posted to the chat room.
 	 * @author Michael Angstadt
@@ -666,13 +670,7 @@ public class Bot implements IBot {
 					logger.info(action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
 				}
 
-				timer.schedule(new TimerTask() {
-					@Override
-					public void run() {
-						choreQueue.add(new CondenseMessageChore(postedMessage));
-					}
-
-				}, hideIn.toMillis());
+				scheduleChore(hideIn, new CondenseMessageChore(postedMessage));
 			}
 		}
 
@@ -734,10 +732,14 @@ public class Bot implements IBot {
 
 		private void handlePostMessageAction(PostMessage action, ChatMessage message) {
 			try {
-				if (action.broadcast()) {
-					broadcastMessage(action);
+				if (action.delay() != null) {
+					scheduleChore(action.delay(), new DelayedMessageChore(message.getRoomId(), action));
 				} else {
-					sendMessage(message.getRoomId(), action);
+					if (action.broadcast()) {
+						broadcastMessage(action);
+					} else {
+						sendMessage(message.getRoomId(), action);
+					}
 				}
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, e, () -> "Problem posting message [room=" + message.getRoomId() + "]: " + action.message());
@@ -949,6 +951,29 @@ public class Bot implements IBot {
 				scheduleTask(task, room, nextCheck);
 			} finally {
 				inactivityTimerTasksByRoom.remove(room, this);
+			}
+		}
+	}
+
+	private class DelayedMessageChore extends Chore {
+		private final int roomId;
+		private final PostMessage message;
+
+		public DelayedMessageChore(int roomId, PostMessage message) {
+			this.roomId = roomId;
+			this.message = message;
+		}
+
+		@Override
+		public void complete() {
+			try {
+				if (message.broadcast()) {
+					broadcastMessage(message);
+				} else {
+					sendMessage(roomId, message);
+				}
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, e, () -> "Problem posting delayed message [room=" + roomId + ", delay=" + message.delay() + "]: " + message.message());
 			}
 		}
 	}

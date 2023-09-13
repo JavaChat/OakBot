@@ -1,5 +1,6 @@
 package oakbot.bot;
 
+import java.time.Duration;
 import java.util.Objects;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
@@ -12,6 +13,7 @@ public class PostMessage implements ChatAction {
 	private String message, condensedMessage;
 	private SplitStrategy splitStrategy = SplitStrategy.NONE;
 	private boolean bypassFilters, ephemeral, broadcast;
+	private Duration delay;
 
 	/**
 	 * @param message the message to post
@@ -156,9 +158,27 @@ public class PostMessage implements ChatAction {
 		return this;
 	}
 
+	/**
+	 * Defines a delay for when the message should be posted.
+	 * @param delay the delay
+	 * @return this
+	 */
+	public PostMessage delay(Duration delay) {
+		this.delay = delay;
+		return this;
+	}
+
+	/**
+	 * Gets the delay for when the message should be posted.
+	 * @return the delay or null for no delay
+	 */
+	public Duration delay() {
+		return delay;
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(broadcast, bypassFilters, condensedMessage, ephemeral, message, splitStrategy);
+		return Objects.hash(broadcast, bypassFilters, condensedMessage, delay, ephemeral, message, splitStrategy);
 	}
 
 	@Override
@@ -167,11 +187,11 @@ public class PostMessage implements ChatAction {
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		PostMessage other = (PostMessage) obj;
-		return broadcast == other.broadcast && bypassFilters == other.bypassFilters && Objects.equals(condensedMessage, other.condensedMessage) && ephemeral == other.ephemeral && Objects.equals(message, other.message) && splitStrategy == other.splitStrategy;
+		return broadcast == other.broadcast && bypassFilters == other.bypassFilters && Objects.equals(condensedMessage, other.condensedMessage) && Objects.equals(delay, other.delay) && ephemeral == other.ephemeral && Objects.equals(message, other.message) && splitStrategy == other.splitStrategy;
 	}
 
 	@Override
 	public String toString() {
-		return "PostMessage [message=" + message + ", condensedMessage=" + condensedMessage + ", splitStrategy=" + splitStrategy + ", bypassFilters=" + bypassFilters + ", ephemeral=" + ephemeral + ", broadcast=" + broadcast + "]";
+		return "PostMessage [message=" + message + ", condensedMessage=" + condensedMessage + ", splitStrategy=" + splitStrategy + ", bypassFilters=" + bypassFilters + ", ephemeral=" + ephemeral + ", broadcast=" + broadcast + ", delay=" + delay + "]";
 	}
 }

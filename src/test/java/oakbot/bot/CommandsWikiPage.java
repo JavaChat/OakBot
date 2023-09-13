@@ -21,6 +21,7 @@ import oakbot.command.HelpCommand;
 import oakbot.command.HelpDoc;
 import oakbot.command.JuiceBoxCommand;
 import oakbot.command.ReactCommand;
+import oakbot.command.RemindCommand;
 import oakbot.command.RollCommand;
 import oakbot.command.ShrugCommand;
 import oakbot.command.ShutdownCommand;
@@ -121,6 +122,7 @@ public class CommandsWikiPage {
 			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));
 			commands.add(new ReactCommand(null));
+			commands.add(new RemindCommand());
 			commands.add(new RollCommand());
 			commands.add(new ShrugCommand());
 			commands.add(new ShutdownCommand());

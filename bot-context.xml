@@ -281,6 +281,9 @@
 	<bean class="oakbot.command.ReactCommand">
 		<constructor-arg value="" /> <!-- API key for replygif.net -->
 	</bean>
+	
+	<!-- /remind -->
+	<bean class="oakbot.command.RemindCommand" />
 
 	<!-- /roll -->
 	<bean class="oakbot.command.RollCommand" />
