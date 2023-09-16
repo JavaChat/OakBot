@@ -133,10 +133,10 @@ public final class Main {
 		 */
 		Collections.sort(listeners, (a, b) -> {
 			if (a instanceof CatchAllMentionListener) {
-				return -1;
+				return 1;
 			}
 			if (b instanceof CatchAllMentionListener) {
-				return 1;
+				return -1;
 			}
 			return 0;
 		});
