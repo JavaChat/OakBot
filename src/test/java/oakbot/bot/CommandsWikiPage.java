@@ -105,7 +105,7 @@ public class CommandsWikiPage {
 			commands.add(new AfkCommand());
 			commands.add(new CatCommand(null));
 			commands.add(new ConvertCommand(null));
-			commands.add(new DeleteCommand());
+			commands.add(new DeleteCommand(null));
 			commands.add(new DefineCommand(null));
 			commands.add(new EffectiveDebuggingCommand());
 			commands.add(new EffectiveJavaCommand());

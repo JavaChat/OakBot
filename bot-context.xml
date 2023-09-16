@@ -208,7 +208,9 @@
 	</bean>
 	
 	<!-- /delete -->
-	<bean class="oakbot.command.DeleteCommand" />
+	<bean class="oakbot.command.DeleteCommand">
+		<constructor-arg ref="chatGPT" />
+	</bean>
 	
 	<!-- /echo -->
 	<bean class="oakbot.command.EchoCommand" />
