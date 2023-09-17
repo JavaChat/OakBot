@@ -168,19 +168,17 @@ public class OpenAIClient {
 	}
 
 	private void logRequest(HttpPost request) {
-		if (!logger.isLoggable(Level.FINE)) {
-			return;
-		}
+		logger.fine(() -> {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Sending request to OpenAI: \nURI: ").append(request.getURI());
 
-		StringBuilder sb = new StringBuilder();
-		sb.append("Sending request to OpenAI: \nURI: ").append(request.getURI());
+			if (request.getEntity() instanceof JsonEntity) {
+				JsonEntity entity = (JsonEntity) request.getEntity();
+				sb.append("\nBody: " + JsonUtils.prettyPrint(entity.node));
+			}
 
-		if (request.getEntity() instanceof JsonEntity) {
-			JsonEntity entity = (JsonEntity) request.getEntity();
-			sb.append("\nBody: " + JsonUtils.prettyPrint(entity.node));
-		}
-
-		logger.fine(sb.toString());
+			return sb.toString();
+		});
 	}
 
 	private void logResponse(int statusCode, JsonNode body) {
@@ -188,21 +186,23 @@ public class OpenAIClient {
 	}
 
 	private void logError(HttpPost request, int responseStatusCode, JsonNode responseBody, IOException e) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Problem communicating with OpenAI.");
-		sb.append("\nRequest: ").append(request.getURI());
+		logger.log(Level.SEVERE, e, () -> {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Problem communicating with OpenAI.");
+			sb.append("\nRequest: ").append(request.getURI());
 
-		if (request.getEntity() instanceof JsonEntity) {
-			JsonEntity entity = (JsonEntity) request.getEntity();
-			sb.append(": ").append(JsonUtils.prettyPrint(entity.node));
-		}
+			if (request.getEntity() instanceof JsonEntity) {
+				JsonEntity entity = (JsonEntity) request.getEntity();
+				sb.append(": ").append(JsonUtils.prettyPrint(entity.node));
+			}
 
-		if (responseBody != null) {
-			String responseBodyStr = JsonUtils.prettyPrint(responseBody);
-			sb.append("\nResponse (HTTP ").append(responseStatusCode).append("): ").append(responseBodyStr);
-		}
+			if (responseBody != null) {
+				String responseBodyStr = JsonUtils.prettyPrint(responseBody);
+				sb.append("\nResponse (HTTP ").append(responseStatusCode).append("): ").append(responseBodyStr);
+			}
 
-		logger.log(Level.SEVERE, sb.toString(), e);
+			return sb.toString();
+		});
 
 		throw e;
 	}

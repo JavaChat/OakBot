@@ -244,7 +244,7 @@ public final class Main {
 
 	private static void createDefaultExceptionHandler() {
 		Thread.setDefaultUncaughtExceptionHandler((thread, thrown) -> {
-			logger.log(Level.SEVERE, "Uncaught exception thrown.", thrown);
+			logger.log(Level.SEVERE, thrown, () -> "Uncaught exception thrown.");
 		});
 	}
 

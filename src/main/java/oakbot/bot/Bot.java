@@ -665,10 +665,11 @@ public class Bot implements IBot {
 			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
 				Duration postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
 				Duration hideIn = hideOneboxesAfter.minus(postedMessageAge);
-				if (logger.isLoggable(Level.INFO)) {
+
+				logger.info(() -> {
 					String action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
-					logger.info(action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent());
-				}
+					return action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent();
+				});
 
 				scheduleChore(hideIn, new CondenseMessageChore(postedMessage));
 			}
