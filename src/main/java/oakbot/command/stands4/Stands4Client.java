@@ -2,7 +2,6 @@ package oakbot.command.stands4;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -266,7 +265,7 @@ public class Stands4Client {
 
 		try {
 			String value = response.get("rhymes").asText();
-			return value.isEmpty() ? List.of() : Arrays.asList(value.split(", "));
+			return value.isEmpty() ? List.of() : List.of(value.split(", "));
 		} catch (NullPointerException e) {
 			logBadStructure(response, e);
 			throw badStructure(e);
