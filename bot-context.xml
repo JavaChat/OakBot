@@ -287,6 +287,11 @@
 	<!-- /remind -->
 	<bean class="oakbot.command.RemindCommand" />
 
+	<!-- /rhyme -->
+	<bean class="oakbot.command.stands4.RhymeCommand">
+		<constructor-arg ref="stands4Client" />
+	</bean>
+
 	<!-- /roll -->
 	<bean class="oakbot.command.RollCommand" />
 

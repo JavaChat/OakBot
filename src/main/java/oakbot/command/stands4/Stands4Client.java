@@ -2,6 +2,7 @@ package oakbot.command.stands4;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -244,6 +245,45 @@ public class Stands4Client {
 			.setScheme("https")
 			.setHost("www.phrases.com")
 			.setPathSegments("psearch", phrase)
+		.toString();
+		//@formatter:on
+	}
+	
+	/**
+	 * Gets words that rhyme with the given word.
+	 * @param word the word
+	 * @return the results
+	 * @throws IOException if there's a problem querying the API
+	 */
+	public List<String> getRhymes(String word) throws IOException {
+		//@formatter:off
+		String url = baseUri("rhymes.php")
+			.setParameter("term", word)
+		.toString();
+		//@formatter:on
+
+		JsonNode response = send(url);
+
+		try {
+			JsonNode results = response.get("rhymes");
+			return Arrays.asList(results.asText().split(", "));
+		} catch (NullPointerException e) {
+			logBadStructure(response, e);
+			throw badStructure(e);
+		}
+	}
+	
+	/**
+	 * Gets the attribution URL for rhymes.
+	 * @param word the word
+	 * @return the URL
+	 */
+	public String getRhymesAttributionUrl(String word) {
+		//@formatter:off
+		return new URIBuilder()
+			.setScheme("https")
+			.setHost("www.rhymes.com")
+			.setPathSegments("rhyme", word)
 		.toString();
 		//@formatter:on
 	}

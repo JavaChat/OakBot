@@ -42,6 +42,7 @@ import oakbot.command.stands4.AbbreviationCommand;
 import oakbot.command.stands4.ConvertCommand;
 import oakbot.command.stands4.ExplainCommand;
 import oakbot.command.stands4.GrammarCommand;
+import oakbot.command.stands4.RhymeCommand;
 import oakbot.command.urban.UrbanCommand;
 import oakbot.filter.GrootFilter;
 import oakbot.filter.UpsidedownTextFilter;
@@ -123,6 +124,7 @@ public class CommandsWikiPage {
 			commands.add(new LearnCommand(commands, learnedCommands));
 			commands.add(new ReactCommand(null));
 			commands.add(new RemindCommand());
+			commands.add(new RhymeCommand(null));
 			commands.add(new RollCommand());
 			commands.add(new ShrugCommand());
 			commands.add(new ShutdownCommand());
