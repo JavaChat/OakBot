@@ -248,7 +248,7 @@ public class Stands4Client {
 		.toString();
 		//@formatter:on
 	}
-	
+
 	/**
 	 * Gets words that rhyme with the given word.
 	 * @param word the word
@@ -265,14 +265,14 @@ public class Stands4Client {
 		JsonNode response = send(url);
 
 		try {
-			JsonNode results = response.get("rhymes");
-			return Arrays.asList(results.asText().split(", "));
+			String value = response.get("rhymes").asText();
+			return value.isEmpty() ? List.of() : Arrays.asList(value.split(", "));
 		} catch (NullPointerException e) {
 			logBadStructure(response, e);
 			throw badStructure(e);
 		}
 	}
-	
+
 	/**
 	 * Gets the attribution URL for rhymes.
 	 * @param word the word
