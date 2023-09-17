@@ -1,6 +1,5 @@
 package oakbot;
 
-import static com.google.common.collect.Streams.stream;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 
@@ -19,6 +18,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -78,7 +78,7 @@ public class JsonDatabase implements Database {
 	private Object parseNode(JsonNode node) {
 		if (node.isArray()) {
 			//@formatter:off
-			return stream(node)
+			return StreamSupport.stream(node.spliterator(), false)
 				.map(this::parseNode)
 			.collect(Collectors.toList());
 			//@formatter:on
