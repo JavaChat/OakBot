@@ -54,10 +54,17 @@ public class ChatActions implements Iterable<ChatAction> {
 	 * @return the created object
 	 */
 	public static ChatActions reply(CharSequence message, ChatMessage parent) {
+		boolean fixedWidth = message.length() > 4 && "    ".equals(message.subSequence(0, 4));
+
 		//@formatter:off
-		return post(new ChatBuilder()
-			.reply(parent)
-			.append(message)
+		return post(fixedWidth ?
+			new ChatBuilder()
+				.fixed()
+				.reply(parent)
+				.append(message.subSequence(4, message.length())) :
+			new ChatBuilder()
+				.reply(parent)
+				.append(message)
 		);
 		//@formatter:on
 	}
@@ -70,12 +77,7 @@ public class ChatActions implements Iterable<ChatAction> {
 	 * @return the created object
 	 */
 	public static ChatActions reply(CharSequence message, ChatCommand parent) {
-		//@formatter:off
-		return post(new ChatBuilder()
-			.reply(parent)
-			.append(message)
-		);
-		//@formatter:on
+		return reply(message, parent.getMessage());
 	}
 
 	/**

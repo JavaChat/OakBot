@@ -246,7 +246,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private String sendChatCompletionRequest(ChatCompletionRequest request) throws IOException {
 		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
 			String response = openAIClient.chatCompletion(request);
-			return removeMentionsFromBeginningOfMessage(response);
+			response = removeMentionsFromBeginningOfMessage(response);
+			return formatMessagesWithCodeBlocks(response);
 		} catch (OpenAIException e) {
 			//@formatter:off
 			return new ChatBuilder()
@@ -259,7 +260,21 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		}
 	}
 
-	private static String removeMentionsFromBeginningOfMessage(String message) {
+	/**
+	 * <p>
+	 * Remove all mentions from the beginning of the message.
+	 * </p>
+	 * <p>
+	 * ChatGPT will sometimes put mentions at the beginning of the response,
+	 * probably because the chat messages that we send to it have mentions in
+	 * them. These mentions duplicate and build up over time for some reason, so
+	 * the first response might have one mention, the next response might have
+	 * two, and so on.
+	 * </p>
+	 * @param message
+	 * @return the message without mentions at the beginning
+	 */
+	private String removeMentionsFromBeginningOfMessage(String message) {
 		String orig = message;
 		while (true) {
 			String result = orig.replaceAll("^@.+?\\s+", "");
@@ -268,6 +283,32 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			}
 			orig = result;
 		}
+	}
+
+	/**
+	 * <p>
+	 * Converts responses that contain code samples to fixed-width font, and
+	 * removes the code block markdown syntax.
+	 * </p>
+	 * <p>
+	 * SO Chat does not support code block markdown syntax. The entire message
+	 * is converted to fixed-width font because SO Chat does not support
+	 * formatting part of a message in fixed-width, only the entire message.
+	 * </p>
+	 * @param message the message
+	 * @return the reformatted message
+	 */
+	private String formatMessagesWithCodeBlocks(String message) {
+		if (!message.contains("```")) {
+			return message;
+		}
+
+		//@formatter:off
+		return "    " + message
+			.replaceAll("(?m)^```[^\\n]++\\n", "")
+			.replaceAll("(?m)^```\\n?", "")
+			.replace("\n", "\n    ");
+		//@formatter:on
 	}
 
 	/**
