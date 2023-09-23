@@ -88,7 +88,7 @@ public class CommandsWikiPage {
 		List<Listener> listeners = new ArrayList<>();
 		{
 			listeners.add(new MentionListener());
-			listeners.add(new ChatGPT(new OpenAIClient(""), "", 0, "PT0S", 10, 0, Collections.emptyList()));
+			listeners.add(new ChatGPT(new OpenAIClient(""), "", 0, "PT0S", 10, 0));
 			listeners.add(new MornListener("PT1S", null));
 			listeners.add(new WaveListener("PT1S", null));
 			listeners.add(new WelcomeListener(db, 1000, Collections.emptyMap()));

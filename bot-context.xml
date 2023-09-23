@@ -373,11 +373,6 @@
 		<constructor-arg value="PT12H" /> <!-- the amount of time to wait before posting a message (duration string) -->
 		<constructor-arg value="10" /> <!-- the number of chat room messages to include in the ChatGPT request to give the bot context of the conversation (each message counts against the usage quota) -->
 		<constructor-arg value="300" /> <!-- each chat message that is sent to ChatGPT will not exceed this number of characters (includes markdown syntax). Chat messages that do will be truncated (without cutting off words). 0 to disable truncation. Each message counts against the usage quota. Each word costs around 1.33 tokens. -->
-		<constructor-arg> <!-- the rooms in which to start the spontaneous post timer when the bot first starts up. Mentioning the bot in a room causes the spontaneous post timer to start/reset in that room. -->
-			<util:list>
-				<value>139</value>
-			</util:list>
-		</constructor-arg>
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ImagineCommand">
 		<constructor-arg ref="openAIClient" />

@@ -41,8 +41,9 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private final String prompt;
 	private final Duration timeBetweenSpontaneousPosts;
 	private final int completionMaxTokens, numLatestMessagesToIncludeInRequest, latestMessageCharacterLimit;
-	private final Map<Integer, Instant> spontaneousPostTimes;
+	private final Map<Integer, Instant> spontaneousPostTimes = new HashMap<>();
 	private boolean ignoreNextMessage;
+	private boolean firstRun = true;
 
 	/**
 	 * @param openAIClient the OpenAI client
@@ -63,25 +64,24 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * syntax). Chat messages that do will be truncated (without cutting off
 	 * words). 0 to disable truncation. Each message counts against the usage
 	 * quota. Each word costs around 1.33 tokens.
-	 * @param roomIds the rooms in which to start the spontaneous post
-	 * timer when the bot first starts up. Mentioning the bot in a room causes
-	 * the spontaneous post timer to start/reset in that room.
 	 */
-	public ChatGPT(OpenAIClient openAIClient, String prompt, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, List<Integer> roomIds) {
+	public ChatGPT(OpenAIClient openAIClient, String prompt, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit) {
 		this.openAIClient = openAIClient;
 		this.prompt = prompt;
 		this.completionMaxTokens = completionMaxTokens;
 		this.timeBetweenSpontaneousPosts = Duration.parse(timeBetweenSpontaneousPosts);
 		this.numLatestMessagesToIncludeInRequest = numLatestMessagesToIncludeInRequest;
 		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
-
-		spontaneousPostTimes = new HashMap<>();
-		roomIds.forEach(this::resetSpontaneousPostTimer);
 	}
 
 	@Override
 	public long nextRun() {
 		if (spontaneousPostTimes.isEmpty()) {
+			if (firstRun) {
+				firstRun = false;
+				return 1;
+			}
+
 			return timeBetweenSpontaneousPosts.toMillis();
 		}
 
@@ -100,6 +100,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	@Override
 	public void run(IBot bot) throws Exception {
 		removeRoomsBotIsNotIn(bot);
+		startTimerForNewRooms(bot);
 		List<Integer> roomsToPostTo = findRoomsToSpontaneouslyPostTo();
 
 		for (Integer roomId : roomsToPostTo) {
@@ -190,6 +191,14 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private void removeRoomsBotIsNotIn(IBot bot) {
 		List<Integer> roomsBotIsIn = bot.getRooms();
 		spontaneousPostTimes.keySet().removeIf(not(roomsBotIsIn::contains));
+	}
+
+	private void startTimerForNewRooms(IBot bot) {
+		//@formatter:off
+		bot.getRooms().stream()
+			.filter(not(spontaneousPostTimes::containsKey))
+		.forEach(this::resetSpontaneousPostTimer);
+		//@formatter:on
 	}
 
 	private List<Integer> findRoomsToSpontaneouslyPostTo() {
@@ -315,7 +324,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * Resets the chat timer for the given room.
 	 * @param roomId the room ID
 	 */
-	public void resetSpontaneousPostTimer(int roomId) {
+	private void resetSpontaneousPostTimer(int roomId) {
 		Instant nextRunTime = Instant.now().plus(timeBetweenSpontaneousPosts);
 		spontaneousPostTimes.put(roomId, nextRunTime);
 	}
