@@ -4,9 +4,9 @@ import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import oakbot.Database;
 import oakbot.command.AboutCommand;
@@ -78,7 +78,7 @@ public class CommandsWikiPage {
 		List<ScheduledTask> tasks = new ArrayList<>();
 		{
 			tasks.add(new FOTD());
-			tasks.add(new LinuxHealthMonitor(Collections.emptyList(), trigger));
+			tasks.add(new LinuxHealthMonitor(List.of(), trigger));
 			tasks.add(new QOTD());
 
 			tasks.removeIf(t -> t.name() == null);
@@ -88,10 +88,10 @@ public class CommandsWikiPage {
 		List<Listener> listeners = new ArrayList<>();
 		{
 			listeners.add(new MentionListener());
-			listeners.add(new ChatGPT(new OpenAIClient(""), "", 0, "PT0S", 10, 0));
+			listeners.add(new ChatGPT(new OpenAIClient(""), "", Map.of(), 0, "PT0S", 10, 0));
 			listeners.add(new MornListener("PT1S", null));
 			listeners.add(new WaveListener("PT1S", null));
-			listeners.add(new WelcomeListener(db, 1000, Collections.emptyMap()));
+			listeners.add(new WelcomeListener(db, 1000, Map.of()));
 			listeners.add(new XkcdExplained("PT0S"));
 
 			listeners.removeIf(l -> l.name() == null);
@@ -102,7 +102,7 @@ public class CommandsWikiPage {
 		{
 			commands.add(new AbbreviationCommand(null));
 			commands.add(new AboutCommand(null, null));
-			commands.add(new AdventOfCode("PT0S", Collections.emptyMap(), null));
+			commands.add(new AdventOfCode("PT0S", Map.of(), null));
 			commands.add(new AfkCommand());
 			commands.add(new CatCommand(null));
 			commands.add(new ConvertCommand(null));

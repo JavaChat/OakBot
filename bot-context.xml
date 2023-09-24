@@ -368,7 +368,12 @@
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ChatGPT" id="chatGPT">
 		<constructor-arg ref="openAIClient" />
-		<constructor-arg value="You are a grumpy Java developer named 'OakBot'." /> <!-- one or more sentences that define the bot's personality (e.g. "You are a helpful assistant"). This counts against your usage quota. Each word costs around 1.33 tokens. -->
+		<constructor-arg value="You are a grumpy Java developer named 'OakBot'." /> <!-- default prompt; one or more sentences that define the bot's personality (e.g. "You are a helpful assistant"). This counts against your usage quota. Each word costs around 1.33 tokens. -->
+		<constructor-arg> <!-- room-specific prompts -->
+			<util:map>
+				<entry key="1" value="You are a chat bot named 'OakBot'. You are in a room called 'Sandbox', which people use for testing chat features." />
+			</util:map>
+		</constructor-arg>
 		<constructor-arg value="100" /> <!-- places a limit on the length of ChatGPT's completion (response). If this number is too short, then the completion may end abruptly (e.g. in an unfinished sentence). Each word costs around 1.33 tokens. -->
 		<constructor-arg value="PT12H" /> <!-- the amount of time to wait before posting a message (duration string) -->
 		<constructor-arg value="10" /> <!-- the number of chat room messages to include in the ChatGPT request to give the bot context of the conversation (each message counts against the usage quota) -->
