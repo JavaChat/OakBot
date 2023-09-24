@@ -26,6 +26,7 @@ import oakbot.bot.PostMessage;
 import oakbot.command.HelpDoc;
 import oakbot.listener.CatchAllMentionListener;
 import oakbot.task.ScheduledTask;
+import oakbot.util.CharIterator;
 import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
 
@@ -261,6 +262,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
 			String response = openAIClient.chatCompletion(request);
 			response = removeMentionsFromBeginningOfMessage(response);
+			response = removeReplySyntaxFromBeginningOfMessage(response);
 			return formatMessagesWithCodeBlocks(response);
 		} catch (OpenAIException e) {
 			//@formatter:off
@@ -285,18 +287,52 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * the first response might have one mention, the next response might have
 	 * two, and so on.
 	 * </p>
-	 * @param message
+	 * @param message the message
 	 * @return the message without mentions at the beginning
 	 */
 	private String removeMentionsFromBeginningOfMessage(String message) {
-		String orig = message;
-		while (true) {
-			String result = orig.replaceAll("^@.+?\\s+", "");
-			if (result.equals(orig)) {
-				return result;
+		return removeFromBeginningOfMessage('@', message);
+	}
+
+	/**
+	 * <p>
+	 * Remove all reply syntax from the beginning of the message.
+	 * </p>
+	 * <p>
+	 * ChatGPT may add these if any of the messages that were sent to ChatGPT
+	 * were replies with fixed-width formatting (SO Chat ignores reply syntax on
+	 * fixed-with messages--it does not convert them to mentions like with other
+	 * messages).
+	 * </p>
+	 * @param message the message
+	 * @return the message without reply syntax at the beginning
+	 */
+	private String removeReplySyntaxFromBeginningOfMessage(String message) {
+		return removeFromBeginningOfMessage(':', message);
+	}
+	
+	private String removeFromBeginningOfMessage(char startingChar, String message) {
+		CharIterator it = new CharIterator(message);
+		boolean inString = false;
+		while (it.hasNext()) {
+			char c = it.next();
+
+			if (c == startingChar) {
+				inString = true;
+				continue;
 			}
-			orig = result;
+
+			if (inString) {
+				if (Character.isWhitespace(c)) {
+					inString = false;
+				}
+				continue;
+			}
+
+			break;
 		}
+
+		return (inString || !it.hasNext()) ? "" : message.substring(it.index());
 	}
 
 	/**
