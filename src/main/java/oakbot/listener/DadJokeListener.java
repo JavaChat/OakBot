@@ -108,7 +108,7 @@ public class DadJokeListener implements Listener {
 	private String removeLinks(String messageAsMarkdown) {
 		//@formatter:off
 		return messageAsMarkdown
-			.replaceAll("\\[(.*?)]\\(.*?\\)", "$1") //markdown links
+			.replaceAll("\\[(.*?)]\\([^\\)]*+\\)", "$1") //markdown links
 			.replaceAll("\\bhttps?://[^\\s]+", ""); //plaintext links
 		//@formatter:on
 	}
