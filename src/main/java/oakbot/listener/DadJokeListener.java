@@ -79,12 +79,20 @@ public class DadJokeListener implements Listener {
 			return doNothing();
 		}
 
-		if (countWords(phrase.get()) > 5) {
+		String name = phrase.get();
+		if (countWords(name) > 5) {
 			return doNothing();
 		}
 
 		hesitate();
-		return reply("Hi " + phrase.get() + ", I'm " + botName + "!", message);
+
+		//@formatter:off
+		String response = name.equalsIgnoreCase(botName) ?
+			"Hi " + name + ", I'm " + botName + " too!" :
+			"Hi " + name + ", I'm " + botName + "!";
+		//@formatter:on
+
+		return reply(response, message);
 	}
 
 	private Optional<String> findPhrase(String content) {

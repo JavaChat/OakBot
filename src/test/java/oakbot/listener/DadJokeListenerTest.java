@@ -102,13 +102,18 @@ public class DadJokeListenerTest {
 		assertResponse(":1234 I'm playing around with Java syntax", "Hi playing around with Java syntax, I'm Oak!");
 		assertNoResponse("@Michael abcd I'm working on a project and I need to record hystrix metrics and save it in my internal database");
 		assertNoResponse(":1234 abcd I'm working on a project and blah blah");
-		assertResponse(":1234 Hey! I'm Oak", "Hi Oak, I'm Oak!");
+		assertResponse(":1234 Hey! I'm confused", "Hi confused, I'm Oak!");
 	}
 
 	@Test
 	public void onMessage_bot_mentioned() {
 		assertNoResponse("@Oak I'm confused", mock(CatchAllMentionListener.class));
 		assertResponse("@Oak I'm confused", "Hi confused, I'm Oak!", null);
+	}
+	
+	@Test
+	public void onMessage_same_name() {
+		assertResponse("I'm oak.", "Hi oak, I'm Oak too!");
 	}
 
 	private static void assertResponse(String message, String response) {
