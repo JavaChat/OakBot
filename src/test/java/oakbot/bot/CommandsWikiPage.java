@@ -27,6 +27,7 @@ import oakbot.command.ShrugCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.SummonCommand;
 import oakbot.command.TagCommand;
+import oakbot.command.TimeoutCommand;
 import oakbot.command.UnsummonCommand;
 import oakbot.command.WikiCommand;
 import oakbot.command.aoc.AdventOfCode;
@@ -130,6 +131,7 @@ public class CommandsWikiPage {
 			commands.add(new ShutdownCommand());
 			commands.add(new SummonCommand(2));
 			commands.add(new TagCommand());
+			commands.add(new TimeoutCommand());
 			commands.add(new UnlearnCommand(commands, learnedCommands));
 			commands.add(new UnsummonCommand());
 			commands.add(new UpsidedownTextFilter());

@@ -70,6 +70,8 @@ public class Bot implements IBot {
 	private final Statistics stats;
 	private final Database database;
 	private final Timer timer = new Timer();
+	private TimerTask timeoutTask;
+	private volatile boolean timeout = false;
 
 	/**
 	 * <p>
@@ -391,6 +393,32 @@ public class Bot implements IBot {
 		}
 	}
 
+	@Override
+	public synchronized void timeout(Duration duration) {
+		if (timeout) {
+			timeoutTask.cancel();
+		} else {
+			timeout = true;
+		}
+
+		timeoutTask = new TimerTask() {
+			@Override
+			public void run() {
+				timeout = false;
+			}
+		};
+
+		timer.schedule(timeoutTask, duration.toMillis());
+	}
+
+	@Override
+	public synchronized void cancelTimeout() {
+		timeout = false;
+		if (timeoutTask != null) {
+			timeoutTask.cancel();
+		}
+	}
+
 	/**
 	 * Sends a signal to immediately stop processing tasks. The bot thread will
 	 * stop running once it is done processing the current task.
@@ -600,6 +628,11 @@ public class Bot implements IBot {
 		}
 
 		private void handleMessage(ChatMessage message) {
+			if (timeout && !getAdminUsers().contains(message.getUserId())) {
+				//bot is in timeout, ignore
+				return;
+			}
+
 			if (message.getContent() == null) {
 				//user deleted their message, ignore
 				return;

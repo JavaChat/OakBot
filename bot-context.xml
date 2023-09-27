@@ -313,6 +313,9 @@
 	<!-- /tag -->
 	<bean class="oakbot.command.TagCommand" />
 
+	<!-- /timeout -->
+	<bean class="oakbot.command.TimeoutCommand" />
+
 	<!-- /urban -->
 	<bean class="oakbot.command.urban.UrbanCommand" />
 

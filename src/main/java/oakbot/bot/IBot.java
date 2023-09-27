@@ -1,6 +1,7 @@
 package oakbot.bot;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -143,4 +144,19 @@ public interface IBot {
 	 * @throws IOException if there's a problem sending the message
 	 */
 	void broadcastMessage(PostMessage message) throws IOException;
+
+	/**
+	 * Ignore incoming messages from non-admin users for the given period of
+	 * time. If the bot is already in timeout, the timeout period will be reset
+	 * to the given duration.
+	 * @param duration the amount of time to ignore incoming messages for
+	 * @see #cancelTimeout
+	 */
+	void timeout(Duration duration);
+
+	/**
+	 * Cancels a timeout early. Does nothing if the bot is not in timeout.
+	 * @see #timeout
+	 */
+	void cancelTimeout();
 }
