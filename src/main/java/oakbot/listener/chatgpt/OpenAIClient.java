@@ -1,10 +1,17 @@
 package oakbot.listener.chatgpt;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.imageio.ImageIO;
+
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -222,9 +229,34 @@ public class OpenAIClient {
 				throw new IOException("Image URL returned HTTP " + status + ".");
 			}
 
-			//TODO convert JPEGs to PNGs here. However, it can't find ImageIO on the classpath for some reason,
+			HttpEntity entity = response.getEntity();
+			byte[] origData = EntityUtils.toByteArray(entity);
 
-			return EntityUtils.toByteArray(response.getEntity());
+			Header header = entity.getContentType();
+			if (header != null && "image/jpeg".equals(header.getValue())) {
+				byte[] pngData = convertToPng(origData);
+				if (pngData != null) {
+					return pngData;
+				}
+				logger.warning(() -> "Unable to convert JPEG to PNG: " + url);
+			}
+
+			return origData;
+		}
+	}
+
+	private byte[] convertToPng(byte[] data) throws IOException {
+		BufferedImage image;
+		try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
+			image = ImageIO.read(in);
+		}
+		if (image == null) {
+			return null;
+		}
+
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+			ImageIO.write(image, "PNG", out);
+			return out.toByteArray();
 		}
 	}
 
