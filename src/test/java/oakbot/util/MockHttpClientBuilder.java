@@ -13,16 +13,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
@@ -38,7 +39,7 @@ import org.mockito.stubbing.Answer;
  * @author Michael Angstadt
  */
 public class MockHttpClientBuilder {
-	private final List<ExpectedRequest> expectedRequests = new ArrayList<>();
+	private final List<Consumer<HttpRequest>> expectedRequests = new ArrayList<>();
 	private final List<HttpResponse> responses = new ArrayList<>();
 	private final List<IOException> responseExceptions = new ArrayList<>();
 
@@ -49,7 +50,7 @@ public class MockHttpClientBuilder {
 	 * @return this
 	 */
 	public MockHttpClientBuilder requestGet(String uri) {
-		return request("GET", uri);
+		return request("GET", uri, null);
 	}
 
 	/**
@@ -60,7 +61,7 @@ public class MockHttpClientBuilder {
 	 * @return this
 	 */
 	public MockHttpClientBuilder requestPost(String uri, String... params) {
-		return request("POST", uri, params);
+		return request("POST", uri, null, params);
 	}
 
 	/**
@@ -68,12 +69,27 @@ public class MockHttpClientBuilder {
 	 * right after this to specify the response that should be returned.
 	 * @param method the expected method (e.g. "GET")
 	 * @param uri the expected URI
+	 * @param additionalTests additional tests to run (can be null)
 	 * @param params the name/value pairs of the expected parameters (only
 	 * applicable for "POST" requests).
 	 * @return this
 	 */
-	public MockHttpClientBuilder request(String method, String uri, String... params) {
-		expectedRequests.add(new ExpectedRequest(method, uri, params));
+	public MockHttpClientBuilder request(String method, String uri, Consumer<HttpRequest> additionalTests, String... params) {
+		expectedRequests.add(request -> {
+			assertEquals(method, request.getRequestLine().getMethod());
+			assertEquals(uri, request.getRequestLine().getUri());
+
+			if (additionalTests != null) {
+				additionalTests.accept(request);
+			}
+
+			if (params.length > 0) {
+				Set<NameValuePair> expectedParams = arrayToNameValuePairs(params);
+				Set<NameValuePair> actualParams = extractPostParams(request);
+				assertEquals(expectedParams, actualParams);
+			}
+		});
+		
 		return this;
 	}
 
@@ -145,17 +161,7 @@ public class MockHttpClientBuilder {
 					}
 
 					HttpRequest actualRequest = (HttpRequest) invocation.getArguments()[0];
-					ExpectedRequest expectedRequest = expectedRequests.get(requestCount);
-
-					assertEquals(expectedRequest.method, actualRequest.getRequestLine().getMethod());
-					assertEquals(expectedRequest.uri, actualRequest.getRequestLine().getUri());
-
-					if (actualRequest instanceof HttpPost) {
-						HttpPost actualPostRequest = (HttpPost) actualRequest;
-						String body = EntityUtils.toString(actualPostRequest.getEntity());
-						Set<NameValuePair> params = new HashSet<>(URLEncodedUtils.parse(body, Consts.UTF_8));
-						assertEquals(expectedRequest.params, params);
-					}
+					expectedRequests.get(requestCount).accept(actualRequest);
 
 					IOException exception = responseExceptions.get(requestCount);
 					if (exception != null) {
@@ -166,45 +172,39 @@ public class MockHttpClientBuilder {
 				}
 			});
 		} catch (IOException e) {
-			//never thrown because it is a mock object
+			//never thrown because we're just setting up a mock object
 			throw new UncheckedIOException(e);
 		}
 
 		return client;
 	}
 
-	/**
-	 * Represents a request that the test is expecting the code to send out.
-	 * @author Michael Angstadt
-	 */
-	private static class ExpectedRequest {
-		private final String method;
-		private final String uri;
-		private final Set<NameValuePair> params;
-
-		/**
-		 * @param method the expected method (e.g. "GET")
-		 * @param uri the expected URI
-		 * @param params the name/value pairs of the expected parameters (only
-		 * applicable for "POST" requests).
-		 */
-		public ExpectedRequest(String method, String uri, String... params) {
-			if ("GET".equals(method) && params.length > 0) {
-				throw new IllegalArgumentException("GET requests cannot have parameters.");
-			}
-			if (params.length % 2 != 0) {
-				throw new IllegalArgumentException("\"params\" vararg must have an even number of arguments.");
-			}
-
-			this.method = method;
-			this.uri = uri;
-
-			this.params = new HashSet<>();
-			for (int i = 0; i < params.length; i += 2) {
-				String name = params[i];
-				String value = params[i + 1];
-				this.params.add(new BasicNameValuePair(name, value));
-			}
+	private Set<NameValuePair> extractPostParams(HttpRequest request) {
+		if (!(request instanceof HttpEntityEnclosingRequest)) {
+			return Set.of();
 		}
+
+		HttpEntityEnclosingRequest entityRequest = (HttpEntityEnclosingRequest) request;
+
+		String body;
+		try {
+			body = EntityUtils.toString(entityRequest.getEntity());
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+
+		return new HashSet<>(URLEncodedUtils.parse(body, Consts.UTF_8));
+	}
+
+	private Set<NameValuePair> arrayToNameValuePairs(String... params) {
+		Set<NameValuePair> expectedParams = new HashSet<>();
+
+		for (int i = 0; i < params.length; i += 2) {
+			String name = params[i];
+			String value = params[i + 1];
+			expectedParams.add(new BasicNameValuePair(name, value));
+		}
+
+		return expectedParams;
 	}
 }
