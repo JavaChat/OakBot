@@ -26,6 +26,8 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -89,7 +91,7 @@ public class MockHttpClientBuilder {
 				assertEquals(expectedParams, actualParams);
 			}
 		});
-		
+
 		return this;
 	}
 
@@ -104,6 +106,17 @@ public class MockHttpClientBuilder {
 	}
 
 	/**
+	 * Defines the 200 response to send back after a request is received. This
+	 * should be called right after {@link #request}.
+	 * @param body the response body
+	 * @param contentType the response content type
+	 * @return this
+	 */
+	public MockHttpClientBuilder responseOk(byte[] body, ContentType contentType) {
+		return response(200, body, contentType);
+	}
+
+	/**
 	 * Defines the response to send back after a request is received. This
 	 * should be called right after {@link #request}.
 	 * @param statusCode the status code of the response (e.g. "200")
@@ -112,7 +125,23 @@ public class MockHttpClientBuilder {
 	 */
 	public MockHttpClientBuilder response(int statusCode, String body) {
 		HttpEntity entity = new StringEntity(body, StandardCharsets.UTF_8);
+		return response(statusCode, entity);
+	}
 
+	/**
+	 * Defines the response to send back after a request is received. This
+	 * should be called right after {@link #request}.
+	 * @param statusCode the status code of the response (e.g. "200")
+	 * @param body the response body
+	 * @param contentType the response content type
+	 * @return this
+	 */
+	public MockHttpClientBuilder response(int statusCode, byte[] body, ContentType contentType) {
+		HttpEntity entity = new ByteArrayEntity(body, contentType);
+		return response(statusCode, entity);
+	}
+
+	private MockHttpClientBuilder response(int statusCode, HttpEntity entity) {
 		StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, statusCode, "");
 
 		CloseableHttpResponse response = mock(CloseableHttpResponse.class);
