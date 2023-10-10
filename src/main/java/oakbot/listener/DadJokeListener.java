@@ -4,6 +4,9 @@ import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.reply;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +27,8 @@ public class DadJokeListener implements Listener {
 	private final String botName;
 	private final CatchAllMentionListener catchAllListener;
 	private final Duration hesitation = Duration.ofSeconds(3);
+	private final Duration timeBetweenJokes = Duration.ofMinutes(30);
+	private final Map<Integer, Instant> lastJokeByRoom = new HashMap<>();
 
 	//@formatter:off
 	private final Pattern regex = Pattern.compile(
@@ -54,6 +59,7 @@ public class DadJokeListener implements Listener {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Responds to sentences that start with \"I am [blank]\".")
+			.detail("Responds once every " + timeBetweenJokes.toMinutes() + " minutes per room at most.")
 		.build();
 		//@formatter:on
 	}
@@ -69,6 +75,10 @@ public class DadJokeListener implements Listener {
 		 * listener handle it.
 		 */
 		if (message.getContent().isMentioned(bot.getUsername()) && catchAllListener != null) {
+			return doNothing();
+		}
+
+		if (respondedRecently(message)) {
 			return doNothing();
 		}
 
@@ -92,7 +102,19 @@ public class DadJokeListener implements Listener {
 			"Hi " + name + ", I'm " + botName + "!";
 		//@formatter:on
 
+		lastJokeByRoom.put(message.getRoomId(), Instant.now());
+
 		return reply(response, message);
+	}
+
+	private boolean respondedRecently(ChatMessage message) {
+		Instant lastJoke = lastJokeByRoom.get(message.getRoomId());
+		if (lastJoke == null) {
+			return false;
+		}
+
+		Duration timeSinceLastJoke = Duration.between(lastJoke, Instant.now());
+		return (timeSinceLastJoke.compareTo(timeBetweenJokes) < 0);
 	}
 
 	private Optional<String> findPhrase(String content) {
