@@ -39,6 +39,8 @@ import oakbot.command.javadoc.JavadocCommand;
 import oakbot.command.learn.LearnCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.command.learn.UnlearnCommand;
+import oakbot.command.shibe.BirdCommand;
+import oakbot.command.shibe.ShibaCommand;
 import oakbot.command.stands4.AbbreviationCommand;
 import oakbot.command.stands4.ConvertCommand;
 import oakbot.command.stands4.ExplainCommand;
@@ -105,6 +107,7 @@ public class CommandsWikiPage {
 			commands.add(new AboutCommand(null, null));
 			commands.add(new AdventOfCode("PT0S", Map.of(), null));
 			commands.add(new AfkCommand());
+			commands.add(new BirdCommand(null));
 			commands.add(new CatCommand(null));
 			commands.add(new ConvertCommand(null));
 			commands.add(new DeleteCommand(null));
@@ -127,6 +130,7 @@ public class CommandsWikiPage {
 			commands.add(new RemindCommand());
 			commands.add(new RhymeCommand(null));
 			commands.add(new RollCommand());
+			commands.add(new ShibaCommand(null));
 			commands.add(new ShrugCommand());
 			commands.add(new ShutdownCommand());
 			commands.add(new SummonCommand(2));
