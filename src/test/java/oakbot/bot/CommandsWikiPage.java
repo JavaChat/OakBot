@@ -50,6 +50,7 @@ import oakbot.command.urban.UrbanCommand;
 import oakbot.filter.GrootFilter;
 import oakbot.filter.UpsidedownTextFilter;
 import oakbot.filter.WaduFilter;
+import oakbot.listener.DadJokeListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
 import oakbot.listener.MornListener;
@@ -91,6 +92,7 @@ public class CommandsWikiPage {
 		List<Listener> listeners = new ArrayList<>();
 		{
 			listeners.add(new MentionListener());
+			listeners.add(new DadJokeListener("Oak", null));
 			listeners.add(new ChatGPT(new OpenAIClient(""), "", Map.of(), 0, "PT0S", 10, 0));
 			listeners.add(new MornListener("PT1S", null));
 			listeners.add(new WaveListener("PT1S", null));
