@@ -160,10 +160,10 @@ public class CommandsWikiPage {
 
 				HelpDoc help = command.help();
 				if (help.isIncludeSummaryWithDetail()) {
-					cb.append(help.getSummary());
+					cb.append(escape(help.getSummary()));
 				}
 				if (help.getDetail() != null) {
-					cb.append(" ").append(help.getDetail());
+					cb.append(" ").append(escape(help.getDetail()));
 				}
 
 				List<String[]> examples = help.getExamples();
@@ -176,11 +176,11 @@ public class CommandsWikiPage {
 
 						cb.nl().append(" * ").code().append(trigger).append(command.name());
 						if (!parameters.isEmpty()) {
-							cb.append(" ").append(parameters);
+							cb.append(" ").append(escape(parameters));
 						}
 						cb.code();
 						if (!description.isEmpty()) {
-							cb.append(" - ").append(description);
+							cb.append(" - ").append(escape(description));
 						}
 					}
 				}
@@ -212,10 +212,10 @@ public class CommandsWikiPage {
 
 				cb.nl().nl().append("## ").append(listener.name()).nl().nl();
 				if (help.isIncludeSummaryWithDetail()) {
-					cb.append(help.getSummary());
+					cb.append(escape(help.getSummary()));
 				}
 				if (help.getDetail() != null) {
-					cb.append(" ").append(help.getDetail());
+					cb.append(" ").append(escape(help.getDetail()));
 				}
 			}
 		}
@@ -229,14 +229,18 @@ public class CommandsWikiPage {
 
 				cb.nl().nl().append("## ").append(task.name()).nl().nl();
 				if (help.isIncludeSummaryWithDetail()) {
-					cb.append(help.getSummary());
+					cb.append(escape(help.getSummary()));
 				}
 				if (help.getDetail() != null) {
-					cb.append(" ").append(help.getDetail());
+					cb.append(" ").append(escape(help.getDetail()));
 				}
 			}
 		}
 
 		System.out.println(cb);
+	}
+
+	private static String escape(String s) {
+		return s.replace("<", "&lt;").replace(">", "&gt;");
 	}
 }
