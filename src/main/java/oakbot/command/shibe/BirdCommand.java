@@ -1,0 +1,67 @@
+package oakbot.command.shibe;
+
+import static oakbot.bot.ChatActions.error;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import oakbot.bot.ChatActions;
+import oakbot.bot.ChatCommand;
+import oakbot.bot.IBot;
+import oakbot.bot.PostMessage;
+import oakbot.command.Command;
+import oakbot.command.HelpDoc;
+
+/**
+ * Displays a bird picture.
+ * @author Michael Angstadt
+ * @see "https://shibe.online/"
+ */
+public class BirdCommand implements Command {
+	private static final Logger logger = Logger.getLogger(BirdCommand.class.getName());
+
+	private final ShibeOnlineClient client;
+
+	public BirdCommand(ShibeOnlineClient client) {
+		this.client = client;
+	}
+
+	@Override
+	public String name() {
+		return "bird";
+	}
+
+	@Override
+	public List<String> aliases() {
+		return List.of("birb");
+	}
+
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new HelpDoc.Builder(this)
+			.summary("Displays an image of a bird.")
+			.detail("Images from shibe.online.")
+		.build();
+		//@formatter:on
+	}
+
+	@Override
+	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
+		String url;
+		try {
+			url = client.getBird();
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, e, () -> "Problem getting bird.");
+			return error("Error getting bird: ", e, chatCommand);
+		}
+
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(url).bypassFilters(true)
+		);
+		//@formatter:on
+	}
+}

@@ -182,6 +182,12 @@
 		</constructor-arg>
 		<constructor-arg ref="aocApi" />
 	</bean>
+	
+	<!-- /bird -->
+	<bean class="oakbot.command.shibe.ShibeOnlineClient" id="shibeOnlineClient" />
+	<bean class="oakbot.command.shibe.BirdCommand">
+		<constructor-arg ref="shibeOnlineClient" />
+	</bean>
 
 	<!-- /botler -->
 	<bean class="oakbot.listener.BotlerListener">
@@ -297,6 +303,11 @@
 
 	<!-- /rollover -->
 	<bean class="oakbot.filter.UpsidedownTextFilter" />
+	
+	<!-- /shiba -->
+	<bean class="oakbot.command.shibe.ShibaCommand">
+		<constructor-arg ref="shibeOnlineClient" />
+	</bean>
 
 	<!-- /shrug -->
 	<bean class="oakbot.command.ShrugCommand" />
