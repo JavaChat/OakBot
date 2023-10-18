@@ -290,7 +290,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param message the message
 	 * @return the message without mentions at the beginning
 	 */
-	private String removeMentionsFromBeginningOfMessage(String message) {
+	static String removeMentionsFromBeginningOfMessage(String message) {
 		return removeFromBeginningOfMessage('@', message);
 	}
 
@@ -307,11 +307,11 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param message the message
 	 * @return the message without reply syntax at the beginning
 	 */
-	private String removeReplySyntaxFromBeginningOfMessage(String message) {
+	static String removeReplySyntaxFromBeginningOfMessage(String message) {
 		return removeFromBeginningOfMessage(':', message);
 	}
 	
-	private String removeFromBeginningOfMessage(char startingChar, String message) {
+	private static String removeFromBeginningOfMessage(char startingChar, String message) {
 		CharIterator it = new CharIterator(message);
 		boolean inString = false;
 		while (it.hasNext()) {
@@ -348,15 +348,15 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param message the message
 	 * @return the reformatted message
 	 */
-	private String formatMessagesWithCodeBlocks(String message) {
+	static String formatMessagesWithCodeBlocks(String message) {
 		if (!message.contains("```")) {
 			return message;
 		}
 
 		//@formatter:off
 		return "    " + message
-			.replaceAll("(?m)^```[^\\n]++\\n", "")
-			.replaceAll("(?m)^```\\n?", "")
+			.replaceAll("(?m)^ *```[^\\n]++\\n", "")
+			.replaceAll("(?m)^ *```\\n?", "")
 			.replace("\n", "\n    ");
 		//@formatter:on
 	}
