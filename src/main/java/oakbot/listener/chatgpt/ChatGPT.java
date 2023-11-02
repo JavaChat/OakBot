@@ -133,7 +133,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 				continue;
 			}
 
-			ChatCompletionRequest request = buildChatCompletionRequest(roomId, messages, bot);
+			String prompt = promptsByRoom.getOrDefault(roomId, defaultPrompt);
+			prompt += " Nobody is talking to you directly; you are just sharing your thoughts.";
+
+			ChatCompletionRequest request = buildChatCompletionRequest(prompt, messages, bot);
 			String response = sendChatCompletionRequest(request);
 
 			PostMessage postMessage = new PostMessage(response).splitStrategy(SplitStrategy.WORD);
@@ -176,7 +179,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		try {
 			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
 
-			ChatCompletionRequest request = buildChatCompletionRequest(message.getRoomId(), prevMessages, bot);
+			String prompt = promptsByRoom.getOrDefault(message.getRoomId(), defaultPrompt);
+			ChatCompletionRequest request = buildChatCompletionRequest(prompt, prevMessages, bot);
 			addParentMessageToRequest(message, prevMessages, request, bot);
 
 			String response = sendChatCompletionRequest(request);
@@ -255,8 +259,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		return roomIds;
 	}
 
-	private ChatCompletionRequest buildChatCompletionRequest(int roomId, List<ChatMessage> messages, IBot bot) {
-		String prompt = promptsByRoom.getOrDefault(roomId, defaultPrompt);
+	private ChatCompletionRequest buildChatCompletionRequest(String prompt, List<ChatMessage> messages, IBot bot) {
 		ChatCompletionRequest request = new ChatCompletionRequest(prompt);
 		request.setMaxTokensForCompletion(completionMaxTokens);
 
