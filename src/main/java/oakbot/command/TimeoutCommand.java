@@ -3,6 +3,7 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.reply;
 
 import java.time.Duration;
+import java.util.List;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -16,6 +17,11 @@ public class TimeoutCommand implements Command {
 	@Override
 	public String name() {
 		return "timeout";
+	}
+
+	@Override
+	public List<String> aliases() {
+		return List.of("shutup");
 	}
 
 	@Override
