@@ -177,6 +177,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
 
 			ChatCompletionRequest request = buildChatCompletionRequest(message.getRoomId(), prevMessages, bot);
+			addParentMessageToRequest(message, prevMessages, request, bot);
+
 			String response = sendChatCompletionRequest(request);
 
 			resetSpontaneousPostTimer(message.getRoomId());
@@ -185,6 +187,36 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem communicating with ChatGPT.");
 			return reply("I don't really feel like talking right now.", message);
+		}
+	}
+
+	private void addParentMessageToRequest(ChatMessage message, List<ChatMessage> prevMessages, ChatCompletionRequest request, IBot bot) {
+		long parentId = message.getParentMessageId();
+		if (parentId == 0) {
+			return;
+		}
+
+		//@formatter:off
+		boolean parentMessageAlreadyInPrevMessages = prevMessages.stream()
+			.mapToLong(ChatMessage::getMessageId)
+		.anyMatch(id -> id == parentId);
+		//@formatter:on
+
+		if (parentMessageAlreadyInPrevMessages) {
+			return;
+		}
+
+		boolean parentMessagePostedByBot = message.getContent().getContent().startsWith("@" + bot.getUsername());
+
+		try {
+			String parentMessageContent = bot.getOriginalMessageContent(parentId);
+			if (parentMessagePostedByBot) {
+				request.addBotMessage(parentMessageContent);
+			} else {
+				request.addHumanMessage(parentMessageContent);
+			}
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, e, () -> "Problem getting content of parent message.");
 		}
 	}
 
@@ -310,7 +342,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	static String removeReplySyntaxFromBeginningOfMessage(String message) {
 		return removeFromBeginningOfMessage(':', message);
 	}
-	
+
 	private static String removeFromBeginningOfMessage(char startingChar, String message) {
 		CharIterator it = new CharIterator(message);
 		boolean inString = false;

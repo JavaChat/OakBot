@@ -64,9 +64,7 @@ public class FileChatClient implements IChatClient {
 
 	@Override
 	public void close() throws IOException {
-		for (FileChatRoom room : rooms) {
-			room.close();
-		}
+		rooms.forEach(FileChatRoom::close);
 		rooms.clear();
 	}
 
@@ -82,12 +80,7 @@ public class FileChatClient implements IChatClient {
 
 	@Override
 	public FileChatRoom getRoom(int roomId) {
-		for (FileChatRoom room : rooms) {
-			if (room.getRoomId() == roomId) {
-				return room;
-			}
-		}
-		return null;
+		return rooms.stream().filter(r -> r.getRoomId() == roomId).findFirst().orElse(null);
 	}
 
 	@Override
@@ -96,7 +89,16 @@ public class FileChatClient implements IChatClient {
 	}
 
 	@Override
+	public String getMessageContent(long messageId) throws IOException {
+		return _getMessageContent(messageId);
+	}
+
+	@Override
 	public String getOriginalMessageContent(long messageId) throws IOException {
+		return _getMessageContent(messageId);
+	}
+
+	private String _getMessageContent(long messageId) throws IOException {
 		for (FileChatRoom room : rooms) {
 			for (ChatMessage message : room.getAllMessages()) {
 				if (message.getMessageId() == messageId) {
@@ -104,7 +106,7 @@ public class FileChatClient implements IChatClient {
 				}
 			}
 		}
-		return null;
+		throw new IOException("Message " + messageId + " not found.");
 	}
 
 	@Override

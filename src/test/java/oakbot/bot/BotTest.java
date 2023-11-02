@@ -970,10 +970,15 @@ public class BotTest {
 		public void close() throws IOException {
 			//empty
 		}
+		
+		@Override
+		public String getMessageContent(long messageId) throws IOException {
+			throw new UnsupportedOperationException();
+		}
 
 		@Override
 		public String getOriginalMessageContent(long messageId) throws IOException {
-			return null;
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -983,12 +988,12 @@ public class BotTest {
 
 		@Override
 		public String uploadImage(String url) throws IOException {
-			return null;
+			throw new IOException();
 		}
 
 		@Override
 		public String uploadImage(byte[] data) throws IOException {
-			return null;
+			throw new IOException();
 		}
 	}
 
