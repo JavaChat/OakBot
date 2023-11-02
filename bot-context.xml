@@ -203,6 +203,9 @@
 		<constructor-arg value="" /> <!-- API key for thecatapi.com (can be blank) -->
 	</bean>
 
+	<!-- /coffee -->
+	<bean class="oakbot.command.CoffeeCommand" />
+
 	<!-- /convert -->
 	<bean class="oakbot.command.stands4.ConvertCommand">
 		<constructor-arg ref="stands4Client" />
