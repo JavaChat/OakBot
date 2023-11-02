@@ -67,6 +67,8 @@ public class OpenAIClient {
 
 			lookForError(responseBody);
 
+			checkFinishReason(responseBody);
+
 			try {
 				return responseBody.get("choices").get(0).get("message").get("content").asText();
 			} catch (NullPointerException e) {
@@ -75,6 +77,16 @@ public class OpenAIClient {
 		} catch (IOException e) {
 			logError(request, responseStatusCode, responseBody, e);
 			throw e;
+		}
+	}
+
+	private void checkFinishReason(JsonNode responseBody) {
+		try {
+			String finishReason = responseBody.get("choices").get(0).get("finish_reason").asText();
+			if (!"stop".equals(finishReason)) {
+				logger.warning(() -> "Non-stop finish reason returned: " + JsonUtils.prettyPrint(responseBody));
+			}
+		} catch (NullPointerException ignore) {
 		}
 	}
 
