@@ -385,6 +385,7 @@
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ChatGPT" id="chatGPT">
 		<constructor-arg ref="openAIClient" />
+		<constructor-arg value="gpt-3.5-turbo" />
 		<constructor-arg value="You are a grumpy Java developer named 'OakBot'." /> <!-- default prompt; one or more sentences that define the bot's personality (e.g. "You are a helpful assistant"). This counts against your usage quota. Each word costs around 1.33 tokens. -->
 		<constructor-arg> <!-- room-specific prompts -->
 			<util:map>

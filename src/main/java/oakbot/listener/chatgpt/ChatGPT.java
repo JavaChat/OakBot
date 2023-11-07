@@ -39,7 +39,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private static final Logger logger = Logger.getLogger(ChatGPT.class.getName());
 
 	private final OpenAIClient openAIClient;
-	private final String defaultPrompt;
+	private final String model, defaultPrompt;
 	private final Duration timeBetweenSpontaneousPosts;
 	private final int completionMaxTokens, numLatestMessagesToIncludeInRequest, latestMessageCharacterLimit;
 	private final Map<Integer, String> promptsByRoom;
@@ -49,6 +49,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 	/**
 	 * @param openAIClient the OpenAI client
+	 * @param model the model (e.g. "gpt-3.5-turbo")
 	 * @param defaultPrompt one or more sentences that define the bot's
 	 * personality
 	 * (e.g. "You are a helpful assistant"). This counts against your usage
@@ -69,8 +70,9 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * words). 0 to disable truncation. Each message counts against the usage
 	 * quota. Each word costs around 1.33 tokens.
 	 */
-	public ChatGPT(OpenAIClient openAIClient, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit) {
+	public ChatGPT(OpenAIClient openAIClient, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit) {
 		this.openAIClient = openAIClient;
+		this.model = model;
 		this.defaultPrompt = defaultPrompt;
 		this.promptsByRoom = promptsByRoom;
 		this.completionMaxTokens = completionMaxTokens;
@@ -262,6 +264,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private ChatCompletionRequest buildChatCompletionRequest(String prompt, List<ChatMessage> messages, IBot bot) {
 		ChatCompletionRequest request = new ChatCompletionRequest(prompt);
 		request.setMaxTokensForCompletion(completionMaxTokens);
+		request.setModel(model);
 
 		for (ChatMessage message : messages) {
 			Content content = message.getContent();
