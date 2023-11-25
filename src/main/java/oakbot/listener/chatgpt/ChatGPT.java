@@ -1,6 +1,7 @@
 package oakbot.listener.chatgpt;
 
 import static java.util.function.Predicate.not;
+import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.reply;
 
@@ -189,7 +190,14 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			resetSpontaneousPostTimer(message.getRoomId());
 
-			return reply(response, message);
+			//@formatter:off
+			return create(
+				new PostMessage(new ChatBuilder()
+					.reply(message)
+					.append(response)
+				).splitStrategy(SplitStrategy.WORD)
+			);
+			//@formatter:on
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem communicating with ChatGPT.");
 			return reply("I don't really feel like talking right now.", message);
