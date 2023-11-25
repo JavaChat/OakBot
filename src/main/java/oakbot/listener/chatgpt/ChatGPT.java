@@ -216,10 +216,16 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 		try {
 			String parentMessageContent = bot.getOriginalMessageContent(parentId);
+
+			/*
+			 * Insert the parent message right before the child message.
+			 */
+			int insertPos = request.getMessageCount() - 1;
+
 			if (parentMessagePostedByBot) {
-				request.addBotMessage(parentMessageContent);
+				request.addBotMessage(parentMessageContent, insertPos);
 			} else {
-				request.addHumanMessage(parentMessageContent);
+				request.addHumanMessage(parentMessageContent, insertPos);
 			}
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem getting content of parent message.");

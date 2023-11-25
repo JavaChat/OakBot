@@ -28,7 +28,7 @@ public class ChatCompletionRequest {
 		messages = root.arrayNode();
 		root.set("messages", messages);
 
-		addMessage(prompt, "system");
+		addMessage(prompt, "system", 0);
 	}
 
 	/**
@@ -79,7 +79,17 @@ public class ChatCompletionRequest {
 	 * @param message the message
 	 */
 	public void addHumanMessage(String message) {
-		addMessage(message, "user");
+		addMessage(message, "user", getMessageCount());
+	}
+
+	/**
+	 * Adds a message to the request, and marks the message as having been
+	 * written by a person.
+	 * @param message the message
+	 * @param index the position in the list to insert the message
+	 */
+	public void addHumanMessage(String message, int index) {
+		addMessage(message, "user", index);
 	}
 
 	/**
@@ -88,20 +98,39 @@ public class ChatCompletionRequest {
 	 * @param message the message
 	 */
 	public void addBotMessage(String message) {
-		addMessage(message, "assistant");
+		addMessage(message, "assistant", getMessageCount());
+	}
+
+	/**
+	 * Adds a message to the request, and marks the message as having been
+	 * written by ChatGPT.
+	 * @param message the message
+	 * @param index the position in the list to insert the message
+	 */
+	public void addBotMessage(String message, int index) {
+		addMessage(message, "assistant", index);
 	}
 
 	/**
 	 * Adds a message to the request.
 	 * @param message the message
 	 * @param role the role
+	 * @param index the position in the list to insert the message
 	 */
-	private void addMessage(String message, String role) {
+	private void addMessage(String message, String role, int index) {
 		//@formatter:off
-		messages.addObject()
+		messages.insertObject(index)
 			.put("role", role)
 			.put("content", message);
-		//@formatter:on
+		//@formatter:off
+	}
+
+	/**
+	 * Gets the number of messages in the request, including the prompt.
+	 * @return the number of messages
+	 */
+	public int getMessageCount() {
+		return messages.size();
 	}
 
 	JsonNode getRoot() {

@@ -73,15 +73,19 @@ public class ChatCompletionRequestTest {
 	@Test
 	public void addBotMessage() {
 		ChatCompletionRequest request = new ChatCompletionRequest("Prompt.");
-		request.addBotMessage("Bot message.");
+		request.addBotMessage("Bot message 1.");
+		request.addBotMessage("Bot message 2.", 1);
 		JsonNode root = request.getRoot();
 
 		assertEquals("gpt-3.5-turbo", root.get("model").asText());
-		assertEquals(2, root.get("messages").size());
+		assertEquals(3, root.get("messages").size());
+		assertEquals(3, request.getMessageCount());
 		assertEquals("system", root.get("messages").get(0).get("role").asText());
 		assertEquals("Prompt.", root.get("messages").get(0).get("content").asText());
 		assertEquals("assistant", root.get("messages").get(1).get("role").asText());
-		assertEquals("Bot message.", root.get("messages").get(1).get("content").asText());
+		assertEquals("Bot message 2.", root.get("messages").get(1).get("content").asText());
+		assertEquals("assistant", root.get("messages").get(2).get("role").asText());
+		assertEquals("Bot message 1.", root.get("messages").get(2).get("content").asText());
 		assertNull(root.get("max_tokens"));
 		assertNull(root.get("stop"));
 	}
@@ -89,15 +93,19 @@ public class ChatCompletionRequestTest {
 	@Test
 	public void addHumanMessage() {
 		ChatCompletionRequest request = new ChatCompletionRequest("Prompt.");
-		request.addHumanMessage("Human message.");
+		request.addHumanMessage("Human message 1.");
+		request.addHumanMessage("Human message 2.", 1);
 		JsonNode root = request.getRoot();
 
 		assertEquals("gpt-3.5-turbo", root.get("model").asText());
-		assertEquals(2, root.get("messages").size());
+		assertEquals(3, root.get("messages").size());
+		assertEquals(3, request.getMessageCount());
 		assertEquals("system", root.get("messages").get(0).get("role").asText());
 		assertEquals("Prompt.", root.get("messages").get(0).get("content").asText());
 		assertEquals("user", root.get("messages").get(1).get("role").asText());
-		assertEquals("Human message.", root.get("messages").get(1).get("content").asText());
+		assertEquals("Human message 2.", root.get("messages").get(1).get("content").asText());
+		assertEquals("user", root.get("messages").get(2).get("role").asText());
+		assertEquals("Human message 1.", root.get("messages").get(2).get("content").asText());
 		assertNull(root.get("max_tokens"));
 		assertNull(root.get("stop"));
 	}
