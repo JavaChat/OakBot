@@ -302,7 +302,7 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	private boolean usingFixedWidth() {
-		return sb.length() >= 4 && FIXED_WIDTH_PREFIX.equals(sb.subSequence(0, FIXED_WIDTH_PREFIX.length()));
+		return sb.length() >= FIXED_WIDTH_PREFIX.length() && FIXED_WIDTH_PREFIX.equals(sb.subSequence(0, FIXED_WIDTH_PREFIX.length()));
 	}
 
 	/**
