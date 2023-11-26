@@ -2,6 +2,7 @@ package oakbot.listener.chatgpt;
 
 import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.error;
+import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -102,7 +103,7 @@ public class ImagineCommand implements Command {
 
 			return create(new PostMessage(urlToPost).bypassFilters(true));
 		} catch (URISyntaxException | OpenAIException e) {
-			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
+			return post(new ChatBuilder().reply(chatCommand).code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code());
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem communicating with OpenAI.");
 			return error("Problem communicating with OpenAI: ", e, chatCommand);

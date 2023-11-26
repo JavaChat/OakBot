@@ -9,6 +9,25 @@ import org.junit.Test;
  */
 public class ChatBuilderTest {
 	@Test
+	public void toString_reply_method_can_be_called_any_time() {
+		ChatBuilder cb = new ChatBuilder();
+		cb.append("one");
+		cb.reply(1);
+		cb.append(" two");
+		assertEquals(":1 one two", cb.toString());
+	}
+
+	@Test
+	public void toString_fixed_width_syntax_comes_before_reply() {
+		ChatBuilder cb = new ChatBuilder();
+		cb.fixed();
+		cb.append("one");
+		cb.reply(1);
+		cb.append(" two");
+		assertEquals("    :1 one two", cb.toString());
+	}
+
+	@Test
 	public void toMarkdown() {
 		//convert HTML tags to Markdown
 		assertToMarkdown("<b>value</b>", "**value**", false);

@@ -915,10 +915,6 @@ public class Bot implements IBot {
 		private String quote(String content) {
 			ChatBuilder cb = new ChatBuilder();
 
-			/*
-			 * If the posted message was a reply, the reply syntax must come
-			 * before the quote syntax.
-			 */
 			Matcher m = replyRegex.matcher(content);
 			if (m.find()) {
 				long id = Long.parseLong(m.group(1));

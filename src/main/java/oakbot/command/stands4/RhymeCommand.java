@@ -1,6 +1,7 @@
 package oakbot.command.stands4;
 
 import static oakbot.bot.ChatActions.error;
+import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -61,10 +62,11 @@ public class RhymeCommand implements Command {
 		String url = client.getRhymesAttributionUrl(word);
 
 		//@formatter:off
-		return reply(new ChatBuilder()
+		return post(new ChatBuilder()
+			.reply(chatCommand)
 			.append(results.isEmpty() ? "No results found." : String.join(", ", results))
-			.append(" (").link("source", url).append(")"), 
-		chatCommand);
+			.append(" (").link("source", url).append(")")
+		);
 		//@formatter:on
 	}
 }

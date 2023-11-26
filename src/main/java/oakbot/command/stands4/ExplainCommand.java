@@ -1,6 +1,7 @@
 package oakbot.command.stands4;
 
 import static oakbot.bot.ChatActions.error;
+import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -57,6 +58,7 @@ public class ExplainCommand implements Command {
 		}
 
 		ChatBuilder cb = new ChatBuilder();
+		cb.reply(chatCommand);
 		if (result == null) {
 			cb.append("No explanation found.");
 		} else {
@@ -71,6 +73,6 @@ public class ExplainCommand implements Command {
 		String url = client.getExplainAttributionUrl(phrase);
 		cb.append(" (").link("source", url).append(")");
 
-		return reply(cb, chatCommand);
+		return post(cb);
 	}
 }

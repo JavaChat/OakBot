@@ -19,7 +19,10 @@ import oakbot.bot.ChatCommand;
  * FAQ</a>
  */
 public class ChatBuilder implements CharSequence {
+	private static final String FIXED_WIDTH_PREFIX = "    ";
+
 	private final StringBuilder sb;
+	private long replyId = -1;
 
 	/**
 	 * Creates a new chat builder.
@@ -42,7 +45,7 @@ public class ChatBuilder implements CharSequence {
 	 * @return this
 	 */
 	public ChatBuilder fixed() {
-		return append("    ");
+		return append(FIXED_WIDTH_PREFIX);
 	}
 
 	/**
@@ -165,19 +168,18 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
-	 * Appends the "reply to message" syntax. This must go at the beginning of
-	 * the string.
-	 * @param id the ID of the message to reply to
+	 * Formats the message as a reply.
+	 * @param id the ID of the parent message
 	 * @return this
 	 */
 	public ChatBuilder reply(long id) {
-		return append(':').append(id).append(' ');
+		replyId = id;
+		return this;
 	}
 
 	/**
-	 * Appends the "reply to message" syntax. This must go at the beginning of
-	 * the string.
-	 * @param message the message to reply to
+	 * Formats the message as a reply.
+	 * @param message the parent message
 	 * @return this
 	 */
 	public ChatBuilder reply(ChatMessage message) {
@@ -185,9 +187,8 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
-	 * Appends the "reply to message" syntax. This must go at the beginning of
-	 * the string.
-	 * @param command the message to reply to
+	 * Formats the message as a reply.
+	 * @param command the parent message
 	 * @return this
 	 */
 	public ChatBuilder reply(ChatCommand command) {
@@ -283,7 +284,25 @@ public class ChatBuilder implements CharSequence {
 
 	@Override
 	public String toString() {
+		/*
+		 * Fixed-width syntax must come before reply syntax.
+		 * 
+		 * No need for special handling of quote syntax because it comes after
+		 * reply syntax.
+		 */
+		if (replyId >= 0) {
+			if (usingFixedWidth()) {
+				return FIXED_WIDTH_PREFIX + ":" + replyId + " " + sb.subSequence(FIXED_WIDTH_PREFIX.length(), sb.length());
+			} else {
+				return ":" + replyId + " " + sb.toString();
+			}
+		}
+
 		return sb.toString();
+	}
+
+	private boolean usingFixedWidth() {
+		return sb.length() >= 4 && FIXED_WIDTH_PREFIX.equals(sb.subSequence(0, FIXED_WIDTH_PREFIX.length()));
 	}
 
 	/**

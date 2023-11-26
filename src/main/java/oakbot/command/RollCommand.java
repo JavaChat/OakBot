@@ -72,6 +72,7 @@ public class RollCommand implements Command {
 		}
 
 		ChatBuilder cb = new ChatBuilder();
+		cb.reply(chatCommand);
 
 		//@formatter:off
 		cb.append(Arrays.stream(results)
@@ -83,7 +84,7 @@ public class RollCommand implements Command {
 			cb.nl().append("Total = ").append(total);
 		}
 
-		return reply(cb, chatCommand);
+		return post(cb);
 	}
 
 	private Parameters parseParameters(ChatCommand chatCommand) {
