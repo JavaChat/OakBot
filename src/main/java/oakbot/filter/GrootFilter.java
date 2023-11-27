@@ -40,9 +40,12 @@ public class GrootFilter extends ToggleableFilter {
 
 	@Override
 	public String filter(String message) {
-		boolean fixed = message.startsWith("    ");
+		boolean fixed = message.startsWith(ChatBuilder.FIXED_WIDTH_PREFIX);
 
 		ChatBuilder cb = new ChatBuilder();
+		if (fixed) {
+			cb.fixedWidth();
+		}
 
 		/*
 		 * Preserve the reply message ID, if present.
@@ -57,10 +60,6 @@ public class GrootFilter extends ToggleableFilter {
 		String[] lines = message.split("\r\n|\r|\n");
 		boolean applyFormatting = !fixed && lines.length == 1;
 		for (String line : lines) {
-			if (fixed) {
-				cb.fixed();
-			}
-
 			int grootSentencesToGenerate = line.trim().isEmpty() ? 0 : (countWords(line) / (grootWords.length * 2) + 1);
 
 			//@formatter:off

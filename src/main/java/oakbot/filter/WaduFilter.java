@@ -33,9 +33,12 @@ public class WaduFilter extends ToggleableFilter {
 
 	@Override
 	public String filter(String message) {
-		boolean fixed = message.startsWith("    ");
+		boolean fixed = message.startsWith(ChatBuilder.FIXED_WIDTH_PREFIX);
 
 		ChatBuilder cb = new ChatBuilder();
+		if (fixed) {
+			cb.fixedWidth();
+		}
 
 		/*
 		 * Preserve the reply message ID, if present.
@@ -50,10 +53,6 @@ public class WaduFilter extends ToggleableFilter {
 		String[] lines = message.split("\r\n|\r|\n");
 		boolean applyFormatting = !fixed && lines.length == 1;
 		for (String line : lines) {
-			if (fixed) {
-				cb.fixed();
-			}
-
 			int waduWordsToGenerate = line.trim().isEmpty() ? 0 : countWords(line) / 5 + 1;
 			appendWaduLine(waduWordsToGenerate, applyFormatting, rng, cb);
 			cb.nl();

@@ -136,7 +136,8 @@ public class AdventOfCode implements ScheduledTask, Command {
 		int lengthOfHighestScore = lengthOfHighestScore(players);
 
 		ChatBuilder cb = new ChatBuilder();
-		cb.fixed().append("Leaderboard URL: ").append(websiteUrl).nl();
+		cb.fixedWidth();
+		cb.append("Leaderboard URL: ").append(websiteUrl).nl();
 
 		int rank = 0;
 		int prevScore = -1;
@@ -151,8 +152,6 @@ public class AdventOfCode implements ScheduledTask, Command {
 			if (player.getScore() != prevScore || player.getStars() != prevStars) {
 				rank++;
 			}
-
-			cb.fixed();
 
 			//output rank
 			cb.append(rank).append(". ");
@@ -183,7 +182,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 			prevStars = player.getStars();
 		}
 
-		return cb.toString();
+		return cb.toString().stripTrailing();
 	}
 
 	private void appendStars(Player player, ChatBuilder cb) {

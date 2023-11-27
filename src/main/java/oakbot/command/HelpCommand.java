@@ -77,52 +77,53 @@ public class HelpCommand implements Command {
 
 		//build message
 		ChatBuilder cb = new ChatBuilder();
+		cb.fixedWidth();
 		if (!commandSummaries.isEmpty()) {
-			cb.fixed().append("Commands=====================").nl();
+			cb.append("Commands=====================").nl();
 			for (Map.Entry<String, String> entry : commandSummaries.entries()) {
 				String name = entry.getKey();
 				String description = entry.getValue();
 
-				cb.fixed().append(bot.getTrigger()).append(name);
+				cb.append(bot.getTrigger()).append(name);
 				cb.repeat(' ', longestNameLength - (bot.getTrigger().length() + name.length()) + bufferSpace);
 				cb.append(description).nl();
 			}
-			cb.fixed().nl();
+			cb.nl();
 		}
 
 		List<String> learnedCommandNames = getLearnedCommandNames();
 		if (!learnedCommandNames.isEmpty()) {
-			cb.fixed().append("Learned Commands=============").nl();
+			cb.append("Learned Commands=============").nl();
 
 			//@formatter:off
-			cb.fixed().append(learnedCommandNames.stream()
+			cb.append(learnedCommandNames.stream()
 				.map(name -> bot.getTrigger() + name)
 			.collect(Collectors.joining(", ")));
 			//@formatter:on
 
-			cb.nl().fixed().nl();
+			cb.nl().nl();
 		}
 
 		if (!listenerDescriptions.isEmpty()) {
-			cb.fixed().append("Listeners====================").nl();
+			cb.append("Listeners====================").nl();
 			for (Map.Entry<String, String> entry : listenerDescriptions.entries()) {
 				String name = entry.getKey();
 				String description = entry.getValue();
 
-				cb.fixed().append(name);
+				cb.append(name);
 				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
 			}
-			cb.fixed().nl();
+			cb.nl();
 		}
 
 		if (!taskDescriptions.isEmpty()) {
-			cb.fixed().append("Tasks========================").nl();
+			cb.append("Tasks========================").nl();
 			for (Map.Entry<String, String> entry : taskDescriptions.entries()) {
 				String name = entry.getKey();
 				String description = entry.getValue();
 
-				cb.fixed().append(name);
+				cb.append(name);
 				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
 			}

@@ -406,10 +406,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		}
 
 		//@formatter:off
-		return "    " + message
+		return ChatBuilder.FIXED_WIDTH_PREFIX + message
 			.replaceAll("(?m)^ *```[^\\n]++\\n", "")
 			.replaceAll("(?m)^ *```\\n?", "")
-			.replace("\n", "\n    ");
+			.replace("\n", "\n" + ChatBuilder.FIXED_WIDTH_PREFIX);
 		//@formatter:on
 	}
 

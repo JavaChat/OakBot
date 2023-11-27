@@ -19,10 +19,11 @@ import oakbot.bot.ChatCommand;
  * FAQ</a>
  */
 public class ChatBuilder implements CharSequence {
-	private static final String FIXED_WIDTH_PREFIX = "    ";
+	public static final String FIXED_WIDTH_PREFIX = "    ";
 
 	private final StringBuilder sb;
 	private long replyId = -1;
+	private boolean fixedWidth = false;
 
 	/**
 	 * Creates a new chat builder.
@@ -40,12 +41,18 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
-	 * Appends the character sequence for "fixed font". Every line must begin
-	 * with this sequence in order to obtain this formatting style.
+	 * <p>
+	 * Applies "fixed width font" formatting to the entire message.
+	 * </p>
+	 * <p>
+	 * In SO Chat, it's not possible to format parts of a message in fixed-width
+	 * font. Only the entire message can be formatted in this way.
+	 * </p>
 	 * @return this
 	 */
-	public ChatBuilder fixed() {
-		return append(FIXED_WIDTH_PREFIX);
+	public ChatBuilder fixedWidth() {
+		fixedWidth = true;
+		return this;
 	}
 
 	/**
@@ -284,25 +291,20 @@ public class ChatBuilder implements CharSequence {
 
 	@Override
 	public String toString() {
+		String replyPrefix = (replyId < 0) ? "" : (":" + replyId + " ");
+
 		/*
 		 * Fixed-width syntax must come before reply syntax.
 		 * 
-		 * No need for special handling of quote syntax because it comes after
-		 * reply syntax.
+		 * (No need for special handling of quote syntax because it comes after
+		 * reply syntax.)
 		 */
-		if (replyId >= 0) {
-			if (usingFixedWidth()) {
-				return FIXED_WIDTH_PREFIX + ":" + replyId + " " + sb.subSequence(FIXED_WIDTH_PREFIX.length(), sb.length());
-			} else {
-				return ":" + replyId + " " + sb.toString();
-			}
+		if (fixedWidth) {
+			String withIndents = sb.toString().replaceAll("(\r\n|\r|\n)", "$1" + FIXED_WIDTH_PREFIX);
+			return FIXED_WIDTH_PREFIX + replyPrefix + withIndents;
 		}
 
-		return sb.toString();
-	}
-
-	private boolean usingFixedWidth() {
-		return sb.length() >= FIXED_WIDTH_PREFIX.length() && FIXED_WIDTH_PREFIX.equals(sb.subSequence(0, FIXED_WIDTH_PREFIX.length()));
+		return replyPrefix + sb.toString();
 	}
 
 	/**

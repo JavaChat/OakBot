@@ -420,7 +420,7 @@ public class AdventOfCodeTest {
 	        "    13. Michael Prieto           (score:  31) **^..|.....|.....|.....|.....  5 stars\n" +
 	        "    14. Simon                    (score:  26) **.^.|.....|.....|.....|.....  5 stars\n" +
 			     //'@' symbols should be removed
-	        "    15. Hey, Michael, what's up? (score:   0) .....|.....|.....|.....|.....  0 stars\n";
+	        "    15. Hey, Michael, what's up? (score:   0) .....|.....|.....|.....|.....  0 stars";
 		//@formatter:on
 
 		assertMessage(expected, actual);

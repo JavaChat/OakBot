@@ -20,11 +20,21 @@ public class ChatBuilderTest {
 	@Test
 	public void toString_fixed_width_syntax_comes_before_reply() {
 		ChatBuilder cb = new ChatBuilder();
-		cb.fixed();
+		cb.fixedWidth();
 		cb.append("one");
 		cb.reply(1);
 		cb.append(" two");
 		assertEquals("    :1 one two", cb.toString());
+	}
+
+	@Test
+	public void toString_fixed_width() {
+		ChatBuilder cb = new ChatBuilder();
+		cb.fixedWidth();
+		cb.append("one");
+		cb.nl();
+		cb.append("two\r\nthree");
+		assertEquals("    one\n    two\r\n    three", cb.toString());
 	}
 
 	@Test
