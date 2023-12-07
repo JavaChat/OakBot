@@ -144,9 +144,10 @@ public class OpenAIClient {
 	 * @throws OpenAIException if OpenAI returns an error response
 	 * @throws IOException if there's a problem downloading the input image or
 	 * communicating with OpenAI
+	 * @throws IllegalArgumentException if the given URL is invalid
 	 * @see "https://platform.openai.com/docs/api-reference/images/createVariation"
 	 */
-	public String createImageVariation(String url) throws IOException, OpenAIException {
+	public String createImageVariation(String url) throws IllegalArgumentException, IOException, OpenAIException {
 		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
 			byte[] image = downloadImage(client, url);
 

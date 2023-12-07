@@ -168,6 +168,18 @@ public class OpenAIClientTest {
 		assertEquals(resultUrl, actual);
 	}
 
+	@Test
+	public void createImageVariation_bad_url_syntax() throws Exception {
+		OpenAIClient client = new OpenAIClient("KEY");
+		String url = "https://example.com/image.png user thinks they can include a prompt too";
+
+		try {
+			client.createImageVariation(url);
+			fail();
+		} catch (IllegalArgumentException expected) {
+		}
+	}
+
 	/**
 	 * If the supplied URL returns a non-200 response, throw an exception.
 	 */

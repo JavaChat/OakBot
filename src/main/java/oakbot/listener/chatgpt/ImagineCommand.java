@@ -102,7 +102,7 @@ public class ImagineCommand implements Command {
 			}
 
 			return create(new PostMessage(urlToPost).bypassFilters(true));
-		} catch (URISyntaxException | OpenAIException e) {
+		} catch (IllegalArgumentException | URISyntaxException | OpenAIException e) {
 			return post(new ChatBuilder().reply(chatCommand).code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code());
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem communicating with OpenAI.");
