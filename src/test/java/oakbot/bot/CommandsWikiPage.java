@@ -58,6 +58,7 @@ import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
 import oakbot.listener.chatgpt.ChatGPT;
 import oakbot.listener.chatgpt.ImagineCommand;
+import oakbot.listener.chatgpt.MoodCommand;
 import oakbot.listener.chatgpt.OpenAIClient;
 import oakbot.task.FOTD;
 import oakbot.task.LinuxHealthMonitor;
@@ -93,7 +94,7 @@ public class CommandsWikiPage {
 		{
 			listeners.add(new MentionListener());
 			listeners.add(new DadJokeListener("Oak", null));
-			listeners.add(new ChatGPT(new OpenAIClient(""), "", "", Map.of(), 0, "PT0S", 10, 0));
+			listeners.add(new ChatGPT(new OpenAIClient(""), null, "", "", Map.of(), 0, "PT0S", 10, 0));
 			listeners.add(new MornListener("PT1S", null));
 			listeners.add(new WaveListener("PT1S", null));
 			listeners.add(new WelcomeListener(db, 1000, Map.of()));
@@ -128,6 +129,7 @@ public class CommandsWikiPage {
 			commands.add(new JavadocCommand(null));
 			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));
+			commands.add(new MoodCommand(null));
 			commands.add(new ReactCommand(null));
 			commands.add(new RemindCommand());
 			commands.add(new RhymeCommand(null));

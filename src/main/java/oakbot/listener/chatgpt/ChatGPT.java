@@ -40,6 +40,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private static final Logger logger = Logger.getLogger(ChatGPT.class.getName());
 
 	private final OpenAIClient openAIClient;
+	private final MoodCommand moodCommand;
 	private final String model, defaultPrompt;
 	private final Duration timeBetweenSpontaneousPosts;
 	private final int completionMaxTokens, numLatestMessagesToIncludeInRequest, latestMessageCharacterLimit;
@@ -50,6 +51,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 	/**
 	 * @param openAIClient the OpenAI client
+	 * @param moodCommand the mood command object or null if not set
 	 * @param model the model (e.g. "gpt-3.5-turbo")
 	 * @param defaultPrompt one or more sentences that define the bot's
 	 * personality
@@ -71,8 +73,9 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * words). 0 to disable truncation. Each message counts against the usage
 	 * quota. Each word costs around 1.33 tokens.
 	 */
-	public ChatGPT(OpenAIClient openAIClient, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit) {
+	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit) {
 		this.openAIClient = openAIClient;
+		this.moodCommand = moodCommand;
 		this.model = model;
 		this.defaultPrompt = defaultPrompt;
 		this.promptsByRoom = promptsByRoom;
@@ -136,7 +139,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 				continue;
 			}
 
-			String prompt = promptsByRoom.getOrDefault(roomId, defaultPrompt);
+			String prompt = buildPrompt(roomId);
 			prompt += " Nobody is talking to you directly; you are just sharing your thoughts.";
 
 			ChatCompletionRequest request = buildChatCompletionRequest(prompt, messages, bot);
@@ -182,7 +185,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		try {
 			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
 
-			String prompt = promptsByRoom.getOrDefault(message.getRoomId(), defaultPrompt);
+			String prompt = buildPrompt(message.getRoomId());
 			ChatCompletionRequest request = buildChatCompletionRequest(prompt, prevMessages, bot);
 			addParentMessageToRequest(message, prevMessages, request, bot);
 
@@ -243,6 +246,17 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	@Override
 	public void ignoreNextMessage() {
 		ignoreNextMessage = true;
+	}
+
+	private String buildPrompt(int roomId) {
+		String prompt = promptsByRoom.getOrDefault(roomId, defaultPrompt);
+
+		if (moodCommand != null) {
+			String mood = moodCommand.getMood(roomId);
+			prompt = prompt.replace("$MOOD", mood);
+		}
+
+		return prompt;
 	}
 
 	private void removeRoomsBotIsNotIn(IBot bot) {
