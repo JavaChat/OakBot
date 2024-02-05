@@ -245,17 +245,26 @@ public class OpenAIClient {
 			HttpEntity entity = response.getEntity();
 			byte[] origData = EntityUtils.toByteArray(entity);
 
-			Header header = entity.getContentType();
-			if (header != null && "image/jpeg".equals(header.getValue())) {
+			if (isJpegOrGif(entity)) {
 				byte[] pngData = convertToPng(origData);
 				if (pngData != null) {
 					return pngData;
 				}
-				logger.warning(() -> "Unable to convert JPEG to PNG: " + url);
+				logger.warning(() -> "Unable to convert non-PNG image to PNG: " + url);
 			}
 
 			return origData;
 		}
+	}
+
+	private boolean isJpegOrGif(HttpEntity entity) {
+		Header header = entity.getContentType();
+		if (header == null) {
+			return false;
+		}
+
+		String contentType = header.getValue();
+		return "image/jpeg".equals(contentType) || "image/gif".equals(contentType);
 	}
 
 	private byte[] convertToPng(byte[] data) throws IOException {
