@@ -72,7 +72,7 @@ public class OpenAIClient {
 			try {
 				return responseBody.get("choices").get(0).get("message").get("content").asText();
 			} catch (NullPointerException e) {
-				throw new IOException("JSON response not structured as expected.", e);
+				throw unexpectedJsonStructureException(e);
 			}
 		} catch (IOException e) {
 			logError(request, responseStatusCode, responseBody, e);
@@ -128,7 +128,7 @@ public class OpenAIClient {
 			try {
 				return responseBody.get("data").get(0).get("url").asText();
 			} catch (NullPointerException e) {
-				throw new IOException("JSON response not structured as expected.", e);
+				throw unexpectedJsonStructureException(e);
 			}
 		} catch (IOException e) {
 			logError(request, responseStatusCode, responseBody, e);
@@ -178,7 +178,7 @@ public class OpenAIClient {
 				try {
 					return responseBody.get("data").get(0).get("url").asText();
 				} catch (NullPointerException e) {
-					throw new IOException("JSON response not structured as expected.", e);
+					throw unexpectedJsonStructureException(e);
 				}
 			} catch (IOException e) {
 				logError(request, responseStatusCode, responseBody, e);
@@ -307,6 +307,10 @@ public class OpenAIClient {
 		String code = (node == null) ? null : node.asText();
 
 		throw new OpenAIException(message, type, param, code);
+	}
+
+	private IOException unexpectedJsonStructureException(NullPointerException e) {
+		return new IOException("JSON response not structured as expected.", e);
 	}
 
 	private static class JsonEntity extends StringEntity {
