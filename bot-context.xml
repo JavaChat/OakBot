@@ -384,6 +384,7 @@
 		<constructor-arg value="API_KEY" />
 	</bean>
 	<bean class="oakbot.listener.chatgpt.MoodCommand" id="moodCommand">
+		<constructor-arg ref="database" />
 		<constructor-arg value="grumpy" /> <!-- default mood -->
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ChatGPT" id="chatGPT">

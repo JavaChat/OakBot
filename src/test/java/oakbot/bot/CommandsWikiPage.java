@@ -12,11 +12,13 @@ import oakbot.Database;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
+import oakbot.command.CoffeeCommand;
 import oakbot.command.Command;
 import oakbot.command.DeleteCommand;
 import oakbot.command.EightBallCommand;
 import oakbot.command.FacepalmCommand;
 import oakbot.command.FatCatCommand;
+import oakbot.command.FishCommand;
 import oakbot.command.HelpCommand;
 import oakbot.command.HelpDoc;
 import oakbot.command.JuiceBoxCommand;
@@ -112,6 +114,7 @@ public class CommandsWikiPage {
 			commands.add(new AfkCommand());
 			commands.add(new BirdCommand(null));
 			commands.add(new CatCommand(null));
+			commands.add(new CoffeeCommand());
 			commands.add(new ConvertCommand(null));
 			commands.add(new DeleteCommand(null));
 			commands.add(new DefineCommand(null));
@@ -121,6 +124,7 @@ public class CommandsWikiPage {
 			commands.add(new ExplainCommand(null));
 			commands.add(new FacepalmCommand(""));
 			commands.add(new FatCatCommand(db));
+			commands.add(new FishCommand(db, "PT05", "PT05", "PT05"));
 			commands.add(new GrammarCommand(null));
 			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
@@ -129,7 +133,7 @@ public class CommandsWikiPage {
 			commands.add(new JavadocCommand(null));
 			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));
-			commands.add(new MoodCommand(null));
+			commands.add(new MoodCommand(db, null));
 			commands.add(new ReactCommand(null));
 			commands.add(new RemindCommand());
 			commands.add(new RhymeCommand(null));
