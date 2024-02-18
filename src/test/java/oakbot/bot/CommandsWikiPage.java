@@ -124,7 +124,7 @@ public class CommandsWikiPage {
 			commands.add(new ExplainCommand(null));
 			commands.add(new FacepalmCommand(""));
 			commands.add(new FatCatCommand(db));
-			commands.add(new FishCommand(db, "PT05", "PT05", "PT05"));
+			commands.add(new FishCommand(db, "PT0S", "PT0S", "PT0S"));
 			commands.add(new GrammarCommand(null));
 			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
