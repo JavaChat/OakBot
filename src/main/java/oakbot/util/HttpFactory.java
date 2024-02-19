@@ -2,6 +2,7 @@ package oakbot.util;
 
 import org.apache.http.client.CookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 
 import com.github.mangstadt.sochat4j.util.Http;
@@ -29,6 +30,17 @@ public class HttpFactory {
 	 */
 	public static Http connect() {
 		CloseableHttpClient client = (mock == null) ? HttpClients.createDefault() : mock;
+		return new Http(client);
+	}
+
+	/**
+	 * Creates an HTTP client or returns a mock client injected using
+	 * {@link #inject}.
+	 * @param builder the client builder object
+	 * @return the HTTP client
+	 */
+	public static Http connect(HttpClientBuilder builder) {
+		CloseableHttpClient client = (mock == null) ? builder.build() : mock;
 		return new Http(client);
 	}
 

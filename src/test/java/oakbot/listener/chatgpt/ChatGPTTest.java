@@ -131,32 +131,32 @@ public class ChatGPTTest {
 	}
 
 	@Test
-	public void extractImageUrls() {
-		List<String> actual = ChatGPT.extractImageUrls("Contains no image URLs.");
+	public void extractUrls() {
+		List<String> actual = ChatGPT.extractUrls("Contains no image URLs.");
 		List<String> expected = List.of();
 		assertEquals(expected, actual);
 
-		actual = ChatGPT.extractImageUrls("Contains one image URL [http://www.example.com/image.png](http://www.example.com/image.png).");
+		actual = ChatGPT.extractUrls("Contains one image URL [http://www.example.com/image.png](http://www.example.com/image.png).");
 		expected = List.of("http://www.example.com/image.png");
 		assertEquals(expected, actual);
 
-		actual = ChatGPT.extractImageUrls("http://www.example.com/image.png Beginning of string.");
+		actual = ChatGPT.extractUrls("http://www.example.com/image.png Beginning of string.");
 		expected = List.of("http://www.example.com/image.png");
 		assertEquals(expected, actual);
 
-		actual = ChatGPT.extractImageUrls("Middle of http://www.example.com/image.png string.");
+		actual = ChatGPT.extractUrls("Middle of http://www.example.com/image.png string.");
 		expected = List.of("http://www.example.com/image.png");
 		assertEquals(expected, actual);
 
-		actual = ChatGPT.extractImageUrls("End of string http://www.example.com/image.png");
+		actual = ChatGPT.extractUrls("End of string http://www.example.com/image.png");
 		expected = List.of("http://www.example.com/image.png");
 		assertEquals(expected, actual);
 
-		actual = ChatGPT.extractImageUrls("Non-image URL http://www.example.com/page.html.");
-		expected = List.of();
+		actual = ChatGPT.extractUrls("Non-image URL http://www.example.com/page.html.");
+		expected = List.of("http://www.example.com/page.html");
 		assertEquals(expected, actual);
 
-		actual = ChatGPT.extractImageUrls("Two http://www.example.com/image.jpg URLs http://www.example.com/image.gif.");
+		actual = ChatGPT.extractUrls("Two http://www.example.com/image.jpg URLs http://www.example.com/image.gif.");
 		expected = List.of("http://www.example.com/image.jpg", "http://www.example.com/image.gif");
 		assertEquals(expected, actual);
 	}

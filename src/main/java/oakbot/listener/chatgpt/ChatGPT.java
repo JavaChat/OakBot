@@ -9,15 +9,25 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.Content;
@@ -40,7 +50,7 @@ import oakbot.util.HttpFactory;
  */
 public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private static final Logger logger = Logger.getLogger(ChatGPT.class.getName());
-	private static final List<String> imageTypesSupportedByVisionModel = List.of("png", "jpg", "jpeg", "gif", "webp");
+	private static final Collection<String> imageTypesSupportedByVisionModel = Set.of("image/png", "image/jpeg", "image/gif", "image/webp");
 
 	private final OpenAIClient openAIClient;
 	private final MoodCommand moodCommand;
@@ -294,7 +304,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		return roomIds;
 	}
 
-	private ChatCompletionRequest buildChatCompletionRequest(String prompt, List<ChatMessage> messages, IBot bot) {
+	private ChatCompletionRequest buildChatCompletionRequest(String prompt, List<ChatMessage> messages, IBot bot) throws IOException {
 		ChatCompletionRequest request = new ChatCompletionRequest(prompt);
 		request.setMaxTokensForCompletion(completionMaxTokens);
 		request.setModel(model);
@@ -311,7 +321,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			boolean fixedWidthFont = content.isFixedWidthFont();
 			String contentMd = ChatBuilder.toMarkdown(contentStr, fixedWidthFont);
 
-			List<String> imageUrls = extractImageUrlsIfModelSupportsVision(contentMd);
+			List<String> imageUrls = extractImageUrlsIfModelSupportsVision(contentStr);
 
 			String truncatedContentMd;
 			if (latestMessageCharacterLimit > 0) {
@@ -331,14 +341,74 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		return request;
 	}
 
-	private List<String> extractImageUrlsIfModelSupportsVision(String content) {
-		return "gpt-4-vision-preview".equals(model) ? extractImageUrls(content) : List.of();
+	private List<String> extractImageUrlsIfModelSupportsVision(String content) throws IOException {
+		if (!modelSupportsVision()) {
+			return List.of();
+		}
+
+		List<String> allUrls = extractUrls(content);
+
+		/*
+		 * Create an HTTP client with a short request timeout, to avoid long bot
+		 * response times.
+		 */
+		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5 * 1000).build();
+		HttpClientBuilder builder = HttpClients.custom().setDefaultRequestConfig(requestConfig);
+
+		try (CloseableHttpClient client = HttpFactory.connect(builder).getClient()) {
+			//@formatter:off
+			return allUrls.stream()
+				.filter(url -> isSupportedImage(client, url))
+			.collect(Collectors.toList());
+			//@formatter:on
+		}
 	}
 
-	static List<String> extractImageUrls(String content) {
+	private boolean isSupportedImage(CloseableHttpClient client, String url) {
+		HttpResponse response;
+		try {
+			HttpHead request = new HttpHead(url);
+			response = client.execute(request);
+		} catch (IOException e) {
+			return false;
+		}
+
+		int statusCode = response.getStatusLine().getStatusCode();
+		if (statusCode != 200) {
+			return false;
+		}
+
+		Header header = response.getFirstHeader("Content-Type");
+		if (header == null) {
+			return false;
+		}
+
+		/*
+		 * Example header value: "image/jpeg;charset=UTF-8"
+		 */
+		HeaderElement[] elements = header.getElements();
+		if (elements.length == 0) {
+			return false;
+		}
+
+		String contentType = elements[0].getName();
+		return imageTypesSupportedByVisionModel.contains(contentType);
+	}
+
+	private boolean modelSupportsVision() {
+		return "gpt-4-vision-preview".equals(model);
+	}
+
+	static List<String> extractUrls(String content) {
 		List<String> urls = new ArrayList<>(); //do not use Set to preserve insertion order
 
-		Pattern p = Pattern.compile("\\bhttps?://[^ ]*?\\.(" + String.join("|", imageTypesSupportedByVisionModel) + ")\\b", Pattern.CASE_INSENSITIVE);
+		/*
+		 * Do not include any punctuation at the end of the URL (e.g. "." or
+		 * "?")
+		 * Source:
+		 * https://www.geeksforgeeks.org/extract-urls-present-in-a-given-string/
+		 */
+		Pattern p = Pattern.compile("\\bhttps?://[-a-z0-9+&@#/%?=~_|!:,.;]*[-a-z0-9+&@#/%=~_|]", Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(content);
 		while (m.find()) {
 			String url = m.group(0);
