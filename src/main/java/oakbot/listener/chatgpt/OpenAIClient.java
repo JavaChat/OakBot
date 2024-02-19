@@ -92,6 +92,8 @@ public class OpenAIClient {
 
 	/**
 	 * Creates an image.
+	 * @param model the model to use (e.g. "dall-e-2")
+	 * @param size the image size (e.g. "256x256")
 	 * @param prompt a description of what the image should look like.
 	 * @return the URL to the image. The image will be deleted off their servers
 	 * within 5-10 minutes.
@@ -99,13 +101,14 @@ public class OpenAIClient {
 	 * @throws IOException if there's a problem communicating with OpenAI
 	 * @see "https://platform.openai.com/docs/api-reference/images/create"
 	 */
-	public String createImage(String prompt) throws IOException, OpenAIException {
+	public String createImage(String model, String size, String prompt) throws IOException, OpenAIException {
 		HttpPost request = postRequestWithApiKey("/v1/images/generations");
 
 		//@formatter:off
 		request.setEntity(new JsonEntity(JsonUtils.newObject()
+			.put("model", model)
 			.put("prompt", prompt)
-			.put("size", "256x256")
+			.put("size", size)
 		));
 		//@formatter:on
 

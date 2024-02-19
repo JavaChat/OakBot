@@ -88,6 +88,7 @@ public class OpenAIClientTest {
 				assertAuthHeader(request, "KEY");
 				
 				JsonNode root = parseRequestBody(request);
+				assertEquals("model", root.get("model").asText());
 				assertEquals("Prompt.", root.get("prompt").asText());
 				assertEquals("256x256", root.get("size").asText());
 			})
@@ -95,7 +96,7 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		String actual = client.createImage("Prompt.");
+		String actual = client.createImage("model", "256x256", "Prompt.");
 		assertEquals(url, actual);
 	}
 
@@ -109,6 +110,7 @@ public class OpenAIClientTest {
 				assertAuthHeader(request, "KEY");
 				
 				JsonNode root = parseRequestBody(request);
+				assertEquals("model", root.get("model").asText());
 				assertEquals("Prompt.", root.get("prompt").asText());
 				assertEquals("256x256", root.get("size").asText());
 			})
@@ -117,7 +119,7 @@ public class OpenAIClientTest {
 		//@formatter:on
 
 		try {
-			client.createImage("Prompt.");
+			client.createImage("model", "256x256", "Prompt.");
 			fail();
 		} catch (OpenAIException e) {
 			assertEquals("Error.", e.getMessage());

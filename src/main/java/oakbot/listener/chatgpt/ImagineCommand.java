@@ -36,17 +36,23 @@ public class ImagineCommand implements Command {
 	private static final Logger logger = Logger.getLogger(ImagineCommand.class.getName());
 
 	private final OpenAIClient openAIClient;
+	private final String imageGenerationModel;
+	private final String imageGenerationSize;
 	private final int requestsPer24Hours;
 
 	private final Map<Integer, List<Instant>> requestTimesByUser = new HashMap<>();
 
 	/**
 	 * @param apiKey the OpenAI API key
+	 * @param imageGenerationModel the model to use for generating images
+	 * @param imageGenerationSize the size of the images to generate (e.g. "256x256")
 	 * @param requestsPer24Hours requests allowed per user per 24 hours, or
 	 * {@literal <= 0} for no limit
 	 */
-	public ImagineCommand(OpenAIClient openAIClient, int requestsPer24Hours) {
+	public ImagineCommand(OpenAIClient openAIClient, String imageGenerationModel, String imageGenerationSize, int requestsPer24Hours) {
 		this.openAIClient = openAIClient;
+		this.imageGenerationModel = imageGenerationModel;
+		this.imageGenerationSize = imageGenerationSize;
 		this.requestsPer24Hours = requestsPer24Hours;
 	}
 
@@ -81,7 +87,7 @@ public class ImagineCommand implements Command {
 
 		try {
 			boolean isUri = prompt.matches("^https?://.*");
-			String openAiImageUrl = isUri ? openAIClient.createImageVariation(prompt) : openAIClient.createImage(prompt);
+			String openAiImageUrl = isUri ? openAIClient.createImageVariation(prompt) : openAIClient.createImage(imageGenerationModel, imageGenerationSize, prompt);
 
 			if (!isAdmin) {
 				logQuota(userId);

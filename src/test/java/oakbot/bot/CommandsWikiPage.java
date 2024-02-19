@@ -129,7 +129,7 @@ public class CommandsWikiPage {
 			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
 			commands.add(new HttpCommand());
-			commands.add(new ImagineCommand(new OpenAIClient(""), 1));
+			commands.add(new ImagineCommand(new OpenAIClient(""), "", "", 1));
 			commands.add(new JavadocCommand(null));
 			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));

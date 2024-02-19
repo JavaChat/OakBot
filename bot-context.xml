@@ -404,6 +404,8 @@
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ImagineCommand">
 		<constructor-arg ref="openAIClient" />
+		<constructor-arg value="dall-e-2" /> <!-- image generation model -->
+		<constructor-arg value="256x256" /> <!-- size of generated images -->
 		<constructor-arg value="5" /> <!-- requests allowed per user per 24 hours, or <= 0 for no limit -->
 	</bean>
 	
