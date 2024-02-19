@@ -2,6 +2,8 @@ package oakbot.listener.chatgpt;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import org.junit.Test;
 
 /**
@@ -33,11 +35,11 @@ public class ChatGPTTest {
 		String actual = ChatGPT.removeReplySyntaxFromBeginningOfMessage(input);
 		assertEquals(expected, actual);
 	}
-	
+
 	@Test
 	public void formatMessagesWithCodeBlocks() {
 		assertFormatMessagesWithCodeBlocks("No code blocks here", "No code blocks here");
-		
+
 		//@formatter:off
 		assertFormatMessagesWithCodeBlocks(
 		"Line 1\n" +
@@ -122,9 +124,40 @@ public class ChatGPTTest {
 		);
 		//@formatter:on
 	}
-	
+
 	private static void assertFormatMessagesWithCodeBlocks(String input, String expected) {
 		String actual = ChatGPT.formatMessagesWithCodeBlocks(input);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void extractImageUrls() {
+		List<String> actual = ChatGPT.extractImageUrls("Contains no image URLs.");
+		List<String> expected = List.of();
+		assertEquals(expected, actual);
+
+		actual = ChatGPT.extractImageUrls("Contains one image URL [http://www.example.com/image.png](http://www.example.com/image.png).");
+		expected = List.of("http://www.example.com/image.png");
+		assertEquals(expected, actual);
+
+		actual = ChatGPT.extractImageUrls("http://www.example.com/image.png Beginning of string.");
+		expected = List.of("http://www.example.com/image.png");
+		assertEquals(expected, actual);
+
+		actual = ChatGPT.extractImageUrls("Middle of http://www.example.com/image.png string.");
+		expected = List.of("http://www.example.com/image.png");
+		assertEquals(expected, actual);
+
+		actual = ChatGPT.extractImageUrls("End of string http://www.example.com/image.png");
+		expected = List.of("http://www.example.com/image.png");
+		assertEquals(expected, actual);
+
+		actual = ChatGPT.extractImageUrls("Non-image URL http://www.example.com/page.html.");
+		expected = List.of();
+		assertEquals(expected, actual);
+
+		actual = ChatGPT.extractImageUrls("Two http://www.example.com/image.jpg URLs http://www.example.com/image.gif.");
+		expected = List.of("http://www.example.com/image.jpg", "http://www.example.com/image.gif");
 		assertEquals(expected, actual);
 	}
 }

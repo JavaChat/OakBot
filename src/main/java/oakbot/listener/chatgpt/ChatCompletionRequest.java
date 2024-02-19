@@ -1,5 +1,7 @@
 package oakbot.listener.chatgpt;
 
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -28,7 +30,7 @@ public class ChatCompletionRequest {
 		messages = root.arrayNode();
 		root.set("messages", messages);
 
-		addMessage(prompt, "system", 0);
+		addMessage(prompt, List.of(), "system", 0);
 	}
 
 	/**
@@ -77,52 +79,76 @@ public class ChatCompletionRequest {
 	 * Adds a message to the request, and marks the message as having been
 	 * written by a person.
 	 * @param message the message
+	 * @param imageUrls any image URLs (for models that support vision)
 	 */
-	public void addHumanMessage(String message) {
-		addMessage(message, "user", getMessageCount());
+	public void addHumanMessage(String message, List<String> imageUrls) {
+		addMessage(message, imageUrls, "user", getMessageCount());
 	}
 
 	/**
 	 * Adds a message to the request, and marks the message as having been
 	 * written by a person.
 	 * @param message the message
+	 * @param imageUrls any image URLs (for models that support vision)
 	 * @param index the position in the list to insert the message
 	 */
-	public void addHumanMessage(String message, int index) {
-		addMessage(message, "user", index);
+	public void addHumanMessage(String message, List<String> imageUrls, int index) {
+		addMessage(message, imageUrls, "user", index);
 	}
 
 	/**
 	 * Adds a message to the request, and marks the message as having been
 	 * written by ChatGPT.
 	 * @param message the message
+	 * @param imageUrls any image URLs (for models that support vision)
 	 */
-	public void addBotMessage(String message) {
-		addMessage(message, "assistant", getMessageCount());
+	public void addBotMessage(String message, List<String> imageUrls) {
+		addMessage(message, imageUrls, "assistant", getMessageCount());
 	}
 
 	/**
 	 * Adds a message to the request, and marks the message as having been
 	 * written by ChatGPT.
 	 * @param message the message
+	 * @param imageUrls any image URLs (for models that support vision)
 	 * @param index the position in the list to insert the message
 	 */
-	public void addBotMessage(String message, int index) {
-		addMessage(message, "assistant", index);
+	public void addBotMessage(String message, List<String> imageUrls, int index) {
+		addMessage(message, imageUrls, "assistant", index);
 	}
 
 	/**
 	 * Adds a message to the request.
 	 * @param message the message
+	 * @param imageUrls any image URLs (for models that support vision)
 	 * @param role the role
 	 * @param index the position in the list to insert the message
 	 */
-	private void addMessage(String message, String role, int index) {
-		//@formatter:off
-		messages.insertObject(index)
-			.put("role", role)
-			.put("content", message);
-		//@formatter:off
+	private void addMessage(String message, List<String> imageUrls, String role, int index) {
+		ObjectNode messageNode = messages.insertObject(index);
+		messageNode.put("role", role);
+
+		if (imageUrls.isEmpty()) {
+			messageNode.put("content", message);
+		} else {
+			ArrayNode content = messageNode.putArray("content");
+
+			//@formatter:off
+			content.addObject()
+				.put("type", "text")
+				.put("text", message);
+			//@formatter:on
+
+			for (String imageUrl : imageUrls) {
+				//@formatter:off
+				content.addObject()
+					.put("type", "image_url")
+					.putObject("image_url")
+						.put("url", imageUrl)
+						.put("detail", "low");
+				//@formatter:on
+			}
+		}
 	}
 
 	/**

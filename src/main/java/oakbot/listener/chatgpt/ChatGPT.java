@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 
@@ -38,6 +40,7 @@ import oakbot.util.HttpFactory;
  */
 public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private static final Logger logger = Logger.getLogger(ChatGPT.class.getName());
+	private static final List<String> imageTypesSupportedByVisionModel = List.of("png", "jpg", "jpeg", "gif", "webp");
 
 	private final OpenAIClient openAIClient;
 	private final MoodCommand moodCommand;
@@ -228,15 +231,17 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		try {
 			String parentMessageContent = bot.getOriginalMessageContent(parentId);
 
+			List<String> imageUrls = extractImageUrlsIfModelSupportsVision(parentMessageContent);
+
 			/*
 			 * Insert the parent message right before the child message.
 			 */
 			int insertPos = request.getMessageCount() - 1;
 
 			if (parentMessagePostedByBot) {
-				request.addBotMessage(parentMessageContent, insertPos);
+				request.addBotMessage(parentMessageContent, imageUrls, insertPos);
 			} else {
-				request.addHumanMessage(parentMessageContent, insertPos);
+				request.addHumanMessage(parentMessageContent, imageUrls, insertPos);
 			}
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem getting content of parent message.");
@@ -306,6 +311,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			boolean fixedWidthFont = content.isFixedWidthFont();
 			String contentMd = ChatBuilder.toMarkdown(contentStr, fixedWidthFont);
 
+			List<String> imageUrls = extractImageUrlsIfModelSupportsVision(contentMd);
+
 			String truncatedContentMd;
 			if (latestMessageCharacterLimit > 0) {
 				truncatedContentMd = SplitStrategy.WORD.split(contentMd, latestMessageCharacterLimit).get(0);
@@ -315,13 +322,32 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			boolean messagePostedByOak = (message.getUserId() == bot.getUserId());
 			if (messagePostedByOak) {
-				request.addBotMessage(truncatedContentMd);
+				request.addBotMessage(truncatedContentMd, imageUrls);
 			} else {
-				request.addHumanMessage(truncatedContentMd);
+				request.addHumanMessage(truncatedContentMd, imageUrls);
 			}
 		}
 
 		return request;
+	}
+
+	private List<String> extractImageUrlsIfModelSupportsVision(String content) {
+		return "gpt-4-vision-preview".equals(model) ? extractImageUrls(content) : List.of();
+	}
+
+	static List<String> extractImageUrls(String content) {
+		List<String> urls = new ArrayList<>(); //do not use Set to preserve insertion order
+
+		Pattern p = Pattern.compile("\\bhttps?://[^ ]*?\\.(" + String.join("|", imageTypesSupportedByVisionModel) + ")\\b", Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(content);
+		while (m.find()) {
+			String url = m.group(0);
+			if (!urls.contains(url)) {
+				urls.add(url);
+			}
+		}
+
+		return urls;
 	}
 
 	private String sendChatCompletionRequest(ChatCompletionRequest request) throws IOException {
