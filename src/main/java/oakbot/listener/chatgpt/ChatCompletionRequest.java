@@ -20,8 +20,7 @@ public class ChatCompletionRequest {
 
 	/**
 	 * @param prompt defines the bot's personality (e.g. "You are a helpful
-	 * assistant"). This counts against your usage quota. Each word is about
-	 * 1.33 tokens.
+	 * assistant"). Counts against your usage quota.
 	 */
 	public ChatCompletionRequest(String prompt) {
 		root = JsonUtils.newObject();
@@ -49,7 +48,7 @@ public class ChatCompletionRequest {
 	 * </p>
 	 * <p>
 	 * If this number is too short, then the completion may be abruptly
-	 * truncated. One word is about 1.33 tokens.
+	 * truncated (e.g. an unfinished sentence).
 	 * </p>
 	 * @param maxTokens the max tokens or {@code <= 0} for no limit
 	 */

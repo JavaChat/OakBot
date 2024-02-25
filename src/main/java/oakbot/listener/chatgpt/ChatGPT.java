@@ -70,24 +70,20 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param moodCommand the mood command object or null if not set
 	 * @param model the model (e.g. "gpt-3.5-turbo")
 	 * @param defaultPrompt one or more sentences that define the bot's
-	 * personality
-	 * (e.g. "You are a helpful assistant"). This counts against your usage
-	 * quota. Each word costs around 1.33 tokens.
+	 * personality (e.g. "You are a helpful assistant"). Counts against your
+	 * usage quota.
 	 * @param promptsByRoom room-specific prompts
 	 * @param completionMaxTokens places a limit on the length of ChatGPT's
 	 * completion (response). If this number is too short, then the completion
-	 * may end abruptly (e.g. in an unfinished sentence). Each word costs
-	 * around 1.33 tokens.
+	 * may end abruptly (e.g. in an unfinished sentence).
 	 * @param timeBetweenSpontaneousPosts the amount of time to wait before
-	 * posting a message (duration string)
+	 * posting a message (e.g. "PT12H")
 	 * @param numLatestMessagesToIncludeInRequest the number of chat room
 	 * messages to include in the ChatGPT request to give the bot context of the
-	 * conversation (each message counts against the usage quota)
+	 * conversation. Each message counts against your usage quota.
 	 * @param latestMessageCharacterLimit each chat message that is sent to
-	 * ChatGPT will not exceed this number of characters (includes markdown
-	 * syntax). Chat messages that do will be truncated (without cutting off
-	 * words). 0 to disable truncation. Each message counts against the usage
-	 * quota. Each word costs around 1.33 tokens.
+	 * ChatGPT will be truncated to this number characters (0 to disable
+	 * truncation). Each message counts against your usage quota.
 	 */
 	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit) {
 		this.openAIClient = openAIClient;
