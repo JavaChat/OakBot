@@ -54,9 +54,12 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 	private final OpenAIClient openAIClient;
 	private final MoodCommand moodCommand;
-	private final String model, defaultPrompt;
+	private final String model;
+	private final String defaultPrompt;
 	private final Duration timeBetweenSpontaneousPosts;
-	private final int completionMaxTokens, numLatestMessagesToIncludeInRequest, latestMessageCharacterLimit;
+	private final int completionMaxTokens;
+	private final int numLatestMessagesToIncludeInRequest;
+	private final int latestMessageCharacterLimit;
 	private final Map<Integer, String> promptsByRoom;
 	private final Map<Integer, Instant> spontaneousPostTimesByRoom = new HashMap<>();
 	private boolean ignoreNextMessage;
