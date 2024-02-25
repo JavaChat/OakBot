@@ -44,8 +44,10 @@ public class ImagineCommand implements Command {
 
 	/**
 	 * @param apiKey the OpenAI API key
-	 * @param imageGenerationModel the model to use for generating images
-	 * @param imageGenerationSize the size of the images to generate (e.g. "256x256")
+	 * @param imageGenerationModel the model to use for generating images (e.g.
+	 * "dall-e-2")
+	 * @param imageGenerationSize the size of the images to generate (e.g.
+	 * "256x256")
 	 * @param requestsPer24Hours requests allowed per user per 24 hours, or
 	 * {@literal <= 0} for no limit
 	 */
@@ -67,7 +69,7 @@ public class ImagineCommand implements Command {
 		return new HelpDoc.Builder(this)
 			.summary("Creates images using OpenAI's DALL·E.")
 			.example("a cute Java programmer", "Generates an image using the given prompt.")
-			.example("https://example.com/image.png", "Generates an image variation using the given image as input. Image must be a PNG.")
+			.example("https://example.com/image.png", "Generates an image variation using the given image as input. Image must be a PNG or JPEG.")
 		.build();
 		//@formatter:on
 	}
