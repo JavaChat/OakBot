@@ -289,7 +289,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private List<Integer> findRoomsToSpontaneouslyPostTo() {
 		//@formatter:off
 		return spontaneousPostTimesByRoom.entrySet().stream()
-			.filter(entry -> entry.getValue().isBefore(Instant.now()))
+			.filter(not(entry -> entry.getValue().isAfter(Instant.now())))
 			.map(Map.Entry::getKey)
 		.collect(Collectors.toList());
 		//@formatter:on
