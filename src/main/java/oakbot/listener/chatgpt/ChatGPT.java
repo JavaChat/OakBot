@@ -287,20 +287,12 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private List<Integer> findRoomsToSpontaneouslyPostTo() {
-		List<Integer> roomIds = new ArrayList<>();
-
-		for (Map.Entry<Integer, Instant> entry : spontaneousPostTimesByRoom.entrySet()) {
-			Integer roomId = entry.getKey();
-			Instant runTime = entry.getValue();
-
-			if (runTime.isAfter(Instant.now())) {
-				continue;
-			}
-
-			roomIds.add(roomId);
-		}
-
-		return roomIds;
+		//@formatter:off
+		return spontaneousPostTimesByRoom.entrySet().stream()
+			.filter(entry -> entry.getValue().isBefore(Instant.now()))
+			.map(Map.Entry::getKey)
+		.collect(Collectors.toList());
+		//@formatter:on
 	}
 
 	private ChatCompletionRequest buildChatCompletionRequest(String prompt, List<ChatMessage> messages, IBot bot) throws IOException {
