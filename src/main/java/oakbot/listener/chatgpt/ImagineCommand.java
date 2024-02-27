@@ -38,7 +38,8 @@ public class ImagineCommand implements Command {
 	private final OpenAIClient openAIClient;
 	private final String imageGenerationModel;
 	private final String imageGenerationSize;
-	private final int requestsPer24Hours;
+	private final Duration period = Duration.ofDays(1);
+	private final int requestsPerPeriod;
 
 	private final Map<Integer, List<Instant>> requestTimesByUser = new HashMap<>();
 
@@ -55,7 +56,7 @@ public class ImagineCommand implements Command {
 		this.openAIClient = openAIClient;
 		this.imageGenerationModel = imageGenerationModel;
 		this.imageGenerationSize = imageGenerationSize;
-		this.requestsPer24Hours = requestsPer24Hours;
+		this.requestsPerPeriod = requestsPer24Hours;
 	}
 
 	@Override
@@ -82,15 +83,17 @@ public class ImagineCommand implements Command {
 		}
 
 		int userId = chatCommand.getMessage().getUserId();
-		boolean isAdmin = bot.getAdminUsers().contains(userId);
-		if (!isAdmin && isUserOverQuota(userId)) {
-			return reply("Bad human! You are over quota and can't make any more requests right now. Try again later.", chatCommand);
+		Duration timeUntilNextRequest = getTimeUntilUserCanMakeARequest(userId);
+		if (!timeUntilNextRequest.isZero()) {
+			long hours = timeUntilNextRequest.toHours() + 1;
+			return reply("Bad human! You are over quota and can't make any more requests right now. Try again in " + hours + " " + plural("hour", hours) + ".", chatCommand);
 		}
 
 		try {
 			boolean isUri = prompt.matches("^https?://.*");
 			String openAiImageUrl = isUri ? openAIClient.createImageVariation(prompt) : openAIClient.createImage(imageGenerationModel, imageGenerationSize, prompt);
 
+			boolean isAdmin = bot.getAdminUsers().contains(userId);
 			if (!isAdmin) {
 				logQuota(userId);
 			}
@@ -118,19 +121,31 @@ public class ImagineCommand implements Command {
 		}
 	}
 
-	private boolean isUserOverQuota(int userId) {
-		if (requestsPer24Hours <= 0) {
-			return false;
+	/**
+	 * Calculates the amount of time until the user can make another request.
+	 * @param userId the user ID
+	 * @return the amount of time until the user can make a request or zero if
+	 * they can make a request now
+	 */
+	private Duration getTimeUntilUserCanMakeARequest(int userId) {
+		if (requestsPerPeriod <= 0) {
+			return Duration.ZERO;
 		}
 
 		Instant now = Now.instant();
 		List<Instant> times = getRequestTimes(userId);
-		times.removeIf(instant -> Duration.between(instant, now).toHours() >= 24);
-		return times.size() >= requestsPer24Hours;
+		times.removeIf(instant -> Duration.between(instant, now).compareTo(period) >= 0);
+		if (times.size() < requestsPerPeriod) {
+			return Duration.ZERO;
+		}
+
+		Instant earliestRequest = times.stream().min(Instant::compareTo).get();
+		Instant canMakeRequest = earliestRequest.plus(period);
+		return Duration.between(now, canMakeRequest);
 	}
 
 	private void logQuota(int userId) {
-		if (requestsPer24Hours <= 0) {
+		if (requestsPerPeriod <= 0) {
 			return;
 		}
 
@@ -140,5 +155,20 @@ public class ImagineCommand implements Command {
 
 	private List<Instant> getRequestTimes(int userId) {
 		return requestTimesByUser.computeIfAbsent(userId, key -> new ArrayList<Instant>());
+	}
+
+	/**
+	 * Determines if a word should be plural.
+	 * @param word the singular version of the word
+	 * @param number the number
+	 * @return the plural or singular version of the word, depending on the
+	 * provided number
+	 */
+	private static String plural(String word, long number) {
+		if (number == 1) {
+			return word;
+		}
+
+		return word + (word.endsWith("s") ? "es" : "s");
 	}
 }
