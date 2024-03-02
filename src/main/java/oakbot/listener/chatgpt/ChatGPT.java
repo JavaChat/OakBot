@@ -338,6 +338,9 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		}
 
 		List<String> allUrls = extractUrls(content);
+		if (allUrls.isEmpty()) {
+			return List.of();
+		}
 
 		/*
 		 * Create an HTTP client with a short request timeout, to avoid long bot
