@@ -12,7 +12,9 @@ public class ClassName {
 	 * Note: The parts of the fully-qualified name must be separated out like
 	 * this in order for the Javadoc URL of a class to be generated correctly.
 	 */
-	private final String packageName, simpleName, fullyQualifiedName;
+	private final String packageName;
+	private final String simpleName;
+	private final String fullyQualifiedName;
 	private final List<String> outerClassNames;
 
 	/**

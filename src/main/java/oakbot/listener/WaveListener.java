@@ -22,7 +22,8 @@ import oakbot.command.HelpDoc;
  * @author Michael Angstadt
  */
 public class WaveListener implements Listener {
-	private final String WAVE_R = "o/", WAVE_L = "\\o";
+	private final String WAVE_R = "o/";
+	private final String WAVE_L = "\\o";
 	private final Pattern waveRegex = Pattern.compile("(^|\\s)(o/|\\\\o)(\\s|$)");
 	private final Duration timeBetweenWaves = Duration.ofMinutes(5);
 	private final Duration hesitation;

@@ -6,8 +6,10 @@ package oakbot.command.javadoc;
  */
 public class ParameterInfo {
 	private final ClassName type;
-	private final String name, generic;
-	private final boolean array, varargs;
+	private final String name;
+	private final String generic;
+	private final boolean array;
+	private final boolean varargs;
 
 	public ParameterInfo(ClassName type, String name, boolean array, boolean varargs, String generic) {
 		this.type = type;

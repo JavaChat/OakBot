@@ -9,7 +9,9 @@ import java.util.function.Supplier;
  */
 public class JoinRoom implements ChatAction {
 	private int roomId;
-	private Supplier<ChatActions> onSuccess, ifRoomDoesNotExist, ifLackingPermissionToPost;
+	private Supplier<ChatActions> onSuccess;
+	private Supplier<ChatActions> ifRoomDoesNotExist;
+	private Supplier<ChatActions> ifLackingPermissionToPost;
 	private Function<Exception, ChatActions> onError;
 
 	/**

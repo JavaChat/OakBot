@@ -204,7 +204,8 @@ public class AfkCommand implements Command, Listener {
 	 */
 	public static class AfkUser {
 		private final Map<Integer, Instant> lastWarnedUser = new HashMap<>();
-		private final String username, awayMessage;
+		private final String username;
+		private final String awayMessage;
 		private final int userId;
 
 		public AfkUser(int userId, String username, String awayMessage) {

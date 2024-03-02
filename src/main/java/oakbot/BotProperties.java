@@ -14,8 +14,18 @@ import oakbot.util.PropertiesWrapper;
  */
 public class BotProperties extends PropertiesWrapper {
 	private final Path loggingConfig;
-	private final String site, loginEmail, password, botUserName, trigger, greeting, helpWebpage;
-	private final List<Integer> homeRooms, quietRooms, admins, bannedUsers, allowedUsers;
+	private final String site;
+	private final String loginEmail;
+	private final String password;
+	private final String botUserName;
+	private final String trigger;
+	private final String greeting;
+	private final String helpWebpage;
+	private final List<Integer> homeRooms;
+	private final List<Integer> quietRooms;
+	private final List<Integer> admins;
+	private final List<Integer> bannedUsers;
+	private final List<Integer> allowedUsers;
 	private final Integer botUserId;
 	private final int socketPort;
 	private final Duration hideOneboxesAfter;

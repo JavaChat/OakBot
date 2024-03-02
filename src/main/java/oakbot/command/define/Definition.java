@@ -6,7 +6,8 @@ package oakbot.command.define;
  */
 public class Definition {
 	private String wordType;
-	private String definition, example;
+	private String definition;
+	private String example;
 
 	public String getWordType() {
 		return wordType;

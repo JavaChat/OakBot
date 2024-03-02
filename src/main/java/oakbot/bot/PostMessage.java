@@ -10,9 +10,12 @@ import com.github.mangstadt.sochat4j.SplitStrategy;
  * @author Michael Angstadt
  */
 public class PostMessage implements ChatAction {
-	private String message, condensedMessage;
+	private String message;
+	private String condensedMessage;
 	private SplitStrategy splitStrategy = SplitStrategy.NONE;
-	private boolean bypassFilters, ephemeral, broadcast;
+	private boolean bypassFilters;
+	private boolean ephemeral;
+	private boolean broadcast;
 	private Duration delay;
 
 	/**

@@ -423,7 +423,8 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private static class Fish {
-		private final String name, imageUrl;
+		private final String name;
+		private final String imageUrl;
 		private final double rarity;
 
 		public Fish(String name) {

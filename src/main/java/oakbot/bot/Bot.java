@@ -52,12 +52,16 @@ import oakbot.util.ChatBuilder;
 public class Bot implements IBot {
 	private static final Logger logger = Logger.getLogger(Bot.class.getName());
 
-	private final String userName, trigger, greeting;
+	private final String userName;
+	private final String trigger;
+	private final String greeting;
 	private final Integer userId;
 	private final IChatClient connection;
 	private final AtomicLong choreIdCounter = new AtomicLong();
 	private final BlockingQueue<Chore> choreQueue = new PriorityBlockingQueue<>();
-	private final List<Integer> admins, bannedUsers, allowedUsers;
+	private final List<Integer> admins;
+	private final List<Integer> bannedUsers;
+	private final List<Integer> allowedUsers;
 	private final Duration hideOneboxesAfter;
 	private final Rooms rooms;
 	private final Integer maxRooms;
@@ -457,7 +461,8 @@ public class Bot implements IBot {
 	 */
 	private static class PostedMessage {
 		private final Instant timePosted;
-		private final String originalContent, condensedContent;
+		private final String originalContent;
+		private final String condensedContent;
 		private final boolean ephemeral;
 		private final int roomId;
 		private final List<Long> messageIds;
@@ -1014,7 +1019,9 @@ public class Bot implements IBot {
 	 */
 	public static class Builder {
 		private IChatClient connection;
-		private String userName, trigger = "=", greeting;
+		private String userName;
+		private String trigger = "=";
+		private String greeting;
 		private Integer userId;
 		private Duration hideOneboxesAfter;
 		private Integer maxRooms;

@@ -57,7 +57,8 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 	public String filter(String message) {
 		StringBuilder sb = new StringBuilder(message.length());
 
-		boolean flip = true, inReplySyntax = false;
+		boolean flip = true;
+		boolean inReplySyntax = false;
 		CharIterator it = new CharIterator(message);
 		while (it.hasNext()) {
 			char n = it.next();

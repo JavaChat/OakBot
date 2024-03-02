@@ -17,10 +17,12 @@ import oakbot.command.HelpDoc;
  */
 public class LearnedCommand implements Command {
 	private final String authorUsername;
-	private final Integer authorUserId, roomId;
+	private final Integer authorUserId;
+	private final Integer roomId;
 	private final Long messageId;
 	private final LocalDateTime created;
-	private final String name, output;
+	private final String name;
+	private final String output;
 
 	private LearnedCommand(Builder builder) {
 		authorUsername = builder.authorUsername;
@@ -122,10 +124,12 @@ public class LearnedCommand implements Command {
 	 */
 	public static class Builder {
 		private String authorUsername;
-		private Integer authorUserId, roomId;
+		private Integer authorUserId;
+		private Integer roomId;
 		private Long messageId;
 		private LocalDateTime created;
-		private String name, output;
+		private String name;
+		private String output;
 
 		/**
 		 * Sets the username of the person who created the command.

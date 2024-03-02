@@ -51,7 +51,8 @@ import oakbot.task.ScheduledTask;
 public final class Main {
 	private static final Logger logger = Logger.getLogger(Main.class.getName());
 
-	public static final String VERSION, URL;
+	public static final String VERSION;
+	public static final String URL;
 	public static final Instant BUILT;
 	static {
 		Properties props = new Properties();

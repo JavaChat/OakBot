@@ -19,8 +19,10 @@ import com.google.common.collect.Multimap;
  * @author Michael Angstadt
  */
 public class ClassInfo {
-	private final ClassName name, superClass;
-	private final String description, since;
+	private final ClassName name;
+	private final ClassName superClass;
+	private final String description;
+	private final String since;
 	private final Set<String> modifiers;
 	private final Set<ClassName> interfaces;
 	private final Multimap<String, MethodInfo> methods;
@@ -157,8 +159,10 @@ public class ClassInfo {
 	 * Builds new instances of {@link ClassInfo}.
 	 */
 	public static class Builder {
-		private ClassName name, superClass;
-		private String description, since;
+		private ClassName name;
+		private ClassName superClass;
+		private String description;
+		private String since;
 		private ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();
 		private ImmutableSet.Builder<ClassName> interfaces = ImmutableSet.builder();
 		private ImmutableMultimap.Builder<String, MethodInfo> methods = ImmutableMultimap.builder();

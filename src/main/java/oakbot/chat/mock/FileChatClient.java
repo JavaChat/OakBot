@@ -19,10 +19,14 @@ import com.github.mangstadt.sochat4j.Site;
  * @author Michael Angstadt
  */
 public class FileChatClient implements IChatClient {
-	private final AtomicLong eventIdCounter = new AtomicLong(), messageIdCounter = new AtomicLong();
+	private final AtomicLong eventIdCounter = new AtomicLong();
+	private final AtomicLong messageIdCounter = new AtomicLong();
 	private final List<FileChatRoom> rooms = new ArrayList<>();
-	private final Integer botUserId, humanUserId;
-	private final String botUsername, humanUsername, humanProfilePicture;
+	private final Integer botUserId;
+	private final Integer humanUserId;
+	private final String botUsername;
+	private final String humanUsername;
+	private final String humanProfilePicture;
 
 	public FileChatClient(Integer botUserId, String botUsername, Integer humanUserId, String humanUsername, String humanProfilePicture) {
 		this.botUserId = botUserId;

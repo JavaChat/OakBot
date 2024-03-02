@@ -106,7 +106,8 @@ public class RollCommand implements Command {
 	}
 
 	private class Parameters {
-		private final int times, sides;
+		private final int times;
+		private final int sides;
 		private final String[] choices;
 
 		public Parameters(int times, int sides) {

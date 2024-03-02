@@ -12,7 +12,11 @@ public class UrbanDefinition {
 	@JsonProperty("defid")
 	private long id;
 
-	private String word, author, permalink, definition, example;
+	private String word;
+	private String author;
+	private String permalink;
+	private String definition;
+	private String example;
 
 	@JsonProperty("thumbs_up")
 	private long thumbsUp;

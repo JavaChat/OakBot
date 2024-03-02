@@ -20,7 +20,10 @@ import com.google.common.collect.ImmutableSet;
  */
 public class MethodInfo {
 	private ClassInfo classInfo;
-	private final String name, description, urlAnchor, since;
+	private final String name;
+	private final String description;
+	private final String urlAnchor;
+	private final String since;
 	private final Set<String> modifiers;
 	private final List<ParameterInfo> parameters;
 	private final ClassName returnValue;
@@ -181,7 +184,9 @@ public class MethodInfo {
 	 * Builds new instances of {@link MethodInfo}.
 	 */
 	public static class Builder {
-		private String name, description, since;
+		private String name;
+		private String description;
+		private String since;
 		private ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();
 		private ImmutableList.Builder<ParameterInfo> parameters = ImmutableList.builder();
 		private ClassName returnValue;

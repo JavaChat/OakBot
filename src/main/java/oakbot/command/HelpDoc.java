@@ -17,7 +17,8 @@ public class HelpDoc {
 	private final Command command;
 	private final Listener listener;
 	private final ScheduledTask task;
-	private final String summary, detail;
+	private final String summary;
+	private final String detail;
 	private final boolean includeSummaryWithDetail;
 	private final List<String[]> examples;
 
@@ -174,7 +175,8 @@ public class HelpDoc {
 		private Command command;
 		private Listener listener;
 		private ScheduledTask task;
-		private String summary, detail;
+		private String summary;
+		private String detail;
 		private boolean includeSummaryWithDetail = true;
 		private final List<String[]> examples = new ArrayList<>();
 

@@ -29,12 +29,16 @@ import com.github.mangstadt.sochat4j.event.MessagePostedEvent;
  */
 public class FileChatRoom implements IRoom {
 	private final int roomId;
-	private final int humanUserId, botUserId;
-	private final String humanUsername, humanProfilePicture, botUsername;
+	private final int humanUserId;
+	private final int botUserId;
+	private final String humanUsername;
+	private final String humanProfilePicture;
+	private final String botUsername;
 	private final FileChatClient connection;
 
 	private final Thread fileMonitor;
-	private final AtomicLong eventId, messageId;
+	private final AtomicLong eventId;
+	private final AtomicLong messageId;
 	private final List<ChatMessage> messages = new ArrayList<>();
 
 	private Consumer<MessagePostedEvent> listener;

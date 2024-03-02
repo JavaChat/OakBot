@@ -216,8 +216,10 @@ public class EffectiveJavaCommand implements Command {
 	}
 
 	private static class Item {
-		private final int number, page;
-		private final String title, summary;
+		private final int number;
+		private final int page;
+		private final String title;
+		private final String summary;
 
 		private Item(Builder builder) {
 			number = builder.number;
@@ -227,8 +229,10 @@ public class EffectiveJavaCommand implements Command {
 		}
 
 		public static class Builder {
-			private int number, page;
-			private String title, summary;
+			private int number;
+			private int page;
+			private String title;
+			private String summary;
 
 			public Builder number(int number) {
 				this.number = number;

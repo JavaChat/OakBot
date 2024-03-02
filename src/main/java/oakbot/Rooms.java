@@ -11,7 +11,8 @@ import java.util.List;
 public class Rooms {
 	private final Database db;
 	private final List<Integer> rooms = new ArrayList<>();
-	private final List<Integer> homeRooms, quietRooms;
+	private final List<Integer> homeRooms;
+	private final List<Integer> quietRooms;
 
 	/**
 	 * This constructor will persist the rooms the bot joins.

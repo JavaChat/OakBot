@@ -6,7 +6,9 @@ package oakbot.listener.chatgpt;
 public class OpenAIException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
-	private final String type, param, code;
+	private final String type;
+	private final String param;
+	private final String code;
 
 	public OpenAIException(String message, String type, String param, String code) {
 		super(message);

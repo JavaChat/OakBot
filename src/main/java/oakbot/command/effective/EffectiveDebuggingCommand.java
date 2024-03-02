@@ -211,7 +211,8 @@ public class EffectiveDebuggingCommand implements Command {
 	}
 
 	static class Item {
-		final int number, page;
+		final int number;
+		final int page;
 		final String title;
 
 		private Item(Builder builder) {
@@ -221,7 +222,8 @@ public class EffectiveDebuggingCommand implements Command {
 		}
 
 		public static class Builder {
-			private int number, page;
+			private int number;
+			private int page;
 			private String title;
 
 			public Builder number(int number) {
