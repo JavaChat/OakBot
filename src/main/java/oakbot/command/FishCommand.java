@@ -208,7 +208,6 @@ public class FishCommand implements Command, ScheduledTask {
 		int roomId = chatCommand.getMessage().getRoomId();
 		int userId = chatCommand.getMessage().getUserId();
 		String username = chatCommand.getMessage().getUsername();
-		Inventory inv = inventoryByUser.get(userId);
 		Map<Integer, PendingCatch> pendingCatchesInThisRoom = getPendingCatchesInRoom(roomId);
 
 		PendingCatch pendingCatch = pendingCatchesInThisRoom.remove(userId);
@@ -229,11 +228,7 @@ public class FishCommand implements Command, ScheduledTask {
 			return post(fishMessage(username + " pulls up nothing. They weren't quick enough."));
 		}
 
-		if (inv == null) {
-			inv = new Inventory();
-			inventoryByUser.put(userId, inv);
-		}
-
+		Inventory inv = inventoryByUser.computeIfAbsent(userId, key -> new Inventory());
 		inv.add(pendingCatch.fish);
 		saveInventories();
 

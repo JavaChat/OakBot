@@ -129,13 +129,9 @@ public class SummonCommand implements Command {
 	}
 
 	private Pending getPendingSummons(int roomToJoin) {
-		Pending pending = pendingSummons.get(roomToJoin);
-		if (pending == null) {
-			/*
-			 * This is the first person to vote for joining this room.
-			 */
-			pending = new Pending(roomToJoin);
-			pendingSummons.put(roomToJoin, pending);
+		boolean firstPersonToVote = !pendingSummons.containsKey(roomToJoin);
+		Pending pending = pendingSummons.computeIfAbsent(roomToJoin, Pending::new);
+		if (firstPersonToVote) {
 			return pending;
 		}
 
