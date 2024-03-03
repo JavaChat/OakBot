@@ -98,19 +98,7 @@ public class ImagineCommand implements Command {
 				logQuota(userId);
 			}
 
-			String urlToPost;
-			try {
-				urlToPost = bot.uploadImage(openAiImageUrl);
-			} catch (IOException e) {
-				logger.log(Level.SEVERE, e, () -> "Problem uploading image to imgur.");
-
-				/*
-				 * Add a fake parameter onto the end of the URL so SO Chat
-				 * one-boxes the image. SO Chat will only one-box an image if
-				 * the URL ends in an image extension.
-				 */
-				urlToPost = new URIBuilder(openAiImageUrl).addParameter("a", ".png").toString();
-			}
+			String urlToPost = getUrlToPost(bot, openAiImageUrl);
 
 			return create(new PostMessage(urlToPost).bypassFilters(true));
 		} catch (IllegalArgumentException | URISyntaxException | OpenAIException e) {
@@ -118,6 +106,21 @@ public class ImagineCommand implements Command {
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem communicating with OpenAI.");
 			return error("Problem communicating with OpenAI: ", e, chatCommand);
+		}
+	}
+
+	private String getUrlToPost(IBot bot, String openAiImageUrl) throws URISyntaxException {
+		try {
+			return bot.uploadImage(openAiImageUrl);
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, e, () -> "Problem uploading image to imgur.");
+
+			/*
+			 * Add a fake parameter onto the end of the URL so SO Chat one-boxes
+			 * the image. SO Chat will only one-box an image if the URL ends in
+			 * an image extension.
+			 */
+			return new URIBuilder(openAiImageUrl).addParameter("a", ".png").toString();
 		}
 	}
 
