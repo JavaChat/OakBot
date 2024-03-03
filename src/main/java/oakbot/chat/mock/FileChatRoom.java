@@ -29,11 +29,9 @@ import com.github.mangstadt.sochat4j.event.MessagePostedEvent;
  */
 public class FileChatRoom implements IRoom {
 	private final int roomId;
-	private final int humanUserId;
 	private final int botUserId;
-	private final String humanUsername;
-	private final String humanProfilePicture;
 	private final String botUsername;
+	private final UserInfo human;
 	private final FileChatClient connection;
 
 	private final Thread fileMonitor;
@@ -43,23 +41,21 @@ public class FileChatRoom implements IRoom {
 
 	private Consumer<MessagePostedEvent> listener;
 
-	public FileChatRoom(int roomId, int humanUserId, String humanUsername, String humanProfilePicture, int botUserId, String botUsername, AtomicLong eventId, AtomicLong messageId, Path inputFile, FileChatClient connection) {
+	public FileChatRoom(int roomId, UserInfo human, Path inputFile, FileChatClient connection) {
 		this.roomId = roomId;
-		this.humanUserId = humanUserId;
-		this.humanUsername = humanUsername;
-		this.humanProfilePicture = humanProfilePicture;
-		this.botUserId = botUserId;
-		this.botUsername = botUsername;
+		this.human = human;
+		this.botUserId = connection.getUserId();
+		this.botUsername = connection.getUsername();
 		this.connection = connection;
 
-		this.eventId = eventId;
-		this.messageId = messageId;
+		this.eventId = connection.getEventIdCounter();
+		this.messageId = connection.getMessageIdCounter();
 
 		fileMonitor = new Thread(() -> {
 			try (ChatRoomFileReader reader = new ChatRoomFileReader(inputFile)) {
 				String line;
 				while ((line = reader.readLine()) != null) {
-					postMessage(humanUserId, humanUsername, line);
+					postMessage(human.getUserId(), human.getUsername(), line);
 				}
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
@@ -235,8 +231,8 @@ public class FileChatRoom implements IRoom {
 			new UserInfo.Builder()
 				.userId(userIds.get(0))
 				.roomId(roomId)
-				.username(humanUsername)
-				.profilePicture(humanProfilePicture)
+				.username(human.getUsername())
+				.profilePicture(human.getProfilePicture())
 				.reputation(500)
 			.build()
 		);
@@ -247,7 +243,7 @@ public class FileChatRoom implements IRoom {
 	public List<PingableUser> getPingableUsers() throws IOException {
 		//@formatter:off
 		return List.of(
-			new PingableUser(roomId, humanUserId, humanUsername, LocalDateTime.now()),
+			new PingableUser(roomId, human.getUserId(), human.getUsername(), LocalDateTime.now()),
 			new PingableUser(roomId, botUserId, botUsername, LocalDateTime.now())
 		);
 		//@formatter:on

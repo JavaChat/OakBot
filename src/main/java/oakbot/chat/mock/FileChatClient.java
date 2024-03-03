@@ -13,6 +13,7 @@ import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.IChatClient;
 import com.github.mangstadt.sochat4j.IRoom;
 import com.github.mangstadt.sochat4j.Site;
+import com.github.mangstadt.sochat4j.UserInfo;
 
 /**
  * A mock chat client that reads its chat messages from a text file.
@@ -57,7 +58,16 @@ public class FileChatClient implements IChatClient {
 		Files.deleteIfExists(inputFile);
 		Files.createFile(inputFile);
 
-		FileChatRoom room = new FileChatRoom(roomId, humanUserId, humanUsername, humanProfilePicture, botUserId, botUsername, eventIdCounter, messageIdCounter, inputFile, this);
+		//@formatter:off
+		UserInfo human = new UserInfo.Builder()
+			.roomId(roomId)
+			.userId(humanUserId)
+			.username(humanUsername)
+			.profilePicture(humanProfilePicture)
+		.build();
+		//@formatter:on
+
+		FileChatRoom room = new FileChatRoom(roomId, human, inputFile, this);
 		rooms.add(room);
 		return room;
 	}
@@ -126,5 +136,13 @@ public class FileChatClient implements IChatClient {
 	@Override
 	public String uploadImage(byte[] data) throws IOException {
 		throw new IOException("Method not implemented.");
+	}
+
+	public AtomicLong getEventIdCounter() {
+		return eventIdCounter;
+	}
+
+	public AtomicLong getMessageIdCounter() {
+		return messageIdCounter;
 	}
 }
