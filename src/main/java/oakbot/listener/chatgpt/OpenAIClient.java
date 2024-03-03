@@ -69,11 +69,7 @@ public class OpenAIClient {
 
 			checkFinishReason(responseBody);
 
-			try {
-				return responseBody.get("choices").get(0).get("message").get("content").asText();
-			} catch (NullPointerException e) {
-				throw unexpectedJsonStructureException(e);
-			}
+			return extractJsonField("choices/0/message/content", responseBody);
 		} catch (IOException e) {
 			logError(request, responseStatusCode, responseBody, e);
 			throw e;
@@ -82,11 +78,11 @@ public class OpenAIClient {
 
 	private void checkFinishReason(JsonNode responseBody) {
 		try {
-			String finishReason = responseBody.get("choices").get(0).get("finish_reason").asText();
+			String finishReason = JsonUtils.extractField("choices/0/finish_reason", responseBody);
 			if (!"stop".equals(finishReason)) {
 				logger.warning(() -> "Non-stop finish reason returned: " + JsonUtils.prettyPrint(responseBody));
 			}
-		} catch (NullPointerException ignore) {
+		} catch (IllegalArgumentException ignoreUnrecognizedJsonResponse) {
 		}
 	}
 
@@ -128,11 +124,7 @@ public class OpenAIClient {
 
 			lookForError(responseBody);
 
-			try {
-				return responseBody.get("data").get(0).get("url").asText();
-			} catch (NullPointerException e) {
-				throw unexpectedJsonStructureException(e);
-			}
+			return extractJsonField("data/0/url", responseBody);
 		} catch (IOException e) {
 			logError(request, responseStatusCode, responseBody, e);
 			throw e;
@@ -178,11 +170,7 @@ public class OpenAIClient {
 
 				lookForError(responseBody);
 
-				try {
-					return responseBody.get("data").get(0).get("url").asText();
-				} catch (NullPointerException e) {
-					throw unexpectedJsonStructureException(e);
-				}
+				return extractJsonField("data/0/url", responseBody);
 			} catch (IOException e) {
 				logError(request, responseStatusCode, responseBody, e);
 				throw e;
@@ -228,6 +216,14 @@ public class OpenAIClient {
 		});
 
 		throw e;
+	}
+
+	private String extractJsonField(String path, JsonNode node) throws IOException {
+		try {
+			return JsonUtils.extractField(path, node);
+		} catch (IllegalArgumentException e) {
+			throw new IOException(e);
+		}
 	}
 
 	private HttpPost postRequestWithApiKey(String uriPath) {
@@ -310,10 +306,6 @@ public class OpenAIClient {
 		String code = (node == null) ? null : node.asText();
 
 		throw new OpenAIException(message, type, param, code);
-	}
-
-	private IOException unexpectedJsonStructureException(NullPointerException e) {
-		return new IOException("JSON response not structured as expected.", e);
 	}
 
 	private static class JsonEntity extends StringEntity {

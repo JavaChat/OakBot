@@ -76,6 +76,34 @@ public final class JsonUtils {
 		}
 	}
 
+	/**
+	 * Extracts a single value from a JSON node using a path expression.
+	 * @param path the path to the value (e.g. "data/0/url" translates to
+	 * {@code node.get("data").get(0).get("url").asText()})
+	 * @param node the JSON node
+	 * @return the value
+	 * @throws IllegalArgumentException if the path wasn't valid
+	 */
+	public static String extractField(String path, JsonNode node) {
+		JsonNode n = node;
+		String[] fields = path.split("/");
+
+		for (String field : fields) {
+			try {
+				int index = Integer.parseInt(field);
+				n = n.path(index);
+			} catch (NumberFormatException e) {
+				n = n.path(field);
+			}
+
+			if (n.isMissingNode()) {
+				throw new IllegalArgumentException("JSON path not found: " + path);
+			}
+		}
+
+		return n.asText();
+	}
+
 	private JsonUtils() {
 		//hide constructor
 	}
