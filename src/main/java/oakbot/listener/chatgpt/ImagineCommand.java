@@ -8,11 +8,6 @@ import static oakbot.bot.ChatActions.reply;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +20,6 @@ import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
-import oakbot.util.Now;
 
 /**
  * Generates images using OpenAI's DALL·E.
@@ -38,10 +32,7 @@ public class ImagineCommand implements Command {
 	private final OpenAIClient openAIClient;
 	private final String imageGenerationModel;
 	private final String imageGenerationSize;
-	private final Duration period = Duration.ofDays(1);
-	private final int requestsPerPeriod;
-
-	private final Map<Integer, List<Instant>> requestTimesByUser = new HashMap<>();
+	private final UsageQuota usageQuota;
 
 	/**
 	 * @param apiKey the OpenAI API key
@@ -56,7 +47,7 @@ public class ImagineCommand implements Command {
 		this.openAIClient = openAIClient;
 		this.imageGenerationModel = imageGenerationModel;
 		this.imageGenerationSize = imageGenerationSize;
-		this.requestsPerPeriod = requestsPer24Hours;
+		usageQuota = (requestsPer24Hours > 0) ? new UsageQuota(Duration.ofDays(1), requestsPer24Hours) : UsageQuota.allowAll();
 	}
 
 	@Override
@@ -83,7 +74,7 @@ public class ImagineCommand implements Command {
 		}
 
 		int userId = chatCommand.getMessage().getUserId();
-		Duration timeUntilNextRequest = getTimeUntilUserCanMakeARequest(userId);
+		Duration timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
 		if (!timeUntilNextRequest.isZero()) {
 			long hours = timeUntilNextRequest.toHours() + 1;
 			return reply("Bad human! You are over quota and can't make any more requests right now. Try again in " + hours + " " + plural("hour", hours) + ".", chatCommand);
@@ -95,7 +86,7 @@ public class ImagineCommand implements Command {
 
 			boolean isAdmin = bot.getAdminUsers().contains(userId);
 			if (!isAdmin) {
-				logQuota(userId);
+				usageQuota.logRequest(userId);
 			}
 
 			String urlToPost = getUrlToPost(bot, openAiImageUrl);
@@ -122,42 +113,6 @@ public class ImagineCommand implements Command {
 			 */
 			return new URIBuilder(openAiImageUrl).addParameter("a", ".png").toString();
 		}
-	}
-
-	/**
-	 * Calculates the amount of time until the user can make another request.
-	 * @param userId the user ID
-	 * @return the amount of time until the user can make a request or zero if
-	 * they can make a request now
-	 */
-	private Duration getTimeUntilUserCanMakeARequest(int userId) {
-		if (requestsPerPeriod <= 0) {
-			return Duration.ZERO;
-		}
-
-		Instant now = Now.instant();
-		List<Instant> times = getRequestTimes(userId);
-		times.removeIf(instant -> Duration.between(instant, now).compareTo(period) >= 0);
-		if (times.size() < requestsPerPeriod) {
-			return Duration.ZERO;
-		}
-
-		Instant earliestRequest = times.stream().min(Instant::compareTo).get();
-		Instant canMakeRequest = earliestRequest.plus(period);
-		return Duration.between(now, canMakeRequest);
-	}
-
-	private void logQuota(int userId) {
-		if (requestsPerPeriod <= 0) {
-			return;
-		}
-
-		List<Instant> times = getRequestTimes(userId);
-		times.add(Now.instant());
-	}
-
-	private List<Instant> getRequestTimes(int userId) {
-		return requestTimesByUser.computeIfAbsent(userId, key -> new ArrayList<Instant>());
 	}
 
 	/**

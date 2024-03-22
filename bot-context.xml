@@ -401,6 +401,7 @@
 		<constructor-arg value="PT12H" /> <!-- the amount of time to wait before posting a message (duration string) -->
 		<constructor-arg value="10" /> <!-- the number of chat room messages to include in the ChatGPT request to give the bot context of the conversation (each message counts against the usage quota) -->
 		<constructor-arg value="300" /> <!-- each chat message that is sent to ChatGPT will not exceed this number of characters (includes markdown syntax). Chat messages that do will be truncated (without cutting off words). 0 to disable truncation. Each message counts against the usage quota. Each word costs around 1.33 tokens. -->
+		<constructor-arg value="20" /> <!-- requests allowed per user per 24 hours, or <= 0 for no limit -->
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ImagineCommand">
 		<constructor-arg ref="openAIClient" />

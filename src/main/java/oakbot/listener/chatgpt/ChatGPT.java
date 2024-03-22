@@ -64,6 +64,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private final Map<Integer, Instant> spontaneousPostTimesByRoom = new HashMap<>();
 	private boolean ignoreNextMessage;
 	private boolean firstRun = true;
+	private final UsageQuota usageQuota;
 
 	/**
 	 * @param openAIClient the OpenAI client
@@ -84,8 +85,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param latestMessageCharacterLimit each chat message that is sent to
 	 * ChatGPT will be truncated to this number characters (0 to disable
 	 * truncation). Each message counts against your usage quota.
+	 * @param requestsPer24Hours requests allowed per user per 24 hours, or
+	 * {@literal <= 0} for no limit
 	 */
-	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit) {
+	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours) {
 		this.openAIClient = openAIClient;
 		this.moodCommand = moodCommand;
 		this.model = model;
@@ -95,6 +98,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		this.timeBetweenSpontaneousPosts = Duration.parse(timeBetweenSpontaneousPosts);
 		this.numLatestMessagesToIncludeInRequest = numLatestMessagesToIncludeInRequest;
 		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
+		usageQuota = (requestsPer24Hours > 0) ? new UsageQuota(Duration.ofDays(1), requestsPer24Hours) : UsageQuota.allowAll();
 	}
 
 	@Override
@@ -194,6 +198,16 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			return doNothing();
 		}
 
+		/**
+		 * Has the user exceeded quota?
+		 */
+		int userId = message.getUserId();
+		Duration timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
+		if (!timeUntilNextRequest.isZero()) {
+			long hours = timeUntilNextRequest.toHours() + 1;
+			return reply("Humph. You are over quota and I won't talk to you anymore. Try again in " + hours + " " + plural("hour", hours) + ".", message);
+		}
+
 		try {
 			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
 
@@ -204,6 +218,11 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			String response = sendChatCompletionRequest(request);
 
 			resetSpontaneousPostTimer(message.getRoomId());
+
+			boolean isAdmin = bot.getAdminUsers().contains(userId);
+			if (!isAdmin) {
+				usageQuota.logRequest(userId);
+			}
 
 			//@formatter:off
 			return create(
@@ -524,5 +543,20 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private void resetSpontaneousPostTimer(int roomId) {
 		Instant nextRunTime = Instant.now().plus(timeBetweenSpontaneousPosts);
 		spontaneousPostTimesByRoom.put(roomId, nextRunTime);
+	}
+
+	/**
+	 * Determines if a word should be plural.
+	 * @param word the singular version of the word
+	 * @param number the number
+	 * @return the plural or singular version of the word, depending on the
+	 * provided number
+	 */
+	private static String plural(String word, long number) {
+		if (number == 1) {
+			return word;
+		}
+
+		return word + (word.endsWith("s") ? "es" : "s");
 	}
 }
