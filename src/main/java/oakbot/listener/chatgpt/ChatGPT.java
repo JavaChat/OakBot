@@ -205,7 +205,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		Duration timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
 		if (!timeUntilNextRequest.isZero()) {
 			long hours = timeUntilNextRequest.toHours() + 1;
-			return reply("Humph. You are over quota and I won't talk to you anymore. Try again in " + hours + " " + plural("hour", hours) + ".", message);
+			return reply("Bad human! You are over quota. Try again in " + hours + " " + plural("hour", hours) + ".", message);
 		}
 
 		try {
