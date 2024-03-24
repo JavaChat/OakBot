@@ -263,7 +263,15 @@ public class OpenAIClient {
 		}
 
 		String contentType = header.getValue();
-		return "image/jpeg".equals(contentType) || "image/gif".equals(contentType);
+		if (contentType == null) {
+			return false;
+		}
+
+		/**
+		 * Use "startsWith" because the header value can contain extra data on
+		 * the end (e.g. "image/gif;encoding=utf-8")
+		 */
+		return contentType.startsWith("image/jpeg") || contentType.startsWith("image/gif");
 	}
 
 	private byte[] convertToPng(byte[] data) throws IOException {
