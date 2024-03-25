@@ -4,6 +4,7 @@ import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
+import static oakbot.util.StringUtils.plural;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -113,20 +114,5 @@ public class ImagineCommand implements Command {
 			 */
 			return new URIBuilder(openAiImageUrl).addParameter("a", ".png").toString();
 		}
-	}
-
-	/**
-	 * Determines if a word should be plural.
-	 * @param word the singular version of the word
-	 * @param number the number
-	 * @return the plural or singular version of the word, depending on the
-	 * provided number
-	 */
-	private static String plural(String word, long number) {
-		if (number == 1) {
-			return word;
-		}
-
-		return word + (word.endsWith("s") ? "es" : "s");
 	}
 }

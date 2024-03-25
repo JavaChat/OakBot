@@ -1,5 +1,7 @@
 package oakbot.command;
 
+import static oakbot.util.StringUtils.plural;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -150,21 +152,6 @@ public class HelpDoc {
 		}
 
 		return cb.toString();
-	}
-
-	/**
-	 * Determines if a word should be plural.
-	 * @param word the singular version of the word
-	 * @param number the number
-	 * @return the plural or singular version of the word, depending on the
-	 * provided number
-	 */
-	private static String plural(String word, int number) {
-		if (number == 1) {
-			return word;
-		}
-
-		return word + (word.endsWith("s") ? "es" : "s");
 	}
 
 	/**

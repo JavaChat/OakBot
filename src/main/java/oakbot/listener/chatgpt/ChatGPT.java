@@ -4,6 +4,7 @@ import static java.util.function.Predicate.not;
 import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.reply;
+import static oakbot.util.StringUtils.plural;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -543,20 +544,5 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private void resetSpontaneousPostTimer(int roomId) {
 		Instant nextRunTime = Instant.now().plus(timeBetweenSpontaneousPosts);
 		spontaneousPostTimesByRoom.put(roomId, nextRunTime);
-	}
-
-	/**
-	 * Determines if a word should be plural.
-	 * @param word the singular version of the word
-	 * @param number the number
-	 * @return the plural or singular version of the word, depending on the
-	 * provided number
-	 */
-	private static String plural(String word, long number) {
-		if (number == 1) {
-			return word;
-		}
-
-		return word + (word.endsWith("s") ? "es" : "s");
 	}
 }
