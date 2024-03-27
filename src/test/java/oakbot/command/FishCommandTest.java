@@ -341,6 +341,66 @@ public class FishCommandTest {
 	}
 
 	@Test
+	public void fish_again() throws Exception {
+		Database db = mock(Database.class);
+
+		IBot bot = mock(IBot.class);
+
+		Random rand = mock(Random.class);
+		when(rand.nextInt(15 * 60)).thenReturn(5 * 60); //line will quiver after (15+5) minutes
+		when(rand.nextDouble()).thenReturn(0.1234);
+		Rng.inject(rand);
+
+		FishCommand command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		verify(db).getMap("fish.caught");
+
+		//@formatter:off
+		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+			.content("again")
+			.messageId(10)
+			.roomId(1)
+			.userId(123456)
+			.username("Zagreus")
+		.build(), bot);
+		//@formatter:on
+
+		assertMessage("🐟 *Zagreus throws in a line.*", actual);
+
+		Now.fastForward(Duration.ofMinutes(15));
+		command.run(bot);
+		verify(bot, never()).sendMessage(anyInt(), any(PostMessage.class));
+
+		Now.fastForward(Duration.ofMinutes(6)); //1 extra minute to ensure the time is right
+		command.run(bot);
+		verify(bot).sendMessage(1, new PostMessage("🐟 *Zagreus' line quivers.*"));
+
+		//@formatter:off
+		actual = command.onMessage(new ChatCommandBuilder(command)
+			.content("again")
+			.messageId(10)
+			.roomId(1)
+			.userId(123456)
+			.username("Zagreus")
+		.build(), bot);
+
+		List<ChatAction> expected = List.of(
+			new PostMessage("🐟 *Zagreus caught a **Hellfish**!*"),
+			new PostMessage("https://static.wikia.nocookie.net/hades_gamepedia_en/images/3/3d/Hellfish.png"),
+			new PostMessage("🐟 *Zagreus throws in a line.*")
+		);
+		//@formatter:on
+
+		assertEquals(expected, actual.getActions());
+
+		Map<String, Object> map = new HashMap<>();
+		Map<String, Object> fish = new HashMap<>();
+		fish.put("Hellfish", 1);
+		map.put("123456", fish);
+
+		verify(db).set("fish.caught", map);
+	}
+
+	@Test
 	public void fish_status() throws Exception {
 		Database db = mock(Database.class);
 

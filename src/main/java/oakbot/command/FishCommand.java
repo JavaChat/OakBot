@@ -93,6 +93,7 @@ public class FishCommand implements Command, ScheduledTask {
 			.example("inv", "Displays the user's inventory of caught fish.")
 			.example("status", "Displays the status of the user's fishing line.")
 			.example("release bass", "Releases a fish back into the wild.")
+			.example("again", "Pulls up the line and then throws it back again.")
 		.build();
 		//@formatter:on
 	}
@@ -116,10 +117,14 @@ public class FishCommand implements Command, ScheduledTask {
 				return handleReleaseCommand(fishName, chatCommand);
 			}
 
+			if ("again".equalsIgnoreCase(subCommand)) {
+				return throwOrPullLine(chatCommand, true);
+			}
+
 			return reply(fishMessage("Unknown fish command."), chatCommand);
 		}
 
-		return throwOrPullLine(chatCommand);
+		return throwOrPullLine(chatCommand, false);
 	}
 
 	private ChatActions handleInvCommand(ChatCommand chatCommand) {
@@ -204,7 +209,7 @@ public class FishCommand implements Command, ScheduledTask {
 		//@formatter:on
 	}
 
-	private ChatActions throwOrPullLine(ChatCommand chatCommand) {
+	private ChatActions throwOrPullLine(ChatCommand chatCommand, boolean again) {
 		int roomId = chatCommand.getMessage().getRoomId();
 		int userId = chatCommand.getMessage().getUserId();
 		String username = chatCommand.getMessage().getUsername();
@@ -217,32 +222,38 @@ public class FishCommand implements Command, ScheduledTask {
 			return post(fishMessage(username + " throws in a line."));
 		}
 
+		ChatActions actions = new ChatActions();
+
 		Duration sinceLineQuivered = Duration.between(pendingCatch.time, Now.instant());
 		boolean tooSoon = sinceLineQuivered.isNegative();
 		if (tooSoon) {
-			return post(fishMessage(username + " pulls up nothing."));
+			actions.addAction(new PostMessage(fishMessage(username + " pulls up nothing.")));
+		} else {
+			boolean tooLate = (sinceLineQuivered.compareTo(timeUserHasToCatchFish) >= 0);
+			if (tooLate) {
+				actions.addAction(new PostMessage(fishMessage(username + " pulls up nothing. They weren't quick enough.")));
+			} else {
+				Inventory inv = inventoryByUser.computeIfAbsent(userId, key -> new Inventory());
+				inv.add(pendingCatch.fish);
+				saveInventories();
+
+				String word = (inv.count(pendingCatch.fish) > 1) ? "another" : "a";
+
+				//@formatter:off
+				actions.addAction(new PostMessage(fishMessage(new ChatBuilder()
+					.append(username).append(" caught ").append(word).append(" ").bold(pendingCatch.fish.name).append("!")
+				)));
+				//@formatter:on
+
+				if (pendingCatch.fish.imageUrl != null) {
+					actions.addAction(new PostMessage(pendingCatch.fish.imageUrl));
+				}
+			}
 		}
 
-		boolean tooLate = (sinceLineQuivered.compareTo(timeUserHasToCatchFish) >= 0);
-		if (tooLate) {
-			return post(fishMessage(username + " pulls up nothing. They weren't quick enough."));
-		}
-
-		Inventory inv = inventoryByUser.computeIfAbsent(userId, key -> new Inventory());
-		inv.add(pendingCatch.fish);
-		saveInventories();
-
-		ChatActions actions = new ChatActions();
-		String word = (inv.count(pendingCatch.fish) > 1) ? "another" : "a";
-
-		//@formatter:off
-		actions.addAction(new PostMessage(fishMessage(new ChatBuilder()
-			.append(username).append(" caught ").append(word).append(" ").bold(pendingCatch.fish.name).append("!")
-		)));
-		//@formatter:on
-
-		if (pendingCatch.fish.imageUrl != null) {
-			actions.addAction(new PostMessage(pendingCatch.fish.imageUrl));
+		if (again) {
+			pendingCatchesInThisRoom.put(userId, new PendingCatch(username));
+			actions.addAction(new PostMessage(fishMessage(username + " throws in a line.")));
 		}
 
 		return actions;
