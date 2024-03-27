@@ -25,6 +25,10 @@ public class Rng {
 	 * @return the random value
 	 */
 	public static int next(int startInclusive, int endExclusive) {
+		if (startInclusive == endExclusive) {
+			return startInclusive;
+		}
+
 		int diff = endExclusive - startInclusive;
 		return random.nextInt(diff) + startInclusive;
 	}
