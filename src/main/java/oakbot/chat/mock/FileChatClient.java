@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -135,7 +137,11 @@ public class FileChatClient implements IChatClient {
 
 	@Override
 	public String uploadImage(byte[] data) throws IOException {
-		throw new IOException("Method not implemented.");
+		LocalDateTime now = LocalDateTime.now();
+		String filename = now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replaceAll("[-T:]", "") + ".jpg";
+		Path path = Paths.get(filename);
+		Files.write(path, data);
+		return filename;
 	}
 
 	public AtomicLong getEventIdCounter() {

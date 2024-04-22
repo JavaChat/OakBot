@@ -128,6 +128,14 @@ public interface IBot {
 	 * @throws IOException if there's a problem uploading the image
 	 */
 	String uploadImage(String url) throws IOException;
+	
+	/**
+	 * Uploads an image to Stack Overflow's imgur.com service.
+	 * @param data the image data
+	 * @return the imgur.com URL
+	 * @throws IOException if there's a problem uploading the image
+	 */
+	String uploadImage(byte[] data) throws IOException;
 
 	/**
 	 * Posts a message to a room. If the bot has not joined the given room, then

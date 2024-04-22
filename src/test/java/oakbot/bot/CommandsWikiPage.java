@@ -62,6 +62,7 @@ import oakbot.listener.chatgpt.ChatGPT;
 import oakbot.listener.chatgpt.ImagineCommand;
 import oakbot.listener.chatgpt.MoodCommand;
 import oakbot.listener.chatgpt.OpenAIClient;
+import oakbot.listener.chatgpt.StabilityAIClient;
 import oakbot.task.FOTD;
 import oakbot.task.LinuxHealthMonitor;
 import oakbot.task.QOTD;
@@ -129,7 +130,7 @@ public class CommandsWikiPage {
 			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
 			commands.add(new HttpCommand());
-			commands.add(new ImagineCommand(new OpenAIClient(""), "", "", 1));
+			commands.add(new ImagineCommand(new OpenAIClient(""), new StabilityAIClient(""), 1));
 			commands.add(new JavadocCommand(null));
 			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));
