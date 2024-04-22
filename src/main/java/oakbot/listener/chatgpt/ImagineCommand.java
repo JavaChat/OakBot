@@ -34,9 +34,8 @@ import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
 
 /**
- * Generates images using OpenAI's DALL·E.
+ * Generates images using various AI image models.
  * @author Michael Angstadt
- * @see "https://platform.openai.com/docs/api-reference/images"
  */
 public class ImagineCommand implements Command {
 	private static final Logger logger = Logger.getLogger(ImagineCommand.class.getName());
