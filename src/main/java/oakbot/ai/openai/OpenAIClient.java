@@ -22,6 +22,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import oakbot.util.HttpFactory;
 import oakbot.util.JsonUtils;
@@ -175,6 +176,56 @@ public class OpenAIClient {
 				logError(request, responseStatusCode, responseBody, e);
 				throw e;
 			}
+		}
+	}
+
+	/**
+	 * Generates audio from input text.
+	 * @param apiRequest the request
+	 * @return the generated audio data
+	 * @throws IOException if there's a network problem
+	 * @throws OpenAIException if an error response is returned
+	 */
+	public byte[] createSpeech(CreateSpeechRequest apiRequest) throws IOException, OpenAIException {
+		HttpPost request = postRequestWithApiKey("/v1/audio/speech");
+
+		ObjectNode node = JsonUtils.newObject();
+		node.put("model", apiRequest.getModel());
+		node.put("input", apiRequest.getInput());
+		node.put("voice", apiRequest.getVoice());
+		if (apiRequest.getResponseFormat() != null) {
+			node.put("response_format", apiRequest.getResponseFormat());
+		}
+		if (apiRequest.getSpeed() != null) {
+			node.put("speed", apiRequest.getSpeed());
+		}
+
+		request.setEntity(new JsonEntity(node));
+
+		logRequest(request);
+
+		JsonNode responseBody = null;
+		int responseStatusCode = 0;
+		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
+			try (CloseableHttpResponse response = client.execute(request)) {
+				responseStatusCode = response.getStatusLine().getStatusCode();
+				if (responseStatusCode == 200) {
+					return EntityUtils.toByteArray(response.getEntity());
+				}
+
+				try (InputStream in = response.getEntity().getContent()) {
+					responseBody = JsonUtils.parse(in);
+				}
+			}
+
+			logResponse(responseStatusCode, responseBody);
+
+			lookForError(responseBody);
+
+			return null;
+		} catch (IOException e) {
+			logError(request, responseStatusCode, responseBody, e);
+			throw e;
 		}
 	}
 
