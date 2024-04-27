@@ -24,6 +24,13 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
+import oakbot.ai.openai.OpenAIClient;
+import oakbot.ai.openai.OpenAIException;
+import oakbot.ai.stabilityai.StabilityAIClient;
+import oakbot.ai.stabilityai.StabilityAIException;
+import oakbot.ai.stabilityai.StableImageCoreRequest;
+import oakbot.ai.stabilityai.StableImageDiffusionRequest;
+import oakbot.ai.stabilityai.StableImageResponse;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;

@@ -34,6 +34,9 @@ import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.Content;
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
+import oakbot.ai.openai.ChatCompletionRequest;
+import oakbot.ai.openai.OpenAIClient;
+import oakbot.ai.openai.OpenAIException;
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;

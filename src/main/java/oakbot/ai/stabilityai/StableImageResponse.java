@@ -1,4 +1,4 @@
-package oakbot.listener.chatgpt;
+package oakbot.ai.stabilityai;
 
 /**
  * @author Michael Angstadt

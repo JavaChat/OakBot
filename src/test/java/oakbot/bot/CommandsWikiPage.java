@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 import oakbot.Database;
+import oakbot.ai.openai.OpenAIClient;
+import oakbot.ai.stabilityai.StabilityAIClient;
 import oakbot.command.AboutCommand;
 import oakbot.command.AfkCommand;
 import oakbot.command.CatCommand;
@@ -61,8 +63,6 @@ import oakbot.listener.WelcomeListener;
 import oakbot.listener.chatgpt.ChatGPT;
 import oakbot.listener.chatgpt.ImagineCommand;
 import oakbot.listener.chatgpt.MoodCommand;
-import oakbot.listener.chatgpt.OpenAIClient;
-import oakbot.listener.chatgpt.StabilityAIClient;
 import oakbot.task.FOTD;
 import oakbot.task.LinuxHealthMonitor;
 import oakbot.task.QOTD;

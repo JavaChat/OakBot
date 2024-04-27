@@ -1,4 +1,4 @@
-package oakbot.listener.chatgpt;
+package oakbot.ai.openai;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;

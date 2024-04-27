@@ -1,4 +1,4 @@
-package oakbot.listener.chatgpt;
+package oakbot.ai.openai;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import oakbot.listener.chatgpt.ResponseSamples;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
 import oakbot.util.JsonUtils;

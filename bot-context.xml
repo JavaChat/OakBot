@@ -380,10 +380,10 @@
 	</bean>
 
 	<!-- ChatGPT -->
-	<bean class="oakbot.listener.chatgpt.OpenAIClient" id="openAIClient">
+	<bean class="oakbot.ai.openai.OpenAIClient" id="openAIClient">
 		<constructor-arg value="API_KEY" />
 	</bean>
-	<bean class="oakbot.listener.chatgpt.StabilityAIClient" id="stabilityAIClient">
+	<bean class="oakbot.ai.stabilityai.StabilityAIClient" id="stabilityAIClient">
 		<constructor-arg value="API_KEY" />
 	</bean>
 	<bean class="oakbot.listener.chatgpt.MoodCommand" id="moodCommand">

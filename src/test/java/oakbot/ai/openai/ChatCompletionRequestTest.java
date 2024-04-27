@@ -1,4 +1,4 @@
-package oakbot.listener.chatgpt;
+package oakbot.ai.openai;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
