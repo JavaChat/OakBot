@@ -3,7 +3,15 @@ package oakbot.listener.chatgpt;
 import java.util.Objects;
 
 /**
- * A request for the "Stable Image Core" endpoint. Costs 3 credits.
+ * <p>
+ * Our primary service for text-to-image generation, Stable Image Core
+ * represents the best quality achievable at high speed. No prompt engineering
+ * is required! Try asking for a style, a scene, or a character, and see what
+ * you get.
+ * </p>
+ * <p>
+ * Cost: 3 credits
+ * </p>
  * @see "https://platform.stability.ai/docs/api-reference#tag/Generate/paths/~1v2beta~1stable-image~1generate~1core/post"
  */
 public class StableImageCoreRequest {
@@ -121,7 +129,7 @@ public class StableImageCoreRequest {
 		 * @param seed the seed
 		 * @return this
 		 */
-		public Builder setSeed(Integer seed) {
+		public Builder seed(Integer seed) {
 			this.seed = seed;
 			return this;
 		}

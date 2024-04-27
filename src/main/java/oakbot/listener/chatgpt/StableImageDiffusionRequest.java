@@ -3,7 +3,14 @@ package oakbot.listener.chatgpt;
 import java.util.Objects;
 
 /**
- * A request for the "Stable Diffusion 3.0" endpoint. Costs 4 or 6.5 credits.
+ * <p>
+ * Generate images using Stable Diffusion 3.0 (SD3) or Stable Diffusion 3.0
+ * Turbo (SD3 Turbo), using either a prompt (text-to-image) or a image + prompt
+ * (image-to-image) as the input.
+ * </p>
+ * <p>
+ * Cost: SD3 is 6.5 credits and SD3 Turbo is 4 credits
+ * </p>
  * @see "https://platform.stability.ai/docs/api-reference#tag/Generate/paths/~1v2beta~1stable-image~1generate~1sd3/post"
  */
 public class StableImageDiffusionRequest {
@@ -175,7 +182,7 @@ public class StableImageDiffusionRequest {
 		 * @param seed the seed
 		 * @return this
 		 */
-		public Builder setSeed(Integer seed) {
+		public Builder seed(Integer seed) {
 			this.seed = seed;
 			return this;
 		}
