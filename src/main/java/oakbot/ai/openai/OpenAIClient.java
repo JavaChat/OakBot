@@ -72,7 +72,16 @@ public class OpenAIClient {
 		for (ChatCompletionRequest.Message message : apiRequest.getMessages()) {
 			ObjectNode messageNode = messagesNode.addObject();
 			messageNode.put("role", message.getRole());
-			putIfNotNull(messageNode, "name", message.getName());
+
+			/*
+			 * If the name contains unsupported characters, OpenAI returns an
+			 * error response saying that the name must match the pattern
+			 * "^[a-zA-Z0-9_-]+$".
+			 */
+			if (message.getName() != null) {
+				String name = message.getName().replaceAll("[^a-zA-Z0-9_-]", "");
+				messageNode.put("name", name);
+			}
 
 			ArrayNode contentNode = messageNode.putArray("content");
 
