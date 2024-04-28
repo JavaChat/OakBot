@@ -162,7 +162,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			String prompt = buildPrompt(roomId);
 			prompt += " Nobody is talking to you directly; you are just sharing your thoughts.";
 
-			ChatCompletionRequest request = buildChatCompletionRequest(prompt, messages, bot);
+			List<ChatCompletionRequest.Message> apiMessages = buildChatCompletionMessages(prompt, messages, bot);
+
+			ChatCompletionRequest request = buildChatCompletionRequest(apiMessages);
+
 			String response = sendChatCompletionRequest(request);
 
 			PostMessage postMessage = new PostMessage(response).splitStrategy(SplitStrategy.WORD);
@@ -216,8 +219,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
 
 			String prompt = buildPrompt(message.getRoomId());
-			ChatCompletionRequest request = buildChatCompletionRequest(prompt, prevMessages, bot);
-			addParentMessageToRequest(message, prevMessages, request, bot);
+			List<ChatCompletionRequest.Message> apiMessages = buildChatCompletionMessages(prompt, prevMessages, bot);
+			addParentMessage(message, prevMessages, apiMessages, bot);
+
+			ChatCompletionRequest request = buildChatCompletionRequest(apiMessages);
 
 			String response = sendChatCompletionRequest(request);
 
@@ -242,7 +247,17 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		}
 	}
 
-	private void addParentMessageToRequest(ChatMessage message, List<ChatMessage> prevMessages, ChatCompletionRequest request, IBot bot) {
+	private ChatCompletionRequest buildChatCompletionRequest(List<ChatCompletionRequest.Message> apiMessages) {
+		//@formatter:off
+		return new ChatCompletionRequest.Builder()
+			.messages(apiMessages)
+			.model(model)
+			.maxTokens(completionMaxTokens)
+		.build();
+		//@formatter:on
+	}
+
+	private void addParentMessage(ChatMessage message, List<ChatMessage> prevMessages, List<ChatCompletionRequest.Message> apiMessages, IBot bot) {
 		long parentId = message.getParentMessageId();
 		if (parentId == 0) {
 			return;
@@ -268,13 +283,15 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			/*
 			 * Insert the parent message right before the child message.
 			 */
-			int insertPos = request.getMessageCount() - 1;
+			int insertPos = apiMessages.size() - 1;
 
-			if (parentMessagePostedByBot) {
-				request.addBotMessage(parentMessageContent, imageUrls, insertPos);
-			} else {
-				request.addHumanMessage(parentMessageContent, imageUrls, insertPos);
-			}
+			//@formatter:off
+			apiMessages.add(insertPos, new ChatCompletionRequest.Message.Builder()
+				.role(parentMessagePostedByBot ? "assistant" : "user")
+				.text(parentMessageContent)
+				.imageUrls(imageUrls, "low")
+			.build());
+			//@formatter:on
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem getting content of parent message.");
 		}
@@ -318,13 +335,18 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		//@formatter:on
 	}
 
-	private ChatCompletionRequest buildChatCompletionRequest(String prompt, List<ChatMessage> messages, IBot bot) throws IOException {
-		ChatCompletionRequest request = new ChatCompletionRequest(prompt);
-		request.setMaxTokensForCompletion(completionMaxTokens);
-		request.setModel(model);
+	private List<ChatCompletionRequest.Message> buildChatCompletionMessages(String prompt, List<ChatMessage> chatMessages, IBot bot) throws IOException {
+		List<ChatCompletionRequest.Message> apiMessages = new ArrayList<>();
 
-		for (ChatMessage message : messages) {
-			Content content = message.getContent();
+		//@formatter:off
+		apiMessages.add(new ChatCompletionRequest.Message.Builder()
+			.role("system")
+			.text(prompt)
+		.build());
+		//@formatter:on
+
+		for (ChatMessage chatMessage : chatMessages) {
+			Content content = chatMessage.getContent();
 
 			boolean messageWasDeleted = (content == null);
 			if (messageWasDeleted) {
@@ -344,15 +366,19 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 				truncatedContentMd = contentMd;
 			}
 
-			boolean messagePostedByOak = (message.getUserId() == bot.getUserId());
-			if (messagePostedByOak) {
-				request.addBotMessage(truncatedContentMd, imageUrls);
-			} else {
-				request.addHumanMessage(truncatedContentMd, imageUrls);
-			}
+			boolean messagePostedByOak = (chatMessage.getUserId() == bot.getUserId());
+
+			//@formatter:off
+			apiMessages.add(new ChatCompletionRequest.Message.Builder()
+				.role(messagePostedByOak ? "assistant" : "user")
+				.name(messagePostedByOak ? bot.getUsername() : chatMessage.getUsername())
+				.text(truncatedContentMd)
+				.imageUrls(imageUrls, "low")
+			.build());
+			//@formatter:on
 		}
 
-		return request;
+		return apiMessages;
 	}
 
 	private List<String> extractImageUrlsIfModelSupportsVision(String content) throws IOException {
@@ -438,7 +464,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private String sendChatCompletionRequest(ChatCompletionRequest request) throws IOException {
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
+		try {
 			String response = openAIClient.chatCompletion(request);
 			response = removeMentionsFromBeginningOfMessage(response);
 			response = removeReplySyntaxFromBeginningOfMessage(response);

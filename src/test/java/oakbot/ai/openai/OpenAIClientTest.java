@@ -7,6 +7,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -37,13 +38,28 @@ public class OpenAIClientTest {
 	public void chatCompletion() throws Exception {
 		OpenAIClient client = new OpenAIClient("KEY");
 
-		ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest("Prompt goes here.");
+		//@formatter:off
+		ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest.Builder()
+			.model("model")
+			.messages(List.of(
+				new ChatCompletionRequest.Message.Builder()
+					.role("system")
+					.text("prompt")
+				.build()
+			))
+		.build();
+		//@formatter:on
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.request("POST", "https://api.openai.com/v1/chat/completions", request -> {
 				assertAuthHeader(request, "KEY");
-				//request is tested in ChatCompletionRequestTest
+
+				JsonNode node = parseRequestBody(request);
+				assertEquals("model", node.get("model").asText());
+				assertEquals("system", node.get("messages").get(0).get("role").asText());
+				assertEquals("text", node.get("messages").get(0).get("content").get(0).get("type").asText());
+				assertEquals("prompt", node.get("messages").get(0).get("content").get(0).get("text").asText());
 			})
 			.responseOk(ResponseSamples.chatCompletion("Response message."))
 		.build());
@@ -58,13 +74,28 @@ public class OpenAIClientTest {
 	public void chatCompletion_error() throws Exception {
 		OpenAIClient client = new OpenAIClient("KEY");
 
-		ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest("Prompt goes here.");
+		//@formatter:off
+		ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest.Builder()
+			.model("model")
+			.messages(List.of(
+				new ChatCompletionRequest.Message.Builder()
+					.role("system")
+					.text("prompt")
+				.build()
+			))
+		.build();
+		//@formatter:on
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.request("POST", "https://api.openai.com/v1/chat/completions", request -> {
 				assertAuthHeader(request, "KEY");
-				//request is tested in ChatCompletionRequestTest
+
+				JsonNode node = parseRequestBody(request);
+				assertEquals("model", node.get("model").asText());
+				assertEquals("system", node.get("messages").get(0).get("role").asText());
+				assertEquals("text", node.get("messages").get(0).get("content").get(0).get("type").asText());
+				assertEquals("prompt", node.get("messages").get(0).get("content").get(0).get("text").asText());
 			})
 			.responseOk(ResponseSamples.error("Error."))
 		.build());

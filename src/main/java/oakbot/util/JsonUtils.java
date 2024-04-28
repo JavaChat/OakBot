@@ -104,6 +104,54 @@ public final class JsonUtils {
 		return n.asText();
 	}
 
+	/**
+	 * Adds a field to a JSON object only if the field value is non-null.
+	 * @param node the JSON object
+	 * @param fieldName the field name
+	 * @param value the field value
+	 */
+	public static void putIfNotNull(ObjectNode node, String fieldName, String value) {
+		if (value != null) {
+			node.put(fieldName, value);
+		}
+	}
+	
+	/**
+	 * Adds a field to a JSON object only if the field value is non-null.
+	 * @param node the JSON object
+	 * @param fieldName the field name
+	 * @param value the field value
+	 */
+	public static void putIfNotNull(ObjectNode node, String fieldName, Integer value) {
+		if (value != null) {
+			node.put(fieldName, value);
+		}
+	}
+	
+	/**
+	 * Adds a field to a JSON object only if the field value is non-null.
+	 * @param node the JSON object
+	 * @param fieldName the field name
+	 * @param value the field value
+	 */
+	public static void putIfNotNull(ObjectNode node, String fieldName, Double value) {
+		if (value != null) {
+			node.put(fieldName, value);
+		}
+	}
+	
+	/**
+	 * Adds a field to a JSON object only if the field value is non-null.
+	 * @param node the JSON object
+	 * @param fieldName the field name
+	 * @param value the field value
+	 */
+	public static void putIfNotNull(ObjectNode node, String fieldName, Boolean value) {
+		if (value != null) {
+			node.put(fieldName, value);
+		}
+	}
+
 	private JsonUtils() {
 		//hide constructor
 	}

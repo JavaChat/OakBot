@@ -1,5 +1,7 @@
 package oakbot.ai.openai;
 
+import static oakbot.util.JsonUtils.putIfNotNull;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -22,6 +24,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import oakbot.util.HttpFactory;
@@ -42,15 +45,62 @@ public class OpenAIClient {
 
 	/**
 	 * Sends a chat completion request.
-	 * @param chatRequest the request
+	 * @param apiRequest the request
 	 * @return the completion response
 	 * @throws OpenAIException if OpenAI returns an error response
-	 * @throws IOException if there's a problem communicating with OpenAI
+	 * @throws IOException if there's a network problem
 	 * @see "https://platform.openai.com/docs/api-reference/chat"
 	 */
-	public String chatCompletion(ChatCompletionRequest chatRequest) throws IOException {
+	public String chatCompletion(ChatCompletionRequest apiRequest) throws IOException {
 		HttpPost request = postRequestWithApiKey("/v1/chat/completions");
-		request.setEntity(new JsonEntity(chatRequest.getRoot()));
+
+		ObjectNode node = JsonUtils.newObject();
+		node.put("model", apiRequest.getModel());
+		putIfNotNull(node, "frequency_penalty", apiRequest.getFrequencyPenalty());
+		putIfNotNull(node, "max_tokens", apiRequest.getMaxTokens());
+		putIfNotNull(node, "n", apiRequest.getNumCompletionsToGenerate());
+		putIfNotNull(node, "presence_penalty", apiRequest.getPresencePenalty());
+		if (apiRequest.getResponseFormat() != null) {
+			node.set("response_format", node.objectNode().put("type", apiRequest.getResponseFormat()));
+		}
+		putIfNotNull(node, "seed", apiRequest.getSeed());
+		putIfNotNull(node, "temperature", apiRequest.getTemperature());
+		putIfNotNull(node, "top_p", apiRequest.getTopP());
+		putIfNotNull(node, "user", apiRequest.getUser());
+
+		ArrayNode messagesNode = node.putArray("messages");
+		for (ChatCompletionRequest.Message message : apiRequest.getMessages()) {
+			ObjectNode messageNode = messagesNode.addObject();
+			messageNode.put("role", message.getRole());
+			putIfNotNull(messageNode, "name", message.getName());
+
+			ArrayNode contentNode = messageNode.putArray("content");
+
+			if (message.getText() != null) {
+				//@formatter:off
+				contentNode.addObject()
+					.put("type", "text")
+					.put("text", message.getText());
+				//@formatter:on
+			}
+
+			for (String imageUrl : message.getImageUrls()) {
+				ObjectNode imageContentNode = contentNode.addObject();
+				imageContentNode.put("type", "image_url");
+
+				ObjectNode urlNode = imageContentNode.putObject("image_url");
+				urlNode.put("url", imageUrl);
+				putIfNotNull(urlNode, "detail", message.getImageDetail());
+			}
+		}
+
+		if (!apiRequest.getStop().isEmpty()) {
+			ArrayNode stopNode = node.arrayNode();
+			node.set("stop", stopNode);
+			apiRequest.getStop().forEach(stopNode::add);
+		}
+
+		request.setEntity(new JsonEntity(node));
 
 		logRequest(request);
 
@@ -95,7 +145,7 @@ public class OpenAIClient {
 	 * @return the URL to the image. The image will be deleted off their servers
 	 * within 5-10 minutes.
 	 * @throws OpenAIException if OpenAI returns an error response
-	 * @throws IOException if there's a problem communicating with OpenAI
+	 * @throws IOException if there's a network problem
 	 * @see "https://platform.openai.com/docs/api-reference/images/create"
 	 */
 	public String createImage(String model, String size, String prompt) throws IOException, OpenAIException {
@@ -138,8 +188,7 @@ public class OpenAIClient {
 	 * @return the URL to the variation. The image will be deleted off their
 	 * servers within 5-10 minutes.
 	 * @throws OpenAIException if OpenAI returns an error response
-	 * @throws IOException if there's a problem downloading the input image or
-	 * communicating with OpenAI
+	 * @throws IOException if there's a network problem
 	 * @throws IllegalArgumentException if the given URL is invalid
 	 * @see "https://platform.openai.com/docs/api-reference/images/createVariation"
 	 */
