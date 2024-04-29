@@ -37,7 +37,7 @@ public class ChatCompletionResponse {
 	}
 
 	/**
-	 * Sets when the chat completion was created.
+	 * Gets when the chat completion was created.
 	 * @return the timestamp
 	 */
 	public Instant getCreated() {
@@ -45,7 +45,7 @@ public class ChatCompletionResponse {
 	}
 
 	/**
-	 * Sets the model used for the chat completion.
+	 * Gets the model used for the chat completion.
 	 * @return the model
 	 */
 	public String getModel() {
@@ -53,7 +53,7 @@ public class ChatCompletionResponse {
 	}
 
 	/**
-	 * Sets a fingerprint which represents the backend configuration that
+	 * Gets a fingerprint which represents the backend configuration that
 	 * the model runs with. Can be used in conjunction with the
 	 * {@link ChatCompletionRequest.Builder#seed seed} request parameter
 	 * to understand when backend changes have been made that might impact
@@ -65,7 +65,7 @@ public class ChatCompletionResponse {
 	}
 
 	/**
-	 * Sets the number of tokens that the prompt consumed.
+	 * Gets the number of tokens that the prompt consumed.
 	 * @return the number of tokens
 	 */
 	public int getPromptTokens() {
@@ -73,7 +73,7 @@ public class ChatCompletionResponse {
 	}
 
 	/**
-	 * Sets the number of tokens that the generated completion consumed.
+	 * Gets the number of tokens that the generated completion consumed.
 	 * @return the number of tokens
 	 */
 	public int getCompletionTokens() {
@@ -81,7 +81,7 @@ public class ChatCompletionResponse {
 	}
 
 	/**
-	 * Sets the list of chat completion choices. Can be more than one if
+	 * Gets the list of chat completion choices. Can be more than one if
 	 * {@link ChatCompletionRequest.Builder#numCompletionsToGenerate n}
 	 * is greater than 1.
 	 * @return the choices
