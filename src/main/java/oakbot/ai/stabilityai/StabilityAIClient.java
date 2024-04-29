@@ -261,7 +261,7 @@ public class StabilityAIClient {
 					return body.path("id").asText();
 				}
 
-				throw parseErrorException(body);
+				throw parseErrorException(statusCode, body);
 			}
 		}
 	}
@@ -378,7 +378,7 @@ public class StabilityAIClient {
 					return body.path("id").asText();
 				}
 
-				throw parseErrorException(body);
+				throw parseErrorException(statusCode, body);
 			}
 		}
 	}
@@ -426,7 +426,7 @@ public class StabilityAIClient {
 		}
 	}
 
-	private StabilityAIException parseErrorException(JsonNode body) {
+	private StabilityAIException parseErrorException(int statusCode, JsonNode body) {
 		String name = body.path("name").asText();
 
 		//@formatter:off
@@ -435,12 +435,13 @@ public class StabilityAIClient {
 		.collect(Collectors.toList());
 		//@formatter:on
 
-		return new StabilityAIException(name, errors);
+		return new StabilityAIException(statusCode, name, errors);
 	}
 
 	private StabilityAIException parseErrorException(CloseableHttpResponse response) throws IOException {
+		int statusCode = response.getStatusLine().getStatusCode();
 		JsonNode body = parseJsonResponse(response);
-		return parseErrorException(body);
+		return parseErrorException(statusCode, body);
 	}
 
 	private StableImageResponse parseStableImageResponse(CloseableHttpResponse response) throws IOException {

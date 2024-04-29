@@ -8,13 +8,19 @@ import java.util.List;
 public class StabilityAIException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
+	private final int statusCode;
 	private final String name;
 	private final List<String> errors;
 
-	public StabilityAIException(String name, List<String> errors) {
-		super(name + ": " + errors);
+	public StabilityAIException(int statusCode, String name, List<String> errors) {
+		super("HTTP " + statusCode + ": " + name + ": " + errors);
+		this.statusCode = statusCode;
 		this.name = name;
 		this.errors = errors;
+	}
+	
+	public int getStatusCode() {
+		return statusCode;
 	}
 
 	public String getName() {
