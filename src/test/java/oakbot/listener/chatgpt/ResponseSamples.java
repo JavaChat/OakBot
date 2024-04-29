@@ -16,6 +16,7 @@ public class ResponseSamples {
 		return JsonUtils.toString(root
 		.put("id", "chatcmpl-8739H6quSXU5gws7FoIIutD3TsOsZ")
 		.put("object", "chat.completion")
+		.put("created", 1714414784L)
 		.put("model", "gpt-3.5-turbo-0613")
 		.<ObjectNode>set("choices", root.arrayNode().add(root.objectNode()
 			.put("index", 0)

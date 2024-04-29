@@ -7,6 +7,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.time.Instant;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -65,9 +66,16 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		String expected = "Response message.";
-		String actual = client.chatCompletion(chatCompletionRequest);
-		assertEquals(expected, actual);
+		ChatCompletionResponse actual = client.chatCompletion(chatCompletionRequest);
+		assertEquals("chatcmpl-8739H6quSXU5gws7FoIIutD3TsOsZ", actual.getId());
+		assertEquals("gpt-3.5-turbo-0613", actual.getModel());
+		assertEquals(Instant.ofEpochSecond(1714414784L), actual.getCreated());
+		assertEquals("", actual.getSystemFingerprint());
+		assertEquals(1, actual.getChoices().size());
+		assertEquals("Response message.", actual.getChoices().get(0).getContent());
+		assertEquals("stop", actual.getChoices().get(0).getFinishReason());
+		assertEquals(50, actual.getPromptTokens());
+		assertEquals(9, actual.getCompletionTokens());
 	}
 
 	@Test

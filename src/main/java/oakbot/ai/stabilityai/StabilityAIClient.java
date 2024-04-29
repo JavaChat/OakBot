@@ -5,11 +5,8 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
@@ -430,7 +427,7 @@ public class StabilityAIClient {
 		String name = body.path("name").asText();
 
 		//@formatter:off
-		List<String> errors = StreamSupport.stream(Spliterators.spliteratorUnknownSize(body.path("errors").iterator(), Spliterator.ORDERED), false)
+		List<String> errors = JsonUtils.stream(body.path("errors"))
 			.map(JsonNode::asText)
 		.collect(Collectors.toList());
 		//@formatter:on

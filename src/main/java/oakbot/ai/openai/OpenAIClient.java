@@ -7,8 +7,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -30,6 +32,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import oakbot.util.HttpFactory;
 import oakbot.util.JsonUtils;
 
+/**
+ * Client for interacting with OpenAI.
+ * @author Michael Angstadt
+ * @see "https://platform.openai.com/docs/api-reference"
+ */
 public class OpenAIClient {
 	private static final Logger logger = Logger.getLogger(OpenAIClient.class.getName());
 
@@ -51,65 +58,9 @@ public class OpenAIClient {
 	 * @throws IOException if there's a network problem
 	 * @see "https://platform.openai.com/docs/api-reference/chat"
 	 */
-	public String chatCompletion(ChatCompletionRequest apiRequest) throws IOException {
+	public ChatCompletionResponse chatCompletion(ChatCompletionRequest apiRequest) throws IOException {
 		HttpPost request = postRequestWithApiKey("/v1/chat/completions");
-
-		ObjectNode node = JsonUtils.newObject();
-		node.put("model", apiRequest.getModel());
-		putIfNotNull(node, "frequency_penalty", apiRequest.getFrequencyPenalty());
-		putIfNotNull(node, "max_tokens", apiRequest.getMaxTokens());
-		putIfNotNull(node, "n", apiRequest.getNumCompletionsToGenerate());
-		putIfNotNull(node, "presence_penalty", apiRequest.getPresencePenalty());
-		if (apiRequest.getResponseFormat() != null) {
-			node.set("response_format", node.objectNode().put("type", apiRequest.getResponseFormat()));
-		}
-		putIfNotNull(node, "seed", apiRequest.getSeed());
-		putIfNotNull(node, "temperature", apiRequest.getTemperature());
-		putIfNotNull(node, "top_p", apiRequest.getTopP());
-		putIfNotNull(node, "user", apiRequest.getUser());
-
-		ArrayNode messagesNode = node.putArray("messages");
-		for (ChatCompletionRequest.Message message : apiRequest.getMessages()) {
-			ObjectNode messageNode = messagesNode.addObject();
-			messageNode.put("role", message.getRole());
-
-			/*
-			 * If the name contains unsupported characters, OpenAI returns an
-			 * error response saying that the name must match the pattern
-			 * "^[a-zA-Z0-9_-]+$".
-			 */
-			if (message.getName() != null) {
-				String name = message.getName().replaceAll("[^a-zA-Z0-9_-]", "");
-				messageNode.put("name", name);
-			}
-
-			ArrayNode contentNode = messageNode.putArray("content");
-
-			if (message.getText() != null) {
-				//@formatter:off
-				contentNode.addObject()
-					.put("type", "text")
-					.put("text", message.getText());
-				//@formatter:on
-			}
-
-			for (String imageUrl : message.getImageUrls()) {
-				ObjectNode imageContentNode = contentNode.addObject();
-				imageContentNode.put("type", "image_url");
-
-				ObjectNode urlNode = imageContentNode.putObject("image_url");
-				urlNode.put("url", imageUrl);
-				putIfNotNull(urlNode, "detail", message.getImageDetail());
-			}
-		}
-
-		if (!apiRequest.getStop().isEmpty()) {
-			ArrayNode stopNode = node.arrayNode();
-			node.set("stop", stopNode);
-			apiRequest.getStop().forEach(stopNode::add);
-		}
-
-		request.setEntity(new JsonEntity(node));
+		request.setEntity(new JsonEntity(toJson(apiRequest)));
 
 		logRequest(request);
 
@@ -127,22 +78,10 @@ public class OpenAIClient {
 
 			lookForError(responseBody);
 
-			checkFinishReason(responseBody);
-
-			return extractJsonField("choices/0/message/content", responseBody);
+			return parseChatCompletionResponse(responseBody);
 		} catch (IOException e) {
 			logError(request, responseStatusCode, responseBody, e);
 			throw e;
-		}
-	}
-
-	private void checkFinishReason(JsonNode responseBody) {
-		try {
-			String finishReason = JsonUtils.extractField("choices/0/finish_reason", responseBody);
-			if (!"stop".equals(finishReason)) {
-				logger.warning(() -> "Non-stop finish reason returned: " + JsonUtils.prettyPrint(responseBody));
-			}
-		} catch (IllegalArgumentException ignoreUnrecognizedJsonResponse) {
 		}
 	}
 
@@ -410,19 +349,96 @@ public class OpenAIClient {
 			return;
 		}
 
-		JsonNode node = error.get("message");
-		String message = (node == null) ? null : node.asText();
-
-		node = error.get("type");
-		String type = (node == null) ? null : node.asText();
-
-		node = error.get("param");
-		String param = (node == null) ? null : node.asText();
-
-		node = error.get("code");
-		String code = (node == null) ? null : node.asText();
+		String message = error.path("message").asText();
+		String type = error.path("type").asText();
+		String param = error.path("param").asText();
+		String code = error.path("code").asText();
 
 		throw new OpenAIException(message, type, param, code);
+	}
+
+	private JsonNode toJson(ChatCompletionRequest apiRequest) {
+		ObjectNode node = JsonUtils.newObject();
+
+		node.put("model", apiRequest.getModel());
+		putIfNotNull(node, "frequency_penalty", apiRequest.getFrequencyPenalty());
+		putIfNotNull(node, "max_tokens", apiRequest.getMaxTokens());
+		putIfNotNull(node, "n", apiRequest.getNumCompletionsToGenerate());
+		putIfNotNull(node, "presence_penalty", apiRequest.getPresencePenalty());
+
+		if (apiRequest.getResponseFormat() != null) {
+			node.set("response_format", node.objectNode().put("type", apiRequest.getResponseFormat()));
+		}
+
+		putIfNotNull(node, "seed", apiRequest.getSeed());
+		putIfNotNull(node, "temperature", apiRequest.getTemperature());
+		putIfNotNull(node, "top_p", apiRequest.getTopP());
+		putIfNotNull(node, "user", apiRequest.getUser());
+
+		ArrayNode messagesNode = node.putArray("messages");
+		for (ChatCompletionRequest.Message message : apiRequest.getMessages()) {
+			ObjectNode messageNode = messagesNode.addObject();
+			messageNode.put("role", message.getRole());
+
+			if (message.getName() != null) {
+				/*
+				 * Sanitize name field.
+				 * 
+				 * If the name contains unsupported characters, OpenAI returns
+				 * an error response saying that the name must match the pattern
+				 * "^[a-zA-Z0-9_-]+$".
+				 */
+				String name = message.getName().replaceAll("[^a-zA-Z0-9_-]", "");
+				messageNode.put("name", name);
+			}
+
+			ArrayNode contentNode = messageNode.putArray("content");
+
+			if (message.getText() != null) {
+				//@formatter:off
+				contentNode.addObject()
+					.put("type", "text")
+					.put("text", message.getText());
+				//@formatter:on
+			}
+
+			for (String imageUrl : message.getImageUrls()) {
+				ObjectNode imageContentNode = contentNode.addObject();
+				imageContentNode.put("type", "image_url");
+
+				ObjectNode urlNode = imageContentNode.putObject("image_url");
+				urlNode.put("url", imageUrl);
+				putIfNotNull(urlNode, "detail", message.getImageDetail());
+			}
+		}
+
+		if (!apiRequest.getStop().isEmpty()) {
+			ArrayNode stopNode = node.arrayNode();
+			node.set("stop", stopNode);
+			apiRequest.getStop().forEach(stopNode::add);
+		}
+
+		return node;
+	}
+
+	private ChatCompletionResponse parseChatCompletionResponse(JsonNode node) {
+		//@formatter:off
+		return new ChatCompletionResponse.Builder()
+			.id(node.path("id").asText())
+			.created(Instant.ofEpochSecond(node.path("created").asLong()))
+			.model(node.path("model").asText())
+			.systemFingerprint(node.path("system_fingerprint").asText())
+			.promptTokens(node.path("usage").path("prompt_tokens").asInt())
+			.completionTokens(node.path("usage").path("completion_tokens").asInt())
+			.choices(JsonUtils.stream(node.path("choices"))
+				.map(choiceNode -> {
+					String content = choiceNode.path("message").path("content").asText();
+					String finishReason = choiceNode.path("finish_reason").asText();
+					return new ChatCompletionResponse.Choice(content, finishReason);
+				})
+			.collect(Collectors.toList()))
+		.build();
+		//@formatter:on
 	}
 
 	private static class JsonEntity extends StringEntity {

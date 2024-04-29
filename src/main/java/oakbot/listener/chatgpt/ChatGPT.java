@@ -35,6 +35,7 @@ import com.github.mangstadt.sochat4j.Content;
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
 import oakbot.ai.openai.ChatCompletionRequest;
+import oakbot.ai.openai.ChatCompletionResponse;
 import oakbot.ai.openai.OpenAIClient;
 import oakbot.ai.openai.OpenAIException;
 import oakbot.bot.ChatActions;
@@ -463,12 +464,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		return urls;
 	}
 
-	private String sendChatCompletionRequest(ChatCompletionRequest request) throws IOException {
+	private String sendChatCompletionRequest(ChatCompletionRequest apiRequest) throws IOException {
+		ChatCompletionResponse apiResponse;
 		try {
-			String response = openAIClient.chatCompletion(request);
-			response = removeMentionsFromBeginningOfMessage(response);
-			response = removeReplySyntaxFromBeginningOfMessage(response);
-			return formatMessagesWithCodeBlocks(response);
+			apiResponse = openAIClient.chatCompletion(apiRequest);
 		} catch (OpenAIException e) {
 			//@formatter:off
 			return new ChatBuilder()
@@ -479,6 +478,19 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			.toString();
 			//@formatter:on
 		}
+		
+		if (apiResponse.getChoices().isEmpty()) {
+			//@formatter:off
+			return new ChatBuilder()
+				.code("ERROR BEEP BOOP: Choices array in response is empty.")
+			.toString();
+			//@formatter:on
+		}
+		
+		String response = apiResponse.getChoices().get(0).getContent();
+		response = removeMentionsFromBeginningOfMessage(response);
+		response = removeReplySyntaxFromBeginningOfMessage(response);
+		return formatMessagesWithCodeBlocks(response);
 	}
 
 	/**

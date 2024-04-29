@@ -3,6 +3,10 @@ package oakbot.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.PrettyPrinter;
@@ -115,7 +119,7 @@ public final class JsonUtils {
 			node.put(fieldName, value);
 		}
 	}
-	
+
 	/**
 	 * Adds a field to a JSON object only if the field value is non-null.
 	 * @param node the JSON object
@@ -127,7 +131,7 @@ public final class JsonUtils {
 			node.put(fieldName, value);
 		}
 	}
-	
+
 	/**
 	 * Adds a field to a JSON object only if the field value is non-null.
 	 * @param node the JSON object
@@ -139,7 +143,7 @@ public final class JsonUtils {
 			node.put(fieldName, value);
 		}
 	}
-	
+
 	/**
 	 * Adds a field to a JSON object only if the field value is non-null.
 	 * @param node the JSON object
@@ -150,6 +154,15 @@ public final class JsonUtils {
 		if (value != null) {
 			node.put(fieldName, value);
 		}
+	}
+
+	/**
+	 * Streams the fields in an object or the elements of an array.
+	 * @param objOrArray the object or array
+	 * @return the stream
+	 */
+	public static Stream<JsonNode> stream(JsonNode objOrArray) {
+		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(objOrArray.iterator(), Spliterator.ORDERED), false);
 	}
 
 	private JsonUtils() {
