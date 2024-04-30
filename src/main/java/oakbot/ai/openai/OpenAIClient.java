@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -77,7 +78,7 @@ public class OpenAIClient {
 
 			logResponse(responseStatusCode, responseBody);
 
-			lookForError(responseBody);
+			lookForError(null, responseBody);
 
 			return parseChatCompletionResponse(responseBody);
 		} catch (IOException e) {
@@ -122,7 +123,7 @@ public class OpenAIClient {
 
 			logResponse(responseStatusCode, responseBody);
 
-			lookForError(responseBody);
+			lookForError(prompt, responseBody);
 
 			return extractJsonField("data/0/url", responseBody);
 		} catch (IOException e) {
@@ -167,7 +168,7 @@ public class OpenAIClient {
 
 				logResponse(responseStatusCode, responseBody);
 
-				lookForError(responseBody);
+				lookForError(null, responseBody);
 
 				return extractJsonField("data/0/url", responseBody);
 			} catch (IOException e) {
@@ -218,7 +219,7 @@ public class OpenAIClient {
 
 			logResponse(responseStatusCode, responseBody);
 
-			lookForError(responseBody);
+			lookForError(apiRequest.getInput(), responseBody);
 
 			return null;
 		} catch (IOException e) {
@@ -271,7 +272,7 @@ public class OpenAIClient {
 
 			logResponse(responseStatusCode, responseBody);
 
-			lookForError(responseBody);
+			lookForError(input, responseBody);
 
 			return parseModerationResponse(responseBody);
 		} catch (IOException e) {
@@ -394,10 +395,12 @@ public class OpenAIClient {
 	/**
 	 * Throws an exception if there is an error in the given response from the
 	 * OpenAI API.
+	 * @param prompt the prompt or input text the user entered, or null if not
+	 * applicable
 	 * @param response the OpenAI API response
 	 * @throws OpenAIException if there is an error in the given response
 	 */
-	private void lookForError(JsonNode response) throws OpenAIException {
+	private void lookForError(String prompt, JsonNode response) throws OpenAIException {
 		JsonNode error = response.get("error");
 		if (error == null) {
 			return;
@@ -407,6 +410,21 @@ public class OpenAIClient {
 		String type = error.path("type").asText();
 		String param = error.path("param").asText();
 		String code = error.path("code").asText();
+
+		/*
+		 * If rejected by the moderation system, get the reason(s) why.
+		 */
+		if (prompt != null && message.contains("Your request was rejected as a result of our safety system.")) {
+			Set<String> flaggedCategories;
+			try {
+				flaggedCategories = moderate(prompt).getFlaggedCategories();
+			} catch (Exception ignore) {
+				logger.log(Level.WARNING, ignore, () -> "Ignoring failed call to moderation endpoint.");
+				flaggedCategories = Set.of();
+			}
+
+			throw new OpenAIModerationException(message, type, param, code, flaggedCategories);
+		}
 
 		throw new OpenAIException(message, type, param, code);
 	}
