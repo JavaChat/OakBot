@@ -1,6 +1,8 @@
 package oakbot.ai.openai;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -8,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -61,6 +64,93 @@ public class OpenAIClientTest {
 				assertEquals("system", node.get("messages").get(0).get("role").asText());
 				assertEquals("text", node.get("messages").get(0).get("content").get(0).get("type").asText());
 				assertEquals("prompt", node.get("messages").get(0).get("content").get(0).get("text").asText());
+			})
+			.responseOk(ResponseSamples.chatCompletion("Response message."))
+		.build());
+		//@formatter:on
+
+		ChatCompletionResponse actual = client.chatCompletion(chatCompletionRequest);
+		assertEquals("chatcmpl-8739H6quSXU5gws7FoIIutD3TsOsZ", actual.getId());
+		assertEquals("gpt-3.5-turbo-0613", actual.getModel());
+		assertEquals(Instant.ofEpochSecond(1714414784L), actual.getCreated());
+		assertEquals("", actual.getSystemFingerprint());
+		assertEquals(1, actual.getChoices().size());
+		assertEquals("Response message.", actual.getChoices().get(0).getContent());
+		assertEquals("stop", actual.getChoices().get(0).getFinishReason());
+		assertEquals(50, actual.getPromptTokens());
+		assertEquals(9, actual.getCompletionTokens());
+	}
+	
+	@Test
+	public void chatCompletion_sanitize_name() throws Exception {
+		OpenAIClient client = new OpenAIClient("KEY");
+
+		//@formatter:off
+		ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest.Builder()
+			.model("model")
+			.messages(List.of(
+				new ChatCompletionRequest.Message.Builder()
+					.role("system")
+					.text("prompt")
+				.build(),
+				new ChatCompletionRequest.Message.Builder()
+					.role("user")
+					//name not defined
+					.text("Hello1")
+				.build(),
+				new ChatCompletionRequest.Message.Builder()
+					.role("user")
+					.name("мзж") //remove all characters
+					.text("Hello2")
+				.build(),
+				new ChatCompletionRequest.Message.Builder()
+					.role("user")
+					.name("мMзж") //remove all but the second character
+					.text("Hello3")
+				.build(),
+				new ChatCompletionRequest.Message.Builder()
+					.role("user")
+					.name("aaaaaaaaaabbbbbbbbbbccccccccccddddddddddeeeeeeeeeeffffffffffgggggggggg") //truncate to 64 characters
+					.text("Hello4")
+				.build()
+			))
+		.build();
+		//@formatter:on
+
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.request("POST", "https://api.openai.com/v1/chat/completions", request -> {
+				assertAuthHeader(request, "KEY");
+
+				JsonNode node = parseRequestBody(request);
+				assertEquals("model", node.get("model").asText());
+				
+				Iterator<JsonNode> it = node.get("messages").iterator();
+				JsonNode message = it.next();
+				assertEquals("system", message.get("role").asText());
+				assertEquals("text", message.get("content").get(0).get("type").asText());
+				assertEquals("prompt", message.get("content").get(0).get("text").asText());
+				message = it.next();
+				assertEquals("user", message.get("role").asText());
+				assertNull(message.get("content").get(0).get("name"));
+				assertEquals("text", message.get("content").get(0).get("type").asText());
+				assertEquals("Hello1", message.get("content").get(0).get("text").asText());
+				message = it.next();
+				assertEquals("user", message.get("role").asText());
+				assertNull(message.get("content").get(0).get("name"));
+				assertEquals("text", message.get("content").get(0).get("type").asText());
+				assertEquals("Hello2", message.get("content").get(0).get("text").asText());
+				message = it.next();
+				assertEquals("user", message.get("role").asText());
+				assertEquals("M", message.get("name").asText());
+				assertEquals("text", message.get("content").get(0).get("type").asText());
+				assertEquals("Hello3", message.get("content").get(0).get("text").asText());
+				message = it.next();
+				assertEquals("user", message.get("role").asText());
+				assertEquals("aaaaaaaaaabbbbbbbbbbccccccccccddddddddddeeeeeeeeeeffffffffffgggg", message.get("name").asText());
+				assertEquals("text", message.get("content").get(0).get("type").asText());
+				assertEquals("Hello4", message.get("content").get(0).get("text").asText());
+				assertFalse(it.hasNext());
 			})
 			.responseOk(ResponseSamples.chatCompletion("Response message."))
 		.build());

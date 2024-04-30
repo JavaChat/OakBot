@@ -380,17 +380,7 @@ public class OpenAIClient {
 			ObjectNode messageNode = messagesNode.addObject();
 			messageNode.put("role", message.getRole());
 
-			if (message.getName() != null) {
-				/*
-				 * Sanitize name field.
-				 * 
-				 * If the name contains unsupported characters, OpenAI returns
-				 * an error response saying that the name must match the pattern
-				 * "^[a-zA-Z0-9_-]+$".
-				 */
-				String name = message.getName().replaceAll("[^a-zA-Z0-9_-]", "");
-				messageNode.put("name", name);
-			}
+			putIfNotNull(messageNode, "name", sanitizeMessageName(message.getName()));
 
 			ArrayNode contentNode = messageNode.putArray("content");
 
@@ -419,6 +409,37 @@ public class OpenAIClient {
 		}
 
 		return node;
+	}
+
+	/**
+	 * <p>
+	 * Sanitize name field.
+	 * </p>
+	 * <p>
+	 * If the name contains unsupported characters, or is too long, an error
+	 * response is returned saying that the name must match the pattern
+	 * "^[a-zA-Z0-9_-]{1,64}$".
+	 * </p>
+	 * @param name the name value
+	 * @return the sanitized name value or null if the value is null or null if
+	 * all characters are invalid
+	 */
+	private String sanitizeMessageName(String name) {
+		if (name == null) {
+			return null;
+		}
+
+		name = name.replaceAll("[^a-zA-Z0-9_-]", "");
+		if (name.isEmpty()) {
+			return null;
+		}
+
+		int maxLength = 64;
+		if (name.length() > maxLength) {
+			name = name.substring(0, maxLength);
+		}
+
+		return name;
 	}
 
 	private ChatCompletionResponse parseChatCompletionResponse(JsonNode node) {
