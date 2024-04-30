@@ -3,6 +3,7 @@ package oakbot.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
@@ -157,12 +158,21 @@ public final class JsonUtils {
 	}
 
 	/**
-	 * Streams the fields in an object or the elements of an array.
-	 * @param objOrArray the object or array
+	 * Streams the elements of an array.
+	 * @param array the array
 	 * @return the stream
 	 */
-	public static Stream<JsonNode> stream(JsonNode objOrArray) {
-		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(objOrArray.iterator(), Spliterator.ORDERED), false);
+	public static Stream<JsonNode> streamArray(JsonNode array) {
+		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(array.iterator(), Spliterator.ORDERED), false);
+	}
+	
+	/**
+	 * Streams the fields in an object.
+	 * @param obj the object
+	 * @return the stream
+	 */
+	public static Stream<Map.Entry<String, JsonNode>> streamObject(JsonNode obj) {
+		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(obj.fields(), Spliterator.ORDERED), false);
 	}
 
 	private JsonUtils() {

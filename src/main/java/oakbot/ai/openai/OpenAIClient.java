@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -220,6 +221,59 @@ public class OpenAIClient {
 			lookForError(responseBody);
 
 			return null;
+		} catch (IOException e) {
+			logError(request, responseStatusCode, responseBody, e);
+			throw e;
+		}
+	}
+
+	/**
+	 * Classifies if the given text is potentially harmful.
+	 * @param input the input text to classify
+	 * @return the moderation response
+	 * @throws IOException if there's a network problem
+	 * @throws OpenAIException if an error response is returned
+	 * @see "https://platform.openai.com/docs/api-reference/moderations/create"
+	 */
+	public ModerationResponse moderate(String input) throws IOException, OpenAIException {
+		return moderate(input, null);
+	}
+
+	/**
+	 * Classifies if the given text is potentially harmful.
+	 * @param input the input text to classify
+	 * @param model the model to use or null to use the default model
+	 * @return the moderation response
+	 * @throws IOException if there's a network problem
+	 * @throws OpenAIException if an error response is returned
+	 * @see "https://platform.openai.com/docs/api-reference/moderations/create"
+	 */
+	public ModerationResponse moderate(String input, String model) throws IOException, OpenAIException {
+		HttpPost request = postRequestWithApiKey("/v1/moderations");
+
+		ObjectNode node = JsonUtils.newObject();
+		node.put("input", input);
+		putIfNotNull(node, "model", model);
+
+		request.setEntity(new JsonEntity(node));
+
+		logRequest(request);
+
+		JsonNode responseBody = null;
+		int responseStatusCode = 0;
+		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
+			try (CloseableHttpResponse response = client.execute(request)) {
+				responseStatusCode = response.getStatusLine().getStatusCode();
+				try (InputStream in = response.getEntity().getContent()) {
+					responseBody = JsonUtils.parse(in);
+				}
+			}
+
+			logResponse(responseStatusCode, responseBody);
+
+			lookForError(responseBody);
+
+			return parseModerationResponse(responseBody);
 		} catch (IOException e) {
 			logError(request, responseStatusCode, responseBody, e);
 			throw e;
@@ -451,13 +505,30 @@ public class OpenAIClient {
 			.systemFingerprint(node.path("system_fingerprint").asText())
 			.promptTokens(node.path("usage").path("prompt_tokens").asInt())
 			.completionTokens(node.path("usage").path("completion_tokens").asInt())
-			.choices(JsonUtils.stream(node.path("choices"))
+			.choices(JsonUtils.streamArray(node.path("choices"))
 				.map(choiceNode -> {
 					String content = choiceNode.path("message").path("content").asText();
 					String finishReason = choiceNode.path("finish_reason").asText();
 					return new ChatCompletionResponse.Choice(content, finishReason);
 				})
-			.collect(Collectors.toList()))
+				.collect(Collectors.toList()))
+		.build();
+		//@formatter:on
+	}
+
+	private ModerationResponse parseModerationResponse(JsonNode node) {
+		JsonNode results = node.path("results").path(0);
+
+		//@formatter:off
+		return new ModerationResponse.Builder()
+			.id(node.path("id").asText())
+			.model(node.path("model").asText())
+			.flaggedCategories(JsonUtils.streamObject(results.path("categories"))
+				.filter(entry -> entry.getValue().asBoolean())
+				.map(Map.Entry::getKey)
+				.collect(Collectors.toSet()))
+			.categoryScores(JsonUtils.streamObject(results.path("category_scores"))
+				.collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().asDouble())))
 		.build();
 		//@formatter:on
 	}

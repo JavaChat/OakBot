@@ -427,7 +427,7 @@ public class StabilityAIClient {
 		String name = body.path("name").asText();
 
 		//@formatter:off
-		List<String> errors = JsonUtils.stream(body.path("errors"))
+		List<String> errors = JsonUtils.streamArray(body.path("errors"))
 			.map(JsonNode::asText)
 		.collect(Collectors.toList());
 		//@formatter:on
