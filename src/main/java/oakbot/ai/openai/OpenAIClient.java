@@ -133,23 +133,24 @@ public class OpenAIClient {
 
 	/**
 	 * Creates a variation of the given image.
-	 * @param url the URL to the image
+	 * @param inputImageUrl the URL of the input image
+	 * @param size the size of the generated image
 	 * @return the response
 	 * @throws OpenAIException if OpenAI returns an error response
 	 * @throws IOException if there's a network problem
 	 * @throws IllegalArgumentException if the given URL is invalid
 	 * @see "https://platform.openai.com/docs/api-reference/images/createVariation"
 	 */
-	public CreateImageResponse createImageVariation(String url) throws IllegalArgumentException, IOException, OpenAIException {
+	public CreateImageResponse createImageVariation(String inputImageUrl, String size) throws IllegalArgumentException, IOException, OpenAIException {
 		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			byte[] image = downloadImage(client, url);
+			byte[] image = downloadImageAndAttemptToConvertToPng(client, inputImageUrl);
 
 			HttpPost request = postRequestWithApiKey("/v1/images/variations");
 
 			//@formatter:off
 			request.setEntity(MultipartEntityBuilder.create()
 				.addBinaryBody("image", image, ContentType.IMAGE_PNG, "image.png")
-				.addTextBody("size", "256x256")
+				.addTextBody("size", size)
 			.build());
 			//@formatter:on
 
@@ -325,7 +326,7 @@ public class OpenAIClient {
 		return request;
 	}
 
-	private byte[] downloadImage(CloseableHttpClient client, String url) throws IOException {
+	private byte[] downloadImageAndAttemptToConvertToPng(CloseableHttpClient client, String url) throws IOException {
 		HttpGet request = new HttpGet(url);
 
 		try (CloseableHttpResponse response = client.execute(request)) {

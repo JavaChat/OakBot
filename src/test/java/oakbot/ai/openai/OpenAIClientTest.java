@@ -298,7 +298,7 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		CreateImageResponse actual = client.createImageVariation(url);
+		CreateImageResponse actual = client.createImageVariation(url, "256x256");
 		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
 		assertEquals(resultUrl, actual.getUrl());
 		assertNull(actual.getRevisedPrompt());
@@ -310,7 +310,7 @@ public class OpenAIClientTest {
 		String url = "https://example.com/image.png user thinks they can include a prompt too";
 
 		try {
-			client.createImageVariation(url);
+			client.createImageVariation(url, "256x256");
 			fail();
 		} catch (IllegalArgumentException expected) {
 		}
@@ -332,7 +332,7 @@ public class OpenAIClientTest {
 		//@formatter:on
 
 		try {
-			client.createImageVariation(url);
+			client.createImageVariation(url, "256x256");
 			fail();
 		} catch (IOException expected) {
 		}
@@ -359,7 +359,7 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		CreateImageResponse actual = client.createImageVariation(url);
+		CreateImageResponse actual = client.createImageVariation(url, "256x256");
 		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
 		assertEquals(resultUrl, actual.getUrl());
 		assertNull(actual.getRevisedPrompt());
@@ -387,7 +387,7 @@ public class OpenAIClientTest {
 		//@formatter:on
 
 		try {
-			client.createImageVariation(url);
+			client.createImageVariation(url, "256x256");
 			fail();
 		} catch (OpenAIException e) {
 			assertEquals("Uploaded image must be a PNG and less than 4 MB.", e.getMessage());
@@ -418,7 +418,7 @@ public class OpenAIClientTest {
 		//@formatter:on
 
 		try {
-			client.createImageVariation(url);
+			client.createImageVariation(url, "256x256");
 			fail();
 		} catch (OpenAIException e) {
 			assertEquals("Uploaded image must be a PNG and less than 4 MB.", e.getMessage());
@@ -448,7 +448,7 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		CreateImageResponse actual = client.createImageVariation(url);
+		CreateImageResponse actual = client.createImageVariation(url, "256x256");
 		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
 		assertEquals(resultUrl, actual.getUrl());
 		assertNull(actual.getRevisedPrompt());

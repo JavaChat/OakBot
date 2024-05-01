@@ -5,10 +5,12 @@ import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.StringUtils.plural;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -16,7 +18,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -198,22 +203,34 @@ public class ImagineCommand implements Command {
 		return null;
 	}
 
-	private List<String> handleDallE(String model, String inputImage, String prompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
+	private List<String> handleDallE(String model, String inputImageUrl, String prompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
 		CreateImageResponse response;
-		if (inputImage == null) {
-			String minSize = MODEL_DALLE_2.equals(model) ? "256x256" : "1024x1024";
-			response = openAIClient.createImage(model, minSize, prompt);
+		if (inputImageUrl == null) {
+			String lowestResolutionSupportedByModel = MODEL_DALLE_2.equals(model) ? "256x256" : "1024x1024";
+			response = openAIClient.createImage(model, lowestResolutionSupportedByModel, prompt);
 		} else {
-			response = openAIClient.createImageVariation(inputImage);
+			response = openAIClient.createImageVariation(inputImageUrl, "256x256");
+		}
+
+		String imageUrl;
+		if (MODEL_DALLE_3.equals(model)) {
+			/*
+			 * 5/1/2024: StackOverflow's new image hosting system has a file
+			 * size limit of 2 MiB. The PNGs that Dall-E 3 generates are usually
+			 * larger than that, so convert them to JPEGs (side note: it seems
+			 * that the old system (imgur) converted the PNGs to JPEGs
+			 * automatically).
+			 */
+			byte[] jpegImage = convertToJpeg(response.getUrl());
+			imageUrl = uploadImage(bot, jpegImage);
+		} else {
+			imageUrl = uploadImageFromUrl(bot, response.getUrl());
 		}
 
 		List<String> messagesToPost = new ArrayList<>();
-
 		if (response.getRevisedPrompt() != null) {
 			messagesToPost.add("I'm going to use this prompt instead: " + response.getRevisedPrompt());
 		}
-
-		String imageUrl = uploadImageFromUrl(bot, response.getUrl());
 		messagesToPost.add(imageUrl);
 
 		return messagesToPost;
@@ -280,6 +297,73 @@ public class ImagineCommand implements Command {
 			ImageIO.write(image, "PNG", out);
 			return out.toByteArray();
 		}
+	}
+
+	/**
+	 * @see "https://stackoverflow.com/q/17108234/13379"
+	 */
+	private byte[] convertToJpeg(String url) throws IOException {
+		BufferedImage image = downloadImage(url);
+
+		/*
+		 * If the image has an alpha channel, an exception is thrown when it
+		 * tries to write the image as a JPEG.
+		 * 
+		 * javax.imageio.IIOException: Bogus input colorspace
+		 */
+		image = removeAlphaChannel(image);
+
+		ImageWriter jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
+		ImageWriteParam jpgWriteParam = jpgWriter.getDefaultWriteParam();
+		jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+		jpgWriteParam.setCompressionQuality(0.9f);
+
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+			jpgWriter.setOutput(ImageIO.createImageOutputStream(out));
+			jpgWriter.write(null, new IIOImage(image, null, null), jpgWriteParam);
+			return out.toByteArray();
+		} finally {
+			jpgWriter.dispose();
+		}
+	}
+
+	private BufferedImage downloadImage(String url) throws IOException {
+		BufferedImage image;
+		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
+			HttpGet getRequest = new HttpGet(url);
+			try (CloseableHttpResponse response = client.execute(getRequest)) {
+				try (InputStream in = response.getEntity().getContent()) {
+					image = ImageIO.read(in);
+				}
+			}
+		}
+
+		if (image == null) {
+			throw new IOException("Cannot read image data: " + url);
+		}
+
+		return image;
+	}
+
+	/**
+	 * Removes the alpha channel from the image, if present.
+	 * @param image the image
+	 * @return the image with alpha channel removed
+	 * @see "https://stackoverflow.com/a/72135983/13379"
+	 */
+	private BufferedImage removeAlphaChannel(BufferedImage image) {
+		if (!image.getColorModel().hasAlpha()) {
+			return image;
+		}
+
+		BufferedImage target = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+		Graphics2D g = target.createGraphics();
+		g.fillRect(0, 0, image.getWidth(), image.getHeight());
+		g.drawImage(image, 0, 0, null);
+		g.dispose();
+
+		return target;
 	}
 
 	static ImagineCommandParameters parseContent(String content) {
