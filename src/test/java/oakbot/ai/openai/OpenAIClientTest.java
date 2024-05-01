@@ -80,7 +80,7 @@ public class OpenAIClientTest {
 		assertEquals(50, actual.getPromptTokens());
 		assertEquals(9, actual.getCompletionTokens());
 	}
-	
+
 	@Test
 	public void chatCompletion_sanitize_name() throws Exception {
 		OpenAIClient client = new OpenAIClient("KEY");
@@ -226,8 +226,10 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		String actual = client.createImage("model", "256x256", "Prompt.");
-		assertEquals(url, actual);
+		CreateImageResponse actual = client.createImage("model", "256x256", "Prompt.");
+		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
+		assertEquals(url, actual.getUrl());
+		assertNull(actual.getRevisedPrompt());
 	}
 
 	@Test
@@ -296,8 +298,10 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		String actual = client.createImageVariation(url);
-		assertEquals(resultUrl, actual);
+		CreateImageResponse actual = client.createImageVariation(url);
+		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
+		assertEquals(resultUrl, actual.getUrl());
+		assertNull(actual.getRevisedPrompt());
 	}
 
 	@Test
@@ -355,8 +359,10 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		String actual = client.createImageVariation(url);
-		assertEquals(resultUrl, actual);
+		CreateImageResponse actual = client.createImageVariation(url);
+		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
+		assertEquals(resultUrl, actual.getUrl());
+		assertNull(actual.getRevisedPrompt());
 	}
 
 	/**
@@ -442,8 +448,10 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		String actual = client.createImageVariation(url);
-		assertEquals(resultUrl, actual);
+		CreateImageResponse actual = client.createImageVariation(url);
+		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
+		assertEquals(resultUrl, actual.getUrl());
+		assertNull(actual.getRevisedPrompt());
 	}
 
 	private static void assertAuthHeader(HttpRequest request, String key) {

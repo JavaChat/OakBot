@@ -1,6 +1,5 @@
 package oakbot.listener.chatgpt;
 
-import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
@@ -12,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +24,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
+import oakbot.ai.openai.CreateImageResponse;
 import oakbot.ai.openai.OpenAIClient;
 import oakbot.ai.openai.OpenAIException;
 import oakbot.ai.stabilityai.StabilityAIClient;
@@ -120,14 +121,14 @@ public class ImagineCommand implements Command {
 		}
 
 		try {
-			String urlToPost;
+			List<String> messagesToPost;
 			if (MODEL_DALLE_2.equals(model) || MODEL_DALLE_3.equals(model)) {
-				urlToPost = handleDallE(model, inputImage, prompt, bot);
+				messagesToPost = handleDallE(model, inputImage, prompt, bot);
 			} else if (MODEL_STABLE_IMAGE_CORE.equals(model)) {
-				urlToPost = handleStableImageCore(prompt, bot);
+				messagesToPost = List.of(handleStableImageCore(prompt, bot));
 			} else if (MODEL_STABLE_DIFFUSION.equals(model) || MODEL_STABLE_DIFFUSION_TURBO.equals(model)) {
 				try {
-					urlToPost = handleStableDiffusion(model, inputImage, prompt, bot);
+					messagesToPost = List.of(handleStableDiffusion(model, inputImage, prompt, bot));
 				} catch (IllegalArgumentException e) {
 					return reply(e.getMessage(), chatCommand);
 				}
@@ -143,7 +144,15 @@ public class ImagineCommand implements Command {
 				usageQuota.logRequest(userId);
 			}
 
-			return create(new PostMessage(urlToPost).bypassFilters(true));
+			ChatActions actions = new ChatActions();
+
+			//@formatter:off
+			messagesToPost.stream()
+				.map(message -> new PostMessage(message).bypassFilters(true))
+			.forEach(actions::addAction);
+			//@formatter:on
+
+			return actions;
 		} catch (IllegalArgumentException | URISyntaxException | OpenAIException | StabilityAIException e) {
 			return post(new ChatBuilder().reply(chatCommand).code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code());
 		} catch (IOException e) {
@@ -187,16 +196,25 @@ public class ImagineCommand implements Command {
 		return null;
 	}
 
-	private String handleDallE(String model, String inputImage, String prompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
-		String openAiImageUrl;
+	private List<String> handleDallE(String model, String inputImage, String prompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
+		CreateImageResponse response;
 		if (inputImage == null) {
 			String minSize = MODEL_DALLE_2.equals(model) ? "256x256" : "1024x1024";
-			openAiImageUrl = openAIClient.createImage(model, minSize, prompt);
+			response = openAIClient.createImage(model, minSize, prompt);
 		} else {
-			openAiImageUrl = openAIClient.createImageVariation(inputImage);
+			response = openAIClient.createImageVariation(inputImage);
 		}
 
-		return uploadImageFromUrl(bot, openAiImageUrl);
+		List<String> messagesToPost = new ArrayList<>();
+
+		if (response.getRevisedPrompt() != null) {
+			messagesToPost.add("I'm going to use this prompt instead: " + response.getRevisedPrompt());
+		}
+
+		String imageUrl = uploadImageFromUrl(bot, response.getUrl());
+		messagesToPost.add(imageUrl);
+
+		return messagesToPost;
 	}
 
 	private String handleStableImageCore(String prompt, IBot bot) throws StabilityAIException, IOException {

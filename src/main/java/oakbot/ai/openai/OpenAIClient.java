@@ -91,14 +91,13 @@ public class OpenAIClient {
 	 * Creates an image.
 	 * @param model the model to use (e.g. "dall-e-2")
 	 * @param size the image size (e.g. "256x256")
-	 * @param prompt a description of what the image should look like.
-	 * @return the URL to the image. The image will be deleted off their servers
-	 * within 5-10 minutes.
+	 * @param prompt a description of what the image should look like
+	 * @return the response
 	 * @throws OpenAIException if OpenAI returns an error response
 	 * @throws IOException if there's a network problem
 	 * @see "https://platform.openai.com/docs/api-reference/images/create"
 	 */
-	public String createImage(String model, String size, String prompt) throws IOException, OpenAIException {
+	public CreateImageResponse createImage(String model, String size, String prompt) throws IOException, OpenAIException {
 		HttpPost request = postRequestWithApiKey("/v1/images/generations");
 
 		//@formatter:off
@@ -125,7 +124,7 @@ public class OpenAIClient {
 
 			lookForError(prompt, responseBody);
 
-			return extractJsonField("data/0/url", responseBody);
+			return parseCreateImageResponse(responseBody);
 		} catch (IOException e) {
 			logError(request, responseStatusCode, responseBody, e);
 			throw e;
@@ -135,14 +134,13 @@ public class OpenAIClient {
 	/**
 	 * Creates a variation of the given image.
 	 * @param url the URL to the image
-	 * @return the URL to the variation. The image will be deleted off their
-	 * servers within 5-10 minutes.
+	 * @return the response
 	 * @throws OpenAIException if OpenAI returns an error response
 	 * @throws IOException if there's a network problem
 	 * @throws IllegalArgumentException if the given URL is invalid
 	 * @see "https://platform.openai.com/docs/api-reference/images/createVariation"
 	 */
-	public String createImageVariation(String url) throws IllegalArgumentException, IOException, OpenAIException {
+	public CreateImageResponse createImageVariation(String url) throws IllegalArgumentException, IOException, OpenAIException {
 		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
 			byte[] image = downloadImage(client, url);
 
@@ -170,7 +168,7 @@ public class OpenAIClient {
 
 				lookForError(null, responseBody);
 
-				return extractJsonField("data/0/url", responseBody);
+				return parseCreateImageResponse(responseBody);
 			} catch (IOException e) {
 				logError(request, responseStatusCode, responseBody, e);
 				throw e;
@@ -319,14 +317,6 @@ public class OpenAIClient {
 		});
 
 		throw e;
-	}
-
-	private String extractJsonField(String path, JsonNode node) throws IOException {
-		try {
-			return JsonUtils.extractField(path, node);
-		} catch (IllegalArgumentException e) {
-			throw new IOException(e);
-		}
 	}
 
 	private HttpPost postRequestWithApiKey(String uriPath) {
@@ -549,6 +539,21 @@ public class OpenAIClient {
 				.collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().asDouble())))
 		.build();
 		//@formatter:on
+	}
+
+	private CreateImageResponse parseCreateImageResponse(JsonNode node) {
+		Instant created = Instant.ofEpochSecond(node.path("created").asLong());
+
+		JsonNode data = node.path("data").path(0);
+
+		String url = data.path("url").asText();
+
+		String revisedPrompt = data.path("revised_prompt").asText();
+		if (revisedPrompt.isEmpty()) {
+			revisedPrompt = null;
+		}
+
+		return new CreateImageResponse(created, url, revisedPrompt);
 	}
 
 	private static class JsonEntity extends StringEntity {
