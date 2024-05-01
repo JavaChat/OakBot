@@ -24,6 +24,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
+import com.github.mangstadt.sochat4j.SplitStrategy;
+
 import oakbot.ai.openai.CreateImageResponse;
 import oakbot.ai.openai.OpenAIClient;
 import oakbot.ai.openai.OpenAIException;
@@ -148,7 +150,7 @@ public class ImagineCommand implements Command {
 
 			//@formatter:off
 			messagesToPost.stream()
-				.map(message -> new PostMessage(message).bypassFilters(true))
+				.map(message -> new PostMessage(message).bypassFilters(true).splitStrategy(SplitStrategy.WORD))
 			.forEach(actions::addAction);
 			//@formatter:on
 
