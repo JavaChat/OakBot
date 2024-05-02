@@ -386,6 +386,9 @@
 	<bean class="oakbot.ai.stabilityai.StabilityAIClient" id="stabilityAIClient">
 		<constructor-arg value="API_KEY" />
 	</bean>
+	<bean class="oakbot.imgur.ImgurClient" id="imgurClient">
+		<constructor-arg value="CLIENT_ID" />
+	</bean>
 	<bean class="oakbot.listener.chatgpt.MoodCommand" id="moodCommand">
 		<constructor-arg ref="database" />
 		<constructor-arg value="grumpy" /> <!-- default mood -->
@@ -410,6 +413,10 @@
 		<constructor-arg ref="openAIClient" />
 		<constructor-arg ref="stabilityAIClient" />
 		<constructor-arg value="5" /> <!-- requests allowed per user per 24 hours, or <= 0 for no limit -->
+	</bean>
+	<bean class="oakbot.listener.chatgpt.VideoCommand">
+		<constructor-arg ref="stabilityAIClient" />
+		<constructor-arg ref="imgurClient" />
 	</bean>
 	
 	<!-- fact of the day task -->
