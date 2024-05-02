@@ -63,6 +63,7 @@ import oakbot.listener.WelcomeListener;
 import oakbot.listener.chatgpt.ChatGPT;
 import oakbot.listener.chatgpt.ImagineCommand;
 import oakbot.listener.chatgpt.MoodCommand;
+import oakbot.listener.chatgpt.VideoCommand;
 import oakbot.task.FOTD;
 import oakbot.task.LinuxHealthMonitor;
 import oakbot.task.QOTD;
@@ -149,6 +150,7 @@ public class CommandsWikiPage {
 			commands.add(new UnsummonCommand());
 			commands.add(new UpsidedownTextFilter());
 			commands.add(new UrbanCommand());
+			commands.add(new VideoCommand(null, null));
 			commands.add(new WaduFilter());
 			commands.add(new WikiCommand());
 
