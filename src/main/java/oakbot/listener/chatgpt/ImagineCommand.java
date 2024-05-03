@@ -55,12 +55,12 @@ import oakbot.util.HttpFactory;
 public class ImagineCommand implements Command {
 	private static final Logger logger = Logger.getLogger(ImagineCommand.class.getName());
 
-	private static final String MODEL_DALLE_2 = "dall-e-2";
-	private static final String MODEL_DALLE_3 = "dall-e-3";
-	private static final String MODEL_STABLE_IMAGE_CORE = "si-core";
-	private static final String MODEL_STABLE_DIFFUSION = "sd3";
-	private static final String MODEL_STABLE_DIFFUSION_TURBO = "sd3-turbo";
-	private static final List<String> supportedModels = List.of(MODEL_DALLE_2, MODEL_DALLE_3, MODEL_STABLE_IMAGE_CORE, MODEL_STABLE_DIFFUSION, MODEL_STABLE_DIFFUSION_TURBO);
+	static final String MODEL_DALLE_2 = "dall-e-2";
+	static final String MODEL_DALLE_3 = "dall-e-3";
+	static final String MODEL_STABLE_IMAGE_CORE = "si-core";
+	static final String MODEL_STABLE_DIFFUSION = "sd3";
+	static final String MODEL_STABLE_DIFFUSION_TURBO = "sd3-turbo";
+	static final List<String> supportedModels = List.of(MODEL_DALLE_2, MODEL_DALLE_3, MODEL_STABLE_IMAGE_CORE, MODEL_STABLE_DIFFUSION, MODEL_STABLE_DIFFUSION_TURBO);
 
 	private final OpenAIClient openAIClient;
 	private final StabilityAIClient stabilityAIClient;
@@ -118,9 +118,9 @@ public class ImagineCommand implements Command {
 			return reply("Imagine what?", chatCommand);
 		}
 
-		String model = chooseWhichModelToUse(parameters);
 		String inputImage = parameters.getInputImage();
 		String prompt = parameters.getPrompt();
+		String model = chooseWhichModelToUse(parameters.getModel(), inputImage, prompt);
 
 		String error = validateParameters(model, inputImage, prompt);
 		if (error != null) {
@@ -168,36 +168,46 @@ public class ImagineCommand implements Command {
 		}
 	}
 
-	private String chooseWhichModelToUse(ImagineCommandParameters parameters) {
+	static String chooseWhichModelToUse(String model, String inputImage, String prompt) {
 		/*
 		 * Use dall-e-2 if only a URL was provided. Use sd3 if a URL and
 		 * prompt was provided.
 		 */
-		if (parameters.getModel() == null && parameters.getInputImage() != null) {
-			return (parameters.getPrompt() == null) ? MODEL_DALLE_2 : MODEL_STABLE_DIFFUSION;
+		if (model == null && inputImage != null) {
+			return (prompt == null) ? MODEL_DALLE_2 : MODEL_STABLE_DIFFUSION;
 		}
 
 		/*
 		 * Default to dall-e-3 if no model was specified
 		 */
-		return (parameters.getModel() == null) ? MODEL_DALLE_3 : parameters.getModel();
+		return (model == null) ? MODEL_DALLE_3 : model;
 	}
 
-	private String validateParameters(String model, String inputImage, String prompt) {
+	static String validateParameters(String model, String inputImage, String prompt) {
+		if (inputImage == null && prompt == null) {
+			return "Imagine what?";
+		}
+
+		/*
+		 * Dall-e-2 is the only model that supports an input image without a
+		 * prompt.
+		 */
 		if (!MODEL_DALLE_2.equals(model) && prompt == null) {
 			return "Imagine what?";
 		}
 
-		if (MODEL_DALLE_3.equals(model) && inputImage != null) {
-			return "Dall·E 3 does not support image variations.";
-		}
+		if (inputImage != null) {
+			if (MODEL_DALLE_3.equals(model)) {
+				return "Dall·E 3 does not support image variations.";
+			}
 
-		if (MODEL_DALLE_2.equals(model) && inputImage != null && prompt != null) {
-			return "Dall·E 2 does not support image variations with text prompts.";
-		}
+			if (MODEL_DALLE_2.equals(model) && prompt != null) {
+				return "Dall·E 2 does not support image variations with text prompts.";
+			}
 
-		if (MODEL_STABLE_IMAGE_CORE.equals(model) && inputImage != null) {
-			return "Stable Image Core does not support image variations.";
+			if (MODEL_STABLE_IMAGE_CORE.equals(model)) {
+				return "Stable Image Core does not support image variations.";
+			}
 		}
 
 		return null;
