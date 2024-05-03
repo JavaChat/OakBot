@@ -6,16 +6,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.apache.http.client.utils.URIBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.mangstadt.sochat4j.util.Http;
-import com.github.mangstadt.sochat4j.util.JsonUtils;
 
 import oakbot.util.HttpFactory;
+import oakbot.util.JsonUtils;
 
 /**
  * Interfaces with the STANDS4 API.
@@ -115,13 +114,10 @@ public class Stands4Client {
 		JsonNode response = send(url);
 
 		try {
-			JsonNode matches = response.get("matches");
-			if (matches == null) {
-				return List.of();
-			}
+			JsonNode matches = response.path("matches");
 
 			//@formatter:off
-			return StreamSupport.stream(matches.spliterator(), false)
+			return JsonUtils.streamArray(matches)
 				.map(result -> result.get("message").asText())
 			.collect(Collectors.toList());
 			//@formatter:on

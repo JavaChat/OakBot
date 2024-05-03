@@ -163,7 +163,7 @@ public final class JsonUtils {
 	 * @return the stream
 	 */
 	public static Stream<JsonNode> streamArray(JsonNode array) {
-		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(array.iterator(), Spliterator.ORDERED), false);
+		return StreamSupport.stream(array.spliterator(), false);
 	}
 	
 	/**
