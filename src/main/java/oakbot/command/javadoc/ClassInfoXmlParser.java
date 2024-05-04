@@ -3,6 +3,7 @@ package oakbot.command.javadoc;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.util.Leaf;
@@ -21,8 +22,8 @@ public class ClassInfoXmlParser {
 	 * a root {@literal <class>} element.
 	 */
 	public static ClassInfo parse(Leaf document, JavadocZipFile zipFile) {
-		ClassInfoXmlParser parser = new ClassInfoXmlParser();
-		ClassInfo.Builder builder = parser.parse(document);
+		var parser = new ClassInfoXmlParser();
+		var builder = parser.parse(document);
 		builder.zipFile(zipFile);
 		return builder.build();
 	}
@@ -35,19 +36,19 @@ public class ClassInfoXmlParser {
 	 * a root {@literal <class>} element.
 	 */
 	public ClassInfo.Builder parse(Leaf document) {
-		ClassInfo.Builder builder = new ClassInfo.Builder();
+		var builder = new ClassInfo.Builder();
 
-		Leaf classElement = document.selectFirst("/class");
+		var classElement = document.selectFirst("/class");
 		if (classElement == null) {
 			throw new IllegalArgumentException("XML file does not have a root <class> element.");
 		}
 
 		//class name
-		ClassName className = parseClassName(classElement.attribute("name"));
+		var className = parseClassName(classElement.attribute("name"));
 		builder.name(className);
 
 		//modifiers
-		String value = classElement.attribute("modifiers");
+		var value = classElement.attribute("modifiers");
 		if (!value.isEmpty()) {
 			builder.modifiers(List.of(value.split("\\s+")));
 		}
@@ -75,24 +76,25 @@ public class ClassInfoXmlParser {
 		}
 
 		//description
-		Leaf element = document.selectFirst("/class/description");
+		var element = document.selectFirst("/class/description");
 		if (element != null) {
 			builder.description(element.text());
 		}
 
 		//constructors
-		for (Leaf constructorElement : document.select("/class/constructor")) {
-			MethodInfo info = parseConstructor(constructorElement, className.getSimpleName());
-			builder.method(info);
-		}
+		//@formatter:off
+		document.select("/class/constructor").stream()
+			.map(constructorElement -> parseConstructor(constructorElement, className.getSimpleName()))
+		.forEach(builder::method);
+		//@formatter:on
 
 		//methods
-		for (Leaf methodElement : document.select("/class/method")) {
-			MethodInfo method = parseMethod(methodElement);
-			if (method != null) {
-				builder.method(method);
-			}
-		}
+		//@formatter:off
+		document.select("/class/method").stream()
+			.map(this::parseMethod)
+			.filter(Objects::nonNull)
+		.forEach(builder::method);
+		//@formatter:on
 
 		return builder;
 	}
@@ -105,16 +107,13 @@ public class ClassInfoXmlParser {
 	 * @return the {@link ClassName} object
 	 */
 	private static ClassName parseClassName(String value) {
-		int pipe = value.indexOf('|');
-		String packageName = (pipe < 0) ? null : value.substring(0, pipe);
+		var pipe = value.indexOf('|');
+		var packageName = (pipe < 0) ? null : value.substring(0, pipe);
 
-		String afterPipe = (pipe < 0) ? value : value.substring(pipe + 1);
-		String[] split = afterPipe.split("\\.");
-		List<String> outerClassNames = new ArrayList<>(split.length - 1);
-		for (int i = 0; i < split.length - 1; i++) {
-			outerClassNames.add(split[i]);
-		}
-		String simpleName = split[split.length - 1];
+		var afterPipe = (pipe < 0) ? value : value.substring(pipe + 1);
+		var split = afterPipe.split("\\.");
+		var outerClassNames = Arrays.asList(split).subList(0, split.length - 1);
+		var simpleName = split[split.length - 1];
 
 		return new ClassName(packageName, outerClassNames, simpleName);
 	}
@@ -127,18 +126,22 @@ public class ClassInfoXmlParser {
 	 * @return the {@link ClassName} objects
 	 */
 	private static List<ClassName> parseClassNames(String value) {
-		String[] split = value.trim().split("\\s+");
-		return Arrays.stream(split).map(ClassInfoXmlParser::parseClassName).collect(Collectors.toList());
+		var split = value.trim().split("\\s+");
+		//@formatter:off
+		return Arrays.stream(split)
+			.map(ClassInfoXmlParser::parseClassName)
+		.toList();
+		//@formatter:on
 	}
 
 	private MethodInfo parseConstructor(Leaf element, String simpleName) {
-		MethodInfo.Builder builder = new MethodInfo.Builder();
+		var builder = new MethodInfo.Builder();
 
 		//name
 		builder.name(simpleName);
 
 		//modifiers
-		String value = element.attribute("modifiers");
+		var value = element.attribute("modifiers");
 		if (!value.isEmpty()) {
 			builder.modifiers(List.of(value.split("\\s+")));
 		}
@@ -160,26 +163,27 @@ public class ClassInfoXmlParser {
 		builder.deprecated(value.isEmpty() ? false : Boolean.parseBoolean(value));
 
 		//parameters
-		for (Leaf parameterElement : element.select("parameter")) {
-			ParameterInfo parameter = parseParameter(parameterElement);
-			builder.parameter(parameter);
-		}
+		//@formatter:off
+		element.select("parameter").stream()
+			.map(this::parseParameter)
+		.forEach(builder::parameter);
+		//@formatter:on
 
 		return builder.build();
 	}
 
 	private MethodInfo parseMethod(Leaf element) {
-		MethodInfo.Builder builder = new MethodInfo.Builder();
+		var builder = new MethodInfo.Builder();
 
 		//name
-		String name = element.attribute("name");
+		var name = element.attribute("name");
 		if (name.isEmpty()) {
 			return null;
 		}
 		builder.name(name);
 
 		//modifiers
-		String value = element.attribute("modifiers");
+		var value = element.attribute("modifiers");
 		if (!value.isEmpty()) {
 			builder.modifiers(List.of(value.split("\\s+")));
 		}
@@ -207,41 +211,42 @@ public class ClassInfoXmlParser {
 		builder.deprecated(value.isEmpty() ? false : Boolean.parseBoolean(value));
 
 		//parameters
-		for (Leaf parameterElement : element.select("parameter")) {
-			ParameterInfo parameter = parseParameter(parameterElement);
-			builder.parameter(parameter);
-		}
+		//@formatter:off
+		element.select("parameter").stream()
+			.map(this::parseParameter)
+		.forEach(builder::parameter);
+		//@formatter:on
 
 		return builder.build();
 	}
 
 	private ParameterInfo parseParameter(Leaf element) {
 		//type
-		String type = element.attribute("type");
+		var type = element.attribute("type");
 
 		//is it an array?
-		boolean array = type.endsWith("[]");
+		var array = type.endsWith("[]");
 		if (array) {
 			type = type.substring(0, type.length() - 2);
 		}
 
 		//is it varargs?
-		boolean varargs = type.endsWith("...");
+		var varargs = type.endsWith("...");
 		if (varargs) {
 			type = type.substring(0, type.length() - 3);
 		}
 
 		//is a generic type? (like List<String>)
-		int pos = type.indexOf('<');
-		String generic = (pos < 0) ? null : type.substring(pos);
+		var pos = type.indexOf('<');
+		var generic = (pos < 0) ? null : type.substring(pos);
 		if (generic != null) {
 			type = type.substring(0, pos);
 		}
 
-		ClassName className = parseClassName(type);
+		var className = parseClassName(type);
 
 		//name
-		String name = element.attribute("name");
+		var name = element.attribute("name");
 
 		return new ParameterInfo(className, name, array, varargs, generic);
 	}

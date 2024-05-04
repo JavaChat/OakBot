@@ -21,6 +21,10 @@ public class OpenAIModerationException extends OpenAIException {
 
 	@Override
 	public String getMessage() {
+		if (flaggedCategories.isEmpty()) {
+			return super.getMessage();
+		}
+
 		return super.getMessage() + " Flagged categories: " + flaggedCategories;
 	}
 }

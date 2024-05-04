@@ -50,10 +50,10 @@ public class StabilityAIClient {
 	 * @throws StabilityAIException if an error response is returned
 	 */
 	public StableImageResponse generateImage(StableImageCoreRequest apiRequest) throws IOException, StabilityAIException {
-		HttpPost request = postRequestWithApiKey("/stable-image/generate/core");
+		var request = postRequestWithApiKey("/stable-image/generate/core");
 		acceptImageResponse(request);
 
-		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		var builder = MultipartEntityBuilder.create();
 
 		builder.addTextBody("prompt", apiRequest.getPrompt());
 		if (apiRequest.getAspectRatio() != null) {
@@ -74,9 +74,9 @@ public class StabilityAIClient {
 
 		request.setEntity(builder.build());
 
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				int statusCode = response.getStatusLine().getStatusCode();
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				var statusCode = response.getStatusLine().getStatusCode();
 
 				if (statusCode == 200) {
 					return parseStableImageResponse(response);
@@ -97,10 +97,10 @@ public class StabilityAIClient {
 	 * @throws StabilityAIException if an error response is returned
 	 */
 	public StableImageResponse generateImage(StableImageDiffusionRequest apiRequest) throws IOException, StabilityAIException {
-		HttpPost request = postRequestWithApiKey("/stable-image/generate/sd3");
+		var request = postRequestWithApiKey("/stable-image/generate/sd3");
 		acceptImageResponse(request);
 
-		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		var builder = MultipartEntityBuilder.create();
 
 		builder.addTextBody("prompt", apiRequest.getPrompt());
 		if (apiRequest.getModel() != null) {
@@ -126,9 +126,9 @@ public class StabilityAIClient {
 
 		request.setEntity(builder.build());
 
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				int statusCode = response.getStatusLine().getStatusCode();
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				var statusCode = response.getStatusLine().getStatusCode();
 
 				if (statusCode == 200) {
 					return parseStableImageResponse(response);
@@ -148,10 +148,10 @@ public class StabilityAIClient {
 	 * @throws StabilityAIException if an error response is returned
 	 */
 	public StableImageResponse removeBackground(RemoveBackgroundRequest apiRequest) throws IOException, StabilityAIException {
-		HttpPost request = postRequestWithApiKey("/stable-image/edit/remove-background");
+		var request = postRequestWithApiKey("/stable-image/edit/remove-background");
 		acceptImageResponse(request);
 
-		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		var builder = MultipartEntityBuilder.create();
 
 		builder.addBinaryBody("image", apiRequest.getImage(), ContentType.parse(apiRequest.getImageContentType()), "image");
 		if (apiRequest.getOutputFormat() != null) {
@@ -160,9 +160,9 @@ public class StabilityAIClient {
 
 		request.setEntity(builder.build());
 
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				int statusCode = response.getStatusLine().getStatusCode();
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				var statusCode = response.getStatusLine().getStatusCode();
 
 				if (statusCode == 200) {
 					return parseStableImageResponse(response);
@@ -193,21 +193,21 @@ public class StabilityAIClient {
 	 * period
 	 */
 	public StableImageResponse upscaleSync(UpscaleRequest apiRequest) throws IOException, StabilityAIException, TimeoutException {
-		Duration pollingInterval = Duration.ofSeconds(10); //rate-limiting may occur if you poll more than once every 10 seconds
-		int maxTries = 12;
+		var pollingInterval = Duration.ofSeconds(10); //rate-limiting may occur if you poll more than once every 10 seconds
+		var maxTries = 12;
 
-		String id = upscaleStart(apiRequest);
+		var id = upscaleStart(apiRequest);
 
-		int tries = 0;
+		var tries = 0;
 		while (true) {
 			if (tries == maxTries) {
-				long seconds = pollingInterval.multipliedBy(maxTries).getSeconds();
+				var seconds = pollingInterval.multipliedBy(maxTries).getSeconds();
 				throw new TimeoutException("Image " + id + " still not ready after " + seconds + " seconds.");
 			}
 
 			Sleeper.sleep(pollingInterval);
 
-			Optional<StableImageResponse> response = upscaleFetch(id);
+			var response = upscaleFetch(id);
 			if (response.isPresent()) {
 				return response.get();
 			}
@@ -228,9 +228,9 @@ public class StabilityAIClient {
 	 * @throws StabilityAIException if an error response is returned
 	 */
 	public String upscaleStart(UpscaleRequest apiRequest) throws IOException, StabilityAIException {
-		HttpPost request = postRequestWithApiKey("/stable-image/upscale/creative");
+		var request = postRequestWithApiKey("/stable-image/upscale/creative");
 
-		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		var builder = MultipartEntityBuilder.create();
 
 		builder.addBinaryBody("image", apiRequest.getImage(), ContentType.parse(apiRequest.getImageContentType()), "image");
 		builder.addTextBody("prompt", apiRequest.getPrompt());
@@ -249,11 +249,11 @@ public class StabilityAIClient {
 
 		request.setEntity(builder.build());
 
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				JsonNode body = parseJsonResponse(response);
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				var body = parseJsonResponse(response);
 
-				int statusCode = response.getStatusLine().getStatusCode();
+				var statusCode = response.getStatusLine().getStatusCode();
 				if (statusCode == 200) {
 					return body.path("id").asText();
 				}
@@ -271,12 +271,12 @@ public class StabilityAIClient {
 	 * @throws StabilityAIException if an error response is returned
 	 */
 	public Optional<StableImageResponse> upscaleFetch(String id) throws IOException, StabilityAIException {
-		HttpGet request = getRequestWithApiKey("/stable-image/upscale/creative/result/" + id);
+		var request = getRequestWithApiKey("/stable-image/upscale/creative/result/" + id);
 		acceptImageResponse(request);
 
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				int statusCode = response.getStatusLine().getStatusCode();
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				var statusCode = response.getStatusLine().getStatusCode();
 
 				if (statusCode == 200) {
 					/*
@@ -317,12 +317,12 @@ public class StabilityAIClient {
 	 * period
 	 */
 	public StableImageResponse videoSync(VideoRequest apiRequest) throws IOException, StabilityAIException, TimeoutException {
-		Duration pollingInterval = Duration.ofSeconds(10); //rate-limiting may occur if you poll more than once every 10 seconds
+		var pollingInterval = Duration.ofSeconds(10); //rate-limiting may occur if you poll more than once every 10 seconds
 		int maxTries = 30;
 
-		String id = videoStart(apiRequest);
+		var id = videoStart(apiRequest);
 
-		int tries = 0;
+		var tries = 0;
 		while (true) {
 			if (tries == maxTries) {
 				long seconds = pollingInterval.multipliedBy(maxTries).getSeconds();
@@ -331,7 +331,7 @@ public class StabilityAIClient {
 
 			Sleeper.sleep(pollingInterval);
 
-			Optional<StableImageResponse> response = videoFetch(id);
+			var response = videoFetch(id);
 			if (response.isPresent()) {
 				return response.get();
 			}
@@ -349,9 +349,9 @@ public class StabilityAIClient {
 	 * @throws StabilityAIException if an error response is returned
 	 */
 	public String videoStart(VideoRequest apiRequest) throws IOException, StabilityAIException {
-		HttpPost request = postRequestWithApiKey("/image-to-video");
+		var request = postRequestWithApiKey("/image-to-video");
 
-		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		var builder = MultipartEntityBuilder.create();
 
 		builder.addBinaryBody("image", apiRequest.getImage(), ContentType.parse(apiRequest.getImageContentType()), "image");
 		if (apiRequest.getCfgScale() != null) {
@@ -366,11 +366,11 @@ public class StabilityAIClient {
 
 		request.setEntity(builder.build());
 
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				JsonNode body = parseJsonResponse(response);
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				var body = parseJsonResponse(response);
 
-				int statusCode = response.getStatusLine().getStatusCode();
+				var statusCode = response.getStatusLine().getStatusCode();
 				if (statusCode == 200) {
 					return body.path("id").asText();
 				}
@@ -388,12 +388,12 @@ public class StabilityAIClient {
 	 * @throws StabilityAIException if an error response is returned
 	 */
 	public Optional<StableImageResponse> videoFetch(String id) throws IOException, StabilityAIException {
-		HttpGet request = getRequestWithApiKey("/image-to-video/result/" + id);
+		var request = getRequestWithApiKey("/image-to-video/result/" + id);
 		acceptVideoResponse(request);
 
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
-				int statusCode = response.getStatusLine().getStatusCode();
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				var statusCode = response.getStatusLine().getStatusCode();
 
 				if (statusCode == 200) {
 					/*
@@ -418,45 +418,45 @@ public class StabilityAIClient {
 	}
 
 	private JsonNode parseJsonResponse(CloseableHttpResponse response) throws IOException {
-		try (InputStream in = response.getEntity().getContent()) {
+		try (var in = response.getEntity().getContent()) {
 			return JsonUtils.parse(in);
 		}
 	}
 
 	private StabilityAIException parseErrorException(int statusCode, JsonNode body) {
-		String name = body.path("name").asText();
+		var name = body.path("name").asText();
 
 		//@formatter:off
-		List<String> errors = JsonUtils.streamArray(body.path("errors"))
+		var errors = JsonUtils.streamArray(body.path("errors"))
 			.map(JsonNode::asText)
-		.collect(Collectors.toList());
+		.toList();
 		//@formatter:on
 
 		return new StabilityAIException(statusCode, name, errors);
 	}
 
 	private StabilityAIException parseErrorException(CloseableHttpResponse response) throws IOException {
-		int statusCode = response.getStatusLine().getStatusCode();
-		JsonNode body = parseJsonResponse(response);
+		var statusCode = response.getStatusLine().getStatusCode();
+		var body = parseJsonResponse(response);
 		return parseErrorException(statusCode, body);
 	}
 
 	private StableImageResponse parseStableImageResponse(CloseableHttpResponse response) throws IOException {
-		String contentType = getHeaderValue(response, "content-type");
-		String finishReason = getHeaderValue(response, "finish-reason");
-		int seed = getHeaderValueInt(response, "seed");
-		byte[] image = EntityUtils.toByteArray(response.getEntity());
+		var contentType = getHeaderValue(response, "content-type");
+		var finishReason = getHeaderValue(response, "finish-reason");
+		var seed = getHeaderValueInt(response, "seed");
+		var image = EntityUtils.toByteArray(response.getEntity());
 
 		return new StableImageResponse(image, contentType, finishReason, seed);
 	}
 
 	private String getHeaderValue(CloseableHttpResponse response, String name) {
-		Header header = response.getFirstHeader(name);
+		var header = response.getFirstHeader(name);
 		return (header == null) ? null : header.getValue();
 	}
 
 	private int getHeaderValueInt(CloseableHttpResponse response, String name) {
-		String value = getHeaderValue(response, name);
+		var value = getHeaderValue(response, name);
 		if (value == null) {
 			return 0;
 		}
@@ -469,13 +469,13 @@ public class StabilityAIClient {
 	}
 
 	private HttpPost postRequestWithApiKey(String uriPath) {
-		HttpPost request = new HttpPost("https://api.stability.ai/v2beta" + uriPath);
+		var request = new HttpPost("https://api.stability.ai/v2beta" + uriPath);
 		setApiKey(request);
 		return request;
 	}
 
 	private HttpGet getRequestWithApiKey(String uriPath) {
-		HttpGet request = new HttpGet("https://api.stability.ai/v2beta" + uriPath);
+		var request = new HttpGet("https://api.stability.ai/v2beta" + uriPath);
 		setApiKey(request);
 		return request;
 	}

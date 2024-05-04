@@ -19,7 +19,7 @@ public class Statistics {
 	public Statistics(Database db) {
 		this.db = db;
 
-		Map<String, Object> value = db.getMap("statistics");
+		var value = db.getMap("statistics");
 		if (value == null) {
 			since = LocalDateTime.now();
 			responses = 0;
@@ -44,9 +44,9 @@ public class Statistics {
 	}
 
 	private void save() {
-		Map<String, Object> value = new HashMap<>();
-		value.put("since", since);
-		value.put("responses", responses);
-		db.set("statistics", value);
+		db.set("statistics", Map.of(
+			"since", since,
+			"responses", responses
+		));
 	}
 }

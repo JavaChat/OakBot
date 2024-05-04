@@ -39,14 +39,14 @@ class JavadocCommandArguments {
 	 * @param message the chat command
 	 */
 	public static JavadocCommandArguments parse(String message) {
-		Matcher m = messageRegex.matcher(message.trim());
+		var m = messageRegex.matcher(message.trim());
 		m.find();
 
-		String className = m.group(1);
-		String methodName = parseMethodName(m);
-		List<String> parameters = parseParameters(m);
-		int paragraph = parseParagraph(m);
-		String targetUser = parseTargetUser(m);
+		var className = m.group(1);
+		var methodName = parseMethodName(m);
+		var parameters = parseParameters(m);
+		var paragraph = parseParagraph(m);
+		var targetUser = parseTargetUser(m);
 
 		return new JavadocCommandArguments(className, methodName, parameters, paragraph, targetUser);
 	}
@@ -58,13 +58,13 @@ class JavadocCommandArguments {
 		}
 
 		//e.g. java.lang.string(string, string)
-		String className = m.group(1);
-		int dot = className.lastIndexOf('.');
+		var className = m.group(1);
+		var dot = className.lastIndexOf('.');
 		return (dot < 0) ? className : className.substring(dot + 1);
 	}
 
 	private static List<String> parseParameters(Matcher m) {
-		String parametersStr = m.group(4); //e.g. java.lang.string(string, string)
+		var parametersStr = m.group(4); //e.g. java.lang.string(string, string)
 		if (parametersStr == null || parametersStr.startsWith("#")) {
 			parametersStr = m.group(7); //e.g. java.lang.string#string(string, string)
 			if (parametersStr == null) {
@@ -84,13 +84,13 @@ class JavadocCommandArguments {
 	}
 
 	private static int parseParagraph(Matcher m) {
-		String rest = m.group(9);
+		var rest = m.group(9);
 		if (rest == null || rest.isEmpty()) {
 			return 1;
 		}
 
-		String[] split = rest.split("\\s+");
-		String token = split[0];
+		var split = rest.split("\\s+");
+		var token = split[0];
 
 		int num;
 		try {
@@ -103,14 +103,14 @@ class JavadocCommandArguments {
 	}
 
 	private static String parseTargetUser(Matcher m) {
-		String rest = m.group(9);
+		var rest = m.group(9);
 		if (rest == null || rest.isEmpty()) {
 			return null;
 		}
 
-		String[] split = rest.split("\\s+");
-		int index = (split.length == 1) ? 0 : 1;
-		String token = split[index];
+		var split = rest.split("\\s+");
+		var index = (split.length == 1) ? 0 : 1;
+		var token = split[index];
 		if (token.matches("-?\\d+")) {
 			//paragraph number
 			return null;

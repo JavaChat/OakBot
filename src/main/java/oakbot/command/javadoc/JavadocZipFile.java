@@ -1,7 +1,6 @@
 package oakbot.command.javadoc;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -10,11 +9,10 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.xml.sax.SAXException;
@@ -76,8 +74,8 @@ public class JavadocZipFile {
 		this.file = file.toRealPath();
 
 		Leaf document;
-		try (FileSystem fs = open()) {
-			Path info = fs.getPath("/" + infoFileName);
+		try (var fs = open()) {
+			var info = fs.getPath("/" + infoFileName);
 			if (!Files.exists(info)) {
 				baseUrl = name = version = projectUrl = javadocUrlPattern = null;
 				return;
@@ -86,16 +84,16 @@ public class JavadocZipFile {
 			document = parseXml(info);
 		}
 
-		Leaf infoElement = document.selectFirst("/info");
+		var infoElement = document.selectFirst("/info");
 		if (infoElement == null) {
 			baseUrl = name = version = projectUrl = javadocUrlPattern = null;
 			return;
 		}
 
-		String name = infoElement.attribute("name");
+		var name = infoElement.attribute("name");
 		this.name = name.isEmpty() ? null : name;
 
-		String baseUrl = infoElement.attribute("baseUrl");
+		var baseUrl = infoElement.attribute("baseUrl");
 		if (baseUrl.isEmpty()) {
 			this.baseUrl = null;
 		} else {
@@ -103,13 +101,13 @@ public class JavadocZipFile {
 			this.baseUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/");
 		}
 
-		String projectUrl = infoElement.attribute("projectUrl");
+		var projectUrl = infoElement.attribute("projectUrl");
 		this.projectUrl = projectUrl.isEmpty() ? null : projectUrl;
 
-		String version = infoElement.attribute("version");
+		var version = infoElement.attribute("version");
 		this.version = version.isEmpty() ? null : version;
 
-		String javadocUrlPattern = infoElement.attribute("javadocUrlPattern");
+		var javadocUrlPattern = infoElement.attribute("javadocUrlPattern");
 		this.javadocUrlPattern = javadocUrlPattern.isEmpty() ? null : javadocUrlPattern;
 	}
 
@@ -129,15 +127,15 @@ public class JavadocZipFile {
 			return null;
 		}
 
-		StringBuilder sb = new StringBuilder(baseUrl);
+		var sb = new StringBuilder(baseUrl);
 		if (frames) {
 			sb.append("index.html?");
 		}
-		ClassName className = info.getName();
+		var className = info.getName();
 		if (className.getPackageName() != null) {
 			sb.append(className.getPackageName().replace('.', '/')).append('/');
 		}
-		for (String outerClass : className.getOuterClassNames()) {
+		for (var outerClass : className.getOuterClassNames()) {
 			sb.append(outerClass).append('.');
 		}
 		sb.append(className.getSimpleName()).append(".html");
@@ -151,10 +149,10 @@ public class JavadocZipFile {
 	 * @return the URL
 	 */
 	private String javadocUrlPattern(ClassInfo info) {
-		Matcher m = javadocUrlPatternFieldRegex.matcher(javadocUrlPattern);
-		StringBuilder sb = new StringBuilder();
+		var m = javadocUrlPatternFieldRegex.matcher(javadocUrlPattern);
+		var sb = new StringBuilder();
 		while (m.find()) {
-			String field = m.group(1);
+			var field = m.group(1);
 			String replacement;
 			switch (field) {
 			case "baseUrl":
@@ -162,7 +160,7 @@ public class JavadocZipFile {
 				break;
 			case "full":
 				replacement = info.getName().getFullyQualifiedName();
-				String delimitor = m.group(3);
+				var delimitor = m.group(3);
 				if (delimitor != null) {
 					replacement = replacement.replace(".", delimitor);
 				}
@@ -184,9 +182,9 @@ public class JavadocZipFile {
 	 * @throws IOException if there's a problem reading the ZIP file
 	 */
 	public Collection<ClassName> getClassNames() throws IOException {
-		final Collection<ClassName> classNames = new ArrayList<>();
-		try (FileSystem fs = open()) {
-			Path root = fs.getPath("/");
+		var classNames = new ArrayList<ClassName>();
+		try (var fs = open()) {
+			var root = fs.getPath("/");
 			Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -197,7 +195,7 @@ public class JavadocZipFile {
 				}
 
 				private boolean isJavadocFile(Path file) {
-					String fullPath = file.toString();
+					var fullPath = file.toString();
 					if (!fullPath.endsWith(extension)) {
 						return false;
 					}
@@ -207,7 +205,7 @@ public class JavadocZipFile {
 
 				private ClassName toClassName(Path file) {
 					String packageName;
-					Path directory = file.getParent();
+					var directory = file.getParent();
 					if (directory == null) {
 						//class is in the default package
 						packageName = null;
@@ -220,15 +218,11 @@ public class JavadocZipFile {
 					}
 
 					//e.g. "Map.Entry.xml"
-					String fileName = file.getFileName().toString();
+					var fileName = file.getFileName().toString();
 
-					String[] split = fileName.split("\\.");
-					List<String> outerClasses = new ArrayList<>();
-					for (int i = 0; i < split.length - 2; i++) { //ignore extension and simple name
-						outerClasses.add(split[i]);
-					}
-
-					String simpleName = split[split.length - 2];
+					var split = fileName.split("\\.");
+					var outerClasses = Arrays.asList(split).subList(0, split.length - 2);
+					var simpleName = split[split.length - 2];
 
 					return new ClassName(packageName, outerClasses, simpleName);
 				}
@@ -246,8 +240,8 @@ public class JavadocZipFile {
 	 */
 	public ClassInfo getClassInfo(String fullName) throws IOException {
 		Leaf document;
-		try (FileSystem fs = open()) {
-			Path path = findClassFile(fs, fullName);
+		try (var fs = open()) {
+			var path = findClassFile(fs, fullName);
 			if (path == null) {
 				return null;
 			}
@@ -267,18 +261,18 @@ public class JavadocZipFile {
 	 */
 	private Path findClassFile(FileSystem fs, String fullName) {
 		//e.g. "/java/util/Map/Entry.xml", followed by "/java/util/Map.Entry.xml", etc
-		String[] split = fullName.split("\\.");
-		for (int i = split.length; i > 0; i--) {
-			StringBuilder sb = new StringBuilder();
-			for (int j = 0; j < i; j++) {
+		var split = fullName.split("\\.");
+		for (var i = split.length; i > 0; i--) {
+			var sb = new StringBuilder();
+			for (var j = 0; j < i; j++) {
 				sb.append('/').append(split[j]);
 			}
-			for (int j = i; j < split.length; j++) {
+			for (var j = i; j < split.length; j++) {
 				sb.append('.').append(split[j]);
 			}
 			sb.append(extension);
 
-			Path path = fs.getPath(sb.toString());
+			var path = fs.getPath(sb.toString());
 			if (Files.exists(path)) {
 				return path;
 			}
@@ -337,7 +331,7 @@ public class JavadocZipFile {
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
-		JavadocZipFile other = (JavadocZipFile) obj;
+		var other = (JavadocZipFile) obj;
 		return Objects.equals(file, other.file);
 	}
 
@@ -348,7 +342,7 @@ public class JavadocZipFile {
 	 * @throws IOException if there's a problem opening or parsing the file
 	 */
 	private static Leaf parseXml(Path path) throws IOException {
-		try (InputStream in = Files.newInputStream(path)) {
+		try (var in = Files.newInputStream(path)) {
 			return Leaf.parse(in);
 		} catch (SAXException e) {
 			throw new IOException(e);
@@ -361,6 +355,6 @@ public class JavadocZipFile {
 	 * @throws IOException if there's a problem opening the ZIP file
 	 */
 	private FileSystem open() throws IOException {
-		return FileSystems.newFileSystem(file, null);
+		return FileSystems.newFileSystem(file);
 	}
 }

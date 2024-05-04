@@ -42,11 +42,11 @@ public class AdventOfCodeApiTest {
 		assertEquals(10, players.size());
 
 		Player owner = players.get(0);
-		assertEquals(256093, owner.getId());
-		assertEquals("Mike Angstadt", owner.getName());
-		assertEquals(18, owner.getScore());
-		assertEquals(2, owner.getStars());
-		assertEquals(1, owner.getCompletionTimes().size());
+		assertEquals(256093, owner.id());
+		assertEquals("Mike Angstadt", owner.name());
+		assertEquals(18, owner.score());
+		assertEquals(2, owner.stars());
+		assertEquals(1, owner.completionTimes().size());
 	}
 
 	@Test

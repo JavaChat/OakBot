@@ -118,7 +118,7 @@ public class EffectiveDebuggingCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent();
+		var content = chatCommand.getContent();
 
 		/*
 		 * Display the help text.
@@ -147,7 +147,7 @@ public class EffectiveDebuggingCommand implements Command {
 		 * Display item by number.
 		 */
 		try {
-			int itemNumber = Integer.parseInt(content);
+			var itemNumber = Integer.parseInt(content);
 			if (itemNumber <= 0) {
 				return reply("Item number must be greater than 0.", chatCommand);
 			}
@@ -155,7 +155,7 @@ public class EffectiveDebuggingCommand implements Command {
 				return reply("There are only " + items.size() + " items.", chatCommand);
 			}
 
-			Item item = items.get(itemNumber - 1);
+			var item = items.get(itemNumber - 1);
 			return displayItem(chatCommand, item);
 		} catch (NumberFormatException e) {
 			//user did not enter an item number
@@ -164,10 +164,12 @@ public class EffectiveDebuggingCommand implements Command {
 		/*
 		 * Search by keyword.
 		 */
-		String searchKeyword = content.toLowerCase();
-		List<Item> searchResults = items.stream() //@formatter:off
+		var searchKeyword = content.toLowerCase();
+		//@formatter:off
+		var searchResults = items.stream()
 			.filter(item -> item.title.toLowerCase().contains(searchKeyword))
-		.collect(Collectors.toList()); //@formatter:on
+		.toList();
+		//@formatter:on
 
 		/*
 		 * No search results found.
@@ -194,16 +196,17 @@ public class EffectiveDebuggingCommand implements Command {
 	}
 
 	private ChatActions displayItems(ChatCommand chatCommand, List<Item> items) {
-		ChatBuilder cb = new ChatBuilder();
-		cb.reply(chatCommand);
-		for (Item item : items) {
+		var cb = new ChatBuilder().reply(chatCommand);
+		for (var item : items) {
 			cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title)).append(" (p. ").append(item.page).append(")").nl();
 		}
 		cb.append("(source: Effective Debugging, 66 Specific Ways to Debug Software and Systems by Diomidis Spinellis)");
 
-		return ChatActions.create( //@formatter:off
+		//@formatter:off
+		return ChatActions.create(
 			new PostMessage(cb).splitStrategy(SplitStrategy.NEWLINE)
-		); //@formatter:on
+		);
+		//@formatter:on
 	}
 
 	private static String removeMarkdown(String s) {

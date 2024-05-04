@@ -52,7 +52,7 @@ public class FileChatRoom implements IRoom {
 		this.messageId = connection.getMessageIdCounter();
 
 		fileMonitor = new Thread(() -> {
-			try (ChatRoomFileReader reader = new ChatRoomFileReader(inputFile)) {
+			try (var reader = new ChatRoomFileReader(inputFile)) {
 				String line;
 				while ((line = reader.readLine()) != null) {
 					postMessage(human.getUserId(), human.getUsername(), line);
@@ -72,7 +72,7 @@ public class FileChatRoom implements IRoom {
 		@Override
 		public String readLine() throws IOException {
 			while (true) {
-				String line = super.readLine();
+				var line = super.readLine();
 
 				/*
 				 * Wait for more content to be added to the file.
@@ -105,7 +105,7 @@ public class FileChatRoom implements IRoom {
 				 * Multi-line messages can be specified by ending each line
 				 * with a backslash.
 				 */
-				List<String> lines = new ArrayList<>();
+				var lines = new ArrayList<String>();
 				do {
 					if (isMultiline(line)) {
 						lines.add(line.substring(0, line.length() - 1));
@@ -115,7 +115,7 @@ public class FileChatRoom implements IRoom {
 					}
 				} while ((line = super.readLine()) != null);
 
-				return lines.stream().collect(Collectors.joining("\n"));
+				return String.join("\n", lines);
 			}
 		}
 
@@ -167,23 +167,22 @@ public class FileChatRoom implements IRoom {
 
 	@Override
 	public List<Long> sendMessage(String message, SplitStrategy splitStragey) {
-		long id = postMessage(botUserId, botUsername, message);
+		var id = postMessage(botUserId, botUsername, message);
 		return List.of(id);
 	}
 
 	/**
 	 * Posts a message to a chat room.
-	 * @param roomId the room ID
 	 * @param userId the user ID of the message author
 	 * @param username the username of the message author
 	 * @param content the message content
 	 * @return the message ID
 	 */
 	public long postMessage(int userId, String username, String content) {
-		long id = messageId.getAndIncrement();
+		var id = messageId.getAndIncrement();
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.roomId(roomId)
 			.userId(userId)
 			.username(username)
@@ -273,11 +272,11 @@ public class FileChatRoom implements IRoom {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 
 		synchronized (messages) {
 			sb.append(roomId).append(": ").append(messages.size()).append(" messages\n");
-			for (ChatMessage message : messages) {
+			for (var message : messages) {
 				sb.append("  ").append(message.getContent()).append("\n");
 			}
 		}

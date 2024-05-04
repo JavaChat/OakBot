@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 
 import org.xml.sax.SAXException;
 
@@ -32,35 +33,35 @@ public class EffectiveJavaCommand implements Command {
 
 	public EffectiveJavaCommand() {
 		Leaf document;
-		try (InputStream in = getClass().getResourceAsStream("effective-java.xml")) {
+		try (var in = getClass().getResourceAsStream("effective-java.xml")) {
 			document = Leaf.parse(in);
 		} catch (IOException | SAXException ignored) {
 			/*
 			 * These exceptions should never be thrown because the XML file is
 			 * on the classpath and is not coming from user input.
 			 * 
-			 * The XML file is also is checked for correctness in
+			 * The XML file is also checked for correctness in
 			 * EffectiveJavaXmlTest.
 			 */
 			throw new RuntimeException(ignored);
 		}
 
-		Map<Integer, Item> itemsByNumber = new HashMap<>();
-		List<Leaf> itemElements = document.select("/items/item");
-		for (Leaf itemElement : itemElements) {
-			int number = Integer.parseInt(itemElement.attribute("number"));
-			int page = Integer.parseInt(itemElement.attribute("page"));
-			String title = itemElement.selectFirst("title").text().trim();
+		var itemsByNumber = new HashMap<Integer, Item>();
+		var itemElements = document.select("/items/item");
+		for (var itemElement : itemElements) {
+			var number = Integer.parseInt(itemElement.attribute("number"));
+			var page = Integer.parseInt(itemElement.attribute("page"));
+			var title = itemElement.selectFirst("title").text().trim();
 
 			//@formatter:off
-			String summary = itemElement.selectFirst("summary").text().trim()
+			var summary = itemElement.selectFirst("summary").text().trim()
 				/*
 				 * Remove any XML indentation whitespace at the beginning of
 				 * each line.
 				 */
 				.replaceAll("(\r\n|\r|\n)\\s+", "$1");
 
-			Item item = new Item.Builder()
+			var item = new Item.Builder()
 				.number(number)
 				.page(page)
 				.title(title)
@@ -71,11 +72,11 @@ public class EffectiveJavaCommand implements Command {
 			itemsByNumber.put(item.number, item);
 		}
 
-		items = new ArrayList<>(itemsByNumber.size());
-		for (int i = 1; i <= itemsByNumber.size(); i++) {
-			Item item = itemsByNumber.get(i);
-			items.add(item);
-		}
+		//@formatter:off
+		items = IntStream.rangeClosed(1, itemsByNumber.size())
+			.mapToObj(itemsByNumber::get)
+		.toList();
+		//@formatter:on
 	}
 
 	@Override
@@ -103,7 +104,7 @@ public class EffectiveJavaCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent();
+		var content = chatCommand.getContent();
 
 		/*
 		 * Display the help text.
@@ -123,8 +124,8 @@ public class EffectiveJavaCommand implements Command {
 		 * Display a random item.
 		 */
 		if ("!random".equalsIgnoreCase(content)) {
-			int itemNumber = ThreadLocalRandom.current().nextInt(items.size());
-			Item item = items.get(itemNumber);
+			var itemNumber = ThreadLocalRandom.current().nextInt(items.size());
+			var item = items.get(itemNumber);
 			return displayItem(chatCommand, item);
 		}
 
@@ -132,7 +133,7 @@ public class EffectiveJavaCommand implements Command {
 		 * Display item by number.
 		 */
 		try {
-			int itemNumber = Integer.parseInt(content);
+			var itemNumber = Integer.parseInt(content);
 			if (itemNumber <= 0) {
 				return reply("Item number must be greater than 0.", chatCommand);
 			}
@@ -140,7 +141,7 @@ public class EffectiveJavaCommand implements Command {
 				return reply("There are only " + items.size() + " items.", chatCommand);
 			}
 
-			Item item = items.get(itemNumber - 1);
+			var item = items.get(itemNumber - 1);
 			return displayItem(chatCommand, item);
 		} catch (NumberFormatException e) {
 			//user did not enter an item number
@@ -149,19 +150,14 @@ public class EffectiveJavaCommand implements Command {
 		/*
 		 * Search by keyword.
 		 */
-		content = content.toLowerCase();
-		List<Item> searchResults = new ArrayList<>();
-		for (Item item : items) {
-			//@formatter:off
-			boolean matchFound =
-				item.title.toLowerCase().contains(content) ||
-				item.summary.toLowerCase().contains(content);
-			//@formatter:on
+		var contentToLower = content.toLowerCase();
 
-			if (matchFound) {
-				searchResults.add(item);
-			}
-		}
+		//@formatter:off
+		var searchResults = items.stream().filter(item -> {
+			return item.title.toLowerCase().contains(contentToLower) ||
+				   item.summary.toLowerCase().contains(contentToLower);
+		}).toList();
+		//@formatter:on
 
 		/*
 		 * No search results found.
@@ -184,7 +180,7 @@ public class EffectiveJavaCommand implements Command {
 	}
 
 	private ChatActions displayItem(ChatCommand chatCommand, Item item) {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.reply(chatCommand);
 		cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title));
 		cb.nl().append(removeMarkdown(item.summary));
@@ -198,9 +194,9 @@ public class EffectiveJavaCommand implements Command {
 	}
 
 	private ChatActions displayItems(ChatCommand chatCommand, List<Item> items) {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.reply(chatCommand);
-		for (Item item : items) {
+		for (var item : items) {
 			cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title)).nl();
 		}
 

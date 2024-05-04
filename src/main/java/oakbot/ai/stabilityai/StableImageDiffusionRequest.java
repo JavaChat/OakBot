@@ -133,7 +133,7 @@ public class StableImageDiffusionRequest {
 		 * <p>
 		 * Valid values: 16:9, 1:1, 21:9, 2:3, 3:2, 4:5, 5:4, 9:16, 9:21
 		 * </p>
-		 * @param aspectRatio
+		 * @param aspectRatio the aspect ratio
 		 * @return this
 		 */
 		public Builder aspectRatio(String aspectRatio) {

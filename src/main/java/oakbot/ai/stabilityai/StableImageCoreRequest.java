@@ -96,7 +96,7 @@ public class StableImageCoreRequest {
 		 * <p>
 		 * Valid values: 16:9, 1:1, 21:9, 2:3, 3:2, 4:5, 5:4, 9:16, 9:21
 		 * </p>
-		 * @param aspectRatio
+		 * @param aspectRatio the aspect ratio
 		 * @return this
 		 */
 		public Builder aspectRatio(String aspectRatio) {
@@ -147,7 +147,7 @@ public class StableImageCoreRequest {
 		 * modeling-compound, neon-punk, origami, photographic, pixel-art,
 		 * tile-texture
 		 * </p>
-		 * @param stylePreset
+		 * @param stylePreset the style preset
 		 * @return this
 		 */
 		public Builder stylePreset(String stylePreset) {

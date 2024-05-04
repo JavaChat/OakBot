@@ -55,9 +55,9 @@ public class ChatCompletionResponse {
 	/**
 	 * Gets a fingerprint which represents the backend configuration that
 	 * the model runs with. Can be used in conjunction with the
-	 * {@link ChatCompletionRequest.Builder#seed seed} request parameter
-	 * to understand when backend changes have been made that might impact
-	 * determinism.
+	 * {@link ChatCompletionRequest.Builder#seed(Integer) seed} request
+	 * parameter to understand when backend changes have been made that might
+	 * impact determinism.
 	 * @return the fingerprint
 	 */
 	public String getSystemFingerprint() {
@@ -82,10 +82,9 @@ public class ChatCompletionResponse {
 
 	/**
 	 * Gets the list of chat completion choices. Can be more than one if
-	 * {@link ChatCompletionRequest.Builder#numCompletionsToGenerate n}
+	 * {@link ChatCompletionRequest.Builder#numCompletionsToGenerate(Integer) n}
 	 * is greater than 1.
 	 * @return the choices
-	 * @see ChatCompletionRequest.Builder#numCompletionsToGenerate
 	 */
 	public List<Choice> getChoices() {
 		return choices;

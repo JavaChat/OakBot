@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import oakbot.bot.ChatActions;
@@ -56,10 +55,8 @@ public class AdventOfCode implements ScheduledTask, Command {
 		this.monitoredLeaderboardByRoom = monitoredLeaderboardByRoom;
 		this.api = api;
 
-		Instant now = Now.instant();
-		for (Integer roomId : monitoredLeaderboardByRoom.keySet()) {
-			lastChecked.put(roomId, now);
-		}
+		var now = Now.instant();
+		monitoredLeaderboardByRoom.keySet().forEach(roomId -> lastChecked.put(roomId, now));
 	}
 
 	@Override
@@ -90,12 +87,12 @@ public class AdventOfCode implements ScheduledTask, Command {
 			return reply("This command is only active during the month of December.", chatCommand);
 		}
 
-		String content = chatCommand.getContent();
-		boolean displayDefaultLeaderboard = content.isEmpty();
+		var content = chatCommand.getContent();
+		var displayDefaultLeaderboard = content.isEmpty();
 
 		String leaderboardId;
 		if (displayDefaultLeaderboard) {
-			int roomId = chatCommand.getMessage().getRoomId();
+			var roomId = chatCommand.getMessage().getRoomId();
 			leaderboardId = monitoredLeaderboardByRoom.get(roomId);
 			if (leaderboardId == null) {
 				return reply("Please specify a leaderboard ID (e.g. " + bot.getTrigger() + name() + " 123456).", chatCommand);
@@ -112,10 +109,10 @@ public class AdventOfCode implements ScheduledTask, Command {
 			return error("I couldn't query that leaderboard. It might not exist. Or the user that my adventofcode.com session token belongs to might not have access to that leaderboard. Or the token might have expired. Or you're trolling me: ", e, chatCommand);
 		}
 
-		String websiteUrl = api.getLeaderboardWebsite(leaderboardId);
-		String leaderboardStr = buildLeaderboard(players, websiteUrl);
+		var websiteUrl = api.getLeaderboardWebsite(leaderboardId);
+		var leaderboardStr = buildLeaderboard(players, websiteUrl);
 
-		ChatBuilder condensed = new ChatBuilder();
+		var condensed = new ChatBuilder();
 		condensed.append("Type ").code().append(bot.getTrigger()).append(name());
 		if (!displayDefaultLeaderboard) {
 			condensed.append(" " + leaderboardId);
@@ -131,25 +128,25 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 	private String buildLeaderboard(List<Player> players, String websiteUrl) {
 		sortPlayersByScoreDescending(players);
-		List<String> names = buildPlayerNameStrings(players);
-		int lengthOfLongestName = lengthOfLongestName(names);
-		int lengthOfHighestScore = lengthOfHighestScore(players);
+		var names = buildPlayerNameStrings(players);
+		var lengthOfLongestName = lengthOfLongestName(names);
+		var lengthOfHighestScore = lengthOfHighestScore(players);
 
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.fixedWidth();
 		cb.append("Leaderboard URL: ").append(websiteUrl).nl();
 
-		int rank = 0;
-		int prevScore = -1;
-		int prevStars = -1;
-		for (int i = 0; i < players.size(); i++) {
-			Player player = players.get(i);
+		var rank = 0;
+		var prevScore = -1;
+		var prevStars = -1;
+		for (var i = 0; i < players.size(); i++) {
+			var player = players.get(i);
 
 			/*
 			 * Do not increase the rank number if two players have the same
 			 * score & stars.
 			 */
-			if (player.getScore() != prevScore || player.getStars() != prevStars) {
+			if (player.score() != prevScore || player.stars() != prevStars) {
 				rank++;
 			}
 
@@ -160,35 +157,35 @@ public class AdventOfCode implements ScheduledTask, Command {
 			}
 
 			//output name
-			String playerName = names.get(i);
+			var playerName = names.get(i);
 			cb.append(playerName).repeat(' ', lengthOfLongestName - playerName.length());
 
 			//output score
 			cb.append(" (score: ");
-			cb.repeat(' ', lengthOfHighestScore - numberOfDigits(player.getScore()));
-			cb.append(player.getScore()).append(") ");
+			cb.repeat(' ', lengthOfHighestScore - numberOfDigits(player.score()));
+			cb.append(player.score()).append(") ");
 
 			//output stars
 			appendStars(player, cb);
 
 			//output star count
 			cb.append(' ');
-			if (player.getStars() < 10) {
+			if (player.stars() < 10) {
 				cb.append(' ');
 			}
-			cb.append(player.getStars()).append(" stars").nl();
+			cb.append(player.stars()).append(" stars").nl();
 
-			prevScore = player.getScore();
-			prevStars = player.getStars();
+			prevScore = player.score();
+			prevStars = player.stars();
 		}
 
 		return cb.toString().stripTrailing();
 	}
 
 	private void appendStars(Player player, ChatBuilder cb) {
-		Map<Integer, Instant[]> days = player.getCompletionTimes();
+		var days = player.completionTimes();
 		IntStream.rangeClosed(1, 25).forEach(day -> {
-			Instant[] parts = days.get(day);
+			var parts = days.get(day);
 			if (parts == null) {
 				//did not finish anything
 				cb.append('.');
@@ -208,12 +205,12 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 	private void sortPlayersByScoreDescending(List<Player> players) {
 		players.sort((a, b) -> {
-			int c = b.getScore() - a.getScore();
+			var c = b.score() - a.score();
 			if (c != 0) {
 				return c;
 			}
 
-			return b.getStars() - a.getStars();
+			return b.stars() - a.stars();
 		});
 	}
 
@@ -221,20 +218,20 @@ public class AdventOfCode implements ScheduledTask, Command {
 		//@formatter:off
 		return players.stream()
 			.map(this::buildPlayerNameForLeaderboard)
-		.collect(Collectors.toList());
+		.toList();
 		//@formatter:on
 	}
 
 	private String buildPlayerNameForLeaderboard(Player player) {
-		if (player.getName() == null) {
-			return "(user #" + player.getId() + ")";
+		if (player.name() == null) {
+			return "(user #" + player.id() + ")";
 		}
 
 		/*
 		 * Remove '@' symbols to prevent people from trolling by putting chat
 		 * mentions in their AoC names.
 		 */
-		return player.getName().replace("@", "");
+		return player.name().replace("@", "");
 	}
 
 	private int lengthOfLongestName(List<String> names) {
@@ -248,7 +245,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 	private int lengthOfHighestScore(List<Player> players) {
 		//@formatter:off
 		int highestScore = players.stream()
-			.mapToInt(Player::getScore)
+			.mapToInt(Player::score)
 		.max().getAsInt();
 		//@formatter:on
 
@@ -260,7 +257,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 			return 1;
 		}
 
-		int digits = 0;
+		var digits = 0;
 		while (number > 0) {
 			number /= 10;
 			digits++;
@@ -273,15 +270,15 @@ public class AdventOfCode implements ScheduledTask, Command {
 	 * @return true if the command is active, false if not
 	 */
 	private boolean isActive() {
-		Month month = Now.local().getMonth();
+		var month = Now.local().getMonth();
 		return month == Month.DECEMBER || month == Month.JANUARY;
 	}
 
 	@Override
 	public long nextRun() {
-		LocalDateTime now = Now.local();
+		var now = Now.local();
 		if (now.getMonth() != Month.DECEMBER) {
-			LocalDateTime decemberFirst = LocalDateTime.of(now.getYear(), Month.DECEMBER, 1, 0, 0, 0);
+			var decemberFirst = LocalDateTime.of(now.getYear(), Month.DECEMBER, 1, 0, 0, 0);
 			return now.until(decemberFirst, ChronoUnit.MILLIS);
 		}
 
@@ -290,9 +287,9 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 	@Override
 	public void run(IBot bot) throws Exception {
-		for (Map.Entry<Integer, String> entry : monitoredLeaderboardByRoom.entrySet()) {
-			Integer roomId = entry.getKey();
-			String leaderboardId = entry.getValue();
+		for (var entry : monitoredLeaderboardByRoom.entrySet()) {
+			var roomId = entry.getKey();
+			var leaderboardId = entry.getValue();
 
 			List<Player> leaderboard;
 			try {
@@ -302,29 +299,29 @@ public class AdventOfCode implements ScheduledTask, Command {
 				continue;
 			}
 
-			Instant prevChecked = lastChecked.get(roomId);
+			var prevChecked = lastChecked.get(roomId);
 			lastChecked.put(roomId, Now.instant());
 
-			for (Player player : leaderboard) {
+			for (var player : leaderboard) {
 				sendAnnouncementMessage(player, prevChecked, roomId, bot);
 			}
 		}
 	}
 
 	private void sendAnnouncementMessage(Player player, Instant prevChecked, int roomId, IBot bot) throws IOException {
-		for (Map.Entry<Integer, Instant[]> entry : player.getCompletionTimes().entrySet()) {
-			Instant[] completionTime = entry.getValue();
-			boolean justFinishedPart1 = completionTime[0].isAfter(prevChecked);
-			boolean justFinishedPart2 = completionTime[1] != null && completionTime[1].isAfter(prevChecked);
+		for (var entry : player.completionTimes().entrySet()) {
+			var completionTime = entry.getValue();
+			var justFinishedPart1 = completionTime[0].isAfter(prevChecked);
+			var justFinishedPart2 = completionTime[1] != null && completionTime[1].isAfter(prevChecked);
 
 			if (!justFinishedPart1 && !justFinishedPart2) {
 				continue;
 			}
 
-			Integer day = entry.getKey();
-			String playerName = buildPlayerNameForAnnouncements(player);
+			var day = entry.getKey();
+			var playerName = buildPlayerNameForAnnouncements(player);
 
-			ChatBuilder cb = new ChatBuilder().bold(playerName);
+			var cb = new ChatBuilder().bold(playerName);
 			if (justFinishedPart1 && justFinishedPart2) {
 				cb.append(" completed parts 1 and 2");
 			} else {
@@ -338,14 +335,14 @@ public class AdventOfCode implements ScheduledTask, Command {
 	}
 
 	private String buildPlayerNameForAnnouncements(Player player) {
-		if (player.getName() == null) {
-			return "anonymous user #" + player.getId();
+		if (player.name() == null) {
+			return "anonymous user #" + player.id();
 		}
 
 		/*
 		 * Remove '@' symbols to prevent people from trolling by putting chat
 		 * mentions in their AoC names.
 		 */
-		return player.getName().replace("@", "");
+		return player.name().replace("@", "");
 	}
 }

@@ -61,17 +61,17 @@ public class OpenAIClient {
 	 * @see "https://platform.openai.com/docs/api-reference/chat"
 	 */
 	public ChatCompletionResponse chatCompletion(ChatCompletionRequest apiRequest) throws IOException {
-		HttpPost request = postRequestWithApiKey("/v1/chat/completions");
+		var request = postRequestWithApiKey("/v1/chat/completions");
 		request.setEntity(new JsonEntity(toJson(apiRequest)));
 
 		logRequest(request);
 
 		JsonNode responseBody = null;
 		int responseStatusCode = 0;
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
-				try (InputStream in = response.getEntity().getContent()) {
+				try (var in = response.getEntity().getContent()) {
 					responseBody = JsonUtils.parse(in);
 				}
 			}
@@ -98,7 +98,7 @@ public class OpenAIClient {
 	 * @see "https://platform.openai.com/docs/api-reference/images/create"
 	 */
 	public CreateImageResponse createImage(String model, String size, String prompt) throws IOException, OpenAIException {
-		HttpPost request = postRequestWithApiKey("/v1/images/generations");
+		var request = postRequestWithApiKey("/v1/images/generations");
 
 		//@formatter:off
 		request.setEntity(new JsonEntity(JsonUtils.newObject()
@@ -112,10 +112,10 @@ public class OpenAIClient {
 
 		JsonNode responseBody = null;
 		int responseStatusCode = 0;
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
-				try (InputStream in = response.getEntity().getContent()) {
+				try (var in = response.getEntity().getContent()) {
 					responseBody = JsonUtils.parse(in);
 				}
 			}
@@ -142,10 +142,10 @@ public class OpenAIClient {
 	 * @see "https://platform.openai.com/docs/api-reference/images/createVariation"
 	 */
 	public CreateImageResponse createImageVariation(String inputImageUrl, String size) throws IllegalArgumentException, IOException, OpenAIException {
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			byte[] image = downloadImageAndAttemptToConvertToPng(client, inputImageUrl);
+		try (var client = HttpFactory.connect().getClient()) {
+			var image = downloadImageAndAttemptToConvertToPng(client, inputImageUrl);
 
-			HttpPost request = postRequestWithApiKey("/v1/images/variations");
+			var request = postRequestWithApiKey("/v1/images/variations");
 
 			//@formatter:off
 			request.setEntity(MultipartEntityBuilder.create()
@@ -159,9 +159,9 @@ public class OpenAIClient {
 			JsonNode responseBody = null;
 			int responseStatusCode = 0;
 
-			try (CloseableHttpResponse response = client.execute(request)) {
+			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
-				try (InputStream in = response.getEntity().getContent()) {
+				try (var in = response.getEntity().getContent()) {
 					responseBody = JsonUtils.parse(in);
 				}
 
@@ -185,9 +185,9 @@ public class OpenAIClient {
 	 * @throws OpenAIException if an error response is returned
 	 */
 	public byte[] createSpeech(CreateSpeechRequest apiRequest) throws IOException, OpenAIException {
-		HttpPost request = postRequestWithApiKey("/v1/audio/speech");
+		var request = postRequestWithApiKey("/v1/audio/speech");
 
-		ObjectNode node = JsonUtils.newObject();
+		var node = JsonUtils.newObject();
 		node.put("model", apiRequest.getModel());
 		node.put("input", apiRequest.getInput());
 		node.put("voice", apiRequest.getVoice());
@@ -204,14 +204,14 @@ public class OpenAIClient {
 
 		JsonNode responseBody = null;
 		int responseStatusCode = 0;
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
 				if (responseStatusCode == 200) {
 					return EntityUtils.toByteArray(response.getEntity());
 				}
 
-				try (InputStream in = response.getEntity().getContent()) {
+				try (var in = response.getEntity().getContent()) {
 					responseBody = JsonUtils.parse(in);
 				}
 			}
@@ -249,9 +249,9 @@ public class OpenAIClient {
 	 * @see "https://platform.openai.com/docs/api-reference/moderations/create"
 	 */
 	public ModerationResponse moderate(String input, String model) throws IOException, OpenAIException {
-		HttpPost request = postRequestWithApiKey("/v1/moderations");
+		var request = postRequestWithApiKey("/v1/moderations");
 
-		ObjectNode node = JsonUtils.newObject();
+		var node = JsonUtils.newObject();
 		node.put("input", input);
 		putIfNotNull(node, "model", model);
 
@@ -261,10 +261,10 @@ public class OpenAIClient {
 
 		JsonNode responseBody = null;
 		int responseStatusCode = 0;
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
-				try (InputStream in = response.getEntity().getContent()) {
+				try (var in = response.getEntity().getContent()) {
 					responseBody = JsonUtils.parse(in);
 				}
 			}
@@ -282,12 +282,11 @@ public class OpenAIClient {
 
 	private void logRequest(HttpPost request) {
 		logger.fine(() -> {
-			StringBuilder sb = new StringBuilder();
+			var sb = new StringBuilder();
 			sb.append("Sending request to OpenAI: \nURI: ").append(request.getURI());
 
-			if (request.getEntity() instanceof JsonEntity) {
-				JsonEntity entity = (JsonEntity) request.getEntity();
-				sb.append("\nBody: " + JsonUtils.prettyPrint(entity.node));
+			if (request.getEntity() instanceof JsonEntity entity) {
+				sb.append("\nBody: ").append(JsonUtils.prettyPrint(entity.node));
 			}
 
 			return sb.toString();
@@ -300,17 +299,16 @@ public class OpenAIClient {
 
 	private void logError(HttpPost request, int responseStatusCode, JsonNode responseBody, IOException e) throws IOException {
 		logger.log(Level.SEVERE, e, () -> {
-			StringBuilder sb = new StringBuilder();
+			var sb = new StringBuilder();
 			sb.append("Problem communicating with OpenAI.");
 			sb.append("\nRequest: ").append(request.getURI());
 
-			if (request.getEntity() instanceof JsonEntity) {
-				JsonEntity entity = (JsonEntity) request.getEntity();
+			if (request.getEntity() instanceof JsonEntity entity) {
 				sb.append(": ").append(JsonUtils.prettyPrint(entity.node));
 			}
 
 			if (responseBody != null) {
-				String responseBodyStr = JsonUtils.prettyPrint(responseBody);
+				var responseBodyStr = JsonUtils.prettyPrint(responseBody);
 				sb.append("\nResponse (HTTP ").append(responseStatusCode).append("): ").append(responseBodyStr);
 			}
 
@@ -321,25 +319,25 @@ public class OpenAIClient {
 	}
 
 	private HttpPost postRequestWithApiKey(String uriPath) {
-		HttpPost request = new HttpPost("https://api.openai.com" + uriPath);
+		var request = new HttpPost("https://api.openai.com" + uriPath);
 		request.setHeader("Authorization", "Bearer " + apiKey);
 		return request;
 	}
 
 	private byte[] downloadImageAndAttemptToConvertToPng(CloseableHttpClient client, String url) throws IOException {
-		HttpGet request = new HttpGet(url);
+		var request = new HttpGet(url);
 
-		try (CloseableHttpResponse response = client.execute(request)) {
-			int status = response.getStatusLine().getStatusCode();
+		try (var response = client.execute(request)) {
+			var status = response.getStatusLine().getStatusCode();
 			if (status != 200) {
 				throw new IOException("Image URL returned HTTP " + status + ".");
 			}
 
-			HttpEntity entity = response.getEntity();
-			byte[] origData = EntityUtils.toByteArray(entity);
+			var entity = response.getEntity();
+			var origData = EntityUtils.toByteArray(entity);
 
 			if (isJpegOrGif(entity)) {
-				byte[] pngData = convertToPng(origData);
+				var pngData = convertToPng(origData);
 				if (pngData != null) {
 					return pngData;
 				}
@@ -351,17 +349,17 @@ public class OpenAIClient {
 	}
 
 	private boolean isJpegOrGif(HttpEntity entity) {
-		Header header = entity.getContentType();
+		var header = entity.getContentType();
 		if (header == null) {
 			return false;
 		}
 
-		String contentType = header.getValue();
+		var contentType = header.getValue();
 		if (contentType == null) {
 			return false;
 		}
 
-		/**
+		/*
 		 * Use "startsWith" because the header value can contain extra data on
 		 * the end (e.g. "image/gif;encoding=utf-8")
 		 */
@@ -370,14 +368,14 @@ public class OpenAIClient {
 
 	private byte[] convertToPng(byte[] data) throws IOException {
 		BufferedImage image;
-		try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
+		try (var in = new ByteArrayInputStream(data)) {
 			image = ImageIO.read(in);
 		}
 		if (image == null) {
 			return null;
 		}
 
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+		try (var out = new ByteArrayOutputStream()) {
 			ImageIO.write(image, "PNG", out);
 			return out.toByteArray();
 		}
@@ -392,15 +390,15 @@ public class OpenAIClient {
 	 * @throws OpenAIException if there is an error in the given response
 	 */
 	private void lookForError(String prompt, JsonNode response) throws OpenAIException {
-		JsonNode error = response.get("error");
+		var error = response.get("error");
 		if (error == null) {
 			return;
 		}
 
-		String message = error.path("message").asText();
-		String type = error.path("type").asText();
-		String param = error.path("param").asText();
-		String code = error.path("code").asText();
+		var message = error.path("message").asText();
+		var type = error.path("type").asText();
+		var param = error.path("param").asText();
+		var code = error.path("code").asText();
 
 		/*
 		 * If rejected by the moderation system, get the reason(s) why.
@@ -409,8 +407,8 @@ public class OpenAIClient {
 			Set<String> flaggedCategories;
 			try {
 				flaggedCategories = moderate(prompt).getFlaggedCategories();
-			} catch (Exception ignore) {
-				logger.log(Level.WARNING, ignore, () -> "Ignoring failed call to moderation endpoint.");
+			} catch (Exception e) {
+				logger.log(Level.WARNING, e, () -> "Ignoring failed call to moderation endpoint.");
 				flaggedCategories = Set.of();
 			}
 
@@ -421,7 +419,7 @@ public class OpenAIClient {
 	}
 
 	private JsonNode toJson(ChatCompletionRequest apiRequest) {
-		ObjectNode node = JsonUtils.newObject();
+		var node = JsonUtils.newObject();
 
 		node.put("model", apiRequest.getModel());
 		putIfNotNull(node, "frequency_penalty", apiRequest.getFrequencyPenalty());
@@ -438,14 +436,14 @@ public class OpenAIClient {
 		putIfNotNull(node, "top_p", apiRequest.getTopP());
 		putIfNotNull(node, "user", apiRequest.getUser());
 
-		ArrayNode messagesNode = node.putArray("messages");
-		for (ChatCompletionRequest.Message message : apiRequest.getMessages()) {
-			ObjectNode messageNode = messagesNode.addObject();
+		var messagesNode = node.putArray("messages");
+		for (var message : apiRequest.getMessages()) {
+			var messageNode = messagesNode.addObject();
 			messageNode.put("role", message.getRole());
 
 			putIfNotNull(messageNode, "name", sanitizeMessageName(message.getName()));
 
-			ArrayNode contentNode = messageNode.putArray("content");
+			var contentNode = messageNode.putArray("content");
 
 			if (message.getText() != null) {
 				//@formatter:off
@@ -455,19 +453,18 @@ public class OpenAIClient {
 				//@formatter:on
 			}
 
-			for (String imageUrl : message.getImageUrls()) {
-				ObjectNode imageContentNode = contentNode.addObject();
+			for (var imageUrl : message.getImageUrls()) {
+				var imageContentNode = contentNode.addObject();
 				imageContentNode.put("type", "image_url");
 
-				ObjectNode urlNode = imageContentNode.putObject("image_url");
+				var urlNode = imageContentNode.putObject("image_url");
 				urlNode.put("url", imageUrl);
 				putIfNotNull(urlNode, "detail", message.getImageDetail());
 			}
 		}
 
 		if (!apiRequest.getStop().isEmpty()) {
-			ArrayNode stopNode = node.arrayNode();
-			node.set("stop", stopNode);
+			var stopNode = node.putArray("stop");
 			apiRequest.getStop().forEach(stopNode::add);
 		}
 
@@ -497,7 +494,7 @@ public class OpenAIClient {
 			return null;
 		}
 
-		int maxLength = 64;
+		var maxLength = 64;
 		if (name.length() > maxLength) {
 			name = name.substring(0, maxLength);
 		}
@@ -516,8 +513,8 @@ public class OpenAIClient {
 			.completionTokens(node.path("usage").path("completion_tokens").asInt())
 			.choices(JsonUtils.streamArray(node.path("choices"))
 				.map(choiceNode -> {
-					String content = choiceNode.path("message").path("content").asText();
-					String finishReason = choiceNode.path("finish_reason").asText();
+					var content = choiceNode.path("message").path("content").asText();
+					var finishReason = choiceNode.path("finish_reason").asText();
 					return new ChatCompletionResponse.Choice(content, finishReason);
 				})
 				.collect(Collectors.toList()))
@@ -526,7 +523,7 @@ public class OpenAIClient {
 	}
 
 	private ModerationResponse parseModerationResponse(JsonNode node) {
-		JsonNode results = node.path("results").path(0);
+		var results = node.path("results").path(0);
 
 		//@formatter:off
 		return new ModerationResponse.Builder()
@@ -543,16 +540,14 @@ public class OpenAIClient {
 	}
 
 	private CreateImageResponse parseCreateImageResponse(JsonNode node) {
-		Instant created = Instant.ofEpochSecond(node.path("created").asLong());
+		var created = Instant.ofEpochSecond(node.path("created").asLong());
 
-		JsonNode data = node.path("data").path(0);
+		var data = node.path("data").path(0);
 
-		String url = data.path("url").asText();
+		var url = data.path("url").asText();
 
-		String revisedPrompt = data.path("revised_prompt").asText();
-		if (revisedPrompt.isEmpty()) {
-			revisedPrompt = null;
-		}
+		var revisedPromptNode = data.get("revised_prompt");
+		var revisedPrompt = (revisedPromptNode == null) ? null : revisedPromptNode.asText();
 
 		return new CreateImageResponse(created, url, revisedPrompt);
 	}

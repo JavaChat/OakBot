@@ -93,15 +93,15 @@ public class ChatCommand {
 			return List.of();
 		}
 
-		String md = getContentMarkdown().trim();
-		List<String> args = new ArrayList<>();
+		var md = getContentMarkdown().trim();
+		var args = new ArrayList<String>();
 
-		boolean inQuotes = false;
-		boolean escapeNext = false;
-		StringBuilder sb = new StringBuilder();
-		CharIterator it = new CharIterator(md);
+		var inQuotes = false;
+		var escapeNext = false;
+		var sb = new StringBuilder();
+		var it = new CharIterator(md);
 		while (it.hasNext()) {
-			char c = it.next();
+			var c = it.next();
 
 			if (escapeNext) {
 				sb.append(c);
@@ -110,7 +110,7 @@ public class ChatCommand {
 			}
 
 			if (Character.isWhitespace(c) && !inQuotes) {
-				if (sb.length() > 0) {
+				if (!sb.isEmpty()) {
 					args.add(sb.toString());
 					sb.setLength(0);
 				}
@@ -134,7 +134,7 @@ public class ChatCommand {
 			sb.append(c);
 		}
 
-		if (sb.length() > 0) {
+		if (!sb.isEmpty()) {
 			args.add(sb.toString());
 		}
 
@@ -168,15 +168,15 @@ public class ChatCommand {
 	 * command
 	 */
 	public static ChatCommand fromMessage(ChatMessage message, String trigger) {
-		Content contentObj = message.getContent();
+		var contentObj = message.getContent();
 		if (contentObj == null) {
 			return null;
 		}
 
-		String content = contentObj.getContent();
-		CommandStringParts parts = extractParts(content);
+		var content = contentObj.getContent();
+		var parts = extractParts(content);
 
-		String name = StringEscapeUtils.unescapeHtml4(parts.firstWord);
+		var name = StringEscapeUtils.unescapeHtml4(parts.firstWord);
 		if (trigger != null) {
 			if (!name.startsWith(trigger)) {
 				return null;
@@ -200,20 +200,20 @@ public class ChatCommand {
 			}
 		}
 
-		String openTags = parts.openTagsBeforeFirstWord.stream().collect(Collectors.joining());
+		var openTags = String.join("", parts.openTagsBeforeFirstWord);
 		commandContent = openTags + commandContent;
 
 		return new ChatCommand(message, name, commandContent);
 	}
 
 	private static CommandStringParts extractParts(String content) {
-		StringBuilder firstWordBuffer = new StringBuilder();
-		boolean inTag = false;
-		boolean inTagName = false;
-		boolean inClosingTag = false;
-		boolean firstNonWhitespaceCharEncountered = false;
-		int tagNameStart = -1;
-		int startOfContent = -1;
+		var firstWordBuffer = new StringBuilder();
+		var inTag = false;
+		var inTagName = false;
+		var inClosingTag = false;
+		var firstNonWhitespaceCharEncountered = false;
+		var tagNameStart = -1;
+		var startOfContent = -1;
 		String curTagName = null;
 
 		/*
@@ -221,11 +221,11 @@ public class ChatCommand {
 		 * Index 1: The entire opening tag, including the <> characters and
 		 * attributes.
 		 */
-		LinkedList<String[]> openTags = new LinkedList<>();
+		var openTags = new LinkedList<String[]>();
 
-		CharIterator it = new CharIterator(content);
+		var it = new CharIterator(content);
 		while (it.hasNext()) {
-			char c = it.next();
+			var c = it.next();
 
 			if (Character.isWhitespace(c)) {
 				if (!firstNonWhitespaceCharEncountered) {
@@ -280,7 +280,7 @@ public class ChatCommand {
 					 * the command name is reached.
 					 */
 					while (!openTags.isEmpty()) {
-						String[] tag = openTags.removeLast();
+						var tag = openTags.removeLast();
 						if (tag[0].equals(curTagName)) {
 							break;
 						}
@@ -290,8 +290,8 @@ public class ChatCommand {
 					 * Save the entire opening tag, including the <> characters
 					 * and attributes.
 					 */
-					String[] tag = openTags.getLast();
-					String entireOpenTag = content.substring(tagNameStart - 1, it.index() + 1);
+					var tag = openTags.getLast();
+					var entireOpenTag = content.substring(tagNameStart - 1, it.index() + 1);
 					tag[1] = entireOpenTag;
 				}
 
@@ -312,27 +312,17 @@ public class ChatCommand {
 		}
 
 		//@formatter:off
-		List<String> openTagsBeforeFirstWord = openTags.stream()
+		var openTagsBeforeFirstWord = openTags.stream()
 			.map(tag -> tag[1])
-		.collect(Collectors.toList());
+		.toList();
 		//@formatter:on
 
-		String firstWord = firstWordBuffer.toString();
+		var firstWord = firstWordBuffer.toString();
 
 		return new CommandStringParts(openTagsBeforeFirstWord, firstWord, startOfContent);
 	}
 
-	private static class CommandStringParts {
-		private final List<String> openTagsBeforeFirstWord;
-		private final String firstWord;
-		private final int startOfContent;
-
-		public CommandStringParts(List<String> openTagsBeforeFirstWord, String firstWord, int startOfContent) {
-			this.openTagsBeforeFirstWord = openTagsBeforeFirstWord;
-			this.firstWord = firstWord;
-			this.startOfContent = startOfContent;
-		}
-	}
+	private record CommandStringParts(List<String> openTagsBeforeFirstWord, String firstWord, int startOfContent) { }
 
 	@Override
 	public String toString() {
@@ -349,7 +339,7 @@ public class ChatCommand {
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
-		ChatCommand other = (ChatCommand) obj;
+		var other = (ChatCommand) obj;
 		return Objects.equals(commandName, other.commandName) && Objects.equals(content, other.content) && Objects.equals(message, other.message);
 	}
 }

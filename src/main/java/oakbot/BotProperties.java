@@ -29,7 +29,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final Integer botUserId;
 	private final int socketPort;
 	private final Duration hideOneboxesAfter;
-	private boolean enableLearnedCommands;
+	private final boolean enableLearnedCommands;
 
 	/**
 	 * @param properties the properties to parse
@@ -48,7 +48,7 @@ public class BotProperties extends PropertiesWrapper {
 		trigger = get("trigger", "=");
 		greeting = get("greeting");
 
-		String value = get("hideOneboxesAfter");
+		var value = get("hideOneboxesAfter");
 		hideOneboxesAfter = (value == null) ? null : Duration.parse(value);
 
 		homeRooms = getIntegerList("rooms.home", List.of(1)); //default to "Sandbox"

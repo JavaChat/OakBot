@@ -66,13 +66,13 @@ public class JavadocDaoCached implements JavadocDao {
 	 * @throws IOException if there's a problem reading any of the ZIP files
 	 */
 	public JavadocDaoCached(Path dir) throws IOException {
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, JavadocDaoCached::isZipFile)) {
-			for (Path file : stream) {
+		try (var stream = Files.newDirectoryStream(dir, JavadocDaoCached::isZipFile)) {
+			for (var file : stream) {
 				register(file);
 			}
 		}
 
-		WatchThread watchThread = new WatchThread(dir);
+		var watchThread = new WatchThread(dir);
 		watchThread.start();
 	}
 
@@ -83,10 +83,10 @@ public class JavadocDaoCached implements JavadocDao {
 	 * @throws IOException if there was a problem reading the ZIP file
 	 */
 	private void register(Path file) throws IOException {
-		JavadocZipFile zip = new JavadocZipFile(file);
-		for (ClassName className : zip.getClassNames()) {
-			String fullName = className.getFullyQualifiedName();
-			String simpleName = className.getSimpleName();
+		var zip = new JavadocZipFile(file);
+		for (var className : zip.getClassNames()) {
+			var fullName = className.getFullyQualifiedName();
+			var simpleName = className.getSimpleName();
 
 			aliases.put(simpleName.toLowerCase(), fullName);
 			aliases.put(simpleName, fullName);
@@ -98,7 +98,7 @@ public class JavadocDaoCached implements JavadocDao {
 
 	@Override
 	public synchronized Collection<String> search(String className) {
-		Collection<String> names = aliases.get(className);
+		var names = aliases.get(className);
 		if (names.isEmpty()) {
 			//try case-insensitive search
 			names = aliases.get(className.toLowerCase());
@@ -109,13 +109,13 @@ public class JavadocDaoCached implements JavadocDao {
 	@Override
 	public synchronized ClassInfo getClassInfo(String fullyQualifiedClassName) throws IOException {
 		//check the cache
-		ClassInfo info = cache.get(fullyQualifiedClassName);
+		var info = cache.get(fullyQualifiedClassName);
 		if (info != null) {
 			return info;
 		}
 
 		//parse the class info from the Javadocs
-		for (JavadocZipFile zip : libraryClasses.keySet()) {
+		for (var zip : libraryClasses.keySet()) {
 			info = zip.getClassInfo(fullyQualifiedClassName);
 			if (info != null) {
 				cache.put(fullyQualifiedClassName, info);
@@ -161,7 +161,7 @@ public class JavadocDaoCached implements JavadocDao {
 
 				key.pollEvents().forEach(this::handleEvent);
 
-				boolean valid = key.reset();
+				var valid = key.reset();
 				if (!valid) {
 					logger.warning(() -> "Javadoc ZIP file watch thread has been terminated due to the watch key becoming invalid.");
 					break;
@@ -170,13 +170,13 @@ public class JavadocDaoCached implements JavadocDao {
 		}
 
 		private void handleEvent(WatchEvent<?> event) {
-			WatchEvent.Kind<?> kind = event.kind();
+			var kind = event.kind();
 			if (kind == StandardWatchEventKinds.OVERFLOW) {
 				return;
 			}
 
 			@SuppressWarnings("unchecked")
-			Path file = ((WatchEvent<Path>) event).context();
+			var file = ((WatchEvent<Path>) event).context();
 			if (!isZipFile(file)) {
 				return;
 			}
@@ -213,22 +213,22 @@ public class JavadocDaoCached implements JavadocDao {
 
 		private void remove(Path file) {
 			logger.info(() -> "Removing ZIP file " + file + "...");
-			Path fileName = file.getFileName();
+			var fileName = file.getFileName();
 
 			synchronized (JavadocDaoCached.this) {
 				//find the corresponding JavadocZipFile object
 				//@formatter:off
-				Optional<JavadocZipFile> found = libraryClasses.keys().stream()
+				var found = libraryClasses.keys().stream()
 					.filter(zip -> zip.getPath().getFileName().equals(fileName))
 				.findAny();
 				//@formatter:on
 
-				if (!found.isPresent()) {
+				if (found.isEmpty()) {
 					logger.warning(() -> "Tried to remove ZIP file \"" + file + "\", but it was not found in the JavadocDao.");
 					return;
 				}
 
-				Collection<String> classNames = libraryClasses.removeAll(found.get());
+				var classNames = libraryClasses.removeAll(found.get());
 				aliases.values().removeAll(classNames);
 				cache.keySet().removeAll(classNames);
 			}

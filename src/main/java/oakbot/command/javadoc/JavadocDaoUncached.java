@@ -25,12 +25,12 @@ public class JavadocDaoUncached implements JavadocDao {
 
 	@Override
 	public Collection<String> search(String query) throws IOException {
-		Collection<String> names = new HashSet<>();
-		for (Path file : getZipFiles()) {
-			JavadocZipFile zip = new JavadocZipFile(file);
-			for (ClassName className : zip.getClassNames()) {
-				String fullName = className.getFullyQualifiedName();
-				String simpleName = className.getSimpleName();
+		var names = new HashSet<String>();
+		for (var file : getZipFiles()) {
+			var zip = new JavadocZipFile(file);
+			for (var className : zip.getClassNames()) {
+				var fullName = className.getFullyQualifiedName();
+				var simpleName = className.getSimpleName();
 				if (fullName.equalsIgnoreCase(query) || simpleName.equalsIgnoreCase(query)) {
 					names.add(fullName);
 				}
@@ -41,9 +41,9 @@ public class JavadocDaoUncached implements JavadocDao {
 
 	@Override
 	public ClassInfo getClassInfo(String fullyQualifiedClassName) throws IOException {
-		for (Path file : getZipFiles()) {
-			JavadocZipFile zip = new JavadocZipFile(file);
-			ClassInfo info = zip.getClassInfo(fullyQualifiedClassName);
+		for (var file : getZipFiles()) {
+			var zip = new JavadocZipFile(file);
+			var info = zip.getClassInfo(fullyQualifiedClassName);
 			if (info != null) {
 				return info;
 			}
@@ -53,8 +53,8 @@ public class JavadocDaoUncached implements JavadocDao {
 	}
 
 	private List<Path> getZipFiles() throws IOException {
-		List<Path> files = new ArrayList<>();
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, JavadocDaoUncached::isZipFile)) {
+		var files = new ArrayList<Path>();
+		try (var stream = Files.newDirectoryStream(dir, JavadocDaoUncached::isZipFile)) {
 			stream.forEach(files::add);
 		}
 		return files;

@@ -56,12 +56,12 @@ public class FileChatClient implements IChatClient {
 
 	@Override
 	public FileChatRoom joinRoom(int roomId) throws IOException {
-		Path inputFile = Paths.get("local.room" + roomId + ".txt");
+		var inputFile = Paths.get("local.room" + roomId + ".txt");
 		Files.deleteIfExists(inputFile);
 		Files.createFile(inputFile);
 
 		//@formatter:off
-		UserInfo human = new UserInfo.Builder()
+		var human = new UserInfo.Builder()
 			.roomId(roomId)
 			.userId(humanUserId)
 			.username(humanUsername)
@@ -69,7 +69,7 @@ public class FileChatClient implements IChatClient {
 		.build();
 		//@formatter:on
 
-		FileChatRoom room = new FileChatRoom(roomId, human, inputFile, this);
+		var room = new FileChatRoom(roomId, human, inputFile, this);
 		rooms.add(room);
 		return room;
 	}
@@ -91,7 +91,7 @@ public class FileChatClient implements IChatClient {
 
 	@Override
 	public List<IRoom> getRooms() {
-		return rooms.stream().map(r -> (IRoom) r).collect(Collectors.toList());
+		return rooms.stream().map(r -> (IRoom) r).toList();
 	}
 
 	@Override
@@ -115,8 +115,8 @@ public class FileChatClient implements IChatClient {
 	}
 
 	private String _getMessageContent(long messageId) throws IOException {
-		for (FileChatRoom room : rooms) {
-			for (ChatMessage message : room.getAllMessages()) {
+		for (var room : rooms) {
+			for (var message : room.getAllMessages()) {
 				if (message.getMessageId() == messageId) {
 					return message.getContent().getContent();
 				}
@@ -137,9 +137,9 @@ public class FileChatClient implements IChatClient {
 
 	@Override
 	public String uploadImage(byte[] data) throws IOException {
-		LocalDateTime now = LocalDateTime.now();
-		String filename = now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replaceAll("[-T:]", "") + ".jpg";
-		Path path = Paths.get(filename);
+		var now = LocalDateTime.now();
+		var filename = now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replaceAll("[-T:]", "") + ".jpg";
+		var path = Paths.get(filename);
 		Files.write(path, data);
 		return filename;
 	}

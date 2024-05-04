@@ -147,7 +147,7 @@ public class JavadocDaoCachedTest {
 		ClassInfo info = dao.getClassInfo("java.util.List");
 		assertNotNull(info);
 
-		try (FileSystem fs = FileSystems.newFileSystem(dest, null)) {
+		try (FileSystem fs = FileSystems.newFileSystem(dest)) {
 			Path path = fs.getPath("java/util/List.xml");
 			Files.delete(path);
 		}

@@ -5,10 +5,13 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.w3c.dom.Element;
@@ -61,23 +64,23 @@ public class DefineCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String word = chatCommand.getContent().trim();
+		var word = chatCommand.getContent().trim();
 		if (word.isEmpty()) {
 			return reply("Please specify the word you'd like to define.", chatCommand);
 		}
 
 		Leaf response;
-		try (Http http = HttpFactory.connect()) {
-			String url = url(word);
+		try (var http = HttpFactory.connect()) {
+			var url = url(word);
 			response = http.get(url).getBodyAsXml();
 		} catch (IOException | SAXException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem getting word from dictionary.");
 			return error("Sorry, an unexpected error occurred while getting the definition: ", e, chatCommand);
 		}
 
-		List<Definition> definitions = parseResponse(word, response);
+		var definitions = parseResponse(word, response);
 		if (definitions.isEmpty()) {
-			List<String> suggestions = parseSuggestions(response);
+			var suggestions = parseSuggestions(response);
 			if (suggestions.isEmpty()) {
 				return reply("No definitions found.", chatCommand);
 			} else {
@@ -85,11 +88,11 @@ public class DefineCommand implements Command {
 			}
 		}
 
-		ChatBuilder cb = new ChatBuilder();
-		for (Definition definition : definitions) {
+		var cb = new ChatBuilder();
+		for (var definition : definitions) {
 			cb.append(word).append(" (").append(definition.getWordType()).append("):").nl();
 			cb.append(definition.getDefinition());
-			String example = definition.getExample();
+			var example = definition.getExample();
 			if (example != null) {
 				cb.append(" (").append(definition.getExample()).append(")");
 			}
@@ -98,8 +101,7 @@ public class DefineCommand implements Command {
 
 		//@formatter:off
 		return ChatActions.create(
-			new PostMessage(cb.toString().trim())
-			.splitStrategy(SplitStrategy.NEWLINE)
+			new PostMessage(cb.toString().trim()).splitStrategy(SplitStrategy.NEWLINE)
 		);
 		//@formatter:on
 	}
@@ -116,19 +118,19 @@ public class DefineCommand implements Command {
 	}
 
 	private List<Definition> parseResponse(String word, Leaf response) {
-		List<Definition> definitions = new ArrayList<>();
-		for (Leaf entryNode : response.select("/entry_list/entry")) {
-			Leaf leaf = entryNode.selectFirst("ew");
-			String ew = (leaf == null) ? null : leaf.text();
+		var definitions = new ArrayList<Definition>();
+		for (var entryNode : response.select("/entry_list/entry")) {
+			var leaf = entryNode.selectFirst("ew");
+			var ew = (leaf == null) ? null : leaf.text();
 			if (!word.equalsIgnoreCase(ew)) {
 				//ignore similar words
 				continue;
 			}
 
 			leaf = entryNode.selectFirst("fl");
-			String type = (leaf == null) ? null : leaf.text();
-			for (Leaf dtNode : entryNode.select("def/dt")) {
-				String definitionText = getDefinition(dtNode.node());
+			var type = (leaf == null) ? null : leaf.text();
+			for (var dtNode : entryNode.select("def/dt")) {
+				var definitionText = getDefinition(dtNode.node());
 				if (definitionText == null || definitionText.isEmpty()) {
 					continue;
 				}
@@ -146,17 +148,16 @@ public class DefineCommand implements Command {
 	}
 
 	private String getDefinition(Node dtNode) {
-		StringBuilder sb = new StringBuilder();
-		NodeList children = dtNode.getChildNodes();
-		for (int i = 0; i < children.getLength(); i++) {
-			Node child = children.item(i);
+		var sb = new StringBuilder();
+		var children = dtNode.getChildNodes();
+		for (var i = 0; i < children.getLength(); i++) {
+			var child = children.item(i);
 			if (child instanceof Text) {
 				sb.append(child.getTextContent());
 				continue;
 			}
 
-			if (child instanceof Element) {
-				Element element = (Element) child;
+			if (child instanceof Element element) {
 				String nodeName = element.getNodeName();
 
 				if ("vi".equals(nodeName)) {
@@ -176,23 +177,21 @@ public class DefineCommand implements Command {
 			}
 		}
 
-		String[] split = sb.toString().split("\\s*:\\s*");
-		List<String> list = new ArrayList<>();
-		for (String s : split) {
-			s = s.trim();
-			if (!s.isEmpty()) {
-				list.add(s);
-			}
-		}
+		var split = sb.toString().split("\\s*:\\s*");
 
-		return String.join("; ", list);
+		//@formatter:off
+		return Arrays.stream(split)
+			.map(String::trim)
+			.filter(Predicate.not(String::isEmpty))
+		.collect(Collectors.joining("; "));
+		//@formatter:on
 	}
 
 	private List<String> parseSuggestions(Leaf document) {
 		//@formatter:off
 		return document.select("/entry_list/suggestion").stream()
 			.map(Leaf::text)
-		.collect(Collectors.toList());
+		.toList();
 		//@formatter:on
 	}
 
@@ -205,9 +204,9 @@ public class DefineCommand implements Command {
 			return list.get(0) + " or " + list.get(1);
 		}
 
-		StringBuilder sb = new StringBuilder();
-		int i = 0;
-		for (String item : list) {
+		var sb = new StringBuilder();
+		var i = 0;
+		for (var item : list) {
 			if (i > 0) {
 				sb.append(", ");
 				if (i == list.size() - 1) {
@@ -222,21 +221,21 @@ public class DefineCommand implements Command {
 	}
 
 	public String getExample(Leaf dtNode) {
-		Leaf viNode = dtNode.selectFirst("vi");
+		var viNode = dtNode.selectFirst("vi");
 		if (viNode == null) {
 			return null;
 		}
 
-		StringBuilder sb = new StringBuilder();
-		NodeList children = viNode.node().getChildNodes();
-		for (int i = 0; i < children.getLength(); i++) {
-			Node child = children.item(i);
-			if ("aq".equals(child.getNodeName())) {
-				//don't include the author of the example (for user-contributed content)
-				continue;
-			}
-			sb.append(child.getTextContent());
-		}
-		return (sb.length() == 0) ? null : sb.toString().trim();
+		var children = viNode.node().getChildNodes();
+
+		//@formatter:off
+		var example = IntStream.range(0, children.getLength())
+			.mapToObj(children::item)
+			.filter(child -> !"aq".equals(child.getNodeName())) //do not include the author of the example (for user-contributed content)
+			.map(Node::getTextContent)
+		.collect(Collectors.joining());
+		//@formatter:on
+
+		return example.isEmpty() ? null : example.trim();
 	}
 }

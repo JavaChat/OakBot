@@ -11,7 +11,7 @@ public class CliArguments {
 	private final OptionSet options;
 
 	public CliArguments(String[] args) {
-		OptionParser parser = new OptionParser();
+		var parser = new OptionParser();
 		parser.accepts("context").withRequiredArg();
 		parser.accepts("mock");
 		parser.accepts("quiet");
@@ -42,7 +42,7 @@ public class CliArguments {
 	}
 
 	public String printHelp(String defaultContext) {
-		final String nl = System.getProperty("line.separator");
+		final var nl = System.lineSeparator();
 
 		//@formatter:off
 		return

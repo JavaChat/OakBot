@@ -30,7 +30,7 @@ public class HttpCommand implements Command {
 	private final Leaf document;
 
 	public HttpCommand() {
-		try (InputStream in = getClass().getResourceAsStream("http.xml")) {
+		try (var in = getClass().getResourceAsStream("http.xml")) {
 			document = Leaf.parse(in);
 		} catch (IOException | SAXException ignored) {
 			/*
@@ -62,34 +62,34 @@ public class HttpCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		List<String> args = chatCommand.getContentAsArgs();
+		var args = chatCommand.getContentAsArgs();
 		if (args.isEmpty()) {
 			return reply("Tell me what status code (e.g. 200) or method (e.g. GET) you want to know about.", chatCommand);
 		}
 
-		String code = args.get(0).toUpperCase();
+		var code = args.get(0).toUpperCase();
 
-		Leaf element = document.selectFirst("/http/statusCode[@code='" + code + "']");
-		boolean isStatusCode = (element != null);
+		var element = document.selectFirst("/http/statusCode[@code='" + code + "']");
+		var isStatusCode = (element != null);
 		if (!isStatusCode) {
 			element = document.selectFirst("/http/method[@name='" + code + "']");
 			if (element == null) {
-				String reply = code.matches("\\d+") ? "Status code not recognized." : "Method not recognized.";
+				var reply = code.matches("\\d+") ? "Status code not recognized." : "Method not recognized.";
 				return reply(reply, chatCommand);
 			}
 		}
 
-		int paragraph = getParagraph(args);
-		String defaultRfc = getRfc(element);
+		var paragraph = getParagraph(args);
+		var defaultRfc = getRfc(element);
 
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.reply(chatCommand);
 		if (paragraph == 1) {
-			String name = element.attribute("name");
-			String section = element.attribute("section");
-			String url = rfcUrl(defaultRfc, section);
+			var name = element.attribute("name");
+			var section = element.attribute("section");
+			var url = rfcUrl(defaultRfc, section);
 
-			ChatBuilder linkText = new ChatBuilder();
+			var linkText = new ChatBuilder();
 			linkText.bold().append("HTTP ");
 			if (isStatusCode) {
 				linkText.append(code).append(" (").append(name).append(')');
@@ -102,14 +102,14 @@ public class HttpCommand implements Command {
 			cb.append(": ");
 		}
 
-		String description = element.text().trim();
+		var description = element.text().trim();
 		description = processSectionAnnotations(description, defaultRfc);
 
-		String[] paragraphs = description.split("\n\n");
+		var paragraphs = description.split("\n\n");
 		if (paragraph > paragraphs.length) {
 			paragraph = paragraphs.length;
 		}
-		String paragraphText = paragraphs[paragraph - 1];
+		var paragraphText = paragraphs[paragraph - 1];
 		cb.append(paragraphText);
 		if (paragraphs.length > 1) {
 			cb.append(" (").append(paragraph).append("/").append(paragraphs.length).append(")");
@@ -128,20 +128,20 @@ public class HttpCommand implements Command {
 		}
 
 		try {
-			int paragraph = Integer.parseInt(args.get(1));
-			return (paragraph < 1) ? 1 : paragraph;
+			var paragraph = Integer.parseInt(args.get(1));
+			return Math.max(paragraph, 1);
 		} catch (NumberFormatException e) {
 			return 1;
 		}
 	}
 
 	private static String processSectionAnnotations(String description, String defaultRfc) {
-		Pattern p = Pattern.compile("#([\\d\\.]+)( (\\d+))?#");
-		Matcher m = p.matcher(description);
-		StringBuilder sb = new StringBuilder();
+		var p = Pattern.compile("#([\\d\\.]+)( (\\d+))?#");
+		var m = p.matcher(description);
+		var sb = new StringBuilder();
 		while (m.find()) {
-			String section = m.group(1);
-			String rfc = m.group(3);
+			var section = m.group(1);
+			var rfc = m.group(3);
 
 			String linkDisplay;
 			if (section.matches("\\d{4}")) {
@@ -149,17 +149,17 @@ public class HttpCommand implements Command {
 				section = null;
 				linkDisplay = "RFC" + rfc;
 			} else {
-				StringBuilder display = new StringBuilder();
-				display.append("Section " + section);
+				var display = new StringBuilder();
+				display.append("Section ").append(section);
 				if (rfc != null) {
 					display.append(" of RFC").append(rfc);
 				}
 				linkDisplay = display.toString();
 			}
 
-			String linkRfc = (rfc == null) ? defaultRfc : rfc;
+			var linkRfc = (rfc == null) ? defaultRfc : rfc;
 
-			ChatBuilder cb = new ChatBuilder();
+			var cb = new ChatBuilder();
 			cb.link(linkDisplay, rfcUrl(linkRfc, section));
 			m.appendReplacement(sb, cb.toString());
 		}
@@ -169,7 +169,7 @@ public class HttpCommand implements Command {
 
 	private static String rfcUrl(String rfc, String section) {
 		//@formatter:off
-		URIBuilder uri = new URIBuilder()
+		var uri = new URIBuilder()
 			.setScheme("http")
 			.setHost("tools.ietf.org")
 			.setPathSegments("html", "rfc" + rfc);
@@ -183,7 +183,7 @@ public class HttpCommand implements Command {
 	}
 
 	private static String getRfc(Leaf element) {
-		String rfc = element.attribute("rfc");
+		var rfc = element.attribute("rfc");
 		return rfc.isEmpty() ? element.parent().attribute("rfc") : rfc;
 	}
 }

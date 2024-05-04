@@ -68,8 +68,8 @@ public class JsonDatabase implements Database {
 		}
 
 		root.fields().forEachRemaining(field -> { //@formatter:off
-			String name = field.getKey();
-			Object value = parseNode(field.getValue());
+			var name = field.getKey();
+			var value = parseNode(field.getValue());
 			fields.put(name, value);
 		}); //@formatter:on
 	}
@@ -90,8 +90,8 @@ public class JsonDatabase implements Database {
 			 */
 			Map<String, Object> map = new HashMap<>();
 			node.fields().forEachRemaining(field -> {
-				String name = field.getKey();
-				Object value = parseNode(field.getValue());
+				var name = field.getKey();
+				var value = parseNode(field.getValue());
 				map.put(name, value);
 			});
 			return map;
@@ -109,7 +109,7 @@ public class JsonDatabase implements Database {
 			return null;
 		}
 
-		String text = node.asText();
+		var text = node.asText();
 
 		try {
 			return LocalDateTime.parse(text, dateTimeFormatter);
@@ -138,14 +138,14 @@ public class JsonDatabase implements Database {
 		}
 
 		try (Writer writer = Files.newBufferedWriter(file, CREATE, TRUNCATE_EXISTING)) {
-			JsonFactory factory = new JsonFactory();
-			try (JsonGenerator generator = factory.createGenerator(writer)) {
+			var factory = new JsonFactory();
+			try (var generator = factory.createGenerator(writer)) {
 				generator.setPrettyPrinter(new DefaultPrettyPrinter());
 				generator.writeStartObject();
 
-				for (Map.Entry<String, Object> entry : fields.entrySet()) {
-					String fieldName = entry.getKey();
-					Object value = entry.getValue();
+				for (var entry : fields.entrySet()) {
+					var fieldName = entry.getKey();
+					var value = entry.getValue();
 
 					generator.writeFieldName(fieldName);
 					write(generator, value);
@@ -161,13 +161,12 @@ public class JsonDatabase implements Database {
 	}
 
 	private void write(JsonGenerator generator, Object value) throws IOException {
-		if (value instanceof Map) {
-			Map<?, ?> map = (Map<?, ?>) value;
-			generator.writeStartObject();
+		if (value instanceof Map<?, ?> map) {
+            generator.writeStartObject();
 
-			for (Map.Entry<?, ?> entry : map.entrySet()) {
-				String fieldName = entry.getKey().toString();
-				Object fieldValue = entry.getValue();
+			for (var entry : map.entrySet()) {
+				var fieldName = entry.getKey().toString();
+				var fieldValue = entry.getValue();
 
 				generator.writeFieldName(fieldName);
 				write(generator, fieldValue);
@@ -177,11 +176,10 @@ public class JsonDatabase implements Database {
 			return;
 		}
 
-		if (value instanceof Collection) {
-			Collection<?> list = (Collection<?>) value;
-			generator.writeStartArray();
+		if (value instanceof Collection<?> list) {
+            generator.writeStartArray();
 
-			for (Object item : list) {
+			for (var item : list) {
 				write(generator, item);
 			}
 
@@ -189,21 +187,18 @@ public class JsonDatabase implements Database {
 			return;
 		}
 
-		if (value instanceof LocalDateTime) {
-			LocalDateTime date = (LocalDateTime) value;
-			generator.writeString(date.format(dateTimeFormatter));
+		if (value instanceof LocalDateTime date) {
+            generator.writeString(date.format(dateTimeFormatter));
 			return;
 		}
 
-		if (value instanceof Integer) {
-			Integer integer = (Integer) value;
-			generator.writeNumber(integer);
+		if (value instanceof Integer integer) {
+            generator.writeNumber(integer);
 			return;
 		}
 
-		if (value instanceof Long) {
-			Long integer = (Long) value;
-			generator.writeNumber(integer);
+		if (value instanceof Long integer) {
+            generator.writeNumber(integer);
 			return;
 		}
 
@@ -212,7 +207,7 @@ public class JsonDatabase implements Database {
 			return;
 		}
 
-		String string = value.toString();
+		var string = value.toString();
 		generator.writeString(string);
 	}
 }

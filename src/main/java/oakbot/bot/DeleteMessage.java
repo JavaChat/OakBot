@@ -32,7 +32,7 @@ public class DeleteMessage implements ChatAction {
 
 	/**
 	 * Sets the ID of the message to delete
-	 * @param roomId the message ID
+	 * @param messageId the message ID
 	 * @return this
 	 */
 	public DeleteMessage messageId(int messageId) {

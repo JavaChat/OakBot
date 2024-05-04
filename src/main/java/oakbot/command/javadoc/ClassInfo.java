@@ -38,9 +38,7 @@ public class ClassInfo {
 		interfaces = builder.interfaces.build();
 
 		methods = builder.methods.build();
-		for (MethodInfo methodInfo : methods.values()) {
-			methodInfo.setClassInfo(this);
-		}
+		methods.values().forEach(methodInfo -> methodInfo.setClassInfo(this));
 
 		deprecated = builder.deprecated;
 		zipFile = builder.zipFile;
@@ -163,9 +161,9 @@ public class ClassInfo {
 		private ClassName superClass;
 		private String description;
 		private String since;
-		private ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();
-		private ImmutableSet.Builder<ClassName> interfaces = ImmutableSet.builder();
-		private ImmutableMultimap.Builder<String, MethodInfo> methods = ImmutableMultimap.builder();
+		private final ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();
+		private final ImmutableSet.Builder<ClassName> interfaces = ImmutableSet.builder();
+		private final ImmutableMultimap.Builder<String, MethodInfo> methods = ImmutableMultimap.builder();
 		private boolean deprecated = false;
 		private JavadocZipFile zipFile;
 

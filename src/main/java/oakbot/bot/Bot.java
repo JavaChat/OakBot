@@ -118,7 +118,7 @@ public class Bot implements IBot {
 	}
 
 	private void scheduleTask(ScheduledTask task) {
-		long nextRun = task.nextRun();
+		var nextRun = task.nextRun();
 		if (nextRun <= 0) {
 			return;
 		}
@@ -127,7 +127,7 @@ public class Bot implements IBot {
 	}
 
 	private void scheduleTask(InactivityTask task, IRoom room, Duration nextRun) {
-		TimerTask timerTask = scheduleChore(nextRun, new InactivityTaskChore(task, room));
+		var timerTask = scheduleChore(nextRun, new InactivityTaskChore(task, room));
 		inactivityTimerTasksByRoom.put(room.getRoomId(), timerTask);
 	}
 
@@ -143,15 +143,15 @@ public class Bot implements IBot {
 	public Thread connect(boolean quiet) throws IOException {
 		joinRoomsOnStart(quiet);
 
-		Thread thread = new ChoreThread();
+		var thread = new ChoreThread();
 		thread.start();
 		return thread;
 	}
 
 	private void joinRoomsOnStart(boolean quiet) {
-		boolean first = true;
-		List<Integer> roomsCopy = new ArrayList<>(rooms.getRooms());
-		for (Integer room : roomsCopy) {
+		var first = true;
+		var roomsCopy = new ArrayList<>(rooms.getRooms());
+		for (var room : roomsCopy) {
 			if (!first) {
 				/*
 				 * Insert a pause between joining each room in an attempt to
@@ -212,8 +212,8 @@ public class Bot implements IBot {
 
 	@Override
 	public List<ChatMessage> getLatestMessages(int roomId, int count) throws IOException {
-		IRoom room = connection.getRoom(roomId);
-		boolean notInRoom = (room == null);
+		var room = connection.getRoom(roomId);
+		var notInRoom = (room == null);
 		return notInRoom ? List.of() : room.getMessages(count);
 	}
 
@@ -234,7 +234,7 @@ public class Bot implements IBot {
 
 	@Override
 	public void sendMessage(int roomId, PostMessage message) throws IOException {
-		IRoom room = connection.getRoom(roomId);
+		var room = connection.getRoom(roomId);
 		if (room != null) {
 			sendMessage(room, message);
 		}
@@ -249,8 +249,8 @@ public class Bot implements IBot {
 		if (message.bypassFilters()) {
 			filteredMessage = message.message();
 		} else {
-			String messageText = message.message();
-			for (ChatResponseFilter filter : responseFilters) {
+			var messageText = message.message();
+			for (var filter : responseFilters) {
 				if (filter.isEnabled(room.getRoomId())) {
 					messageText = filter.filter(messageText);
 				}
@@ -261,11 +261,11 @@ public class Bot implements IBot {
 		logger.info(() -> "Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);
 
 		synchronized (postedMessages) {
-			List<Long> messageIds = room.sendMessage(filteredMessage, message.splitStrategy());
-			String condensedMessage = message.condensedMessage();
-			boolean ephemeral = message.ephemeral();
+			var messageIds = room.sendMessage(filteredMessage, message.splitStrategy());
+			var condensedMessage = message.condensedMessage();
+			var ephemeral = message.ephemeral();
 
-			PostedMessage postedMessage = new PostedMessage(Instant.now(), filteredMessage, condensedMessage, ephemeral, room.getRoomId(), messageIds);
+			var postedMessage = new PostedMessage(Instant.now(), filteredMessage, condensedMessage, ephemeral, room.getRoomId(), messageIds);
 			postedMessages.put(messageIds.get(0), postedMessage);
 		}
 	}
@@ -299,7 +299,7 @@ public class Bot implements IBot {
 	 * @throws IOException if there's a problem connecting to the room
 	 */
 	private IRoom joinRoom(int roomId, boolean quiet) throws RoomNotFoundException, PrivateRoomException, IOException {
-		IRoom room = connection.getRoom(roomId);
+		var room = connection.getRoom(roomId);
 		if (room != null) {
 			return room;
 		}
@@ -322,8 +322,8 @@ public class Bot implements IBot {
 
 		rooms.add(roomId);
 
-		for (InactivityTask task : inactivityTasks) {
-			Duration nextRun = task.getInactivityTime(room, this);
+		for (var task : inactivityTasks) {
+			var nextRun = task.getInactivityTime(room, this);
 			if (nextRun == null) {
 				continue;
 			}
@@ -342,7 +342,7 @@ public class Bot implements IBot {
 		timeOfLastMessageByRoom.remove(roomId);
 		rooms.remove(roomId);
 
-		IRoom room = connection.getRoom(roomId);
+		var room = connection.getRoom(roomId);
 		if (room != null) {
 			room.leave();
 		}
@@ -395,7 +395,7 @@ public class Bot implements IBot {
 
 	@Override
 	public void broadcastMessage(PostMessage message) throws IOException {
-		for (IRoom room : connection.getRooms()) {
+		for (var room : connection.getRooms()) {
 			if (!rooms.isQuietRoom(room.getRoomId())) {
 				sendMessage(room, message);
 			}
@@ -445,7 +445,7 @@ public class Bot implements IBot {
 	}
 
 	private TimerTask scheduleChore(long delay, Chore chore) {
-		TimerTask timerTask = new TimerTask() {
+		var timerTask = new TimerTask() {
 			@Override
 			public void run() {
 				choreQueue.add(chore);
@@ -623,14 +623,11 @@ public class Bot implements IBot {
 
 		@Override
 		public void complete() {
-			if (event instanceof MessagePostedEvent) {
-				MessagePostedEvent mpe = (MessagePostedEvent) event;
+			if (event instanceof MessagePostedEvent mpe) {
 				handleMessage(mpe.getMessage());
-			} else if (event instanceof MessageEditedEvent) {
-				MessageEditedEvent mee = (MessageEditedEvent) event;
+			} else if (event instanceof MessageEditedEvent mee) {
 				handleMessage(mee.getMessage());
-			} else if (event instanceof InvitationEvent) {
-				InvitationEvent ie = (InvitationEvent) event;
+			} else if (event instanceof InvitationEvent ie) {
 				handleInvitation(ie);
 			} else {
 				logger.severe(() -> "Ignoring event: " + event.getClass().getName());
@@ -658,7 +655,7 @@ public class Bot implements IBot {
 				return;
 			}
 
-			IRoom room = connection.getRoom(message.getRoomId());
+			var room = connection.getRoom(message.getRoomId());
 			if (room == null) {
 				//the bot is no longer in the room
 				return;
@@ -672,7 +669,7 @@ public class Bot implements IBot {
 
 			timeOfLastMessageByRoom.put(message.getRoomId(), message.getTimestamp());
 
-			ChatActions actions = handleListeners(message);
+			var actions = handleListeners(message);
 			handleActions(message, actions);
 		}
 
@@ -704,13 +701,13 @@ public class Bot implements IBot {
 			 * edit the message so that the onebox no longer displays, but
 			 * the URL is still preserved.
 			 */
-			boolean messageIsOnebox = message.getContent().isOnebox();
+			var messageIsOnebox = message.getContent().isOnebox();
 			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
-				Duration postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
-				Duration hideIn = hideOneboxesAfter.minus(postedMessageAge);
+				var postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
+				var hideIn = hideOneboxesAfter.minus(postedMessageAge);
 
 				logger.info(() -> {
-					String action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
+					var action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
 					return action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent();
 				});
 
@@ -719,8 +716,8 @@ public class Bot implements IBot {
 		}
 
 		private ChatActions handleListeners(ChatMessage message) {
-			ChatActions actions = new ChatActions();
-			for (Listener listener : listeners) {
+			var actions = new ChatActions();
+			for (var listener : listeners) {
 				try {
 					actions.addAll(listener.onMessage(message, Bot.this));
 				} catch (Exception e) {
@@ -741,29 +738,29 @@ public class Bot implements IBot {
 				stats.incMessagesRespondedTo();
 			}
 
-			LinkedList<ChatAction> queue = new LinkedList<>(actions.getActions());
+			var queue = new LinkedList<>(actions.getActions());
 			while (!queue.isEmpty()) {
-				ChatAction action = queue.removeFirst();
+				var action = queue.removeFirst();
 
-				if (action instanceof PostMessage) {
-					handlePostMessageAction((PostMessage) action, message);
+				if (action instanceof PostMessage pm) {
+					handlePostMessageAction(pm, message);
 					continue;
 				}
 
-				if (action instanceof DeleteMessage) {
-					ChatActions response = handleDeleteMessageAction((DeleteMessage) action, message);
+				if (action instanceof DeleteMessage dm) {
+					var response = handleDeleteMessageAction(dm, message);
 					queue.addAll(response.getActions());
 					continue;
 				}
 
-				if (action instanceof JoinRoom) {
-					ChatActions response = handleJoinRoomAction((JoinRoom) action);
+				if (action instanceof JoinRoom jr) {
+					var response = handleJoinRoomAction(jr);
 					queue.addAll(response.getActions());
 					continue;
 				}
 
-				if (action instanceof LeaveRoom) {
-					handleLeaveRoomAction((LeaveRoom) action);
+				if (action instanceof LeaveRoom lr) {
+					handleLeaveRoomAction(lr);
 					continue;
 				}
 
@@ -792,7 +789,7 @@ public class Bot implements IBot {
 
 		private ChatActions handleDeleteMessageAction(DeleteMessage action, ChatMessage message) {
 			try {
-				IRoom room = connection.getRoom(message.getRoomId());
+				var room = connection.getRoom(message.getRoomId());
 				room.deleteMessage(action.messageId());
 				return action.onSuccess().get();
 			} catch (Exception e) {
@@ -807,7 +804,7 @@ public class Bot implements IBot {
 			}
 
 			try {
-				IRoom joinedRoom = joinRoom(action.roomId());
+				var joinedRoom = joinRoom(action.roomId());
 				if (joinedRoom.canPost()) {
 					return action.onSuccess().get();
 				}
@@ -849,7 +846,7 @@ public class Bot implements IBot {
 			 * be called multiple times. Check to see if the bot has already
 			 * joined the room it was invited to.
 			 */
-			int roomId = event.getRoomId();
+			var roomId = event.getRoomId();
 			if (connection.isInRoom(roomId)) {
 				return;
 			}
@@ -860,7 +857,7 @@ public class Bot implements IBot {
 			 * because the invitation event is not linked to a specific chat
 			 * room.
 			 */
-			boolean maxRoomsExceeded = (maxRooms != null && connection.getRooms().size() >= maxRooms);
+			var maxRoomsExceeded = (maxRooms != null && connection.getRooms().size() >= maxRooms);
 			if (maxRoomsExceeded) {
 				return;
 			}
@@ -883,10 +880,10 @@ public class Bot implements IBot {
 
 		@Override
 		public void complete() {
-			int roomId = postedMessage.getRoomId();
-			IRoom room = connection.getRoom(roomId);
+			var roomId = postedMessage.getRoomId();
+			var room = connection.getRoom(roomId);
 
-			boolean botIsNoLongerInTheRoom = (room == null);
+			var botIsNoLongerInTheRoom = (room == null);
 			if (botIsNoLongerInTheRoom) {
 				return;
 			}
@@ -896,14 +893,14 @@ public class Bot implements IBot {
 				if (postedMessage.isEphemeral()) {
 					messagesToDelete = postedMessage.getMessageIds();
 				} else {
-					String condensedContent = postedMessage.getCondensedContent();
-					boolean isAOneBox = (condensedContent == null);
+					var condensedContent = postedMessage.getCondensedContent();
+					var isAOneBox = (condensedContent == null);
 					if (isAOneBox) {
 						condensedContent = postedMessage.getOriginalContent();
 					}
 
-					List<Long> messageIds = postedMessage.getMessageIds();
-					String quotedContent = quote(condensedContent);
+					var messageIds = postedMessage.getMessageIds();
+					var quotedContent = quote(condensedContent);
 					room.editMessage(messageIds.get(0), quotedContent);
 
 					/*
@@ -914,7 +911,7 @@ public class Bot implements IBot {
 					messagesToDelete = messageIds.subList(1, messageIds.size());
 				}
 
-				for (Long id : messagesToDelete) {
+				for (var id : messagesToDelete) {
 					room.deleteMessage(id);
 				}
 			} catch (Exception e) {
@@ -923,11 +920,11 @@ public class Bot implements IBot {
 		}
 
 		private String quote(String content) {
-			ChatBuilder cb = new ChatBuilder();
+			var cb = new ChatBuilder();
 
-			Matcher m = replyRegex.matcher(content);
+			var m = replyRegex.matcher(content);
 			if (m.find()) {
-				long id = Long.parseLong(m.group(1));
+				var id = Long.parseLong(m.group(1));
 				content = m.group(2);
 
 				cb.reply(id);
@@ -971,14 +968,14 @@ public class Bot implements IBot {
 					return;
 				}
 
-				Duration inactivityTime = task.getInactivityTime(room, Bot.this);
+				var inactivityTime = task.getInactivityTime(room, Bot.this);
 				if (inactivityTime == null) {
 					return;
 				}
 
-				LocalDateTime lastMessageTimestamp = timeOfLastMessageByRoom.get(room.getRoomId());
-				Duration roomInactiveFor = (lastMessageTimestamp == null) ? inactivityTime : Duration.between(lastMessageTimestamp, LocalDateTime.now());
-				boolean runNow = (roomInactiveFor.compareTo(inactivityTime) >= 0);
+				var lastMessageTimestamp = timeOfLastMessageByRoom.get(room.getRoomId());
+				var roomInactiveFor = (lastMessageTimestamp == null) ? inactivityTime : Duration.between(lastMessageTimestamp, LocalDateTime.now());
+				var runNow = (roomInactiveFor.compareTo(inactivityTime) >= 0);
 				if (runNow) {
 					try {
 						task.run(room, Bot.this);
@@ -987,7 +984,7 @@ public class Bot implements IBot {
 					}
 				}
 
-				Duration nextCheck = runNow ? inactivityTime : inactivityTime.minus(roomInactiveFor);
+				var nextCheck = runNow ? inactivityTime : inactivityTime.minus(roomInactiveFor);
 				scheduleTask(task, room, nextCheck);
 			} finally {
 				inactivityTimerTasksByRoom.remove(room, this);

@@ -26,7 +26,7 @@ public class Rooms {
 		this.quietRooms = quietRooms;
 
 		@SuppressWarnings("unchecked")
-		List<Integer> rooms = (List<Integer>) db.get("rooms");
+		var rooms = (List<Integer>) db.get("rooms");
 		if (rooms != null) {
 			this.rooms.addAll(rooms);
 		}
@@ -34,7 +34,7 @@ public class Rooms {
 		/*
 		 * Make sure all the home rooms are in the list.
 		 */
-		boolean modified = false;
+		var modified = false;
 		for (Integer homeRoom : homeRooms) {
 			if (!this.rooms.contains(homeRoom)) {
 				this.rooms.add(homeRoom);
@@ -108,7 +108,7 @@ public class Rooms {
 	 * @return true if it was removed, false if no room was found
 	 */
 	public boolean remove(int roomId) {
-		boolean removed = rooms.remove((Integer) roomId);
+		var removed = rooms.remove((Integer) roomId);
 		if (removed) {
 			save();
 		}

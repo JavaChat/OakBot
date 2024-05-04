@@ -126,7 +126,7 @@ public class ChatCompletionRequest {
 		 * <p>
 		 * Required.
 		 * </p>
-		 * @param model
+		 * @param model the model
 		 * @return this
 		 * @see <a href=
 		 * "https://platform.openai.com/docs/models/model-endpoint-compatibility">Supported
@@ -234,7 +234,7 @@ public class ChatCompletionRequest {
 		 * <p>
 		 * Supported values: json_object, text
 		 * </p>
-		 * @param responseFormat
+		 * @param responseFormat the response format
 		 * @return this
 		 */
 		public Builder responseFormat(String responseFormat) {
@@ -281,7 +281,7 @@ public class ChatCompletionRequest {
 		 * Supported values: [ 0.0 .. 2.0 ]
 		 * </p>
 		 * @param temperature the temperature
-		 * @return
+		 * @return this
 		 */
 		public Builder temperature(Double temperature) {
 			this.temperature = temperature;

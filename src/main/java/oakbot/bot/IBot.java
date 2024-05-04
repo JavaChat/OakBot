@@ -76,7 +76,6 @@ public interface IBot {
 	/**
 	 * Joins a room.
 	 * @param roomId the room ID
-	 * @return the connection to the room
 	 * @throws RoomNotFoundException if the room does not exist
 	 * @throws RoomPermissionException if the bot can't post messages to the
 	 * room (e.g. if it doesn't have permission to post or the room is frozen)
@@ -96,7 +95,7 @@ public interface IBot {
 	 * @param roomId the room ID
 	 * @param count the number of messages to retrieve
 	 * @return the messages in chronological order
-	 * @throws if there's a problem getting the messages
+	 * @throws IOException if there's a problem getting the messages
 	 */
 	List<ChatMessage> getLatestMessages(int roomId, int count) throws IOException;
 

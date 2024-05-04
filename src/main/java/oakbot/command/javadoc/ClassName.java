@@ -38,11 +38,11 @@ public class ClassName {
 		this.outerClassNames = Collections.unmodifiableList(outerClassNames);
 		this.simpleName = simpleName;
 
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		if (packageName != null) {
 			sb.append(packageName).append('.');
 		}
-		for (String outerClassName : outerClassNames) {
+		for (var outerClassName : outerClassNames) {
 			sb.append(outerClassName).append('.');
 		}
 		sb.append(simpleName);

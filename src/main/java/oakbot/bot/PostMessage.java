@@ -189,7 +189,7 @@ public class PostMessage implements ChatAction {
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
-		PostMessage other = (PostMessage) obj;
+		var other = (PostMessage) obj;
 		return broadcast == other.broadcast && bypassFilters == other.bypassFilters && Objects.equals(condensedMessage, other.condensedMessage) && Objects.equals(delay, other.delay) && ephemeral == other.ephemeral && Objects.equals(message, other.message) && splitStrategy == other.splitStrategy;
 	}
 

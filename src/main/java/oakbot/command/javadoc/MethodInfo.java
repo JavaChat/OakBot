@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -38,20 +39,20 @@ public class MethodInfo {
 		returnValue = builder.returnValue;
 		deprecated = builder.deprecated;
 
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		sb.append(name).append('-');
-		List<String> fullNames = new ArrayList<>();
-		for (ParameterInfo parameter : parameters) {
-			String fullName = parameter.getType().getFullyQualifiedName();
-			if (parameter.isArray()) {
+
+		sb.append(parameters.stream().map(parameter -> {
+			String fullName = parameter.type().getFullyQualifiedName();
+			if (parameter.array()) {
 				fullName += ":A";
 			}
-			if (parameter.isVarargs()) {
+			if (parameter.varargs()) {
 				fullName += "...";
 			}
-			fullNames.add(fullName);
-		}
-		sb.append(String.join("-", fullNames));
+			return fullName;
+		}).collect(Collectors.joining("-")));
+
 		sb.append('-');
 		urlAnchor = sb.toString();
 	}
@@ -143,9 +144,9 @@ public class MethodInfo {
 	 * fully-qualified names of the parameters, e.g. "substring(int, int)")
 	 */
 	public String getSignature() {
-		List<String> params = new ArrayList<>();
-		for (ParameterInfo parameter : parameters) {
-			params.add(parameter.getType().getFullyQualifiedName() + (parameter.isArray() ? "[]" : ""));
+		var params = new ArrayList<String>();
+		for (var parameter : parameters) {
+			params.add(parameter.type().getFullyQualifiedName() + (parameter.array() ? "[]" : ""));
 		}
 		return name + "(" + String.join(", ", params) + ")";
 	}
@@ -155,27 +156,27 @@ public class MethodInfo {
 	 * @return the signature string for the chat
 	 */
 	public String getSignatureString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 
 		sb.append((returnValue == null) ? "void" : returnValue.getSimpleName()).append(' ');
 		sb.append(name);
 
-		List<String> params = new ArrayList<>();
-		for (ParameterInfo parameter : parameters) {
-			String type = parameter.getType().getSimpleName();
-			String generic = parameter.getGeneric();
+		sb.append('(');
+		sb.append(parameters.stream().map(parameter -> {
+			var type = parameter.type().getSimpleName();
+			var generic = parameter.generic();
 			if (generic != null) {
 				type += generic;
 			}
-			if (parameter.isArray()) {
+			if (parameter.array()) {
 				type += "[]";
 			}
-			if (parameter.isVarargs()) {
+			if (parameter.varargs()) {
 				type += "...";
 			}
-			params.add(type + " " + parameter.getName());
-		}
-		sb.append('(').append(String.join(", ", params)).append(')');
+			return type + " " + parameter.name();
+		}).collect(Collectors.joining(", ")));
+		sb.append(')');
 
 		return sb.toString();
 	}
