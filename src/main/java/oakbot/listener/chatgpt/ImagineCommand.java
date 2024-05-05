@@ -425,7 +425,7 @@ public class ImagineCommand implements Command {
 		try {
 			return bot.uploadImage(imageUrl);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem uploading image to imgur.");
+			logger.log(Level.SEVERE, e, () -> "Problem uploading image to chat room. URL: " + imageUrl);
 
 			/*
 			 * Add a fake parameter onto the end of the URL so SO Chat one-boxes
@@ -437,6 +437,11 @@ public class ImagineCommand implements Command {
 	}
 
 	private String uploadImage(IBot bot, byte[] imageData) throws IOException {
-		return bot.uploadImage(imageData);
+		try {
+			return bot.uploadImage(imageData);
+		} catch (IOException e) {
+			var kb = imageData.length / 1024;
+			throw new IOException("Problem uploading image to chat room. File size: " + kb + " KB", e);
+		}
 	}
 }
