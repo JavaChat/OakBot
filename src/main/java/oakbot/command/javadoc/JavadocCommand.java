@@ -124,7 +124,7 @@ public class JavadocCommand implements Command, Listener {
 		var arguments = JavadocCommandArguments.parse(content);
 
 		try {
-			var fullyQualifiedNames = dao.search(arguments.getClassName());
+			var fullyQualifiedNames = dao.search(arguments.className());
 
 			if (fullyQualifiedNames.isEmpty()) {
 				return handleNoMatch(chatCommand);
@@ -175,13 +175,13 @@ public class JavadocCommand implements Command, Listener {
 	}
 
 	private ChatActions handleSingleMatch(JavadocCommandArguments arguments, ClassInfo info, ChatCommand message) throws IOException {
-		if (arguments.getMethodName() == null) {
+		if (arguments.methodName() == null) {
 			//method name not specified, so print the class docs
 			return printClass(info, arguments, message);
 		}
 
 		//print the method docs
-		var matchingMethods = findMatchingMethods(info, arguments.getMethodName(), arguments.getParameters());
+		var matchingMethods = findMatchingMethods(info, arguments.methodName(), arguments.parameters());
 
 		if (matchingMethods.isEmpty()) {
 			//no matches found
@@ -193,7 +193,7 @@ public class JavadocCommand implements Command, Listener {
 			return printMethod(matchingMethods.exactSignature, arguments, message);
 		}
 
-		if (matchingMethods.matchingName.size() == 1 && arguments.getParameters() == null) {
+		if (matchingMethods.matchingName.size() == 1 && arguments.parameters() == null) {
 			return printMethod(matchingMethods.matchingName.get(0), arguments, message);
 		}
 
@@ -204,7 +204,7 @@ public class JavadocCommand implements Command, Listener {
 	}
 
 	private ChatActions handleMultipleMatches(JavadocCommandArguments arguments, Collection<String> matches, ChatCommand message) throws IOException {
-		if (arguments.getMethodName() == null) {
+		if (arguments.methodName() == null) {
 			//user is just querying for a class, so print the class choices
 			return printClassChoices(matches, arguments, message);
 		}
@@ -216,7 +216,7 @@ public class JavadocCommand implements Command, Listener {
 		Multimap<ClassInfo, MethodInfo> matchingNames = ArrayListMultimap.create();
 		for (var className : matches) {
 			var classInfo = dao.getClassInfo(className);
-			var methods = findMatchingMethods(classInfo, arguments.getMethodName(), arguments.getParameters());
+			var methods = findMatchingMethods(classInfo, arguments.methodName(), arguments.parameters());
 			if (methods.exactSignature != null) {
 				exactMatches.put(classInfo, methods.exactSignature);
 			}
@@ -234,7 +234,7 @@ public class JavadocCommand implements Command, Listener {
 			return printMethod(method, arguments, message);
 		}
 
-		if (matchingNames.size() == 1 && arguments.getParameters() == null) {
+		if (matchingNames.size() == 1 && arguments.parameters() == null) {
 			//user did not specify parameters and there is method with a matching name
 			var method = matchingNames.values().iterator().next();
 			return printMethod(method, arguments, message);
@@ -303,14 +303,14 @@ public class JavadocCommand implements Command, Listener {
 	private ChatActions printMethod(MethodInfo info, JavadocCommandArguments arguments, ChatCommand message) {
 		var cb = new ChatBuilder();
 
-		var username = arguments.getTargetUser();
+		var username = arguments.targetUser();
 		if (username == null) {
 			cb.reply(message);
 		} else {
 			cb.mention(username).append(' ');
 		}
 
-		var paragraph = arguments.getParagraph();
+		var paragraph = arguments.paragraph();
 		if (paragraph == 1) {
 			appendPreamble(info, cb);
 		}
@@ -387,7 +387,7 @@ public class JavadocCommand implements Command, Listener {
 		var cb = new ChatBuilder();
 		cb.reply(message);
 
-		var methodParams = arguments.getParameters();
+		var methodParams = arguments.parameters();
 		cb.append(buildChoicesQuestion(matchingMethods, methodParams));
 
 		var count = 1;
@@ -403,7 +403,7 @@ public class JavadocCommand implements Command, Listener {
 			count++;
 		}
 
-		var conversation = new Conversation(choices, arguments.getTargetUser());
+		var conversation = new Conversation(choices, arguments.targetUser());
 		var roomId = message.getMessage().getRoomId();
 		conversations.put(roomId, conversation);
 
@@ -474,7 +474,7 @@ public class JavadocCommand implements Command, Listener {
 			count++;
 		}
 
-		var conversation = new Conversation(choices, arguments.getTargetUser());
+		var conversation = new Conversation(choices, arguments.targetUser());
 		var roomId = message.getMessage().getRoomId();
 		conversations.put(roomId, conversation);
 
@@ -488,14 +488,14 @@ public class JavadocCommand implements Command, Listener {
 	private ChatActions printClass(ClassInfo info, JavadocCommandArguments arguments, ChatCommand message) {
 		var cb = new ChatBuilder();
 
-		var username = arguments.getTargetUser();
+		var username = arguments.targetUser();
 		if (username == null) {
 			cb.reply(message);
 		} else {
 			cb.mention(username).append(' ');
 		}
 
-		var paragraph = arguments.getParagraph();
+		var paragraph = arguments.paragraph();
 		if (paragraph == 1) {
 			appendPreamble(info, cb);
 		}

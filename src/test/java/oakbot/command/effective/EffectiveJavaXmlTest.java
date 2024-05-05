@@ -6,13 +6,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.junit.Test;
 
@@ -27,17 +23,17 @@ public class EffectiveJavaXmlTest {
 	private final Leaf document;
 
 	public EffectiveJavaXmlTest() throws Exception {
-		try (InputStream in = getClass().getResourceAsStream("effective-java.xml")) {
+		try (var in = getClass().getResourceAsStream("effective-java.xml")) {
 			document = Leaf.parse(in);
 		}
 	}
 
 	@Test
 	public void itemNumbers() throws Exception {
-		List<Leaf> itemElements = document.select("/items/item");
+		var itemElements = document.select("/items/item");
 
-		Set<Integer> numbers = new HashSet<>();
-		for (Leaf itemElement : itemElements) {
+		var numbers = new HashSet<Integer>();
+		for (var itemElement : itemElements) {
 			int number = Integer.parseInt(itemElement.attribute("number"));
 			if (number <= 0) {
 				fail("Invalid item number: " + number);
@@ -47,12 +43,12 @@ public class EffectiveJavaXmlTest {
 			}
 		}
 
-		/**
+		/*
 		 * Are any item numbers missing?
 		 */
-		List<Integer> sortedNumbers = new ArrayList<>(numbers);
+		var sortedNumbers = new ArrayList<Integer>(numbers);
 		sortedNumbers.sort(null);
-		int prev = 0;
+		var prev = 0;
 		for (int number : sortedNumbers) {
 			prev++;
 			assertEquals("Item number missing: " + prev, prev, number);
@@ -61,10 +57,10 @@ public class EffectiveJavaXmlTest {
 
 	@Test
 	public void pageNumbers() throws Exception {
-		List<Leaf> itemElements = document.select("/items/item");
+		var itemElements = document.select("/items/item");
 
-		Map<Integer, Integer> pageNumbers = new HashMap<>();
-		for (Leaf itemElement : itemElements) {
+		var pageNumbers = new HashMap<Integer, Integer>();
+		for (var itemElement : itemElements) {
 			int number = Integer.parseInt(itemElement.attribute("number"));
 			int pageNumber = Integer.parseInt(itemElement.attribute("page"));
 			if (pageNumber <= 0) {
@@ -73,13 +69,13 @@ public class EffectiveJavaXmlTest {
 			pageNumbers.put(number, pageNumber);
 		}
 
-		/**
+		/*
 		 * Is each item's page number greater than the previous item's page
 		 * number?
 		 */
-		int prev = 0;
-		for (int i = 1; true; i++) {
-			Integer page = pageNumbers.get(i);
+		var prev = 0;
+		for (var i = 1; true; i++) {
+			var page = pageNumbers.get(i);
 			if (page == null) {
 				break;
 			}
@@ -94,10 +90,10 @@ public class EffectiveJavaXmlTest {
 	 */
 	@Test
 	public void titles() throws Exception {
-		List<Leaf> itemElements = document.select("/items/item");
+		var itemElements = document.select("/items/item");
 
-		for (Leaf itemElement : itemElements) {
-			Leaf titleElement = itemElement.selectFirst("title");
+		for (var itemElement : itemElements) {
+			var titleElement = itemElement.selectFirst("title");
 			assertNotNull("Missing <title> element on item " + itemElement.attribute("number") + ".", titleElement);
 			assertFalse("Empty <title> element on item " + itemElement.attribute("number") + ".", titleElement.text().isEmpty());
 		}
@@ -108,10 +104,10 @@ public class EffectiveJavaXmlTest {
 	 */
 	@Test
 	public void summaries() throws Exception {
-		List<Leaf> itemElements = document.select("/items/item");
+		var itemElements = document.select("/items/item");
 
-		for (Leaf itemElement : itemElements) {
-			Leaf summaryElement = itemElement.selectFirst("summary");
+		for (var itemElement : itemElements) {
+			var summaryElement = itemElement.selectFirst("summary");
 			assertNotNull("Missing <summary> element on item " + itemElement.attribute("number") + ".", summaryElement);
 			assertFalse("Empty <summary> element on item " + itemElement.attribute("number") + ".", summaryElement.text().isEmpty());
 		}

@@ -10,8 +10,6 @@ import java.nio.charset.StandardCharsets;
 import org.junit.After;
 import org.junit.Test;
 
-import oakbot.bot.ChatActions;
-import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Gobble;
@@ -26,12 +24,12 @@ public class DefineCommandTest {
 
 	@Test
 	public void no_word() {
-		DefineCommand command = new DefineCommand("apiKey");
-		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
+		var command = new DefineCommand("apiKey");
+		var message = new ChatCommandBuilder(command).messageId(1).build();
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 Please specify the word you'd like to define.", response);
 	}
 
@@ -44,18 +42,18 @@ public class DefineCommandTest {
 		.build());
 		//@formatter:on
 
-		DefineCommand command = new DefineCommand("apiKey");
+		var command = new DefineCommand("apiKey");
 
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("cool")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessageStartsWith(":1 Sorry", response);
 	}
 
@@ -68,18 +66,18 @@ public class DefineCommandTest {
 		.build());
 		//@formatter:on
 
-		DefineCommand command = new DefineCommand("apiKey");
+		var command = new DefineCommand("apiKey");
 
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("cool")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessageStartsWith(":1 Sorry", response);
 	}
 
@@ -92,18 +90,18 @@ public class DefineCommandTest {
 		.build());
 		//@formatter:on
 
-		DefineCommand command = new DefineCommand("apiKey");
+		var command = new DefineCommand("apiKey");
 
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("cool")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 No definitions found.", response);
 	}
 
@@ -116,18 +114,18 @@ public class DefineCommandTest {
 		.build());
 		//@formatter:on
 
-		DefineCommand command = new DefineCommand("apiKey");
+		var command = new DefineCommand("apiKey");
 
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("col")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 No definitions found. Did you mean cool?", response);
 	}
 
@@ -140,18 +138,18 @@ public class DefineCommandTest {
 		.build());
 		//@formatter:on
 
-		DefineCommand command = new DefineCommand("apiKey");
+		var command = new DefineCommand("apiKey");
 
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("col")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 No definitions found. Did you mean cool or cold?", response);
 	}
 
@@ -164,24 +162,24 @@ public class DefineCommandTest {
 		.build());
 		//@formatter:on
 
-		DefineCommand command = new DefineCommand("apiKey");
+		var command = new DefineCommand("apiKey");
 
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("col")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 No definitions found. Did you mean cool, cold, or colt?", response);
 	}
 
 	@Test
 	public void multiple_definitions() throws Exception {
-		String cool = new Gobble(getClass(), "cool.xml").asString(StandardCharsets.UTF_8);
+		var cool = new Gobble(getClass(), "cool.xml").asString(StandardCharsets.UTF_8);
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -190,94 +188,90 @@ public class DefineCommandTest {
 		.build());
 		//@formatter:on
 
-		DefineCommand command = new DefineCommand("apiKey");
+		var command = new DefineCommand("apiKey");
 
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("cool")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
-		//@formatter:off
-		assertMessage(
-			"cool (adjective):\n" +
-			"moderately cold; lacking in warmth\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"marked by steady dispassionate calmness and self-control (a cool and calculating administrator)\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"lacking ardor or friendliness (a cool impersonal manner)\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"marked by restrained emotion and the frequent use of counterpoint\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"free from tensions or violence (we used to fight, but we're cool now)\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"used as an intensive\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"marked by deliberate effrontery or lack of due respect or discretion (a cool reply)\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"facilitating or suggesting relief from heat (a cool dress)\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"producing an impression of being cool\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"of a hue in the range violet through blue to green\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"relatively lacking in timbre or resonance\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"very good; excellent\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"all right\n" +
-			"\n" +
-			"cool (adjective):\n" +
-			"fashionable hip (not happy with the new shoes … because they were not cool)\n" +
-			"\n" +
-			"cool (verb):\n" +
-			"to become cool; lose heat or warmth; sometimes used with off or down (placed the pie in the window to cool)\n" +
-			"\n" +
-			"cool (verb):\n" +
-			"to lose ardor or passion (his anger cooled)\n" +
-			"\n" +
-			"cool (verb):\n" +
-			"to make cool; impart a feeling of coolness to; often used with off or down (cooled the room with a fan)\n" +
-			"\n" +
-			"cool (verb):\n" +
-			"to moderate the heat, excitement, or force of; calm (cooled her growing anger)\n" +
-			"\n" +
-			"cool (verb):\n" +
-			"to slow or lessen the growth or activity of; usually used with off or down\n" +
-			"\n" +
-			"cool (noun):\n" +
-			"a cool time, place, or situation (the cool of the evening)\n" +
-			"\n" +
-			"cool (noun):\n" +
-			"absence of excitement or emotional involvement; detachment (must surrender his fine cool and enter the closed crazy world of suicide)\n" +
-			"\n" +
-			"cool (noun):\n" +
-			"poise composure (press questions … seemed to rattle him and he lost his cool)\n" +
-			"\n" +
-			"cool (noun):\n" +
-			"hipness\n" +
-			"\n" +
-			"cool (adverb):\n" +
-			"in a casual and nonchalant manner (play it cool)"
-			, response
-		);
-		//@formatter:on
+		var response = command.onMessage(message, bot);
+		assertMessage("""
+			cool (adjective):
+			moderately cold; lacking in warmth
+			
+			cool (adjective):
+			marked by steady dispassionate calmness and self-control (a cool and calculating administrator)
+			
+			cool (adjective):
+			lacking ardor or friendliness (a cool impersonal manner)
+			
+			cool (adjective):
+			marked by restrained emotion and the frequent use of counterpoint
+			
+			cool (adjective):
+			free from tensions or violence (we used to fight, but we're cool now)
+			
+			cool (adjective):
+			used as an intensive
+			
+			cool (adjective):
+			marked by deliberate effrontery or lack of due respect or discretion (a cool reply)
+			
+			cool (adjective):
+			facilitating or suggesting relief from heat (a cool dress)
+			
+			cool (adjective):
+			producing an impression of being cool
+			
+			cool (adjective):
+			of a hue in the range violet through blue to green
+			
+			cool (adjective):
+			relatively lacking in timbre or resonance
+			
+			cool (adjective):
+			very good; excellent
+			
+			cool (adjective):
+			all right
+			
+			cool (adjective):
+			fashionable hip (not happy with the new shoes … because they were not cool)
+			
+			cool (verb):
+			to become cool; lose heat or warmth; sometimes used with off or down (placed the pie in the window to cool)
+			
+			cool (verb):
+			to lose ardor or passion (his anger cooled)
+			
+			cool (verb):
+			to make cool; impart a feeling of coolness to; often used with off or down (cooled the room with a fan)
+			
+			cool (verb):
+			to moderate the heat, excitement, or force of; calm (cooled her growing anger)
+			
+			cool (verb):
+			to slow or lessen the growth or activity of; usually used with off or down
+			
+			cool (noun):
+			a cool time, place, or situation (the cool of the evening)
+			
+			cool (noun):
+			absence of excitement or emotional involvement; detachment (must surrender his fine cool and enter the closed crazy world of suicide)
+			
+			cool (noun):
+			poise composure (press questions … seemed to rattle him and he lost his cool)
+			
+			cool (noun):
+			hipness
+			
+			cool (adverb):
+			in a casual and nonchalant manner (play it cool)""", response);
 	}
 
 	@Test
@@ -289,16 +283,16 @@ public class DefineCommandTest {
 		.build());
 		//@formatter:on
 
-		DefineCommand command = new DefineCommand("apiKey");
+		var command = new DefineCommand("apiKey");
 
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("grand piano")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		command.onMessage(message, bot);
 	}

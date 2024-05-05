@@ -27,7 +27,7 @@ import oakbot.Database;
 public class LearnedCommandsDaoTest {
 	@Test
 	public void non_existant_command() {
-		LearnedCommandsDao dao = new LearnedCommandsDao();
+		var dao = new LearnedCommandsDao();
 		assertFalse(dao.contains("foo"));
 		assertNull(dao.get("foo"));
 		assertFalse(dao.remove("foo"));
@@ -35,9 +35,9 @@ public class LearnedCommandsDaoTest {
 
 	@Test
 	public void add_and_remove() {
-		Database db = mock(Database.class);
-		LearnedCommandsDao dao = new LearnedCommandsDao(db);
-		LocalDateTime now = LocalDateTime.now();
+		var db = mock(Database.class);
+		var dao = new LearnedCommandsDao(db);
+		var now = LocalDateTime.now();
 
 		//@formatter:off
 		dao.add(new LearnedCommand.Builder()
@@ -49,22 +49,21 @@ public class LearnedCommandsDaoTest {
 			.name("name")
 			.output("output")
 		.build());
-		//@formatter:on
 
-		List<Object> dbValue = new ArrayList<>();
-		Map<String, Object> map = new HashMap<>();
-		map.put("authorUserId", 100);
-		map.put("authorUsername", "Username");
-		map.put("roomId", 1);
-		map.put("messageId", 1000L);
-		map.put("created", now);
-		map.put("name", "name");
-		map.put("output", "output");
-		dbValue.add(map);
+		var dbValue = new ArrayList<Object>();
+
+		dbValue.add(Map.of(
+			"authorUserId", 100,
+			"authorUsername", "Username",
+			"roomId", 1,
+			"messageId", 1000L,
+			"created", now,
+			"name", "name",
+			"output", "output"
+		));
 
 		verify(db).set("learned-commands", dbValue);
 
-		//@formatter:off
 		dao.add(new LearnedCommand.Builder()
 			.authorUserId(101)
 			.authorUsername("Username2")
@@ -74,17 +73,17 @@ public class LearnedCommandsDaoTest {
 			.name("name2")
 			.output("output2")
 		.build());
-		//@formatter:on
 
-		map = new HashMap<>();
-		map.put("authorUserId", 101);
-		map.put("authorUsername", "Username2");
-		map.put("roomId", 2);
-		map.put("messageId", 1001L);
-		map.put("created", now);
-		map.put("name", "name2");
-		map.put("output", "output2");
-		dbValue.add(map);
+		dbValue.add(Map.of(
+			"authorUserId", 101,
+			"authorUsername", "Username2",
+			"roomId", 2,
+			"messageId", 1001L,
+			"created", now,
+			"name", "name2",
+			"output", "output2"
+		));
+		//@formatter:on
 
 		verify(db).set("learned-commands", dbValue);
 
@@ -97,16 +96,16 @@ public class LearnedCommandsDaoTest {
 	@Test
 	public void load_from_empty_database() {
 		{
-			Database db = mock(Database.class);
+			var db = mock(Database.class);
 			when(db.getList("learned-commands")).thenReturn(null);
-			LearnedCommandsDao dao = new LearnedCommandsDao(db);
+			var dao = new LearnedCommandsDao(db);
 			assertFalse(dao.iterator().hasNext());
 		}
 
 		{
-			Database db = mock(Database.class);
+			var db = mock(Database.class);
 			when(db.getList("learned-commands")).thenReturn(Collections.emptyList());
-			LearnedCommandsDao dao = new LearnedCommandsDao(db);
+			var dao = new LearnedCommandsDao(db);
 			assertFalse(dao.iterator().hasNext());
 		}
 	}

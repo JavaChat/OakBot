@@ -8,30 +8,19 @@ import java.util.regex.Pattern;
  * Parses the arguments from a javadoc chat command.
  * @author Michael Angstadt
  */
-class JavadocCommandArguments {
+record JavadocCommandArguments(String className, String methodName, List<String> parameters, int paragraph, String targetUser) {
 	private static final Pattern messageRegex = Pattern.compile("(.*?)(\\((.*?)\\))?(#(.*?)(\\((.*?)\\))?)?(\\s+(.*))?$");
 
-	private final String className;
-	private final String methodName;
-	private final List<String> parameters;
-	private final int paragraph;
-	private final String targetUser;
-
 	/**
-	 * @param className the class name (may or may not be fully-qualified)
+	 * @param className  the class name (may or may not be fully-qualified)
 	 * @param methodName the method name or null if not defined
 	 * @param parameters the method parameters or null if not defined
-	 * @param paragraph the paragraph number
+	 * @param paragraph  the paragraph number
 	 * @param targetUser the user that the user who posted the command wants the
 	 * bot to ping when the bot posts the javadoc info or null if not specified
 	 * (by default, the bot will reply to the user who posted the command)
 	 */
-	public JavadocCommandArguments(String className, String methodName, List<String> parameters, int paragraph, String targetUser) {
-		this.className = className;
-		this.methodName = methodName;
-		this.parameters = parameters;
-		this.paragraph = paragraph;
-		this.targetUser = targetUser;
+	JavadocCommandArguments {
 	}
 
 	/**
@@ -123,7 +112,8 @@ class JavadocCommandArguments {
 	 * Gets the class name.
 	 * @return the class name (may or may not be fully-qualified)
 	 */
-	public String getClassName() {
+	@Override
+	public String className() {
 		return className;
 	}
 
@@ -131,7 +121,8 @@ class JavadocCommandArguments {
 	 * Gets the method name.
 	 * @return the method name or null if not defined
 	 */
-	public String getMethodName() {
+	@Override
+	public String methodName() {
 		return methodName;
 	}
 
@@ -139,7 +130,8 @@ class JavadocCommandArguments {
 	 * Gets the method parameters
 	 * @return the method parameters or null if not defined
 	 */
-	public List<String> getParameters() {
+	@Override
+	public List<String> parameters() {
 		return parameters;
 	}
 
@@ -147,7 +139,8 @@ class JavadocCommandArguments {
 	 * Gets the paragraph number.
 	 * @return the paragraph number
 	 */
-	public int getParagraph() {
+	@Override
+	public int paragraph() {
 		return paragraph;
 	}
 
@@ -157,7 +150,8 @@ class JavadocCommandArguments {
 	 * the user who posted the command.
 	 * @return the username or null if not specified
 	 */
-	public String getTargetUser() {
+	@Override
+	public String targetUser() {
 		return targetUser;
 	}
 }

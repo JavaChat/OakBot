@@ -5,8 +5,6 @@ import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
-import oakbot.bot.ChatActions;
-import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.util.ChatCommandBuilder;
 
@@ -17,23 +15,23 @@ public class LearnedCommandTest {
 	@Test
 	public void onMessage() {
 		//@formatter:off
-		LearnedCommand cmd = new LearnedCommand.Builder()
+		var cmd = new LearnedCommand.Builder()
 			.name("complement")
 			.output("{0} is {1}!")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//no arguments
 
 		//@formatter:off
-		ChatCommand chatCommand = new ChatCommandBuilder(cmd)
+		var chatCommand = new ChatCommandBuilder(cmd)
 			.content("")
 		.build();
 		//@formatter:on
 
-		ChatActions actions = cmd.onMessage(chatCommand, bot);
+		var actions = cmd.onMessage(chatCommand, bot);
 		assertMessage("{0} is {1}!", actions);
 
 		//two arguments

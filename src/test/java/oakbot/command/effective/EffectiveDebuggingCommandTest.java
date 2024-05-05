@@ -13,8 +13,8 @@ public class EffectiveDebuggingCommandTest {
 
 	@Test
 	public void itemNumbers() throws Exception {
-		int expected = 1;
-		for (EffectiveDebuggingCommand.Item item : command.items) {
+		var expected = 1;
+		for (var item : command.items) {
 			assertEquals("Item numbers are not sequential at index " + (expected - 1) + ".", expected, item.number);
 			expected++;
 		}
@@ -22,9 +22,9 @@ public class EffectiveDebuggingCommandTest {
 
 	@Test
 	public void pageNumbers() throws Exception {
-		int prevPage = 0;
+		var prevPage = 0;
 
-		for (EffectiveDebuggingCommand.Item item : command.items) {
+		for (var item : command.items) {
 			if (item.page <= 0) {
 				fail("Invalid page number: " + item.page);
 			}

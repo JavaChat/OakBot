@@ -8,9 +8,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -29,14 +28,14 @@ public class JavadocZipFileTest {
 
 	@Test
 	public void info_without_file() throws Exception {
-		JavadocZipFile zip = load("-no-info");
+		var zip = load("-no-info");
 		assertNull(zip.getName());
 		assertNull(zip.getBaseUrl());
 	}
 
 	@Test
 	public void info_without_attributes() throws Exception {
-		JavadocZipFile zip = load("-no-attributes");
+		var zip = load("-no-attributes");
 		assertNull(zip.getName());
 		assertNull(zip.getBaseUrl());
 	}
@@ -51,35 +50,36 @@ public class JavadocZipFileTest {
 
 	@Test
 	public void getUrl() {
-		ClassInfo info = new ClassInfo.Builder().name(new ClassName("java.util", "List")).build();
+		var info = new ClassInfo.Builder().name(new ClassName("java.util", "List")).build();
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/java/util/List.html", zip.getUrl(info, false));
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/index.html?java/util/List.html", zip.getUrl(info, true));
 	}
 
 	@Test
 	public void getUrl_javadocUrlPattern() throws Exception {
-		JavadocZipFile zip = load("-javadocUrlPattern");
+		var zip = load("-javadocUrlPattern");
 
-		ClassInfo info = new ClassInfo.Builder().name(new ClassName("android.app", "Application")).build();
+		var info = new ClassInfo.Builder().name(new ClassName("android.app", "Application")).build();
 		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getUrl(info, false));
 		assertEquals("http://developer.android.com/reference/android/app/Application.html", zip.getUrl(info, true));
 	}
 
 	@Test
 	public void getClassNames() throws Exception {
-		Set<String> actual = new HashSet<>();
-		for (ClassName className : zip.getClassNames()) {
-			actual.add(className.getFullyQualifiedName());
-		}
+		//@formatter:off
+		var actual = zip.getClassNames().stream()
+			.map(ClassName::getFullyQualifiedName)
+		.collect(Collectors.toSet());
+		//@formatter:on
 
 		//@formatter:off
-			Set<String> expected = new HashSet<>(List.of(
-				"java.lang.Object",
-				"java.awt.List",
-				"java.util.List",
-				"java.util.Collection"
-			));
-			//@formatter:on
+		var expected = Set.of(
+			"java.lang.Object",
+			"java.awt.List",
+			"java.util.List",
+			"java.util.Collection"
+		);
+		//@formatter:on
 
 		assertEquals(expected, actual);
 	}
