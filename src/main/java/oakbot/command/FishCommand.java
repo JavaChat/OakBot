@@ -2,6 +2,7 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
+import static oakbot.util.StringUtils.possessive;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -100,9 +101,9 @@ public class FishCommand implements Command, ScheduledTask {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		List<String> args = chatCommand.getContentAsArgs();
+		var args = chatCommand.getContentAsArgs();
 		if (!args.isEmpty()) {
-			String subCommand = args.get(0);
+			var subCommand = args.get(0);
 
 			if ("inv".equalsIgnoreCase(subCommand)) {
 				return handleInvCommand(chatCommand);
@@ -113,7 +114,7 @@ public class FishCommand implements Command, ScheduledTask {
 			}
 
 			if ("release".equalsIgnoreCase(subCommand)) {
-				String fishName = (args.size() < 2) ? null : args.get(1);
+				var fishName = (args.size() < 2) ? null : args.get(1);
 				return handleReleaseCommand(fishName, chatCommand);
 			}
 
@@ -128,8 +129,8 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private ChatActions handleInvCommand(ChatCommand chatCommand) {
-		int userId = chatCommand.getMessage().getUserId();
-		Inventory inv = inventoryByUser.get(userId);
+		var userId = chatCommand.getMessage().getUserId();
+		var inv = inventoryByUser.get(userId);
 
 		String message;
 		if (inv == null || inv.isEmpty()) {
@@ -139,7 +140,7 @@ public class FishCommand implements Command, ScheduledTask {
 			message = "Your inventory: " + inv.map.entrySet().stream()
 				.sorted((a, b) -> {
 					//sort by quantity descending
-					int c = b.getValue().compareTo(a.getValue());
+					var c = b.getValue().compareTo(a.getValue());
 					if (c != 0) {
 						return c;
 					}
@@ -148,8 +149,8 @@ public class FishCommand implements Command, ScheduledTask {
 					return a.getKey().name.compareTo(b.getKey().name);
 				})
 				.map(entry -> {
-					String fish = entry.getKey().name;
-					MutableInt count = entry.getValue();
+					var fish = entry.getKey().name;
+					var count = entry.getValue();
 					if (count.intValue() == 1) {
 						return fish;
 					} else {
@@ -164,17 +165,17 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private ChatActions handleStatusCommand(ChatCommand chatCommand) {
-		int roomId = chatCommand.getMessage().getRoomId();
-		int userId = chatCommand.getMessage().getUserId();
-		Map<Integer, PendingCatch> pendingCatchesInThisRoom = getPendingCatchesInRoom(roomId);
-		PendingCatch pendingCatch = pendingCatchesInThisRoom.get(userId);
+		var roomId = chatCommand.getMessage().getRoomId();
+		var userId = chatCommand.getMessage().getUserId();
+		var pendingCatchesInThisRoom = getPendingCatchesInRoom(roomId);
+		var pendingCatch = pendingCatchesInThisRoom.get(userId);
 
 		if (pendingCatch == null) {
 			return reply(fishMessage("You don't have any lines out."), chatCommand);
 		}
 
-		Duration sinceLineQuivered = Duration.between(pendingCatch.time, Now.instant());
-		boolean currentlyQuivering = (!sinceLineQuivered.isNegative() && sinceLineQuivered.compareTo(timeUserHasToCatchFish) < 0);
+		var sinceLineQuivered = Duration.between(pendingCatch.time, Now.instant());
+		var currentlyQuivering = (!sinceLineQuivered.isNegative() && sinceLineQuivered.compareTo(timeUserHasToCatchFish) < 0);
 		String message;
 		if (currentlyQuivering) {
 			message = "Your line is quivering. Better pull it up.";
@@ -186,15 +187,15 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private ChatActions handleReleaseCommand(String fishName, ChatCommand chatCommand) {
-		int userId = chatCommand.getMessage().getUserId();
-		String username = chatCommand.getMessage().getUsername();
-		Inventory inv = inventoryByUser.get(userId);
+		var userId = chatCommand.getMessage().getUserId();
+		var username = chatCommand.getMessage().getUsername();
+		var inv = inventoryByUser.get(userId);
 
 		if (fishName == null) {
 			return reply(fishMessage("Specify a fish to release."), chatCommand);
 		}
 
-		Fish fish = Fish.findOrNull(fishName);
+		var fish = Fish.findOrNull(fishName);
 		if (fish == null || inv == null || !inv.has(fish)) {
 			return reply(fishMessage("You don't have any of that fish."), chatCommand);
 		}
@@ -210,34 +211,34 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private ChatActions throwOrPullLine(ChatCommand chatCommand, boolean again) {
-		int roomId = chatCommand.getMessage().getRoomId();
-		int userId = chatCommand.getMessage().getUserId();
-		String username = chatCommand.getMessage().getUsername();
-		Map<Integer, PendingCatch> pendingCatchesInThisRoom = getPendingCatchesInRoom(roomId);
+		var roomId = chatCommand.getMessage().getRoomId();
+		var userId = chatCommand.getMessage().getUserId();
+		var username = chatCommand.getMessage().getUsername();
+		var pendingCatchesInThisRoom = getPendingCatchesInRoom(roomId);
 
-		PendingCatch pendingCatch = pendingCatchesInThisRoom.remove(userId);
+		var pendingCatch = pendingCatchesInThisRoom.remove(userId);
 
 		if (pendingCatch == null) {
 			pendingCatchesInThisRoom.put(userId, new PendingCatch(username));
 			return post(fishMessage(username + " throws in a line."));
 		}
 
-		ChatActions actions = new ChatActions();
+		var actions = new ChatActions();
 
-		Duration sinceLineQuivered = Duration.between(pendingCatch.time, Now.instant());
-		boolean tooSoon = sinceLineQuivered.isNegative();
+		var sinceLineQuivered = Duration.between(pendingCatch.time, Now.instant());
+		var tooSoon = sinceLineQuivered.isNegative();
 		if (tooSoon) {
 			actions.addAction(new PostMessage(fishMessage(username + " pulls up nothing.")));
 		} else {
-			boolean tooLate = (sinceLineQuivered.compareTo(timeUserHasToCatchFish) >= 0);
+			var tooLate = (sinceLineQuivered.compareTo(timeUserHasToCatchFish) >= 0);
 			if (tooLate) {
 				actions.addAction(new PostMessage(fishMessage(username + " pulls up nothing. They weren't quick enough.")));
 			} else {
-				Inventory inv = inventoryByUser.computeIfAbsent(userId, key -> new Inventory());
+				var inv = inventoryByUser.computeIfAbsent(userId, key -> new Inventory());
 				inv.add(pendingCatch.fish);
 				saveInventories();
 
-				String word = (inv.count(pendingCatch.fish) > 1) ? "another" : "a";
+				var word = (inv.count(pendingCatch.fish) > 1) ? "another" : "a";
 
 				//@formatter:off
 				actions.addAction(new PostMessage(fishMessage(new ChatBuilder()
@@ -265,24 +266,24 @@ public class FishCommand implements Command, ScheduledTask {
 
 	@Override
 	public void run(IBot bot) throws Exception {
-		for (Map.Entry<Integer, Map<Integer, PendingCatch>> entry : currentlyFishingByRoom.entrySet()) {
-			int roomId = entry.getKey();
-			Map<Integer, PendingCatch> pendingCatchesInRoom = entry.getValue();
+		for (var entry : currentlyFishingByRoom.entrySet()) {
+			var roomId = entry.getKey();
+			var pendingCatchesInRoom = entry.getValue();
 			checkFishingLines(roomId, pendingCatchesInRoom, bot);
 		}
 	}
 
 	private void checkFishingLines(int roomId, Map<Integer, PendingCatch> pendingCatchesInRoom, IBot bot) throws IOException {
-		List<Integer> userIdsToRemove = new ArrayList<>();
-		Instant now = Now.instant();
+		var userIdsToRemove = new ArrayList<Integer>();
+		var now = Now.instant();
 
-		for (Map.Entry<Integer, PendingCatch> entry : pendingCatchesInRoom.entrySet()) {
-			int userId = entry.getKey();
-			PendingCatch pendingCatch = entry.getValue();
+		for (var entry : pendingCatchesInRoom.entrySet()) {
+			var userId = entry.getKey();
+			var pendingCatch = entry.getValue();
 
 			if (pendingCatch.userWarned) {
-				Duration sinceQuiver = Duration.between(pendingCatch.time, now);
-				boolean fishGotAway = (sinceQuiver.compareTo(timeUserHasToCatchFish) > 0);
+				var sinceQuiver = Duration.between(pendingCatch.time, now);
+				var fishGotAway = (sinceQuiver.compareTo(timeUserHasToCatchFish) > 0);
 				if (fishGotAway) {
 					if (pendingCatch.timesWarned < MAX_QUIVERS) {
 						/*
@@ -300,12 +301,12 @@ public class FishCommand implements Command, ScheduledTask {
 				continue;
 			}
 
-			boolean fishSnagged = pendingCatch.time.isBefore(now);
+			var fishSnagged = pendingCatch.time.isBefore(now);
 			if (fishSnagged) {
 				pendingCatch.userWarned = true;
 				pendingCatch.timesWarned++;
 
-				PostMessage message = new PostMessage(fishMessage(possessive(pendingCatch.username) + " line quivers."));
+				var message = new PostMessage(fishMessage(possessive(pendingCatch.username) + " line quivers."));
 				bot.sendMessage(roomId, message);
 				continue;
 			}
@@ -325,10 +326,6 @@ public class FishCommand implements Command, ScheduledTask {
 		//@formatter:on
 	}
 
-	private String possessive(String s) {
-		return s + (s.endsWith("s") ? "'" : "'s");
-	}
-
 	@Override
 	public long nextRun() {
 		return Duration.ofMinutes(1).toMillis();
@@ -336,18 +333,18 @@ public class FishCommand implements Command, ScheduledTask {
 
 	@SuppressWarnings("unchecked")
 	private Map<Integer, Inventory> loadInventories() {
-		Map<Integer, Inventory> inventories = new HashMap<>();
+		var inventories = new HashMap<Integer, Inventory>();
 
-		Map<String, Object> fishesByUser = db.getMap("fish.caught");
+		var fishesByUser = db.getMap("fish.caught");
 		if (fishesByUser != null) {
-			for (Map.Entry<String, Object> userFishes : fishesByUser.entrySet()) {
+			for (var userFishes : fishesByUser.entrySet()) {
 				int userId = Integer.parseInt(userFishes.getKey());
-				Map<String, Integer> fishes = (Map<String, Integer>) userFishes.getValue();
+				var fishes = (Map<String, Integer>) userFishes.getValue();
 
-				Inventory inv = new Inventory();
-				for (Map.Entry<String, Integer> fishesEntry : fishes.entrySet()) {
-					Fish fish = Fish.find(fishesEntry.getKey());
-					Integer count = fishesEntry.getValue();
+				var inv = new Inventory();
+				for (var fishesEntry : fishes.entrySet()) {
+					var fish = Fish.find(fishesEntry.getKey());
+					var count = fishesEntry.getValue();
 					inv.set(fish, count);
 				}
 
@@ -359,13 +356,13 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private void saveInventories() {
-		Map<String, Object> fishesByUser = new HashMap<>();
-		for (Map.Entry<Integer, Inventory> entry : inventoryByUser.entrySet()) {
-			int userId = entry.getKey();
-			Inventory inv = entry.getValue();
+		var fishesByUser = new HashMap<String, Object>();
+		for (var entry : inventoryByUser.entrySet()) {
+			var userId = entry.getKey();
+			var inv = entry.getValue();
 
-			Map<String, Integer> fishes = new HashMap<>();
-			for (Map.Entry<Fish, MutableInt> fish : inv.map.entrySet()) {
+			var fishes = new HashMap<String, Integer>();
+			for (var fish : inv.map.entrySet()) {
 				fishes.put(fish.getKey().name, fish.getValue().toInteger());
 			}
 
@@ -390,7 +387,7 @@ public class FishCommand implements Command, ScheduledTask {
 		}
 
 		public void resetTime() {
-			int seconds = Rng.next((int) minTimeUntilQuiver.toSeconds(), (int) maxTimeUntilQuiver.toSeconds());
+			var seconds = Rng.next((int) minTimeUntilQuiver.toSeconds(), (int) maxTimeUntilQuiver.toSeconds());
 			time = Now.instant().plus(Duration.ofSeconds(seconds));
 			userWarned = false;
 		}
@@ -400,12 +397,12 @@ public class FishCommand implements Command, ScheduledTask {
 		private final Map<Fish, MutableInt> map = new HashMap<>();
 
 		public void add(Fish fish) {
-			MutableInt count = map.computeIfAbsent(fish, k -> new MutableInt());
+			var count = map.computeIfAbsent(fish, k -> new MutableInt());
 			count.increment();
 		}
 
 		public void remove(Fish fish) {
-			MutableInt count = map.get(fish);
+			var count = map.get(fish);
 			if (count != null) {
 				if (count.intValue() == 1) {
 					map.remove(fish);
@@ -420,7 +417,7 @@ public class FishCommand implements Command, ScheduledTask {
 		}
 
 		public int count(Fish fish) {
-			MutableInt count = map.get(fish);
+			var count = map.get(fish);
 			return (count == null) ? 0 : count.intValue();
 		}
 
@@ -459,13 +456,13 @@ public class FishCommand implements Command, ScheduledTask {
 		public static Fish findOrNull(String name) {
 			//@formatter:off
 			return allFish.stream()
-				.filter(f -> name.equalsIgnoreCase(f.name))
+				.filter(fish -> name.equalsIgnoreCase(fish.name))
 			.findFirst().orElse(null);
 			//@formatter:on
 		}
 
 		public static Fish find(String name) {
-			Fish fish = findOrNull(name);
+			var fish = findOrNull(name);
 
 			if (fish == null) {
 				fish = new Fish(name);
@@ -476,10 +473,10 @@ public class FishCommand implements Command, ScheduledTask {
 		}
 
 		public static Fish randomByRarity() {
-			double total = allFish.stream().mapToDouble(fish -> fish.rarity).sum();
-			double randValue = Rng.next() * total;
-			double cur = 0.0;
-			for (Fish fish : allFish) {
+			var total = allFish.stream().mapToDouble(fish -> fish.rarity).sum();
+			var randValue = Rng.next() * total;
+			var cur = 0.0;
+			for (var fish : allFish) {
 				cur += fish.rarity;
 				if (randValue < cur) {
 					return fish;
@@ -498,7 +495,7 @@ public class FishCommand implements Command, ScheduledTask {
 			if (this == obj) return true;
 			if (obj == null) return false;
 			if (getClass() != obj.getClass()) return false;
-			Fish other = (Fish) obj;
+			var other = (Fish) obj;
 			return Objects.equals(name, other.name);
 		}
 	}

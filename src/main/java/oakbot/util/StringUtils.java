@@ -19,4 +19,13 @@ public interface StringUtils {
 
 		return word + (word.endsWith("s") ? "es" : "s");
 	}
+
+	/**
+	 * Generates the possessive form of the given word.
+	 * @param word the word (e.g. "cats")
+	 * @return the possessive form (e.g. "cats'")
+	 */
+	public static String possessive(String word) {
+		return word + (word.endsWith("s") ? "'" : "'s");
+	}
 }

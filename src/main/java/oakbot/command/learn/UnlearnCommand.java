@@ -45,7 +45,7 @@ public class UnlearnCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String commandName = chatCommand.getContent().trim();
+		var commandName = chatCommand.getContent().trim();
 		if (commandName.isEmpty()) {
 			return reply("You haven't specified the command name.", chatCommand);
 		}
@@ -54,7 +54,7 @@ public class UnlearnCommand implements Command {
 			return reply("That command is not a learned command. You can only unlearn commands that were added with the \"learn\" command.", chatCommand);
 		}
 
-		boolean removed = learnedCommands.remove(commandName);
+		var removed = learnedCommands.remove(commandName);
 		if (!removed) {
 			return reply("That command does not exist.", chatCommand);
 		}
@@ -63,11 +63,11 @@ public class UnlearnCommand implements Command {
 	}
 
 	private boolean hardcodedCommandExists(String commandName) {
-		for (Command command : hardcodedCommands) {
+		for (var command : hardcodedCommands) {
 			if (commandName.equalsIgnoreCase(command.name())) {
 				return true;
 			}
-			for (String alias : command.aliases()) {
+			for (var alias : command.aliases()) {
 				if (commandName.equalsIgnoreCase(alias)) {
 					return true;
 				}

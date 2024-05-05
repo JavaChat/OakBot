@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.apache.http.client.utils.URIBuilder;
 
@@ -45,27 +44,27 @@ public class Stands4Client {
 	 */
 	public List<String> getAbbreviations(String abbr, int maxResults) throws IOException {
 		//@formatter:off
-		String url = baseUri("abbr.php")
+		var url = baseUri("abbr.php")
 			.setParameter("term", abbr)
 		.toString();
 		//@formatter:on
 
-		JsonNode response = send(url);
+		var response = send(url);
 
 		try {
-			JsonNode results = response.get("result");
-			if (results == null || results.size() == 0) {
+			var results = response.get("result");
+			if (results == null || results.isEmpty()) {
 				return List.of();
 			}
 
-			List<String> topUniqueResults = new ArrayList<>(maxResults);
+			var topUniqueResults = new ArrayList<String>(maxResults);
 
-			for (JsonNode result : results) {
+			for (var result : results) {
 				/*
 				 * Results often contain duplicate definitions under different
 				 * categories--do not display duplicates.
 				 */
-				String definition = result.get("definition").asText();
+				var definition = result.get("definition").asText();
 				if (topUniqueResults.contains(definition)) {
 					continue;
 				}
@@ -106,20 +105,20 @@ public class Stands4Client {
 	 */
 	public List<String> checkGrammar(String sentence) throws IOException {
 		//@formatter:off
-		String url = baseUri("grammar.php")
+		var url = baseUri("grammar.php")
 			.setParameter("text", sentence)
 		.toString();
 		//@formatter:on
 
-		JsonNode response = send(url);
+		var response = send(url);
 
 		try {
-			JsonNode matches = response.path("matches");
+			var matches = response.path("matches");
 
 			//@formatter:off
 			return JsonUtils.streamArray(matches)
 				.map(result -> result.get("message").asText())
-			.collect(Collectors.toList());
+			.toList();
 			//@formatter:on
 		} catch (NullPointerException e) {
 			logBadStructure(response, e);
@@ -149,17 +148,17 @@ public class Stands4Client {
 	 */
 	public String convert(String query) throws ConvertException, IOException {
 		//@formatter:off
-		String url = baseUri("conv.php")
+		var url = baseUri("conv.php")
 			.setParameter("expression", query)
 		.toString();
 		//@formatter:on
 
-		JsonNode response = send(url);
+		var response = send(url);
 
 		try {
-			int errorCode = response.get("errorCode").asInt();
+			var errorCode = response.get("errorCode").asInt();
 			if (errorCode != 0) {
-				String errorMessage = response.get("errorMessage").asText();
+				var errorMessage = response.get("errorMessage").asText();
 				throw new ConvertException(errorCode, errorMessage);
 			}
 
@@ -191,16 +190,16 @@ public class Stands4Client {
 	 */
 	public Explanation explain(String phrase) throws IOException {
 		//@formatter:off
-		String url = baseUri("phrases.php")
+		var url = baseUri("phrases.php")
 			.setParameter("phrase", phrase)
 		.toString();
 		//@formatter:on
 
-		JsonNode response = send(url);
+		var response = send(url);
 
 		try {
-			JsonNode results = response.get("result");
-			if (results == null || results.size() == 0) {
+			var results = response.get("result");
+			if (results == null || results.isEmpty()) {
 				return null;
 			}
 
@@ -209,15 +208,15 @@ public class Stands4Client {
 			 * "results" field will be an object. If there are multiple results,
 			 * the field will be an array.
 			 */
-			JsonNode firstResult = results.isArray() ? results.get(0) : results;
+			var firstResult = results.isArray() ? results.get(0) : results;
 
-			String explanation = firstResult.get("explanation").asText();
+			var explanation = firstResult.get("explanation").asText();
 
 			/*
 			 * The example field will be set to an empty object if there is no
 			 * example.
 			 */
-			String example = firstResult.get("example").asText();
+			var example = firstResult.get("example").asText();
 			if (example.isEmpty()) {
 				example = null;
 			}
@@ -252,15 +251,15 @@ public class Stands4Client {
 	 */
 	public List<String> getRhymes(String word) throws IOException {
 		//@formatter:off
-		String url = baseUri("rhymes.php")
+		var url = baseUri("rhymes.php")
 			.setParameter("term", word)
 		.toString();
 		//@formatter:on
 
-		JsonNode response = send(url);
+		var response = send(url);
 
 		try {
-			String value = response.get("rhymes").asText();
+			var value = response.get("rhymes").asText();
 			return value.isEmpty() ? List.of() : List.of(value.split(", "));
 		} catch (NullPointerException e) {
 			logBadStructure(response, e);
@@ -285,7 +284,7 @@ public class Stands4Client {
 
 	private JsonNode send(String url) throws IOException {
 		Http.Response response;
-		try (Http http = HttpFactory.connect()) {
+		try (var http = HttpFactory.connect()) {
 			response = http.get(url);
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem sending STANDS4 API request: " + url);

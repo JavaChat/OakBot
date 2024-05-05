@@ -41,7 +41,7 @@ public class FatCatCommand implements Command, Listener {
 		this.commandAdmins = commandAdmins;
 
 		@SuppressWarnings("unchecked")
-		List<String> list = (List<String>) db.get("fatcat");
+		var list = (List<String>) db.get("fatcat");
 
 		if (list != null) {
 			cats.addAll(list);
@@ -68,27 +68,22 @@ public class FatCatCommand implements Command, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String[] params = chatCommand.getContent().split("\\s+", 2);
+		var params = chatCommand.getContent().split("\\s+", 2);
 
-		String action = params[0].toLowerCase();
-		String url = (params.length < 2) ? null : params[1];
-		switch (action) {
-		case "":
-			return showCat(chatCommand);
-		case "list":
-			return listCats();
-		case "add":
-			return addCat(chatCommand, bot, url);
-		case "delete":
-			return deleteCat(chatCommand, bot, url);
-		default:
-			return reply("Unknown action.", chatCommand);
-		}
+		var action = params[0].toLowerCase();
+		var url = (params.length < 2) ? null : params[1];
+		return switch (action) {
+			case "" -> showCat(chatCommand);
+			case "list" -> listCats();
+			case "add" -> addCat(chatCommand, bot, url);
+			case "delete" -> deleteCat(chatCommand, bot, url);
+			default -> reply("Unknown action.", chatCommand);
+		};
 	}
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		String reply = handleResponse(message);
+		var reply = handleResponse(message);
 		return (reply == null) ? doNothing() : reply(reply, message);
 	}
 
@@ -97,7 +92,7 @@ public class FatCatCommand implements Command, Listener {
 			return reply("Error: No fat cats defined.", chatCommand);
 		}
 
-		String cat = Command.random(cats);
+		var cat = Command.random(cats);
 
 		//@formatter:off
 		return ChatActions.create(
@@ -107,12 +102,12 @@ public class FatCatCommand implements Command, Listener {
 	}
 
 	private ChatActions listCats() {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 
 		if (cats.isEmpty()) {
 			cb.italic("no fat cats defined");
 		} else {
-			for (String cat : cats) {
+			for (var cat : cats) {
 				cb.append("> ").append(cat).nl();
 			}
 		}
@@ -154,7 +149,7 @@ public class FatCatCommand implements Command, Listener {
 			return reply("Cat already added.", chatCommand);
 		}
 
-		Conversation conversation = new Conversation(chatCommand.getMessage().getRoomId(), chatCommand.getMessage().getUserId(), cat);
+		var conversation = new Conversation(chatCommand.getMessage().getRoomId(), chatCommand.getMessage().getUserId(), cat);
 		conversations.add(conversation);
 
 		return reply("Is cat fat? (y/n)", chatCommand);
@@ -186,7 +181,7 @@ public class FatCatCommand implements Command, Listener {
 		 */
 		cat = StringEscapeUtils.unescapeHtml4(cat);
 
-		boolean removed = cats.remove(cat);
+		var removed = cats.remove(cat);
 		if (!removed) {
 			return reply("404 cat not found.", chatCommand);
 		}
@@ -196,17 +191,17 @@ public class FatCatCommand implements Command, Listener {
 	}
 
 	private boolean hasEditPerms(ChatCommand chatCommand, IBot bot) {
-		int authorId = chatCommand.getMessage().getUserId();
+		var authorId = chatCommand.getMessage().getUserId();
 		return bot.getAdminUsers().contains(authorId) || commandAdmins.contains(authorId);
 	}
 
 	private String handleResponse(ChatMessage message) {
-		Conversation conversation = conversations.get(message.getRoomId(), message.getUserId());
+		var conversation = conversations.get(message.getRoomId(), message.getUserId());
 		if (conversation == null) {
 			return null;
 		}
 
-		String content = message.getContent().getContent();
+		var content = message.getContent().getContent();
 		if (content.isEmpty()) {
 			return null;
 		}
@@ -229,20 +224,20 @@ public class FatCatCommand implements Command, Listener {
 		db.set("fatcat", cats);
 	}
 
-	private class Conversations {
+	private static class Conversations {
 		private final List<Conversation> conversations = new ArrayList<>();
 
 		public Conversation get(int roomId, int userId) {
-			for (Conversation conversation : conversations) {
-				if (conversation.roomId == roomId && conversation.userId == userId) {
-					return conversation;
-				}
-			}
-			return null;
+			//@formatter:off
+			return conversations.stream()
+				.filter(conversation -> conversation.roomId == roomId)
+				.filter(conversation -> conversation.userId == userId)
+			.findFirst().orElse(null);
+			//@formatter:on
 		}
 
 		public void add(Conversation conversation) {
-			Conversation existing = get(conversation.roomId, conversation.userId);
+			var existing = get(conversation.roomId, conversation.userId);
 			if (existing != null) {
 				remove(existing);
 			}
@@ -255,15 +250,6 @@ public class FatCatCommand implements Command, Listener {
 		}
 	}
 
-	private class Conversation {
-		private final int roomId;
-		private final int userId;
-		private final String url;
-
-		public Conversation(int roomId, int userId, String url) {
-			this.roomId = roomId;
-			this.userId = userId;
-			this.url = url;
-		}
+	private record Conversation(int roomId, int userId, String url) {
 	}
 }

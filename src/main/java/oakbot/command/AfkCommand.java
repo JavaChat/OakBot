@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -57,9 +56,9 @@ public class AfkCommand implements Command, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String username = chatCommand.getMessage().getUsername();
-		int userId = chatCommand.getMessage().getUserId();
-		String awayMessage = chatCommand.getContentMarkdown();
+		var username = chatCommand.getMessage().getUsername();
+		var userId = chatCommand.getMessage().getUserId();
+		var awayMessage = chatCommand.getContentMarkdown();
 
 		setAway(userId, username, awayMessage);
 
@@ -76,17 +75,17 @@ public class AfkCommand implements Command, Listener {
 			return doNothing();
 		}
 
-		boolean returned = setBack(message.getUserId());
+		var returned = setBack(message.getUserId());
 
-		Collection<String> mentions = new HashSet<>(message.getContent().getMentions()); //remove duplicates
-		Collection<AfkUser> mentionedAfkUsers = getAfkUsers(mentions);
-		List<AfkUser> usersNotWarnedAbout = filterUsersNotWarnedAbout(mentionedAfkUsers, message.getUserId());
+		var mentions = new HashSet<>(message.getContent().getMentions()); //remove duplicates
+		var mentionedAfkUsers = getAfkUsers(mentions);
+		var usersNotWarnedAbout = filterUsersNotWarnedAbout(mentionedAfkUsers, message.getUserId());
 		if (!usersNotWarnedAbout.isEmpty()) {
-			ChatBuilder cb = new ChatBuilder();
+			var cb = new ChatBuilder();
 			cb.reply(message);
-			boolean first = true;
+			var first = true;
 			usersNotWarnedAbout.sort(Comparator.comparing(AfkUser::getUsername));
-			for (AfkUser afkUser : usersNotWarnedAbout) {
+			for (var afkUser : usersNotWarnedAbout) {
 				afkUser.setTimeLastWarnedUser(message.getUserId());
 
 				if (!first) {
@@ -94,7 +93,7 @@ public class AfkCommand implements Command, Listener {
 				}
 
 				cb.append(afkUser.getUsername()).append(" is away");
-				String awayMessage = afkUser.getAwayMessage();
+				var awayMessage = afkUser.getAwayMessage();
 				if (awayMessage != null) {
 					cb.append(": ").append(awayMessage);
 				}
@@ -131,11 +130,11 @@ public class AfkCommand implements Command, Listener {
 			return Collections.emptyList();
 		}
 
-		String sanitizedMention = mention.toLowerCase();
+		var sanitizedMention = mention.toLowerCase();
 		return afkUsersById.values().stream().filter(user -> {
-			String sanitizedUserName = user.getUsername().replace(" ", "").toLowerCase();
+			var sanitizedUserName = user.getUsername().replace(" ", "").toLowerCase();
 			return sanitizedUserName.startsWith(sanitizedMention);
-		}).collect(Collectors.toList());
+		}).toList();
 	}
 
 	/**
@@ -170,13 +169,13 @@ public class AfkCommand implements Command, Listener {
 	 * @return the AFK users the user hasn't been warned about recently
 	 */
 	private List<AfkUser> filterUsersNotWarnedAbout(Collection<AfkUser> afkUsers, int userId) {
-		List<AfkUser> usersNotWarnedAbout = new ArrayList<>(afkUsers.size());
-		for (AfkUser afkUser : afkUsers) {
-			Instant lastWarnedUser = afkUser.getTimeLastWarnedUser(userId);
+		var usersNotWarnedAbout = new ArrayList<AfkUser>(afkUsers.size());
+		for (var afkUser : afkUsers) {
+			var lastWarnedUser = afkUser.getTimeLastWarnedUser(userId);
 			if (lastWarnedUser == null) {
 				usersNotWarnedAbout.add(afkUser);
 			} else {
-				Duration sinceLastWarning = Duration.between(lastWarnedUser, Instant.now());
+				var sinceLastWarning = Duration.between(lastWarnedUser, Instant.now());
 				if (sinceLastWarning.compareTo(timeBetweenWarnings) > 0) {
 					usersNotWarnedAbout.add(afkUser);
 				}
@@ -191,11 +190,12 @@ public class AfkCommand implements Command, Listener {
 	 * @return the mentioned users that are AFK
 	 */
 	private Collection<AfkUser> getAfkUsers(Collection<String> mentions) {
-		Set<AfkUser> afkUsers = new HashSet<>();
-		for (String mention : mentions) {
-			afkUsers.addAll(getAfkUsers(mention));
-		}
-		return afkUsers;
+		//@formatter:off
+		return mentions.stream()
+			.map(this::getAfkUsers)
+			.flatMap(List::stream)
+		.collect(Collectors.toSet());
+		//@formatter:on
 	}
 
 	/**
@@ -267,7 +267,7 @@ public class AfkCommand implements Command, Listener {
 			if (this == obj) return true;
 			if (obj == null) return false;
 			if (getClass() != obj.getClass()) return false;
-			AfkUser other = (AfkUser) obj;
+			var other = (AfkUser) obj;
 			return userId == other.userId;
 		}
 	}

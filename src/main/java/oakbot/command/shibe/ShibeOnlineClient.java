@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.apache.http.client.utils.URIBuilder;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.util.HttpFactory;
@@ -29,7 +28,7 @@ public class ShibeOnlineClient {
 
 	private String getAnimal(String animal) throws IOException {
 		//@formatter:off
-		String url = new URIBuilder()
+		var url = new URIBuilder()
 			.setScheme("https")
 			.setHost("shibe.online")
 			.setPathSegments("api", animal)
@@ -37,11 +36,11 @@ public class ShibeOnlineClient {
 		//@formatter:on
 
 		Http.Response response;
-		try (Http http = HttpFactory.connect()) {
+		try (var http = HttpFactory.connect()) {
 			response = http.get(url);
 		}
 
-		JsonNode node = response.getBodyAsJson().get(0);
+		var node = response.getBodyAsJson().get(0);
 		if (node == null) {
 			throw new IOException("JSON response not structured as expected.");
 		}

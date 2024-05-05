@@ -8,9 +8,6 @@ import java.util.logging.Logger;
 
 import org.apache.http.client.utils.URIBuilder;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.mangstadt.sochat4j.util.Http;
-
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
@@ -63,21 +60,21 @@ public class ReactCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent().trim();
+		var content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("Please specify a human emotion.", chatCommand);
 		}
 
-		String url = url(content);
+		var url = url(content);
 
-		try (Http http = HttpFactory.connect()) {
-			JsonNode node = http.get(url).getBodyAsJson();
-			if (node.size() == 0) {
+		try (var http = HttpFactory.connect()) {
+			var node = http.get(url).getBodyAsJson();
+			if (node.isEmpty()) {
 				return reply("Unknown human emotion. Please visit http://replygif.net/t for a list of emotions.", chatCommand);
 			}
 
-			int index = random.nextInt(node.size());
-			String imageUrl = node.get(index).get("file").asText();
+			var index = random.nextInt(node.size());
+			var imageUrl = node.get(index).get("file").asText();
 
 			//@formatter:off
 			return ChatActions.create(

@@ -45,7 +45,7 @@ public class ConvertCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String query = chatCommand.getContent().trim();
+		var query = chatCommand.getContent().trim();
 		if (query.isEmpty()) {
 			return reply("Specify what you want to convert.", chatCommand);
 		}
@@ -59,7 +59,7 @@ public class ConvertCommand implements Command {
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 
-		String url = client.getConvertAttributionUrl();
+		var url = client.getConvertAttributionUrl();
 
 		//@formatter:off
 		return post(new ChatBuilder()

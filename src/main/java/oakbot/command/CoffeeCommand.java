@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.mangstadt.sochat4j.util.Http;
-
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
@@ -64,8 +61,8 @@ public class CoffeeCommand implements Command {
 	}
 
 	private String getCoffee() throws IOException {
-		try (Http http = HttpFactory.connect()) {
-			JsonNode node = http.get(apiUrl).getBodyAsJson().get("file");
+		try (var http = HttpFactory.connect()) {
+			var node = http.get(apiUrl).getBodyAsJson().get("file");
 			if (node == null) {
 				throw new IOException("Unexpected JSON structure.");
 			}

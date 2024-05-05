@@ -8,12 +8,9 @@ import java.util.List;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
-import com.github.mangstadt.sochat4j.IRoom;
 import com.github.mangstadt.sochat4j.PingableUser;
 import com.github.mangstadt.sochat4j.UserInfo;
-import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -23,7 +20,7 @@ import oakbot.util.HttpFactory;
 /**
  * Posts a modified version of a user's profile picture, showing them drinking
  * from a juice box.
- * @see https://juiceboxify.me
+ * @see "https://juiceboxify.me"
  * @author Michael Angstadt
  */
 public class JuiceBoxCommand implements Command {
@@ -46,10 +43,10 @@ public class JuiceBoxCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent();
-		final String targetUser = content.isEmpty() ? chatCommand.getMessage().getUsername() : content;
+		var content = chatCommand.getContent();
+		final var targetUser = content.isEmpty() ? chatCommand.getMessage().getUsername() : content;
 
-		IRoom currentRoom = bot.getRoom(chatCommand.getMessage().getRoomId());
+		var currentRoom = bot.getRoom(chatCommand.getMessage().getRoomId());
 
 		PingableUser matchingUser;
 		try {
@@ -68,7 +65,7 @@ public class JuiceBoxCommand implements Command {
 
 		UserInfo matchingUserInfo;
 		try {
-			List<UserInfo> list = currentRoom.getUserInfo(List.of(matchingUser.getUserId()));
+			var list = currentRoom.getUserInfo(List.of(matchingUser.getUserId()));
 			matchingUserInfo = list.isEmpty() ? null : list.get(0);
 		} catch (IOException e) {
 			return error("Problem getting user info: ", e, chatCommand);
@@ -97,14 +94,14 @@ public class JuiceBoxCommand implements Command {
 	 * @throws IOException if there's a network problem
 	 */
 	private String juicifyPhoto(String photo) throws IOException {
-		String url = url(photo);
+		var url = url(photo);
 
 		Document document;
-		try (Http http = HttpFactory.connect()) {
+		try (var http = HttpFactory.connect()) {
 			document = http.get(url).getBodyAsHtml();
 		}
 
-		Element element = document.selectFirst("section[class='result'] img");
+		var element = document.selectFirst("section[class='result'] img");
 		return (element == null) ? null : element.absUrl("src");
 	}
 

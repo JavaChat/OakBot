@@ -35,7 +35,7 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 
 	/**
 	 * Determines if a command exists.
-	 * @param commandName the name of the command (case insensitive)
+	 * @param commandName the name of the command (case-insensitive)
 	 * @return true if it exists, false if not
 	 */
 	public boolean contains(String commandName) {
@@ -44,7 +44,7 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 
 	/**
 	 * Gets a command.
-	 * @param commandName the name of the command (case insensitive)
+	 * @param commandName the name of the command (case-insensitive)
 	 * @return the command or null if not found
 	 */
 	public LearnedCommand get(String commandName) {
@@ -67,12 +67,12 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 
 	/**
 	 * Removes a command.
-	 * @param commandName the command name (case insensitive)
+	 * @param commandName the command name (case-insensitive)
 	 * @return true if the command was successfully removed, false if a command
 	 * with the given name could not be found
 	 */
 	public boolean remove(String commandName) {
-		boolean found = commands.removeIf(c -> commandName.equalsIgnoreCase(c.name()));
+		var found = commands.removeIf(c -> commandName.equalsIgnoreCase(c.name()));
 		if (found) {
 			save();
 		}
@@ -80,16 +80,16 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 	}
 
 	private void load() {
-		List<Object> list = db.getList("learned-commands");
+		var list = db.getList("learned-commands");
 		if (list == null) {
 			return;
 		}
 
 		for (Object item : list) {
 			@SuppressWarnings("unchecked")
-			Map<String, Object> map = (Map<String, Object>) item;
+			var map = (Map<String, Object>) item;
 
-			LearnedCommand.Builder builder = new LearnedCommand.Builder();
+			var builder = new LearnedCommand.Builder();
 
 			/*
 			 * When this value is written to the database, the fact that it is a
@@ -98,9 +98,9 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 			 * database and if so, cast it to a "long".
 			 */
 			Long messageId;
-			Object value = map.get("messageId");
-			if (value instanceof Integer) {
-				messageId = ((Integer) value).longValue();
+			var value = map.get("messageId");
+			if (value instanceof Integer id) {
+				messageId = id.longValue();
 			} else {
 				messageId = (Long) value;
 			}
@@ -121,9 +121,10 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 	 * Persists the commands to the file system.
 	 */
 	private void save() {
-		List<Map<String, Object>> list = new ArrayList<>(commands.size());
-		for (LearnedCommand command : commands) {
-			Map<String, Object> map = new HashMap<>();
+		//@formatter:off
+		db.set("learned-commands", commands.stream().map(command -> {
+			//cannot use Map.of() because it won't accept null values
+			var map = new HashMap<String, Object>();
 			map.put("authorUserId", command.getAuthorUserId());
 			map.put("authorUsername", command.getAuthorUsername());
 			map.put("roomId", command.getRoomId());
@@ -131,10 +132,9 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 			map.put("created", command.getCreated());
 			map.put("name", command.name());
 			map.put("output", command.getOutput());
-			list.add(map);
-		}
-
-		db.set("learned-commands", list);
+			return map;
+		}).toList());
+		//@formatter:on
 	}
 
 	@Override

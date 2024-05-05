@@ -57,7 +57,7 @@ public interface Command {
 	 */
 	@SafeVarargs
 	static <T> T random(T... array) {
-		int index = random.nextInt(array.length);
+		var index = random.nextInt(array.length);
 		return array[index];
 	}
 
@@ -67,7 +67,7 @@ public interface Command {
 	 * @return the random element
 	 */
 	static <T> T random(List<T> list) {
-		int index = random.nextInt(list.size());
+		var index = random.nextInt(list.size());
 		return list.get(index);
 	}
 
@@ -78,14 +78,14 @@ public interface Command {
 	 * @return true if the message is invoking this command, false if not
 	 */
 	default boolean isInvokingMe(ChatMessage message, String trigger) {
-		String content = message.getContent().getContent();
+		var content = message.getContent().getContent();
 
-		List<String> names = new ArrayList<>();
+		var names = new ArrayList<String>();
 		names.add(name());
 		names.addAll(aliases());
 
 		return names.stream().anyMatch(name -> {
-			String invocation = trigger + name;
+			var invocation = trigger + name;
 			return content.equals(invocation) || content.startsWith(invocation + " ");
 		});
 	}

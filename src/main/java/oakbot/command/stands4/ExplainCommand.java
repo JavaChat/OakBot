@@ -45,7 +45,7 @@ public class ExplainCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String phrase = chatCommand.getContent().trim();
+		var phrase = chatCommand.getContent().trim();
 		if (phrase.isEmpty()) {
 			return reply("Enter a phrase.", chatCommand);
 		}
@@ -57,20 +57,19 @@ public class ExplainCommand implements Command {
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 
-		ChatBuilder cb = new ChatBuilder();
-		cb.reply(chatCommand);
+		var cb = new ChatBuilder().reply(chatCommand);
 		if (result == null) {
 			cb.append("No explanation found.");
 		} else {
 			cb.append(result.getExplanation());
 
-			String example = result.getExample();
+			var example = result.getExample();
 			if (example != null) {
 				cb.append(" ").italic(result.getExample());
 			}
 		}
 
-		String url = client.getExplainAttributionUrl(phrase);
+		var url = client.getExplainAttributionUrl(phrase);
 		cb.append(" (").link("source", url).append(")");
 
 		return post(cb);

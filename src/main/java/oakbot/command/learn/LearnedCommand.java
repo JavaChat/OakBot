@@ -3,7 +3,6 @@ package oakbot.command.learn;
 import static oakbot.bot.ChatActions.post;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -82,8 +81,7 @@ public class LearnedCommand implements Command {
 
 	/**
 	 * Gets the command output.
-	 * @param output the output (will never be null)
-	 * @return this
+	 * @return the output (will never be null)
 	 */
 	public String getOutput() {
 		return output;
@@ -107,11 +105,11 @@ public class LearnedCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String response = output;
+		var response = output;
 
-		List<String> args = chatCommand.getContentAsArgs();
+		var args = chatCommand.getContentAsArgs();
 		for (int i = 0; i < args.size(); i++) {
-			String arg = args.get(i);
+			var arg = args.get(i);
 			response = response.replace("{" + i + "}", arg);
 		}
 

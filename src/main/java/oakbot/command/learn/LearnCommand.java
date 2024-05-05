@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -53,11 +52,11 @@ public class LearnCommand implements Command {
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		//example: "/learn test this is a test"
-		ChatMessage message = chatCommand.getMessage();
+		var message = chatCommand.getMessage();
 
 		//example: "test this is a test"
-		ChatMessage subMessage = new ChatMessage.Builder(message).content(chatCommand.getContent(), chatCommand.isFixedWidthFont()).build();
-		ChatCommand subCommand = ChatCommand.fromMessage(subMessage, null);
+		var subMessage = new ChatMessage.Builder(message).content(chatCommand.getContent(), chatCommand.isFixedWidthFont()).build();
+		var subCommand = ChatCommand.fromMessage(subMessage, null);
 		if (subCommand == null) {
 			return reply("You haven't specified the command name or its output.", chatCommand);
 		}
@@ -65,7 +64,7 @@ public class LearnCommand implements Command {
 			return reply("You haven't specified the command output.", chatCommand);
 		}
 
-		String commandName = subCommand.getCommandName();
+		var commandName = subCommand.getCommandName();
 		if (!commandNameValid(commandName)) {
 			return reply("Tricksy hobbitses. Command names can only contain letters (a-z) and numbers.", chatCommand);
 		}
@@ -76,15 +75,15 @@ public class LearnCommand implements Command {
 
 		String commandOutput = null;
 		try {
-			String plainText = bot.getOriginalMessageContent(message.getMessageId());
+			var plainText = bot.getOriginalMessageContent(message.getMessageId());
 
 			/*
 			 * Capture the text that comes before the command name, in case the
 			 * user wants to use fixed-width formatting.
 			 */
-			Pattern p = Pattern.compile("^(.*?)" + Pattern.quote(bot.getTrigger()) + name() + "\\s+" + Pattern.quote(commandName) + "\\s+(.*?)$", Pattern.DOTALL);
+			var p = Pattern.compile("^(.*?)" + Pattern.quote(bot.getTrigger()) + name() + "\\s+" + Pattern.quote(commandName) + "\\s+(.*?)$", Pattern.DOTALL);
 
-			Matcher m = p.matcher(plainText);
+			var m = p.matcher(plainText);
 			if (m.find()) {
 				commandOutput = m.group(1) + m.group(2);
 			} else {
@@ -120,11 +119,11 @@ public class LearnCommand implements Command {
 	 * not
 	 */
 	private boolean commandExists(String commandName) {
-		for (Command command : hardcodedCommands) {
+		for (var command : hardcodedCommands) {
 			if (commandName.equalsIgnoreCase(command.name())) {
 				return true;
 			}
-			for (String alias : command.aliases()) {
+			for (var alias : command.aliases()) {
 				if (commandName.equalsIgnoreCase(alias)) {
 					return true;
 				}

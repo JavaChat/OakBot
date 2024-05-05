@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import org.apache.http.client.utils.URIBuilder;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
@@ -68,9 +67,9 @@ public class FacepalmCommand implements Command {
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String imageUrl;
 		Http.Response response = null;
-		try (Http http = HttpFactory.connect()) {
+		try (var http = HttpFactory.connect()) {
 			response = http.get(uri);
-			JsonNode node = response.getBodyAsJson();
+			var node = response.getBodyAsJson();
 			imageUrl = node.get("results").get(0).get("media").get(0).get("tinygif").get("url").asText();
 		} catch (Exception e) {
 			String body = (response == null) ? null : response.getBody();
@@ -83,7 +82,7 @@ public class FacepalmCommand implements Command {
 		 * 
 		 * https://tenor.com/gifapi/documentation#attribution
 		 */
-		ChatBuilder condensed = new ChatBuilder().append(imageUrl).append(" (via ").link("Tenor", "https://tenor.com").append(")");
+		var condensed = new ChatBuilder().append(imageUrl).append(" (via ").link("Tenor", "https://tenor.com").append(")");
 
 		//@formatter:off
 		return ChatActions.create(

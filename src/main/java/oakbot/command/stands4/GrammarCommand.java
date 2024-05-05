@@ -45,7 +45,7 @@ public class GrammarCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String sentence = chatCommand.getContent().trim();
+		var sentence = chatCommand.getContent().trim();
 		if (sentence.isEmpty()) {
 			return reply("Specify the sentence to check.", chatCommand);
 		}
@@ -57,7 +57,7 @@ public class GrammarCommand implements Command {
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 
-		String url = client.getGrammarAttributionUrl();
+		var url = client.getGrammarAttributionUrl();
 
 		if (results.isEmpty()) {
 			//@formatter:off

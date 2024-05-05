@@ -4,16 +4,13 @@ import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.utils.URIBuilder;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
-import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -49,30 +46,30 @@ public class UrbanCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent().trim();
+		var content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("You have to type a word to see its definition... -_-", chatCommand);
 		}
 
-		Input input = parseInput(content);
-		String url = apiUrl(input.word);
+		var input = parseInput(content);
+		var url = apiUrl(input.word);
 
 		UrbanResponse response;
-		try (Http http = HttpFactory.connect()) {
+		try (var http = HttpFactory.connect()) {
 			response = http.get(url).getBodyAsJson(UrbanResponse.class);
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Problem getting word from Urban Dictionary.");
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 
-		List<UrbanDefinition> words = response.getDefinitions();
+		var words = response.getDefinitions();
 		if (words == null || words.isEmpty()) {
 			return reply("No definition found.", chatCommand);
 		}
 
-		int definitionToDisplay = Math.min(input.definitionToDisplay, words.size());
-		UrbanDefinition urbanWord = words.get(definitionToDisplay - 1);
-		String definition = urbanWord.getDefinition();
+		var definitionToDisplay = Math.min(input.definitionToDisplay, words.size());
+		var urbanWord = words.get(definitionToDisplay - 1);
+		var definition = urbanWord.getDefinition();
 		if (containsNewlines(definition)) {
 			//do not use markup if the definition contains newlines
 			definition = removeLinks(definition);
@@ -85,8 +82,7 @@ public class UrbanCommand implements Command {
 					.append(urbanWord.getWord())
 					.append(" (").append(urbanWord.getPermalink()).append("):").nl()
 					.append(definition)
-				)
-				.splitStrategy(SplitStrategy.WORD)
+				).splitStrategy(SplitStrategy.WORD)
 			);
 			//@formatter:on
 		}
@@ -101,19 +97,18 @@ public class UrbanCommand implements Command {
 				.link(new ChatBuilder().bold().code(urbanWord.getWord()).bold().toString(), urbanWord.getPermalink())
 				.append(": ")
 				.append(definition)
-			)
-			.splitStrategy(SplitStrategy.WORD)
+			).splitStrategy(SplitStrategy.WORD)
 		);
 		//@formatter:on
 	}
 
 	private Input parseInput(String content) {
-		int lastSpace = content.lastIndexOf(' ');
+		var lastSpace = content.lastIndexOf(' ');
 		if (lastSpace < 0) {
 			return new Input(content, 1);
 		}
 
-		String afterLastSpace = content.substring(lastSpace + 1);
+		var afterLastSpace = content.substring(lastSpace + 1);
 		int definitionToDisplay;
 		try {
 			definitionToDisplay = Integer.parseInt(afterLastSpace);
@@ -124,18 +119,11 @@ public class UrbanCommand implements Command {
 		if (definitionToDisplay < 1) {
 			definitionToDisplay = 1;
 		}
-		String word = content.substring(0, lastSpace);
+		var word = content.substring(0, lastSpace);
 		return new Input(word, definitionToDisplay);
 	}
 
-	private class Input {
-		private final String word;
-		private final int definitionToDisplay;
-
-		public Input(String word, int definitionToDisplay) {
-			this.word = word;
-			this.definitionToDisplay = definitionToDisplay;
-		}
+	private record Input(String word, int definitionToDisplay) {
 	}
 
 	private String apiUrl(String word) {
@@ -169,15 +157,15 @@ public class UrbanCommand implements Command {
 	}
 
 	private String encodeLinks(String definition) {
-		Pattern p = Pattern.compile("\\[(.*?)\\]");
-		Matcher m = p.matcher(definition);
-		StringBuilder sb = new StringBuilder();
+		var p = Pattern.compile("\\[(.*?)\\]");
+		var m = p.matcher(definition);
+		var sb = new StringBuilder();
 
 		while (m.find()) {
-			String word = m.group(1);
-			String url = websiteUrl(word);
+			var word = m.group(1);
+			var url = websiteUrl(word);
 
-			ChatBuilder cb = new ChatBuilder();
+			var cb = new ChatBuilder();
 			cb.link(word, url);
 			m.appendReplacement(sb, cb.toString());
 		}

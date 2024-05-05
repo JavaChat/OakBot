@@ -6,7 +6,6 @@ import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -56,13 +55,13 @@ public class DeleteCommand implements Command, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent();
-		long messageToDelete = parseMessageId(content);
+		var content = chatCommand.getContent();
+		var messageToDelete = parseMessageId(content);
 		if (messageToDelete == 0) {
 			return reply("Message ID or permalink is required.", chatCommand);
 		}
 
-		long messageToReplyToOnError = chatCommand.getMessage().getMessageId();
+		var messageToReplyToOnError = chatCommand.getMessage().getMessageId();
 
 		return deleteAction(messageToDelete, messageToReplyToOnError);
 	}
@@ -71,7 +70,7 @@ public class DeleteCommand implements Command, Listener {
 		try {
 			return Long.parseLong(content);
 		} catch (NumberFormatException e) {
-			Matcher m = permalinkRegex.matcher(content);
+			var m = permalinkRegex.matcher(content);
 			return m.find() ? Long.parseLong(m.group(1)) : 0;
 		}
 	}
@@ -79,24 +78,24 @@ public class DeleteCommand implements Command, Listener {
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		//is the message a reply?
-		long messageToDelete = message.getParentMessageId();
+		var messageToDelete = message.getParentMessageId();
 		if (messageToDelete == 0) {
 			return doNothing();
 		}
 
 		//is it replying to a bot message?
-		String content = message.getContent().getContent();
-		String mention = "@" + bot.getUsername().replace(" ", "");
+		var content = message.getContent().getContent();
+		var mention = "@" + bot.getUsername().replace(" ", "");
 		if (!content.startsWith(mention)) {
 			return doNothing();
 		}
 
 		//does the reply consist of the command name or alias?
-		int pos = content.indexOf(' ');
+		var pos = content.indexOf(' ');
 		if (pos < 0) {
 			return doNothing();
 		}
-		String afterMention = content.substring(pos + 1).trim();
+		var afterMention = content.substring(pos + 1).trim();
 		if (!name().equals(afterMention) && !aliases().contains(afterMention)) {
 			return doNothing();
 		}
@@ -105,7 +104,7 @@ public class DeleteCommand implements Command, Listener {
 			catchAllListener.ignoreNextMessage();
 		}
 
-		long messageToReplyToOnError = message.getMessageId();
+		var messageToReplyToOnError = message.getMessageId();
 		return deleteAction(messageToDelete, messageToReplyToOnError);
 	}
 

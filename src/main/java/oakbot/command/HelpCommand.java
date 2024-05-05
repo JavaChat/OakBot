@@ -2,14 +2,10 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
 import com.google.common.collect.Multimap;
@@ -68,21 +64,21 @@ public class HelpCommand implements Command {
 			return showHelpText(chatCommand, bot.getTrigger());
 		}
 
-		Multimap<String, String> commandSummaries = getCommandSummaries();
-		Multimap<String, String> listenerDescriptions = getListenerSummaries();
-		Multimap<String, String> taskDescriptions = getTaskSummaries();
+		var commandSummaries = getCommandSummaries();
+		var listenerDescriptions = getListenerSummaries();
+		var taskDescriptions = getTaskSummaries();
 
-		int longestNameLength = longestNameLength(bot.getTrigger(), commandSummaries, listenerDescriptions, taskDescriptions);
-		final int bufferSpace = 2;
+		var longestNameLength = longestNameLength(bot.getTrigger(), commandSummaries, listenerDescriptions, taskDescriptions);
+		final var bufferSpace = 2;
 
 		//build message
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.fixedWidth();
 		if (!commandSummaries.isEmpty()) {
 			cb.append("Commands=====================").nl();
-			for (Map.Entry<String, String> entry : commandSummaries.entries()) {
-				String name = entry.getKey();
-				String description = entry.getValue();
+			for (var entry : commandSummaries.entries()) {
+				var name = entry.getKey();
+				var description = entry.getValue();
 
 				cb.append(bot.getTrigger()).append(name);
 				cb.repeat(' ', longestNameLength - (bot.getTrigger().length() + name.length()) + bufferSpace);
@@ -91,7 +87,7 @@ public class HelpCommand implements Command {
 			cb.nl();
 		}
 
-		List<String> learnedCommandNames = getLearnedCommandNames();
+		var learnedCommandNames = getLearnedCommandNames();
 		if (!learnedCommandNames.isEmpty()) {
 			cb.append("Learned Commands=============").nl();
 
@@ -106,9 +102,9 @@ public class HelpCommand implements Command {
 
 		if (!listenerDescriptions.isEmpty()) {
 			cb.append("Listeners====================").nl();
-			for (Map.Entry<String, String> entry : listenerDescriptions.entries()) {
-				String name = entry.getKey();
-				String description = entry.getValue();
+			for (var entry : listenerDescriptions.entries()) {
+				var name = entry.getKey();
+				var description = entry.getValue();
 
 				cb.append(name);
 				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
@@ -119,9 +115,9 @@ public class HelpCommand implements Command {
 
 		if (!taskDescriptions.isEmpty()) {
 			cb.append("Tasks========================").nl();
-			for (Map.Entry<String, String> entry : taskDescriptions.entries()) {
-				String name = entry.getKey();
-				String description = entry.getValue();
+			for (var entry : taskDescriptions.entries()) {
+				var name = entry.getKey();
+				var description = entry.getValue();
 
 				cb.append(name);
 				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
@@ -147,11 +143,11 @@ public class HelpCommand implements Command {
 	}
 
 	private static int longestNameLength(String trigger, Multimap<String, String> commandSummaries, Multimap<String, String> listenerDescriptions, Multimap<String, String> taskDescriptions) {
-		int longestCommandNameLength = longestString(commandSummaries.keySet()) + trigger.length();
-		int longestListenerNameLength = longestString(listenerDescriptions.keySet());
-		int longestTaskNameLength = longestString(taskDescriptions.keySet());
+		var longestCommandNameLength = longestString(commandSummaries.keySet()) + trigger.length();
+		var longestListenerNameLength = longestString(listenerDescriptions.keySet());
+		var longestTaskNameLength = longestString(taskDescriptions.keySet());
 
-		int m = Math.max(longestCommandNameLength, longestListenerNameLength);
+		var m = Math.max(longestCommandNameLength, longestListenerNameLength);
 		return Math.max(m, longestTaskNameLength);
 	}
 
@@ -165,8 +161,8 @@ public class HelpCommand implements Command {
 
 	private Multimap<String, String> getCommandSummaries() {
 		Multimap<String, String> summaries = TreeMultimap.create();
-		for (Command command : commands) {
-			String name = command.name();
+		for (var command : commands) {
+			var name = command.name();
 			if (name == null) {
 				continue;
 			}
@@ -177,19 +173,19 @@ public class HelpCommand implements Command {
 	}
 
 	private List<String> getLearnedCommandNames() {
-		List<String> names = new ArrayList<>();
-		for (LearnedCommand command : learnedCommands) {
-			names.add(command.name());
-		}
-		names.sort(String.CASE_INSENSITIVE_ORDER);
-		return names;
+		//@formatter:off
+		return learnedCommands.getCommands().stream()
+			.map(LearnedCommand::name)
+			.sorted(String.CASE_INSENSITIVE_ORDER)
+		.toList();
+		//@formatter:on
 	}
 
 	private Multimap<String, String> getListenerSummaries() {
 		Multimap<String, String> summaries = TreeMultimap.create();
 
-		for (Listener listener : listeners) {
-			String name = listener.name();
+		for (var listener : listeners) {
+			var name = listener.name();
 			if (name == null) {
 				continue;
 			}
@@ -210,8 +206,8 @@ public class HelpCommand implements Command {
 	private Multimap<String, String> getTaskSummaries() {
 		Multimap<String, String> summaries = TreeMultimap.create();
 
-		for (ScheduledTask task : tasks) {
-			String name = task.name();
+		for (var task : tasks) {
+			var name = task.name();
 			if (name == null) {
 				continue;
 			}
@@ -230,13 +226,13 @@ public class HelpCommand implements Command {
 	}
 
 	private ChatActions showHelpText(ChatCommand message, String trigger) {
-		String commandName = message.getContent();
+		var commandName = message.getContent();
 
-		/**
+		/*
 		 * Remove duplicate help messages, as classes implement multiple
 		 * interfaces.
 		 */
-		Set<String> helpTexts = new HashSet<>();
+		var helpTexts = new HashSet<String>();
 
 		//@formatter:off
 		commands.stream()
@@ -245,7 +241,7 @@ public class HelpCommand implements Command {
 			.map(c -> c.help().getHelpText(trigger))
 		.forEach(helpTexts::add);
 
-		StreamSupport.stream(learnedCommands.spliterator(), false)
+		learnedCommands.getCommands().stream()
 			.filter(c -> c.name().equalsIgnoreCase(commandName))
 			.map(c -> c.help().getHelpText(trigger))
 		.forEach(helpTexts::add);
@@ -267,9 +263,9 @@ public class HelpCommand implements Command {
 			return reply("No command or listener exists with that name.", message);
 		}
 
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.reply(message);
-		for (String helpText : helpTexts) {
+		for (var helpText : helpTexts) {
 			cb.append(helpText).nl();
 		}
 

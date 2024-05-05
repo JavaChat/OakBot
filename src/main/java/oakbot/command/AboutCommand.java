@@ -44,12 +44,12 @@ public class AboutCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		RelativeDateFormat relativeDf = new RelativeDateFormat();
-		LocalDateTime built = LocalDateTime.ofInstant(Main.BUILT, ZoneId.systemDefault());
+		var relativeDf = new RelativeDateFormat();
+		var built = LocalDateTime.ofInstant(Main.BUILT, ZoneId.systemDefault());
 
 		//@formatter:off
-		ChatBuilder cb = new ChatBuilder()
-		.bold("OakBot").append(" by ").link("Michael", "http://stackoverflow.com/users/13379/michael").append(" | ")
+		var cb = new ChatBuilder()
+		.bold("OakBot").append(" by ").link("Michael", "https://stackoverflow.com/users/13379/michael").append(" | ")
 		.link("source code", Main.URL).append(" | ")
 		.append("JAR built on: ").append(relativeDf.format(built)).append(" | ")
 		.append("started up: ").append(relativeDf.format(startedUp));
@@ -62,9 +62,9 @@ public class AboutCommand implements Command {
 		if (stats != null) {
 			cb.append(" | ").append("responded to ").append(stats.getMessagesRespondedTo()).append(" commands");
 
-			LocalDateTime since = stats.getSince();
+			var since = stats.getSince();
 			if (since != null) {
-				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy");
+				var formatter = DateTimeFormatter.ofPattern("MMM d, yyyy");
 				cb.append(" since ").append(since.format(formatter));
 			}
 		}

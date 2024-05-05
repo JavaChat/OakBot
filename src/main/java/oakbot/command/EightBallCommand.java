@@ -64,7 +64,7 @@ public class EightBallCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String answer = random(answers);
+		var answer = random(answers);
 		return reply(answer, chatCommand);
 	}
 }

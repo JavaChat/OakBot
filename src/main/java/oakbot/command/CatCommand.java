@@ -13,7 +13,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.xml.sax.SAXException;
 
 import com.github.mangstadt.sochat4j.util.Http;
-import com.github.mangstadt.sochat4j.util.Leaf;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -34,7 +33,7 @@ public class CatCommand implements Command {
 
 	public CatCommand(String key) {
 		//@formatter:off
-		URIBuilder ub = new URIBuilder()
+		var ub = new URIBuilder()
 			.setScheme("http")
 			.setHost("thecatapi.com")
 			.setPath("/api/images/get")
@@ -72,10 +71,10 @@ public class CatCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		int repeats = 0;
-		try (Http http = HttpFactory.connect()) {
+		var repeats = 0;
+		try (var http = HttpFactory.connect()) {
 			while (repeats < 5) {
-				String catUrl = nextCat(http);
+				var catUrl = nextCat(http);
 				if (isCatThere(http, catUrl)) {
 					//@formatter:off
 					return ChatActions.create(
@@ -102,21 +101,21 @@ public class CatCommand implements Command {
 	 * @throws SAXException if there's a problem parsing the XML response
 	 */
 	private String nextCat(Http http) throws IOException, SAXException {
-		Leaf document = http.get(requestUrl).getBodyAsXml();
-		Leaf urlElement = document.selectFirst("/response/data/images/image/url");
+		var document = http.get(requestUrl).getBodyAsXml();
+		var urlElement = document.selectFirst("/response/data/images/image/url");
 		return urlElement.text();
 	}
 
 	/**
 	 * Checks to see if the given image exists. Some of the URLs that the API
 	 * returns don't work anymore.
-	 * @param client the HTTP client
+	 * @param http the HTTP client
 	 * @param url the URL to the image
 	 * @return true if the image exists, false if not
 	 */
 	private boolean isCatThere(Http http, String url) {
 		try {
-			Http.Response response = http.head(url);
+			var response = http.head(url);
 			return response.getStatusCode() == HttpStatus.SC_OK;
 		} catch (IOException e) {
 			return false;

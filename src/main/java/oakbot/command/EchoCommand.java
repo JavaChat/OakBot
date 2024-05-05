@@ -36,7 +36,7 @@ public class EchoCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContentMarkdown().trim();
+		var content = chatCommand.getContentMarkdown().trim();
 		if (content.isEmpty()) {
 			return reply("Tell me what to say.", chatCommand);
 		}

@@ -47,7 +47,7 @@ public class RhymeCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String word = chatCommand.getContent().trim();
+		var word = chatCommand.getContent().trim();
 		if (word.isEmpty()) {
 			return reply("Enter a word.", chatCommand);
 		}
@@ -59,7 +59,7 @@ public class RhymeCommand implements Command {
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 
-		String url = client.getRhymesAttributionUrl(word);
+		var url = client.getRhymesAttributionUrl(word);
 
 		//@formatter:off
 		return post(new ChatBuilder()

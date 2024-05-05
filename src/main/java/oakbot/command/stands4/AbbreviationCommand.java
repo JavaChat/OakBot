@@ -47,7 +47,7 @@ public class AbbreviationCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String abbr = chatCommand.getContent().trim();
+		var abbr = chatCommand.getContent().trim();
 		if (abbr.isEmpty()) {
 			return reply("Enter an abbreviation.", chatCommand);
 		}
@@ -59,7 +59,7 @@ public class AbbreviationCommand implements Command {
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 
-		String url = client.getAbbreviationsAttributionUrl(abbr);
+		var url = client.getAbbreviationsAttributionUrl(abbr);
 
 		//@formatter:off
 		return post(new ChatBuilder()

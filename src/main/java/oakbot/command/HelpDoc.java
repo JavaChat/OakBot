@@ -3,7 +3,6 @@ package oakbot.command;
 import static oakbot.util.StringUtils.plural;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -92,7 +91,7 @@ public class HelpDoc {
 	}
 
 	private String getHelpText(Command command, String trigger) {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.append(command.name()).append(':').nl();
 
 		if (includeSummaryWithDetail) {
@@ -104,9 +103,9 @@ public class HelpDoc {
 
 		if (!examples.isEmpty()) {
 			cb.nl().nl().append(plural("Example", examples.size())).append(":");
-			for (String[] example : examples) {
-				String parameters = example[0];
-				String description = example[1];
+			for (var example : examples) {
+				var parameters = example[0];
+				var description = example[1];
 
 				cb.nl().append(trigger).append(command.name());
 				if (!parameters.isEmpty()) {
@@ -118,7 +117,7 @@ public class HelpDoc {
 			}
 		}
 
-		Collection<String> aliases = command.aliases();
+		var aliases = command.aliases();
 		if (!aliases.isEmpty()) {
 			cb.nl().nl().append(plural("Alias", aliases.size())).append(": ").append(String.join(",", aliases));
 		}
@@ -127,7 +126,7 @@ public class HelpDoc {
 	}
 
 	private String getHelpText(Listener listener) {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.append(listener.name()).append(':').nl();
 
 		if (includeSummaryWithDetail) {
@@ -141,7 +140,7 @@ public class HelpDoc {
 	}
 
 	private String getHelpText(ScheduledTask task) {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.append(task.name()).append(':').nl();
 
 		if (includeSummaryWithDetail) {
@@ -207,9 +206,9 @@ public class HelpDoc {
 		/**
 		 * Any additional detail to include about the command/listener. This
 		 * will be displayed when the user requests the full help documentation.
-		 * This will be prefixed by whatever was passed into {@link #summary()}
-		 * (unless {@code false} was passed into
-		 * {@link includeSummaryWithDetail()}).
+		 * This will be prefixed by whatever was passed into
+		 * {@link #summary(String)}* (unless {@code false} was passed into
+		 * {@link #includeSummaryWithDetail(boolean)}).
 		 * @param detail the additional details (no Markdown allowed)
 		 * @return this
 		 */
