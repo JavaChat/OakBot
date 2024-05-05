@@ -35,20 +35,20 @@ public class RemindCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent();
+		var content = chatCommand.getContent();
 		if (content.isEmpty()) {
 			return reply("Enter what you want to be reminded about, followed by a time period (e.g. " + bot.getTrigger() + name() + " do the laundry in 2 hours)", chatCommand);
 		}
 
-		Pattern p = Pattern.compile("^(.*?) in (\\d+) (hour|minute)s?", Pattern.CASE_INSENSITIVE);
-		Matcher m = p.matcher(content);
+		var p = Pattern.compile("^(.*?) in (\\d+) (hour|minute)s?", Pattern.CASE_INSENSITIVE);
+		var m = p.matcher(content);
 		if (!m.find()) {
 			return reply("Invalid format. Example: " + bot.getTrigger() + name() + " do the laundry in 2 hours", chatCommand);
 		}
 
-		String reminder = m.group(1);
-		Duration duration = parseDuration(m);
-		String mention = chatCommand.getMessage().getUsername().replace(" ", "");
+		var reminder = m.group(1);
+		var duration = parseDuration(m);
+		var mention = chatCommand.getMessage().getUsername().replace(" ", "");
 
 		//@formatter:off
 		return ChatActions.create(
@@ -59,8 +59,8 @@ public class RemindCommand implements Command {
 	}
 
 	private Duration parseDuration(Matcher m) {
-		int num = Integer.parseInt(m.group(2));
-		String period = m.group(3).toLowerCase();
+		var num = Integer.parseInt(m.group(2));
+		var period = m.group(3).toLowerCase();
 
 		return "hour".equals(period) ? Duration.ofHours(num) : Duration.ofMinutes(num);
 	}

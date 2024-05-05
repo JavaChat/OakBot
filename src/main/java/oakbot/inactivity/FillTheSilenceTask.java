@@ -7,6 +7,7 @@ import com.github.mangstadt.sochat4j.IRoom;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.command.Command;
+import oakbot.util.Rng;
 
 /**
  * Causes the bot to post messages when a room has been inactive for some
@@ -51,7 +52,7 @@ public class FillTheSilenceTask implements InactivityTask {
 
 	@Override
 	public void run(IRoom room, IBot bot) throws Exception {
-		var message = Command.random(messages);
+		var message = Rng.random(messages);
 		bot.sendMessage(room.getRoomId(), new PostMessage(message));
 	}
 }

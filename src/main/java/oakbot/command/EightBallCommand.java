@@ -1,11 +1,11 @@
 package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
-import static oakbot.command.Command.random;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
+import oakbot.util.Rng;
 
 /**
  * Simulates a magic 8-ball.
@@ -64,7 +64,7 @@ public class EightBallCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		var answer = random(answers);
+		var answer = Rng.random(answers);
 		return reply(answer, chatCommand);
 	}
 }

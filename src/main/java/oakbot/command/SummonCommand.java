@@ -55,9 +55,9 @@ public class SummonCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent().trim();
+		var content = chatCommand.getContent().trim();
 
-		Integer maxRooms = bot.getMaxRooms();
+		var maxRooms = bot.getMaxRooms();
 		if (maxRooms != null && bot.getRooms().size() >= maxRooms) {
 			return reply("I can't join any more rooms, I've reached my limit (" + maxRooms + ").", chatCommand);
 		}
@@ -81,10 +81,10 @@ public class SummonCommand implements Command {
 			return reply("I'm already there... -_-", chatCommand);
 		}
 
-		int userId = chatCommand.getMessage().getUserId();
-		boolean authorIsAdmin = bot.getAdminUsers().contains(userId);
+		var userId = chatCommand.getMessage().getUserId();
+		var authorIsAdmin = bot.getAdminUsers().contains(userId);
 		if (!authorIsAdmin) {
-			String response = checkForEnoughSummonVotes(roomToJoin, userId);
+			var response = checkForEnoughSummonVotes(roomToJoin, userId);
 			if (response != null) {
 				return reply(response, chatCommand);
 			}
@@ -104,10 +104,10 @@ public class SummonCommand implements Command {
 	}
 
 	private String checkForEnoughSummonVotes(int roomToJoin, int userId) {
-		Pending pending = getPendingSummons(roomToJoin);
+		var pending = getPendingSummons(roomToJoin);
 
-		boolean alreadyVoted = !pending.getUserIds().add(userId);
-		int votesNeeded = minSummonsRequired - pending.getUserIds().size();
+		var alreadyVoted = !pending.getUserIds().add(userId);
+		var votesNeeded = minSummonsRequired - pending.getUserIds().size();
 
 		if (alreadyVoted) {
 			//@formatter:off
@@ -129,14 +129,14 @@ public class SummonCommand implements Command {
 	}
 
 	private Pending getPendingSummons(int roomToJoin) {
-		boolean firstPersonToVote = !pendingSummons.containsKey(roomToJoin);
-		Pending pending = pendingSummons.computeIfAbsent(roomToJoin, Pending::new);
+		var firstPersonToVote = !pendingSummons.containsKey(roomToJoin);
+		var pending = pendingSummons.computeIfAbsent(roomToJoin, Pending::new);
 		if (firstPersonToVote) {
 			return pending;
 		}
 
-		Duration elapsed = Duration.between(pending.getStarted(), Instant.now());
-		boolean prevVoteWasTooLongAgo = (elapsed.compareTo(summonTime) > 0);
+		var elapsed = Duration.between(pending.getStarted(), Instant.now());
+		var prevVoteWasTooLongAgo = (elapsed.compareTo(summonTime) > 0);
 		if (prevVoteWasTooLongAgo) {
 			/*
 			 * Reset everything if the previous vote was too long ago.

@@ -2,17 +2,17 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
-import static oakbot.command.Command.random;
 
 import java.util.Arrays;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Rng;
 
 /**
  * Rolls a variable-sided die or makes a choice.
@@ -40,9 +40,9 @@ public class RollCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		Parameters parameters = parseParameters(chatCommand);
+		var parameters = parseParameters(chatCommand);
 		if (parameters.choices != null) {
-			String choice = random(parameters.choices);
+			var choice = Rng.random(parameters.choices);
 			return reply(choice, chatCommand);
 		}
 
@@ -63,49 +63,50 @@ public class RollCommand implements Command {
 			return reply("I can't roll a zero sided die...", chatCommand);
 		}
 
-		int total = 0;
-		int[] results = new int[parameters.times];
-		for (int i = 0; i < parameters.times; i++) {
-			int result = random.nextInt(parameters.sides) + 1;
-			results[i] = result;
-			total += result;
-		}
+		//@formatter:off
+		var results = IntStream.range(0, parameters.times)
+			.map(i -> Rng.next(parameters.sides) + 1)
+		.toArray();
+		//@formatter:on
 
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.reply(chatCommand);
 
 		//@formatter:off
 		cb.append(Arrays.stream(results)
-			.mapToObj(i -> i + "")
+			.mapToObj(Integer::toString)
 		.collect(Collectors.joining(", ")));
 		//@formatter:on
 
 		if (results.length > 1) {
+			var total = Arrays.stream(results).sum();
+			var average = (double) total / results.length;
 			cb.nl().append("Total = ").append(total);
+			cb.nl().append("Average = ").append(Double.toString(average));
 		}
 
 		return post(cb);
 	}
 
 	private Parameters parseParameters(ChatCommand chatCommand) {
-		String content = chatCommand.getContent().trim();
+		var content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			//roll 6-sided die
 			return new Parameters(1, 6);
 		}
 
-		Matcher m = diceRegex.matcher(content);
+		var m = diceRegex.matcher(content);
 		if (m.find()) {
-			int times = Integer.parseInt(m.group(1));
-			int sides = Integer.parseInt(m.group(2));
+			var times = Integer.parseInt(m.group(1));
+			var sides = Integer.parseInt(m.group(2));
 			return new Parameters(times, sides);
 		}
 
-		String[] words = content.split("[\\s,]+");
+		var words = content.split("[\\s,]+");
 		return new Parameters(words);
 	}
 
-	private class Parameters {
+	private static class Parameters {
 		private final int times;
 		private final int sides;
 		private final String[] choices;

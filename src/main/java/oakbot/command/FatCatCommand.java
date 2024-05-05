@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import oakbot.util.Rng;
 import org.apache.commons.text.StringEscapeUtils;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -92,7 +93,7 @@ public class FatCatCommand implements Command, Listener {
 			return reply("Error: No fat cats defined.", chatCommand);
 		}
 
-		var cat = Command.random(cats);
+		var cat = Rng.random(cats);
 
 		//@formatter:off
 		return ChatActions.create(

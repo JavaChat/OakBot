@@ -31,15 +31,15 @@ public class WikiCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent().trim();
+		var content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("Please specify the term you'd like to display.", chatCommand);
 		}
 
-		String keyword = content.replace(' ', '_');
+		var keyword = content.replace(' ', '_');
 
 		//@formatter:off
-		String url = new URIBuilder()
+		var url = new URIBuilder()
 			.setScheme("https")
 			.setHost("en.wikipedia.org")
 			.setPathSegments("wiki", keyword)

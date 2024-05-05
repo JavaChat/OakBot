@@ -1,5 +1,6 @@
 package oakbot.util;
 
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -19,6 +20,15 @@ public class Rng {
 	}
 
 	/**
+	 * Gets a random integer value between zero and a given number.
+	 * @param endExclusive end range exclusive
+	 * @return the random value
+	 */
+	public static int next(int endExclusive) {
+		return next(0, endExclusive);
+	}
+
+	/**
 	 * Gets a random integer value.
 	 * @param startInclusive start range inclusive
 	 * @param endExclusive end range exclusive
@@ -29,8 +39,28 @@ public class Rng {
 			return startInclusive;
 		}
 
-		var diff = endExclusive - startInclusive;
-		return random.nextInt(diff) + startInclusive;
+		return random.nextInt(startInclusive, endExclusive);
+	}
+
+	/**
+	 * Chooses a random element from a list.
+	 * @param list the list
+	 * @return the random element
+	 */
+	public static <T> T random(List<T> list) {
+		var i = next(list.size());
+		return list.get(i);
+	}
+
+	/**
+	 * Chooses a random element from an array.
+	 * @param array the array
+	 * @return the random element
+	 */
+	@SafeVarargs
+	public static <T> T random(T ... array) {
+		var i = next(array.length);
+		return array[i];
 	}
 
 	/**

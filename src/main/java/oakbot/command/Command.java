@@ -3,8 +3,6 @@ package oakbot.command;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-import java.util.Random;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 
@@ -44,32 +42,6 @@ public interface Command {
 	 * @return the action(s) to perform in response to the message
 	 */
 	ChatActions onMessage(ChatCommand chatCommand, IBot bot);
-
-	/**
-	 * Random number generator.
-	 */
-	static Random random = new Random();
-
-	/**
-	 * Chooses a random element from an array.
-	 * @param array the array
-	 * @return the random element
-	 */
-	@SafeVarargs
-	static <T> T random(T... array) {
-		var index = random.nextInt(array.length);
-		return array[index];
-	}
-
-	/**
-	 * Chooses a random element from a list.
-	 * @param list the list
-	 * @return the random element
-	 */
-	static <T> T random(List<T> list) {
-		var index = random.nextInt(list.size());
-		return list.get(index);
-	}
 
 	/**
 	 * Determines if the given chat message is invoking this command.

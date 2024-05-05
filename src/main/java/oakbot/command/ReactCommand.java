@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import oakbot.util.Rng;
 import org.apache.http.client.utils.URIBuilder;
 
 import oakbot.bot.ChatActions;
@@ -73,7 +74,7 @@ public class ReactCommand implements Command {
 				return reply("Unknown human emotion. Please visit http://replygif.net/t for a list of emotions.", chatCommand);
 			}
 
-			var index = random.nextInt(node.size());
+			var index = Rng.next(node.size());
 			var imageUrl = node.get(index).get("file").asText();
 
 			//@formatter:off

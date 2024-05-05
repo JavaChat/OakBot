@@ -10,6 +10,7 @@ import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Rng;
 
 /**
  * Regularly posts messages depending on how many security updates are
@@ -95,9 +96,9 @@ public abstract class HealthMonitor implements ScheduledTask {
 
 		if (securityUpdates >= 10) {
 			for (var roomId : roomIds) {
-				ChatBuilder cb = new ChatBuilder();
-				cb.italic(Command.random(responses));
-				PostMessage response = new PostMessage(cb).bypassFilters(true);
+				var cb = new ChatBuilder();
+				cb.italic(Rng.random(responses));
+				var response = new PostMessage(cb).bypassFilters(true);
 				try {
 					bot.sendMessage(roomId, response);
 				} catch (Exception e) {

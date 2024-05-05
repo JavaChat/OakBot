@@ -30,19 +30,20 @@ public class ShutdownCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		boolean admin = bot.getAdminUsers().contains(chatCommand.getMessage().getUserId());
-		if (admin) {
-			String message = "Shutting down. See you later.";
-			boolean broadcast = chatCommand.getContent().equalsIgnoreCase("broadcast");
-
-			//@formatter:off
-			return ChatActions.create(
-				new PostMessage(message).broadcast(broadcast),
-				new Shutdown()
-			);
-			//@formatter:on
+		var userId = chatCommand.getMessage().getUserId();
+		var admin = bot.getAdminUsers().contains(userId);
+		if (!admin) {
+			return reply("Only admins can shut me down. :P", chatCommand);
 		}
 
-		return reply("Only admins can shut me down. :P", chatCommand);
+		var message = "Shutting down. See you later.";
+		var broadcast = chatCommand.getContent().equalsIgnoreCase("broadcast");
+
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(message).broadcast(broadcast),
+			new Shutdown()
+		);
+		//@formatter:on
 	}
 }

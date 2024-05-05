@@ -112,7 +112,7 @@ public class FishCommandTest {
 		IBot bot = mock(IBot.class);
 
 		Random rand = mock(Random.class);
-		when(rand.nextInt(15 * 60)).thenReturn(5 * 60); //line will quiver after (15+5) minutes
+		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
@@ -144,7 +144,7 @@ public class FishCommandTest {
 		IBot bot = mock(IBot.class);
 
 		Random rand = mock(Random.class);
-		when(rand.nextInt(15 * 60)).thenReturn(5 * 60); //line will quiver after (15+5) minutes
+		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
@@ -198,7 +198,7 @@ public class FishCommandTest {
 		IBot bot = mock(IBot.class);
 
 		Random rand = mock(Random.class);
-		when(rand.nextInt(15 * 60)).thenReturn(5 * 60, 5 * 60); //line will quiver after (15+5) minutes
+		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60, 20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
@@ -254,7 +254,7 @@ public class FishCommandTest {
 		IBot bot = mock(IBot.class);
 
 		Random rand = mock(Random.class);
-		when(rand.nextInt(15 * 60)).thenReturn(5 * 60, 10 * 60); //line will quiver after (15+5) and (15+10) minutes
+		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60, 25 * 60); //line will quiver after (15+5) and (15+10) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
@@ -290,7 +290,7 @@ public class FishCommandTest {
 		IBot bot = mock(IBot.class);
 
 		Random rand = mock(Random.class);
-		when(rand.nextInt(15 * 60)).thenReturn(5 * 60); //line will quiver after (15+5) minutes
+		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
@@ -347,7 +347,7 @@ public class FishCommandTest {
 		IBot bot = mock(IBot.class);
 
 		Random rand = mock(Random.class);
-		when(rand.nextInt(15 * 60)).thenReturn(5 * 60); //line will quiver after (15+5) minutes
+		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
@@ -407,7 +407,7 @@ public class FishCommandTest {
 		IBot bot = mock(IBot.class);
 
 		Random rand = mock(Random.class);
-		when(rand.nextInt(15 * 60)).thenReturn(5 * 60); //line will quiver after (15+5) minutes
+		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 

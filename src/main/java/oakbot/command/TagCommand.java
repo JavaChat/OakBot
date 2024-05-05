@@ -46,28 +46,28 @@ public class TagCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent().trim();
+		var content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("Please specify the tag name (e.g. \"java\").", chatCommand);
 		}
 
-		String tag = content.toLowerCase().replace(' ', '-');
-		String url = url(tag);
+		var tag = content.toLowerCase().replace(' ', '-');
+		var url = url(tag);
 
 		Document document;
-		try (Http http = HttpFactory.connect()) {
+		try (var http = HttpFactory.connect()) {
 			document = http.get(url).getBodyAsHtml();
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Error getting tag description.");
 			return error("An error occurred retrieving the tag description: ", e, chatCommand);
 		}
 
-		Element element = document.getElementById("wiki-excerpt");
+		var element = document.getElementById("wiki-excerpt");
 		if (element == null) {
 			return reply("Tag not found. :(", chatCommand);
 		}
 
-		String definition = element.text();
+		var definition = element.text();
 
 		//@formatter:off
 		return ChatActions.create(

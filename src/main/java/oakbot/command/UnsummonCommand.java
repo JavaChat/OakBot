@@ -1,7 +1,6 @@
 package oakbot.command;
 
 import static oakbot.bot.ChatActions.reply;
-import static oakbot.command.Command.random;
 
 import java.util.List;
 
@@ -11,6 +10,7 @@ import oakbot.bot.IBot;
 import oakbot.bot.LeaveRoom;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Rng;
 
 /**
  * Makes the bot leave a room.
@@ -41,7 +41,7 @@ public class UnsummonCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContent().trim();
+		var content = chatCommand.getContent().trim();
 
 		int roomToLeave;
 		boolean inRoomToLeave;
@@ -70,9 +70,9 @@ public class UnsummonCommand implements Command {
 
 		String reply;
 		if (inRoomToLeave) {
-			reply = random("*poof*", "Hasta la vista, baby.", "Bye.");
+			reply = Rng.random("*poof*", "Hasta la vista, baby.", "Bye.");
 		} else {
-			reply = random("They smelled funny anyway.", "Less for me to worry about.");
+			reply = Rng.random("They smelled funny anyway.", "Less for me to worry about.");
 		}
 
 		//@formatter:off
