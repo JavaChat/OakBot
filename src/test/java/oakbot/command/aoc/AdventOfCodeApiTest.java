@@ -27,7 +27,7 @@ public class AdventOfCodeApiTest {
 	@Test
 	public void getLeadeboard() throws Exception {
 		Now.setNow(LocalDateTime.of(2018, 12, 1, 0, 0, 0));
-		String aoc2018 = new Gobble(getClass(), "advent-of-code-2018.json").asString();
+		var aoc2018 = new Gobble(getClass(), "advent-of-code-2018.json").asString();
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -36,12 +36,12 @@ public class AdventOfCodeApiTest {
 		.build());
 		//@formatter:on
 
-		AdventOfCodeApi api = new AdventOfCodeApi("123456");
+		var api = new AdventOfCodeApi("123456");
 
-		List<Player> players = api.getLeaderboard("123456");
+		var players = api.getLeaderboard("123456");
 		assertEquals(10, players.size());
 
-		Player owner = players.get(0);
+		var owner = players.get(0);
 		assertEquals(256093, owner.id());
 		assertEquals("Mike Angstadt", owner.name());
 		assertEquals(18, owner.score());
@@ -53,7 +53,7 @@ public class AdventOfCodeApiTest {
 	public void getLeadeboardUrl() throws Exception {
 		Now.setNow(LocalDateTime.of(2018, 12, 1, 0, 0, 0));
 
-		AdventOfCodeApi api = new AdventOfCodeApi("");
+		var api = new AdventOfCodeApi("");
 		assertEquals("http://adventofcode.com/2018/leaderboard/private/view/123456", api.getLeaderboardWebsite("123456"));
 	}
 }

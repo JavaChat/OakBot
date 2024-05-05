@@ -96,14 +96,14 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
-		IRoom room2 = chatServer.createRoom(2);
+		var room1 = chatServer.createRoom(1);
+		var room2 = chatServer.createRoom(2);
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1, 2)
 			.greeting("Greetings.")
 		.build();
@@ -126,14 +126,14 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
-		IRoom room2 = chatServer.createRoom(2);
+		var room1 = chatServer.createRoom(1);
+		var room2 = chatServer.createRoom(2);
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1, 2)
 			.greeting("Greetings.")
 		.build();
@@ -156,14 +156,14 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
-		IRoom room2 = chatServer.createRoom(2);
+		var room1 = chatServer.createRoom(1);
+		var room2 = chatServer.createRoom(2);
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1, 2)
 		.build();
 		//@formatter:on
@@ -185,18 +185,18 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
+		var room1 = chatServer.createRoom(1);
 
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("no reply");
-		MessagePostedEvent event2 = event("reply");
+		var event1 = event("no reply");
+		var event2 = event("reply");
 
 		/*
 		 * Create the listener
 		 */
-		Listener listener = mock(Listener.class);
+		var listener = mock(Listener.class);
 		when(listener.onMessage(same(event1.getMessage()), any(IBot.class))).thenReturn(ChatActions.doNothing());
 		when(listener.onMessage(same(event2.getMessage()), any(IBot.class))).thenReturn(ChatActions.post("reply"));
 
@@ -204,7 +204,7 @@ public class BotTest {
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1)
 			.listeners(listener)
 		.build();
@@ -229,35 +229,35 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
+		var room1 = chatServer.createRoom(1);
 
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("Ignore me");
-		MessagePostedEvent event2 = event("=name command");
-		MessagePostedEvent event3 = event("=alias command");
-		MessagePostedEvent event4 = event("=name reply");
+		var event1 = event("Ignore me");
+		var event2 = event("=name command");
+		var event3 = event("=alias command");
+		var event4 = event("=name reply");
 
 		/*
 		 * Create the command.
 		 */
-		Command command = mock(Command.class);
+		var command = mock(Command.class);
 		when(command.name()).thenReturn("name");
 		when(command.aliases()).thenReturn(List.of("alias"));
-		ChatCommand expectedChatCommand2 = new ChatCommand(event2.getMessage(), "name", "command");
+		var expectedChatCommand2 = new ChatCommand(event2.getMessage(), "name", "command");
 		when(command.onMessage(eq(expectedChatCommand2), any(IBot.class))).thenReturn(ChatActions.doNothing());
-		ChatCommand expectedChatCommand3 = new ChatCommand(event3.getMessage(), "alias", "command");
+		var expectedChatCommand3 = new ChatCommand(event3.getMessage(), "alias", "command");
 		when(command.onMessage(eq(expectedChatCommand3), any(IBot.class))).thenReturn(ChatActions.doNothing());
-		ChatCommand expectedChatCommand4 = new ChatCommand(event4.getMessage(), "name", "reply");
+		var expectedChatCommand4 = new ChatCommand(event4.getMessage(), "name", "reply");
 		when(command.onMessage(eq(expectedChatCommand4), any(IBot.class))).thenReturn(ChatActions.post("reply"));
-		CommandListener commandListener = new CommandListener(List.of(command), new LearnedCommandsDao());
+		var commandListener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1)
 			.listeners(commandListener)
 		.build();
@@ -283,26 +283,26 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
+		var room1 = chatServer.createRoom(1);
 
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("=ignore");
-		MessagePostedEvent event2 = event("=foo");
+		var event1 = event("=ignore");
+		var event2 = event("=foo");
 
 		/*
 		 * Create the learned commands.
 		 */
-		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		var learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("foo").output("bar").build());
-		CommandListener commandListener = new CommandListener(Collections.<Command> emptyList(), learnedCommands);
+		var commandListener = new CommandListener(Collections.<Command> emptyList(), learnedCommands);
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1)
 			.listeners(commandListener)
 		.build();
@@ -344,18 +344,18 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
+		var room1 = chatServer.createRoom(1);
 
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("=command");
-		MessagePostedEvent event2 = event("=learned");
+		var event1 = event("=command");
+		var event2 = event("=learned");
 
 		/*
 		 * Create the command.
 		 */
-		Command command = mock(Command.class);
+		var command = mock(Command.class);
 		when(command.name()).thenReturn("command");
 		when(command.aliases()).thenReturn(List.of());
 		when(command.onMessage(any(ChatCommand.class), any(IBot.class))).thenReturn(ChatActions.post("reply"));
@@ -363,49 +363,46 @@ public class BotTest {
 		/*
 		 * Create the learned commands.
 		 */
-		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		var learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("learned").output("reply").build());
 
-		CommandListener commandListener = new CommandListener(List.of(command), learnedCommands);
+		var commandListener = new CommandListener(List.of(command), learnedCommands);
 
 		/*
 		 * Create the listener.
 		 */
-		Listener listener = mock(Listener.class);
+		var listener = mock(Listener.class);
 		when(listener.onMessage(eq(event1.getMessage()), any(IBot.class))).thenReturn(ChatActions.post("reply"));
 
 		/*
 		 * Create the filter.
 		 */
-		ChatResponseFilter filter = new ChatResponseFilter() {
+		var filter = new ChatResponseFilter() {
 			@Override
 			public String filter(String message) {
 				return message.toUpperCase();
 			}
 		};
 
-		boolean expectedEnabled = false;
+		var expectedEnabled = false;
 		switch (num) {
-		case 0:
-			break;
-		case 1:
-			filter.setEnabled(2, true);
-			break;
-		case 2:
+		case 0 -> {}
+		case 1 -> filter.setEnabled(2, true);
+		case 2 -> {
 			filter.setEnabled(1, true);
 			expectedEnabled = true;
-			break;
-		case 3:
+		}
+		case 3 -> {
 			filter.setGloballyEnabled(true);
 			expectedEnabled = true;
-			break;
+		}
 		}
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1)
 			.listeners(commandListener, listener)
 			.greeting("reply")
@@ -421,7 +418,7 @@ public class BotTest {
 		/*
 		 * Verify.
 		 */
-		String expectedMessage = expectedEnabled ? "REPLY" : "reply";
+		var expectedMessage = expectedEnabled ? "REPLY" : "reply";
 		verify(room1, times(4)).sendMessage(anyString(), any(SplitStrategy.class));
 		verify(room1, times(4)).sendMessage(expectedMessage, SplitStrategy.NONE);
 	}
@@ -431,31 +428,31 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
-		IRoom room2 = chatServer.createRoom(2);
+		var room1 = chatServer.createRoom(1);
+		var room2 = chatServer.createRoom(2);
 		chatServer.createRoom(4, false);
 
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("=join 2"); //success
-		MessagePostedEvent event2 = event("=join 2"); //success
-		MessagePostedEvent event3 = event("=join 3"); //404
-		MessagePostedEvent event4 = event("=join 3"); //404
-		MessagePostedEvent event5 = event("=join 4"); //can't post
-		MessagePostedEvent event6 = event("=join 4"); //can't post
-		MessagePostedEvent event7 = event("=join 999"); //IOException
-		MessagePostedEvent event8 = event("=join 999"); //IOException
+		var event1 = event("=join 2"); //success
+		var event2 = event("=join 2"); //success
+		var event3 = event("=join 3"); //404
+		var event4 = event("=join 3"); //404
+		var event5 = event("=join 4"); //can't post
+		var event6 = event("=join 4"); //can't post
+		var event7 = event("=join 999"); //IOException
+		var event8 = event("=join 999"); //IOException
 
 		/*
 		 * Create the join command.
 		 */
-		Command joinCommand = mock(Command.class);
+		var joinCommand = mock(Command.class);
 		when(joinCommand.name()).thenReturn("join");
 		when(joinCommand.aliases()).thenReturn(List.of());
 		when(joinCommand.onMessage(any(ChatCommand.class), any(IBot.class))).then((invocation) -> {
-			ChatCommand chatCommand = (ChatCommand) invocation.getArguments()[0];
-			int roomId = Integer.parseInt(chatCommand.getContent());
+			var chatCommand = (ChatCommand) invocation.getArguments()[0];
+			var roomId = Integer.parseInt(chatCommand.getContent());
 
 			//@formatter:off
 			return ChatActions.create(
@@ -468,13 +465,13 @@ public class BotTest {
 			//@formatter:on
 		});
 
-		CommandListener commandListener = new CommandListener(List.of(joinCommand), new LearnedCommandsDao());
+		var commandListener = new CommandListener(List.of(joinCommand), new LearnedCommandsDao());
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.greeting("Greetings.")
 			.roomsHome(1)
 			.listeners(commandListener)
@@ -509,29 +506,29 @@ public class BotTest {
 		 * Setup the chat rooms.
 		 */
 		chatServer.createRoom(1);
-		IRoom room2 = chatServer.createRoom(2);
+		var room2 = chatServer.createRoom(2);
 
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("=leave");
+		var event1 = event("=leave");
 
 		/*
 		 * Create the leave command.
 		 */
-		Command command = mock(Command.class);
+		var command = mock(Command.class);
 		when(command.name()).thenReturn("leave");
 		when(command.aliases()).thenReturn(List.of());
 
 		when(command.onMessage(any(ChatCommand.class), any(IBot.class))).thenReturn(ChatActions.create(new LeaveRoom(2)));
 
-		CommandListener commandListener = new CommandListener(List.of(command), new LearnedCommandsDao());
+		var commandListener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1, 2)
 			.listeners(commandListener)
 		.build();
@@ -559,25 +556,25 @@ public class BotTest {
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("=shutdown");
+		var event1 = event("=shutdown");
 
 		/*
 		 * Create the shutdown command.
 		 */
-		Command command = mock(Command.class);
+		var command = mock(Command.class);
 		when(command.name()).thenReturn("shutdown");
 		when(command.aliases()).thenReturn(List.of());
 		when(command.onMessage(any(ChatCommand.class), any(IBot.class))).thenReturn(ChatActions.create(new Shutdown()));
 
-		CommandListener commandListener = new CommandListener(List.of(command), new LearnedCommandsDao());
+		var commandListener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1, 2)
 			.listeners(commandListener)
 			.database(db)
@@ -587,7 +584,7 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		Thread t = bot.connect(true);
+		var t = bot.connect(true);
 		chatServer.pushEvents(event1);
 
 		/*
@@ -613,18 +610,18 @@ public class BotTest {
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event(null);
+		var event1 = event(null);
 
 		/*
 		 * Create the listener
 		 */
-		Listener listener = mock(Listener.class);
+		var listener = mock(Listener.class);
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1)
 			.listeners(listener)
 		.build();
@@ -651,19 +648,19 @@ public class BotTest {
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("Test", 2);
-		MessagePostedEvent event2 = event("Test", 100);
+		var event1 = event("Test", 2);
+		var event2 = event("Test", 100);
 
 		/*
 		 * Create the listener
 		 */
-		Listener listener = mock(Listener.class);
+		var listener = mock(Listener.class);
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1)
 			.bannedUsers(100)
 			.listeners(listener)
@@ -692,19 +689,19 @@ public class BotTest {
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("Test2", 2);
-		MessagePostedEvent event2 = event("Test100", 100);
+		var event1 = event("Test2", 2);
+		var event2 = event("Test100", 100);
 
 		/*
 		 * Create the listener
 		 */
-		Listener listener = mock(Listener.class);
+		var listener = mock(Listener.class);
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1)
 			.allowedUsers(2)
 			.listeners(listener)
@@ -728,16 +725,17 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
+		var room1 = chatServer.createRoom(1);
 		when(room1.sendMessage("http://en.wikipedia.org/wiki/Java", SplitStrategy.NONE)).thenReturn(List.of(100L));
 
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("trigger the listener");
+		var event1 = event("trigger the listener");
+
+		var now = LocalDateTime.now();
 		//@formatter:off
-		LocalDateTime now = LocalDateTime.now();
-		MessagePostedEvent event2 = new MessagePostedEvent.Builder()
+		var event2 = new MessagePostedEvent.Builder()
 			.eventId(eventId++)
 			.timestamp(now)
 			.message(new ChatMessage.Builder()
@@ -754,14 +752,14 @@ public class BotTest {
 		/*
 		 * Create the listener
 		 */
-		Listener listener = mock(Listener.class);
+		var listener = mock(Listener.class);
 		when(listener.onMessage(same(event1.getMessage()), any(IBot.class))).thenReturn(ChatActions.post("http://en.wikipedia.org/wiki/Java"));
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1)
 			.hideOneboxesAfter(Duration.ofSeconds(1))
 			.listeners(listener)
@@ -779,11 +777,11 @@ public class BotTest {
 		/*
 		 * Run the bot.
 		 */
-		long start = System.currentTimeMillis();
-		Thread t = bot.connect(true);
+		var start = System.currentTimeMillis();
+		var t = bot.connect(true);
 		chatServer.pushEvents(event1, event2);
 		t.join();
-		long stop = System.currentTimeMillis();
+		var stop = System.currentTimeMillis();
 
 		/*
 		 * Verify.
@@ -798,31 +796,31 @@ public class BotTest {
 		/*
 		 * Setup the chat rooms.
 		 */
-		IRoom room1 = chatServer.createRoom(1);
+		var room1 = chatServer.createRoom(1);
 
 		/*
 		 * Define the chat room events to push.
 		 */
-		MessagePostedEvent event1 = event("=foobar");
-		MessagePostedEvent event2 = event("=foobar");
+		var event1 = event("=foobar");
+		var event2 = event("=foobar");
 
 		/*
 		 * Create the handler.
 		 */
 		@SuppressWarnings("unchecked")
 		BiFunction<ChatCommand, IBot, ChatActions> handler = mock(BiFunction.class);
-		ChatCommand expectedChatCommand1 = new ChatCommand(event1.getMessage(), "foobar", "");
+		var expectedChatCommand1 = new ChatCommand(event1.getMessage(), "foobar", "");
 		when(handler.apply(eq(expectedChatCommand1), any(IBot.class))).thenReturn(null);
-		ChatCommand expectedChatCommand2 = new ChatCommand(event2.getMessage(), "foobar", "");
+		var expectedChatCommand2 = new ChatCommand(event2.getMessage(), "foobar", "");
 		when(handler.apply(eq(expectedChatCommand2), any(IBot.class))).thenReturn(ChatActions.post("reply"));
 
-		CommandListener commandListener = new CommandListener(Collections.emptyList(), new LearnedCommandsDao(), handler);
+		var commandListener = new CommandListener(Collections.emptyList(), new LearnedCommandsDao(), handler);
 
 		/*
 		 * Create the bot.
 		 */
 		//@formatter:off
-		Bot bot = bot()
+		var bot = bot()
 			.roomsHome(1)
 			.listeners(commandListener)
 		.build();
@@ -846,7 +844,7 @@ public class BotTest {
 	}
 
 	private MessagePostedEvent event(String content, int userId) {
-		LocalDateTime now = LocalDateTime.now();
+		var now = LocalDateTime.now();
 
 		//@formatter:off
 		return new MessagePostedEvent.Builder()
@@ -878,8 +876,9 @@ public class BotTest {
 		private final Map<Integer, IRoom> rooms = new HashMap<>();
 
 		public void pushEvents(MessagePostedEvent... events) {
-			for (MessagePostedEvent event : events) {
-				consumers.get(event.getMessage().getRoomId()).accept(event);
+			for (var event : events) {
+				var roomId = event.getMessage().getRoomId();
+				consumers.get(roomId).accept(event);
 			}
 		}
 
@@ -889,7 +888,7 @@ public class BotTest {
 
 		@SuppressWarnings("unchecked")
 		public IRoom createRoom(int roomId, boolean canPost) throws IOException {
-			IRoom room = mock(IRoom.class);
+			var room = mock(IRoom.class);
 			when(room.getRoomId()).thenReturn(roomId);
 			when(room.getFkey()).thenReturn("0123456789abcdef0123456789abcdef");
 			when(room.canPost()).thenReturn(canPost);
@@ -942,7 +941,7 @@ public class BotTest {
 				throw new IOException();
 			}
 
-			IRoom room = server.rooms.get(roomId);
+			var room = server.rooms.get(roomId);
 			if (room == null) {
 				throw new RoomNotFoundException(roomId);
 			}
@@ -1006,7 +1005,7 @@ public class BotTest {
 	}
 
 	private void run(Bot bot, boolean quiet, MessagePostedEvent... events) throws Exception {
-		Thread t = bot.connect(quiet);
+		var t = bot.connect(quiet);
 		chatServer.pushEvents(events);
 		bot.finish();
 		t.join();

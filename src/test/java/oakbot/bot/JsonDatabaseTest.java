@@ -28,7 +28,7 @@ public class JsonDatabaseTest {
 
 	@Test
 	public void round_trip() throws Exception {
-		Path file = temp.newFile().toPath();
+		var file = temp.newFile().toPath();
 		Files.delete(file);
 
 		Map<String, Object> map = new HashMap<>();
@@ -46,10 +46,10 @@ public class JsonDatabaseTest {
 			map.put("seven", Integer.MAX_VALUE + 1L); //long value
 		}
 
-		List<Object> list = List.of(1, 2);
-		Object value = "three";
+		var list = List.of(1, 2);
+		var value = "three";
 
-		JsonDatabase db = new JsonDatabase(file);
+		var db = new JsonDatabase(file);
 		db.set("map", map);
 		db.set("list", list);
 		db.set("value", value);
@@ -60,20 +60,20 @@ public class JsonDatabaseTest {
 		db = new JsonDatabase(file);
 		assertEquals(map, db.get("map"));
 		assertEquals(list, db.get("list"));
-		assertEquals(value, value);
+		assertEquals(value, db.get("value"));
 	}
 
 	@Test
 	public void non_existant_key() throws Exception {
-		Path file = temp.newFile().toPath();
+		var file = temp.newFile().toPath();
 		Files.delete(file);
 
-		JsonDatabase db = new JsonDatabase(file);
+		var db = new JsonDatabase(file);
 		assertNull(db.get("non-existant"));
 	}
 
 	private static LocalDateTime date(String date) throws ParseException {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		return LocalDateTime.parse(date, formatter);
 	}
 }

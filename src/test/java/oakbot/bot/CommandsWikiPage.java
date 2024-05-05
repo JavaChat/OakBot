@@ -80,11 +80,11 @@ import oakbot.util.ChatBuilder;
  */
 public class CommandsWikiPage {
 	public static void main(String args[]) {
-		Database db = mock(Database.class);
-		String trigger = "/";
-		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		var db = mock(Database.class);
+		var trigger = "/";
+		var learnedCommands = new LearnedCommandsDao();
 
-		List<ScheduledTask> tasks = new ArrayList<>();
+		var tasks = new ArrayList<ScheduledTask>();
 		{
 			tasks.add(new FOTD());
 			tasks.add(new LinuxHealthMonitor(List.of(), trigger));
@@ -94,7 +94,7 @@ public class CommandsWikiPage {
 			tasks.sort(Comparator.comparing(ScheduledTask::name));
 		}
 
-		List<Listener> listeners = new ArrayList<>();
+		var listeners = new ArrayList<Listener>();
 		{
 			listeners.add(new MentionListener());
 			listeners.add(new DadJokeListener("Oak", null));
@@ -108,7 +108,7 @@ public class CommandsWikiPage {
 			listeners.sort(Comparator.comparing(Listener::name));
 		}
 
-		List<Command> commands = new ArrayList<>();
+		var commands = new ArrayList<Command>();
 		{
 			commands.add(new AbbreviationCommand(null));
 			commands.add(new AboutCommand(null, null));
@@ -157,7 +157,7 @@ public class CommandsWikiPage {
 			commands.sort(Comparator.comparing(Command::name));
 		}
 
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 
 		cb.append("This page lists all of OakBot's commands and listeners.");
 		cb.nl().nl().append("Type ").code("/help COMMAND").append(" to see this help documentation in chat.");
@@ -166,10 +166,10 @@ public class CommandsWikiPage {
 		if (commands.isEmpty()) {
 			cb.nl().nl().italic("no commands defined");
 		} else {
-			for (Command command : commands) {
+			for (var command : commands) {
 				cb.nl().nl().append("## ").append(trigger).append(command.name()).nl().nl();
 
-				HelpDoc help = command.help();
+				var help = command.help();
 				if (help.isIncludeSummaryWithDetail()) {
 					cb.append(escape(help.getSummary()));
 				}
@@ -177,13 +177,13 @@ public class CommandsWikiPage {
 					cb.append(" ").append(escape(help.getDetail()));
 				}
 
-				List<String[]> examples = help.getExamples();
+				var examples = help.getExamples();
 				if (!examples.isEmpty()) {
 					cb.nl().nl().bold("Examples:").nl();
 
-					for (String[] example : examples) {
-						String parameters = example[0];
-						String description = example[1];
+					for (var example : examples) {
+						var parameters = example[0];
+						var description = example[1];
 
 						cb.nl().append(" * ").code().append(trigger).append(command.name());
 						if (!parameters.isEmpty()) {
@@ -196,12 +196,12 @@ public class CommandsWikiPage {
 					}
 				}
 
-				Collection<String> aliases = command.aliases();
+				var aliases = command.aliases();
 				if (!aliases.isEmpty()) {
 					cb.nl().nl().bold("Aliases:").append(" ");
 
-					boolean first = true;
-					for (String alias : aliases) {
+					var first = true;
+					for (var alias : aliases) {
 						if (first) {
 							first = false;
 						} else {
@@ -218,8 +218,8 @@ public class CommandsWikiPage {
 		if (listeners.isEmpty()) {
 			cb.nl().nl().italic("no listeners defined");
 		} else {
-			for (Listener listener : listeners) {
-				HelpDoc help = listener.help();
+			for (var listener : listeners) {
+				var help = listener.help();
 
 				cb.nl().nl().append("## ").append(listener.name()).nl().nl();
 				if (help.isIncludeSummaryWithDetail()) {
@@ -235,8 +235,8 @@ public class CommandsWikiPage {
 		if (tasks.isEmpty()) {
 			cb.nl().nl().italic("no tasks defined");
 		} else {
-			for (ScheduledTask task : tasks) {
-				HelpDoc help = task.help();
+			for (var task : tasks) {
+				var help = task.help();
 
 				cb.nl().nl().append("## ").append(task.name()).nl().nl();
 				if (help.isIncludeSummaryWithDetail()) {

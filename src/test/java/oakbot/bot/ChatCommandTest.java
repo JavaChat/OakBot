@@ -68,22 +68,22 @@ public class ChatCommandTest {
 	}
 
 	private static void assertFromMessageNull(String content, String trigger) {
-		for (boolean fixedFont : new boolean[] { false, true }) {
-			ChatMessage message = new ChatMessage.Builder().content(content, fixedFont).build();
-			ChatCommand command = ChatCommand.fromMessage(message, trigger);
+		for (var fixedFont : new boolean[] { false, true }) {
+			var message = new ChatMessage.Builder().content(content, fixedFont).build();
+			var command = ChatCommand.fromMessage(message, trigger);
 			assertNull(command);
 		}
 	}
 
 	private static void assertFromMessage(String content, String name, String text, String trigger) {
-		for (boolean fixedFont : new boolean[] { false, true }) {
+		for (var fixedFont : new boolean[] { false, true }) {
 			assertFromMessage(content, name, text, trigger, fixedFont);
 		}
 	}
 
 	private static void assertFromMessage(String content, String name, String text, String trigger, boolean fixedFont) {
-		ChatMessage message = new ChatMessage.Builder().content(content, fixedFont).build();
-		ChatCommand command = ChatCommand.fromMessage(message, trigger);
+		var message = new ChatMessage.Builder().content(content, fixedFont).build();
+		var command = ChatCommand.fromMessage(message, trigger);
 		assertEquals(name, command.getCommandName());
 		assertEquals(text, command.getContent());
 		assertSame(message, command.getMessage());
@@ -115,11 +115,11 @@ public class ChatCommandTest {
 	}
 
 	private static void assertContentAsArgs(String content, List<String> expected) {
-		Command command = mock(Command.class);
+		var command = mock(Command.class);
 		when(command.name()).thenReturn("cmd");
 
-		ChatCommand chatCommand = new ChatCommandBuilder(command).content(content).build();
-		List<String> actual = chatCommand.getContentAsArgs();
+		var chatCommand = new ChatCommandBuilder(command).content(content).build();
+		var actual = chatCommand.getContentAsArgs();
 		assertEquals(expected, actual);
 	}
 }

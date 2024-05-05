@@ -16,7 +16,7 @@ public class ChatActionsUtils {
 	 * @param actions the actions
 	 */
 	public static void assertMessage(String expected, ChatActions actions) {
-		PostMessage actual = getFirstPostMessage(actions);
+		var actual = getFirstPostMessage(actions);
 		assertEquals(expected, actual.message());
 	}
 
@@ -27,7 +27,7 @@ public class ChatActionsUtils {
 	 * @param actions the actions
 	 */
 	public static void assertMessageStartsWith(String expected, ChatActions actions) {
-		PostMessage actual = getFirstPostMessage(actions);
+		var actual = getFirstPostMessage(actions);
 		assertTrue(actual.message().startsWith(expected));
 	}
 
@@ -38,7 +38,7 @@ public class ChatActionsUtils {
 	 * @param actions the actions
 	 */
 	public static void assertPostMessage(PostMessage expected, ChatActions actions) {
-		PostMessage actual = getFirstPostMessage(actions);
+		var actual = getFirstPostMessage(actions);
 		assertEquals(expected, actual);
 	}
 

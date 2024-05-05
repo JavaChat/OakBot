@@ -7,13 +7,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.time.Instant;
-import java.util.Iterator;
 import java.util.List;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.entity.ContentType;
@@ -40,10 +37,10 @@ public class OpenAIClientTest {
 
 	@Test
 	public void chatCompletion() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
+		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
-		ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest.Builder()
+		var chatCompletionRequest = new ChatCompletionRequest.Builder()
 			.model("model")
 			.messages(List.of(
 				new ChatCompletionRequest.Message.Builder()
@@ -59,17 +56,21 @@ public class OpenAIClientTest {
 			.request("POST", "https://api.openai.com/v1/chat/completions", request -> {
 				assertAuthHeader(request, "KEY");
 
-				JsonNode node = parseRequestBody(request);
+				var node = parseRequestBody(request);
 				assertEquals("model", node.get("model").asText());
-				assertEquals("system", node.get("messages").get(0).get("role").asText());
-				assertEquals("text", node.get("messages").get(0).get("content").get(0).get("type").asText());
-				assertEquals("prompt", node.get("messages").get(0).get("content").get(0).get("text").asText());
+
+				var it = node.get("messages").iterator();
+				var message = it.next();
+				assertEquals("system", message.get("role").asText());
+				assertEquals("text", message.get("content").get(0).get("type").asText());
+				assertEquals("prompt", message.get("content").get(0).get("text").asText());
+				assertFalse(it.hasNext());
 			})
 			.responseOk(ResponseSamples.chatCompletion("Response message."))
 		.build());
 		//@formatter:on
 
-		ChatCompletionResponse actual = client.chatCompletion(chatCompletionRequest);
+		var actual = client.chatCompletion(chatCompletionRequest);
 		assertEquals("chatcmpl-8739H6quSXU5gws7FoIIutD3TsOsZ", actual.getId());
 		assertEquals("gpt-3.5-turbo-0613", actual.getModel());
 		assertEquals(Instant.ofEpochSecond(1714414784L), actual.getCreated());
@@ -83,10 +84,10 @@ public class OpenAIClientTest {
 
 	@Test
 	public void chatCompletion_sanitize_name() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
+		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
-		ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest.Builder()
+		var chatCompletionRequest = new ChatCompletionRequest.Builder()
 			.model("model")
 			.messages(List.of(
 				new ChatCompletionRequest.Message.Builder()
@@ -122,11 +123,11 @@ public class OpenAIClientTest {
 			.request("POST", "https://api.openai.com/v1/chat/completions", request -> {
 				assertAuthHeader(request, "KEY");
 
-				JsonNode node = parseRequestBody(request);
+				var node = parseRequestBody(request);
 				assertEquals("model", node.get("model").asText());
 				
-				Iterator<JsonNode> it = node.get("messages").iterator();
-				JsonNode message = it.next();
+				var it = node.get("messages").iterator();
+				var message = it.next();
 				assertEquals("system", message.get("role").asText());
 				assertEquals("text", message.get("content").get(0).get("type").asText());
 				assertEquals("prompt", message.get("content").get(0).get("text").asText());
@@ -156,7 +157,7 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		ChatCompletionResponse actual = client.chatCompletion(chatCompletionRequest);
+		var actual = client.chatCompletion(chatCompletionRequest);
 		assertEquals("chatcmpl-8739H6quSXU5gws7FoIIutD3TsOsZ", actual.getId());
 		assertEquals("gpt-3.5-turbo-0613", actual.getModel());
 		assertEquals(Instant.ofEpochSecond(1714414784L), actual.getCreated());
@@ -170,10 +171,10 @@ public class OpenAIClientTest {
 
 	@Test
 	public void chatCompletion_error() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
+		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
-		ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest.Builder()
+		var chatCompletionRequest = new ChatCompletionRequest.Builder()
 			.model("model")
 			.messages(List.of(
 				new ChatCompletionRequest.Message.Builder()
@@ -189,11 +190,15 @@ public class OpenAIClientTest {
 			.request("POST", "https://api.openai.com/v1/chat/completions", request -> {
 				assertAuthHeader(request, "KEY");
 
-				JsonNode node = parseRequestBody(request);
+				var node = parseRequestBody(request);
 				assertEquals("model", node.get("model").asText());
-				assertEquals("system", node.get("messages").get(0).get("role").asText());
-				assertEquals("text", node.get("messages").get(0).get("content").get(0).get("type").asText());
-				assertEquals("prompt", node.get("messages").get(0).get("content").get(0).get("text").asText());
+
+				var it = node.get("messages").iterator();
+				var message = it.next();
+				assertEquals("system", message.get("role").asText());
+				assertEquals("text", message.get("content").get(0).get("type").asText());
+				assertEquals("prompt", message.get("content").get(0).get("text").asText());
+				assertFalse(it.hasNext());
 			})
 			.responseOk(ResponseSamples.error("Error."))
 		.build());
@@ -209,15 +214,15 @@ public class OpenAIClientTest {
 
 	@Test
 	public void createImage() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
-		String url = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
+		var client = new OpenAIClient("KEY");
+		var url = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.request("POST", "https://api.openai.com/v1/images/generations", request -> {
 				assertAuthHeader(request, "KEY");
 				
-				JsonNode root = parseRequestBody(request);
+				var root = parseRequestBody(request);
 				assertEquals("model", root.get("model").asText());
 				assertEquals("Prompt.", root.get("prompt").asText());
 				assertEquals("256x256", root.get("size").asText());
@@ -226,7 +231,7 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		CreateImageResponse actual = client.createImage("model", "256x256", "Prompt.");
+		var actual = client.createImage("model", "256x256", "Prompt.");
 		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
 		assertEquals(url, actual.getUrl());
 		assertNull(actual.getRevisedPrompt());
@@ -234,14 +239,14 @@ public class OpenAIClientTest {
 
 	@Test
 	public void createImage_error() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
+		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.request("POST", "https://api.openai.com/v1/images/generations", request -> {
 				assertAuthHeader(request, "KEY");
 				
-				JsonNode root = parseRequestBody(request);
+				var root = parseRequestBody(request);
 				assertEquals("model", root.get("model").asText());
 				assertEquals("Prompt.", root.get("prompt").asText());
 				assertEquals("256x256", root.get("size").asText());
@@ -260,9 +265,9 @@ public class OpenAIClientTest {
 
 	@Test
 	public void createImageVariation() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
-		String url = "https://example.com/image.png";
-		String resultUrl = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
+		var client = new OpenAIClient("KEY");
+		var url = "https://example.com/image.png";
+		var resultUrl = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -287,7 +292,7 @@ public class OpenAIClientTest {
 				--G90J1DrSCMftxImIw89yxXchS58xY-t--
 				*/
 				
-				String body = getBody(request);
+				var body = getBody(request);
 				assertTrue(body.matches("(?s).*?Content-Disposition: form-data; name=\"image\"; filename=\"image\\.png\".*"));
 				assertTrue(body.matches("(?s).*?image data.*"));
 				
@@ -298,7 +303,7 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		CreateImageResponse actual = client.createImageVariation(url, "256x256");
+		var actual = client.createImageVariation(url, "256x256");
 		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
 		assertEquals(resultUrl, actual.getUrl());
 		assertNull(actual.getRevisedPrompt());
@@ -306,8 +311,8 @@ public class OpenAIClientTest {
 
 	@Test
 	public void createImageVariation_bad_url_syntax() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
-		String url = "https://example.com/image.png user thinks they can include a prompt too";
+		var client = new OpenAIClient("KEY");
+		var url = "https://example.com/image.png user thinks they can include a prompt too";
 
 		try {
 			client.createImageVariation(url, "256x256");
@@ -321,8 +326,8 @@ public class OpenAIClientTest {
 	 */
 	@Test
 	public void createImageVariation_404() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
-		String url = "https://example.com/image.png";
+		var client = new OpenAIClient("KEY");
+		var url = "https://example.com/image.png";
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -344,9 +349,9 @@ public class OpenAIClientTest {
 	 */
 	@Test
 	public void createImageVariation_jpeg() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
-		String url = "https://example.com/image.png";
-		String resultUrl = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
+		var client = new OpenAIClient("KEY");
+		var url = "https://example.com/image.png";
+		var resultUrl = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -359,7 +364,7 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		CreateImageResponse actual = client.createImageVariation(url, "256x256");
+		var actual = client.createImageVariation(url, "256x256");
 		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
 		assertEquals(resultUrl, actual.getUrl());
 		assertNull(actual.getRevisedPrompt());
@@ -372,8 +377,8 @@ public class OpenAIClientTest {
 	 */
 	@Test
 	public void createImageVariation_jpeg_invalid() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
-		String url = "https://example.com/image.jpg";
+		var client = new OpenAIClient("KEY");
+		var url = "https://example.com/image.jpg";
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -400,8 +405,8 @@ public class OpenAIClientTest {
 	 */
 	@Test
 	public void createImageVariation_non_png_content_type() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
-		String url = "https://www.google.com";
+		var client = new OpenAIClient("KEY");
+		var url = "https://www.google.com";
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -410,7 +415,7 @@ public class OpenAIClientTest {
 			.request("POST", "https://api.openai.com/v1/images/variations", request -> {
 				assertAuthHeader(request, "KEY");
 				
-				String body = getBody(request);
+				var body = getBody(request);
 				assertTrue(body.matches("(?s).*?non-image data.*"));
 			})
 			.responseOk(ResponseSamples.error("Uploaded image must be a PNG and less than 4 MB."))
@@ -430,9 +435,9 @@ public class OpenAIClientTest {
 	 */
 	@Test
 	public void createImageVariation_no_content_type() throws Exception {
-		OpenAIClient client = new OpenAIClient("KEY");
-		String url = "https://example.com/image.png";
-		String resultUrl = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
+		var client = new OpenAIClient("KEY");
+		var url = "https://example.com/image.png";
+		var resultUrl = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -448,21 +453,21 @@ public class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		CreateImageResponse actual = client.createImageVariation(url, "256x256");
+		var actual = client.createImageVariation(url, "256x256");
 		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
 		assertEquals(resultUrl, actual.getUrl());
 		assertNull(actual.getRevisedPrompt());
 	}
 
 	private static void assertAuthHeader(HttpRequest request, String key) {
-		String expected = "Bearer " + key;
-		String actual = request.getFirstHeader("Authorization").getValue();
+		var expected = "Bearer " + key;
+		var actual = request.getFirstHeader("Authorization").getValue();
 		assertEquals(expected, actual);
 	}
 
 	private static JsonNode parseRequestBody(HttpRequest request) {
-		HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-		try (InputStream in = entity.getContent()) {
+		var entity = ((HttpEntityEnclosingRequest) request).getEntity();
+		try (var in = entity.getContent()) {
 			return JsonUtils.parse(in);
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -470,7 +475,7 @@ public class OpenAIClientTest {
 	}
 
 	private static String getBody(HttpRequest request) {
-		HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+		var entity = ((HttpEntityEnclosingRequest) request).getEntity();
 		try {
 			return EntityUtils.toString(entity);
 		} catch (IOException e) {
