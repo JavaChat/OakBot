@@ -7,10 +7,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.utils.URIBuilder;
@@ -20,7 +18,6 @@ import org.jsoup.nodes.Node;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.SplitStrategy;
-import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
@@ -77,16 +74,16 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 	@Override
 	public void run(IBot bot) throws Exception {
-		List<Integer> stopChecking = new ArrayList<>();
-		for (Map.Entry<Integer, Comic> entry : comicsByRoom.entrySet()) {
-			int roomId = entry.getKey();
-			Comic comic = entry.getValue();
+		var stopChecking = new ArrayList<Integer>();
+		for (var entry : comicsByRoom.entrySet()) {
+			var roomId = entry.getKey();
+			var comic = entry.getValue();
 
 			if (stillNeedToWait(comic)) {
 				continue;
 			}
 
-			String url = url(comic.comicId);
+			var url = url(comic.comicId);
 			String explanationHtml;
 			try {
 				explanationHtml = scrapeExplanationHtml(url);
@@ -101,29 +98,29 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 			stopChecking.add(roomId);
 
-			/**
+			/*
 			 * Ensure the content has no newlines. Newlines prevent the
 			 * markdown conversion from happening.
 			 */
 			explanationHtml = explanationHtml.replaceAll("(\\r\\n|\\n|\\r)", " ");
 
-			String explanationMd = ChatBuilder.toMarkdown(explanationHtml, false, false, url);
+			var explanationMd = ChatBuilder.toMarkdown(explanationHtml, false, false, url);
 
 			//@formatter:off
-				String beginningMd = new ChatBuilder()
-					.reply(comic.messageContainingComic.getMessageId())
-					.bold().link("XKCD #" + comic.comicId + " Explained", url).append(":").bold()
-					.append(" ")
-				.toString();
-				//@formatter:on
+			String beginningMd = new ChatBuilder()
+				.reply(comic.messageContainingComic.getMessageId())
+				.bold().link("XKCD #" + comic.comicId + " Explained", url).append(":").bold()
+				.append(" ")
+			.toString();
+			//@formatter:on
 
-			final int MAX_MESSAGE_LENGTH = 500;
-			int trimLength = MAX_MESSAGE_LENGTH - beginningMd.length();
+			final var MAX_MESSAGE_LENGTH = 500;
+			var trimLength = MAX_MESSAGE_LENGTH - beginningMd.length();
 
 			explanationMd = SplitStrategy.WORD.split(explanationMd, trimLength).get(0);
-			String message = beginningMd + explanationMd;
+			var message = beginningMd + explanationMd;
 
-			PostMessage postMessage = new PostMessage(message);
+			var postMessage = new PostMessage(message);
 			bot.sendMessage(roomId, postMessage);
 		}
 
@@ -142,18 +139,18 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 	private boolean stillNeedToWait(Comic comic) {
 		if (comic.timesCheckedWiki == 0) {
-			Duration postAge = Duration.between(comic.messageContainingComic.getTimestamp(), Now.local());
+			var postAge = Duration.between(comic.messageContainingComic.getTimestamp(), Now.local());
 			return (postAge.compareTo(timeToWaitBeforeFirstWikiCheck) < 0);
 		} else {
-			Duration lastChecked = Duration.between(comic.lastCheckedWiki, Now.instant());
+			var lastChecked = Duration.between(comic.lastCheckedWiki, Now.instant());
 			return (lastChecked.compareTo(timeToWaitBetweenWikiChecks) < 0);
 		}
 	}
 
 	private String scrapeExplanationHtml(String url) throws IOException {
 		Document dom;
-		try (Http http = HttpFactory.connect()) {
-			Http.Response response = http.get(url);
+		try (var http = HttpFactory.connect()) {
+			var response = http.get(url);
 
 			/*
 			 * If a wiki page for the comic has not been created
@@ -166,7 +163,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 			dom = response.getBodyAsHtml();
 		}
 
-		Node next = nextSiblingThatsNotJustWhitespace(dom.getElementById("Explanation").parentNode());
+		var next = nextSiblingThatsNotJustWhitespace(dom.getElementById("Explanation").parentNode());
 
 		/*
 		 * A notice such as "This explanation may be incomplete" may be at the
@@ -175,9 +172,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 		 */
 		next = skipExplanationIncompleteTable(next);
 
-		if (next instanceof Element) {
-			Element element = (Element) next;
-
+		if (next instanceof Element element) {
 			/*
 			 * If an explanation hasn't been posted yet, then we may have
 			 * reached the next section of the wiki page.
@@ -206,13 +201,12 @@ public class XkcdExplained implements ScheduledTask, Listener {
 		 * Other times, the content of the first paragraph is not wrapped in a
 		 * <p> element, but subsequent paragraphs are.
 		 */
-		StringBuilder firstParagraph = new StringBuilder();
+		var firstParagraph = new StringBuilder();
 		while (true) {
 			firstParagraph.append(next.outerHtml());
 			next = next.nextSibling();
 
-			if (next instanceof Element) {
-				Element element = (Element) next;
+			if (next instanceof Element element) {
 				if ("p".equals(element.tagName())) {
 					break;
 				}
@@ -222,8 +216,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 	}
 
 	private Node skipExplanationIncompleteTable(Node node) {
-		if (node instanceof Element) {
-			Element element = (Element) node;
+		if (node instanceof Element element) {
 			if ("table".equals(element.tagName())) {
 				return nextSiblingThatsNotJustWhitespace(node);
 			}
@@ -242,11 +235,11 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		boolean postedBySystemBot = message.getUserId() < 1;
+		var postedBySystemBot = message.getUserId() < 1;
 		if (postedBySystemBot) {
-			Matcher m = regex.matcher(message.getContent().getContent());
+			var m = regex.matcher(message.getContent().getContent());
 			if (m.find()) {
-				int comicId = Integer.parseInt(m.group(1));
+				var comicId = Integer.parseInt(m.group(1));
 				comicsByRoom.put(message.getRoomId(), new Comic(message, comicId));
 			}
 		}

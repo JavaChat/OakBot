@@ -17,21 +17,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.jsoup.UncheckedIOException;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
-import com.github.mangstadt.sochat4j.Content;
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
 import oakbot.ai.openai.ChatCompletionRequest;
@@ -117,10 +112,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			return timeBetweenSpontaneousPosts.toMillis();
 		}
 
-		Instant now = Instant.now();
+		var now = Instant.now();
 
 		//@formatter:off
-		long lowest = spontaneousPostTimesByRoom.values().stream()
+		var lowest = spontaneousPostTimesByRoom.values().stream()
 			.map(runTime -> Duration.between(now, runTime))
 			.mapToLong(Duration::toMillis)
 		.min().getAsLong();
@@ -133,15 +128,15 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	public void run(IBot bot) throws Exception {
 		removeRoomsBotIsNotIn(bot);
 		startTimerForNewRooms(bot);
-		List<Integer> roomsToPostTo = findRoomsToSpontaneouslyPostTo();
+		var roomsToPostTo = findRoomsToSpontaneouslyPostTo();
 
-		for (Integer roomId : roomsToPostTo) {
+		for (var roomId : roomsToPostTo) {
 			resetSpontaneousPostTimer(roomId);
 
 			/*
 			 * Do not post anything if the room has no messages.
 			 */
-			List<ChatMessage> messages = bot.getLatestMessages(roomId, numLatestMessagesToIncludeInRequest);
+			var messages = bot.getLatestMessages(roomId, numLatestMessagesToIncludeInRequest);
 			if (messages.isEmpty()) {
 				continue;
 			}
@@ -150,26 +145,26 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			 * Do not post anything if the latest message was not authored by a
 			 * human.
 			 */
-			ChatMessage latestMessage = messages.get(messages.size() - 1);
-			boolean latestMsgPostedBySystemBot = (latestMessage.getUserId() < 1);
+			var latestMessage = messages.get(messages.size() - 1);
+			var latestMsgPostedBySystemBot = (latestMessage.getUserId() < 1);
 			if (latestMsgPostedBySystemBot) {
 				continue;
 			}
-			boolean latestMsgPostedByThisBot = (latestMessage.getUserId() == bot.getUserId());
+			var latestMsgPostedByThisBot = (latestMessage.getUserId() == bot.getUserId());
 			if (latestMsgPostedByThisBot) {
 				continue;
 			}
 
-			String prompt = buildPrompt(roomId);
+			var prompt = buildPrompt(roomId);
 			prompt += " Nobody is talking to you directly; you are just sharing your thoughts.";
 
-			List<ChatCompletionRequest.Message> apiMessages = buildChatCompletionMessages(prompt, messages, bot);
+			var apiMessages = buildChatCompletionMessages(prompt, messages, bot);
 
-			ChatCompletionRequest request = buildChatCompletionRequest(apiMessages);
+			var request = buildChatCompletionRequest(apiMessages);
 
-			String response = sendChatCompletionRequest(request);
+			var response = sendChatCompletionRequest(request);
 
-			PostMessage postMessage = new PostMessage(response).splitStrategy(SplitStrategy.WORD);
+			var postMessage = new PostMessage(response).splitStrategy(SplitStrategy.WORD);
 			bot.sendMessage(roomId, postMessage);
 		}
 	}
@@ -209,27 +204,27 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		/**
 		 * Has the user exceeded quota?
 		 */
-		int userId = message.getUserId();
-		Duration timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
+		var userId = message.getUserId();
+		var timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
 		if (!timeUntilNextRequest.isZero()) {
-			long hours = timeUntilNextRequest.toHours() + 1;
+			var hours = timeUntilNextRequest.toHours() + 1;
 			return reply("Bad human! You are over quota. Try again in " + hours + " " + plural("hour", hours) + ".", message);
 		}
 
 		try {
-			List<ChatMessage> prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
+			var prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
 
-			String prompt = buildPrompt(message.getRoomId());
-			List<ChatCompletionRequest.Message> apiMessages = buildChatCompletionMessages(prompt, prevMessages, bot);
+			var prompt = buildPrompt(message.getRoomId());
+			var apiMessages = buildChatCompletionMessages(prompt, prevMessages, bot);
 			addParentMessage(message, prevMessages, apiMessages, bot);
 
-			ChatCompletionRequest request = buildChatCompletionRequest(apiMessages);
+			var request = buildChatCompletionRequest(apiMessages);
 
-			String response = sendChatCompletionRequest(request);
+			var response = sendChatCompletionRequest(request);
 
 			resetSpontaneousPostTimer(message.getRoomId());
 
-			boolean isAdmin = bot.getAdminUsers().contains(userId);
+			var isAdmin = bot.getAdminUsers().contains(userId);
 			if (!isAdmin) {
 				usageQuota.logRequest(userId);
 			}
@@ -259,13 +254,13 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private void addParentMessage(ChatMessage message, List<ChatMessage> prevMessages, List<ChatCompletionRequest.Message> apiMessages, IBot bot) {
-		long parentId = message.getParentMessageId();
+		var parentId = message.getParentMessageId();
 		if (parentId == 0) {
 			return;
 		}
 
 		//@formatter:off
-		boolean parentMessageAlreadyInPrevMessages = prevMessages.stream()
+		var parentMessageAlreadyInPrevMessages = prevMessages.stream()
 			.mapToLong(ChatMessage::getMessageId)
 		.anyMatch(id -> id == parentId);
 		//@formatter:on
@@ -274,17 +269,17 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			return;
 		}
 
-		boolean parentMessagePostedByBot = message.getContent().getContent().startsWith("@" + bot.getUsername());
+		var parentMessagePostedByBot = message.getContent().getContent().startsWith("@" + bot.getUsername());
 
 		try {
-			String parentMessageContent = bot.getOriginalMessageContent(parentId);
+			var parentMessageContent = bot.getOriginalMessageContent(parentId);
 
 			List<String> imageUrls = extractImageUrlsIfModelSupportsVision(parentMessageContent);
 
 			/*
 			 * Insert the parent message right before the child message.
 			 */
-			int insertPos = apiMessages.size() - 1;
+			var insertPos = apiMessages.size() - 1;
 
 			//@formatter:off
 			apiMessages.add(insertPos, new ChatCompletionRequest.Message.Builder()
@@ -304,10 +299,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private String buildPrompt(int roomId) {
-		String prompt = promptsByRoom.getOrDefault(roomId, defaultPrompt);
+		var prompt = promptsByRoom.getOrDefault(roomId, defaultPrompt);
 
 		if (moodCommand != null) {
-			String mood = moodCommand.getMood(roomId);
+			var mood = moodCommand.getMood(roomId);
 			prompt = prompt.replace("$MOOD", mood);
 		}
 
@@ -315,7 +310,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private void removeRoomsBotIsNotIn(IBot bot) {
-		List<Integer> roomsBotIsIn = bot.getRooms();
+		var roomsBotIsIn = bot.getRooms();
 		spontaneousPostTimesByRoom.keySet().removeIf(not(roomsBotIsIn::contains));
 	}
 
@@ -332,62 +327,57 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		return spontaneousPostTimesByRoom.entrySet().stream()
 			.filter(not(entry -> entry.getValue().isAfter(Instant.now())))
 			.map(Map.Entry::getKey)
-		.collect(Collectors.toList());
+		.toList();
 		//@formatter:on
 	}
 
 	private List<ChatCompletionRequest.Message> buildChatCompletionMessages(String prompt, List<ChatMessage> chatMessages, IBot bot) throws IOException {
-		List<ChatCompletionRequest.Message> apiMessages = new ArrayList<>();
+		var apiMessages = new ArrayList<ChatCompletionRequest.Message>();
 
 		//@formatter:off
 		apiMessages.add(new ChatCompletionRequest.Message.Builder()
 			.role("system")
 			.text(prompt)
 		.build());
+		
+		chatMessages.stream()
+			.filter(chatMessage -> chatMessage.getContent() != null) //skip deleted messages
+			.map(chatMessage -> {
+				var content = chatMessage.getContent();
+				var contentStr = content.getContent();
+				var fixedWidthFont = content.isFixedWidthFont();
+				var contentMd = ChatBuilder.toMarkdown(contentStr, fixedWidthFont);
+
+				var imageUrls = extractImageUrlsIfModelSupportsVision(contentStr);
+
+				String truncatedContentMd;
+				if (latestMessageCharacterLimit > 0) {
+					truncatedContentMd = SplitStrategy.WORD.split(contentMd, latestMessageCharacterLimit).get(0);
+				} else {
+					truncatedContentMd = contentMd;
+				}
+
+				var messagePostedByOak = (chatMessage.getUserId() == bot.getUserId());
+
+				return new ChatCompletionRequest.Message.Builder()
+					.role(messagePostedByOak ? "assistant" : "user")
+					.name(messagePostedByOak ? bot.getUsername() : chatMessage.getUsername())
+					.text(truncatedContentMd)
+					.imageUrls(imageUrls, "low")
+				.build();
+			})
+		.forEach(apiMessages::add);
 		//@formatter:on
-
-		for (ChatMessage chatMessage : chatMessages) {
-			Content content = chatMessage.getContent();
-
-			boolean messageWasDeleted = (content == null);
-			if (messageWasDeleted) {
-				continue;
-			}
-
-			String contentStr = content.getContent();
-			boolean fixedWidthFont = content.isFixedWidthFont();
-			String contentMd = ChatBuilder.toMarkdown(contentStr, fixedWidthFont);
-
-			List<String> imageUrls = extractImageUrlsIfModelSupportsVision(contentStr);
-
-			String truncatedContentMd;
-			if (latestMessageCharacterLimit > 0) {
-				truncatedContentMd = SplitStrategy.WORD.split(contentMd, latestMessageCharacterLimit).get(0);
-			} else {
-				truncatedContentMd = contentMd;
-			}
-
-			boolean messagePostedByOak = (chatMessage.getUserId() == bot.getUserId());
-
-			//@formatter:off
-			apiMessages.add(new ChatCompletionRequest.Message.Builder()
-				.role(messagePostedByOak ? "assistant" : "user")
-				.name(messagePostedByOak ? bot.getUsername() : chatMessage.getUsername())
-				.text(truncatedContentMd)
-				.imageUrls(imageUrls, "low")
-			.build());
-			//@formatter:on
-		}
 
 		return apiMessages;
 	}
 
-	private List<String> extractImageUrlsIfModelSupportsVision(String content) throws IOException {
+	private List<String> extractImageUrlsIfModelSupportsVision(String content) {
 		if (!modelSupportsVision()) {
 			return List.of();
 		}
 
-		List<String> allUrls = extractUrls(content);
+		var allUrls = extractUrls(content);
 		if (allUrls.isEmpty()) {
 			return List.of();
 		}
@@ -396,33 +386,36 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		 * Create an HTTP client with a short request timeout, to avoid long bot
 		 * response times.
 		 */
-		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5 * 1000).build();
-		HttpClientBuilder builder = HttpClients.custom().setDefaultRequestConfig(requestConfig);
+		var requestConfig = RequestConfig.custom().setConnectTimeout(5 * 1000).build();
+		var builder = HttpClients.custom().setDefaultRequestConfig(requestConfig);
 
-		try (CloseableHttpClient client = HttpFactory.connect(builder).getClient()) {
+		try (var client = HttpFactory.connect(builder).getClient()) {
 			//@formatter:off
 			return allUrls.stream()
 				.filter(url -> isSupportedImage(client, url))
-			.collect(Collectors.toList());
+			.toList();
 			//@formatter:on
+		} catch (IOException e) {
+			//only thrown on HTTP client close
+			throw new UncheckedIOException(e);
 		}
 	}
 
 	private boolean isSupportedImage(CloseableHttpClient client, String url) {
 		HttpResponse response;
 		try {
-			HttpHead request = new HttpHead(url);
+			var request = new HttpHead(url);
 			response = client.execute(request);
 		} catch (IOException e) {
 			return false;
 		}
 
-		int statusCode = response.getStatusLine().getStatusCode();
+		var statusCode = response.getStatusLine().getStatusCode();
 		if (statusCode != 200) {
 			return false;
 		}
 
-		Header header = response.getFirstHeader("Content-Type");
+		var header = response.getFirstHeader("Content-Type");
 		if (header == null) {
 			return false;
 		}
@@ -430,12 +423,12 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		/*
 		 * Example header value: "image/jpeg;charset=UTF-8"
 		 */
-		HeaderElement[] elements = header.getElements();
+		var elements = header.getElements();
 		if (elements.length == 0) {
 			return false;
 		}
 
-		String contentType = elements[0].getName();
+		var contentType = elements[0].getName();
 		return imageTypesSupportedByVisionModel.contains(contentType);
 	}
 
@@ -444,7 +437,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	static List<String> extractUrls(String content) {
-		List<String> urls = new ArrayList<>(); //do not use Set to preserve insertion order
+		var urls = new ArrayList<String>(); //do not use Set to preserve insertion order
 
 		/*
 		 * Do not include any punctuation at the end of the URL (e.g. "." or
@@ -452,10 +445,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		 * Source:
 		 * https://www.geeksforgeeks.org/extract-urls-present-in-a-given-string/
 		 */
-		Pattern p = Pattern.compile("\\bhttps?://[-a-z0-9+&@#/%?=~_|!:,.;]*[-a-z0-9+&@#/%=~_|]", Pattern.CASE_INSENSITIVE);
-		Matcher m = p.matcher(content);
+		var p = Pattern.compile("\\bhttps?://[-a-z0-9+&@#/%?=~_|!:,.;]*[-a-z0-9+&@#/%=~_|]", Pattern.CASE_INSENSITIVE);
+		var m = p.matcher(content);
 		while (m.find()) {
-			String url = m.group(0);
+			var url = m.group(0);
 			if (!urls.contains(url)) {
 				urls.add(url);
 			}
@@ -478,7 +471,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			.toString();
 			//@formatter:on
 		}
-		
+
 		if (apiResponse.getChoices().isEmpty()) {
 			//@formatter:off
 			return new ChatBuilder()
@@ -486,8 +479,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			.toString();
 			//@formatter:on
 		}
-		
-		String response = apiResponse.getChoices().get(0).getContent();
+
+		var response = apiResponse.getChoices().get(0).getContent();
 		response = removeMentionsFromBeginningOfMessage(response);
 		response = removeReplySyntaxFromBeginningOfMessage(response);
 		return formatMessagesWithCodeBlocks(response);
@@ -529,10 +522,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private static String removeFromBeginningOfMessage(char startingChar, String message) {
-		CharIterator it = new CharIterator(message);
-		boolean inString = false;
+		var it = new CharIterator(message);
+		var inString = false;
 		while (it.hasNext()) {
-			char c = it.next();
+			var c = it.next();
 
 			if (c == startingChar) {
 				inString = true;
@@ -583,7 +576,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param roomId the room ID
 	 */
 	private void resetSpontaneousPostTimer(int roomId) {
-		Instant nextRunTime = Instant.now().plus(timeBetweenSpontaneousPosts);
+		var nextRunTime = Instant.now().plus(timeBetweenSpontaneousPosts);
 		spontaneousPostTimesByRoom.put(roomId, nextRunTime);
 	}
 }

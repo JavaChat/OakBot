@@ -1,15 +1,12 @@
 package oakbot.task;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.mangstadt.sochat4j.SplitStrategy;
-import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
@@ -40,24 +37,24 @@ public class QOTD implements ScheduledTask {
 
 	@Override
 	public long nextRun() {
-		LocalDateTime now = Now.local();
-		LocalDateTime tomorrow = now.truncatedTo(ChronoUnit.DAYS).plusDays(1);
+		var now = Now.local();
+		var tomorrow = now.truncatedTo(ChronoUnit.DAYS).plusDays(1);
 		return now.until(tomorrow, ChronoUnit.MILLIS);
 	}
 
 	@Override
 	public void run(IBot bot) throws Exception {
-		ChatBuilder cb = fromSlashdot();
+		var cb = fromSlashdot();
 		bot.broadcastMessage(new PostMessage(cb).splitStrategy(SplitStrategy.WORD));
 	}
 
 	ChatBuilder fromSlashdot() throws IOException {
 		Document document;
-		try (Http http = HttpFactory.connect()) {
+		try (var http = HttpFactory.connect()) {
 			document = http.get("https://slashdot.org").getBodyAsHtml();
 		}
 
-		Element element = document.selectFirst("blockquote[cite='https://slashdot.org'] p");
+		var element = document.selectFirst("blockquote[cite='https://slashdot.org'] p");
 
 		return new ChatBuilder() //@formatter:off
 			.append(element.text())
@@ -66,20 +63,20 @@ public class QOTD implements ScheduledTask {
 
 	ChatBuilder fromTheySaidSo() throws IOException {
 		JsonNode json;
-		try (Http http = HttpFactory.connect()) {
+		try (var http = HttpFactory.connect()) {
 			json = http.get("http://quotes.rest/qod.json").getBodyAsJson();
 		}
 
-		JsonNode quoteNode = json.get("contents").get("quotes").get(0);
+		var quoteNode = json.get("contents").get("quotes").get(0);
 
-		String quote = quoteNode.get("quote").asText();
-		String author = quoteNode.get("author").asText();
+		var quote = quoteNode.get("quote").asText();
+		var author = quoteNode.get("author").asText();
 
-		JsonNode node = quoteNode.get("permalink");
-		String permalink = (node == null) ? "https://theysaidso.com" : node.asText();
+		var node = quoteNode.get("permalink");
+		var permalink = (node == null) ? "https://theysaidso.com" : node.asText();
 
-		ChatBuilder cb = new ChatBuilder();
-		boolean quoteHasNewlines = (quote.indexOf('\n') >= 0);
+		var cb = new ChatBuilder();
+		var quoteHasNewlines = (quote.indexOf('\n') >= 0);
 		if (quoteHasNewlines) {
 			cb.append(quote).nl();
 			cb.append('-').append(author);

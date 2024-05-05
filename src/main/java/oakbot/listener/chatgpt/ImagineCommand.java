@@ -5,12 +5,10 @@ import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.StringUtils.plural;
 
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -21,12 +19,9 @@ import java.util.logging.Logger;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
@@ -38,7 +33,6 @@ import oakbot.ai.stabilityai.StabilityAIClient;
 import oakbot.ai.stabilityai.StabilityAIException;
 import oakbot.ai.stabilityai.StableImageCoreRequest;
 import oakbot.ai.stabilityai.StableImageDiffusionRequest;
-import oakbot.ai.stabilityai.StableImageResponse;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
@@ -87,7 +81,7 @@ public class ImagineCommand implements Command {
 
 	@Override
 	public HelpDoc help() {
-		String requestLimit = (requestsPer24Hours > 0) ? "Users can make " + requestsPer24Hours + " requests per day. " : "";
+		var requestLimit = (requestsPer24Hours > 0) ? "Users can make " + requestsPer24Hours + " requests per day. " : "";
 
 		//@formatter:off
 		return new HelpDoc.Builder(this)
@@ -106,23 +100,23 @@ public class ImagineCommand implements Command {
 		/*
 		 * Check usage quota.
 		 */
-		int userId = chatCommand.getMessage().getUserId();
-		Duration timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
+		var userId = chatCommand.getMessage().getUserId();
+		var timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
 		if (!timeUntilNextRequest.isZero()) {
-			long hours = timeUntilNextRequest.toHours() + 1;
+			var hours = timeUntilNextRequest.toHours() + 1;
 			return reply("Bad human! You are over quota and can't make any more requests right now. Try again in " + hours + " " + plural("hour", hours) + ".", chatCommand);
 		}
 
-		ImagineCommandParameters parameters = parseContent(chatCommand.getContent());
+		var parameters = parseContent(chatCommand.getContent());
 		if (parameters == null) {
 			return reply("Imagine what?", chatCommand);
 		}
 
-		String inputImage = parameters.getInputImage();
-		String prompt = parameters.getPrompt();
-		String model = chooseWhichModelToUse(parameters.getModel(), inputImage, prompt);
+		var inputImage = parameters.inputImage();
+		var prompt = parameters.prompt();
+		var model = chooseWhichModelToUse(parameters.model(), inputImage, prompt);
 
-		String error = validateParameters(model, inputImage, prompt);
+		var error = validateParameters(model, inputImage, prompt);
 		if (error != null) {
 			return reply(error, chatCommand);
 		}
@@ -146,12 +140,12 @@ public class ImagineCommand implements Command {
 			/*
 			 * Log quota.
 			 */
-			boolean isAdmin = bot.getAdminUsers().contains(userId);
+			var isAdmin = bot.getAdminUsers().contains(userId);
 			if (!isAdmin) {
 				usageQuota.logRequest(userId);
 			}
 
-			ChatActions actions = new ChatActions();
+			var actions = new ChatActions();
 
 			//@formatter:off
 			messagesToPost.stream()
@@ -216,7 +210,7 @@ public class ImagineCommand implements Command {
 	private List<String> handleDallE(String model, String inputImageUrl, String prompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
 		CreateImageResponse response;
 		if (inputImageUrl == null) {
-			String lowestResolutionSupportedByModel = MODEL_DALLE_2.equals(model) ? "256x256" : "1024x1024";
+			var lowestResolutionSupportedByModel = MODEL_DALLE_2.equals(model) ? "256x256" : "1024x1024";
 			response = openAIClient.createImage(model, lowestResolutionSupportedByModel, prompt);
 		} else {
 			response = openAIClient.createImageVariation(inputImageUrl, "256x256");
@@ -231,13 +225,13 @@ public class ImagineCommand implements Command {
 			 * that the old system (imgur) converted the PNGs to JPEGs
 			 * automatically).
 			 */
-			byte[] jpegImage = convertToJpeg(response.getUrl());
+			var jpegImage = convertToJpeg(response.getUrl());
 			imageUrl = uploadImage(bot, jpegImage);
 		} else {
 			imageUrl = uploadImageFromUrl(bot, response.getUrl());
 		}
 
-		List<String> messagesToPost = new ArrayList<>();
+		var messagesToPost = new ArrayList<String>();
 		if (response.getRevisedPrompt() != null) {
 			messagesToPost.add("I'm going to use this prompt instead: " + response.getRevisedPrompt());
 		}
@@ -248,7 +242,7 @@ public class ImagineCommand implements Command {
 
 	private String handleStableImageCore(String prompt, IBot bot) throws StabilityAIException, IOException {
 		//@formatter:off
-		StableImageResponse response = stabilityAIClient.generateImage(new StableImageCoreRequest.Builder()
+		var response = stabilityAIClient.generateImage(new StableImageCoreRequest.Builder()
 			.prompt(prompt)
 			.outputFormat("jpeg")
 		.build());
@@ -258,17 +252,19 @@ public class ImagineCommand implements Command {
 	}
 
 	private String handleStableDiffusion(String model, String inputImage, String prompt, IBot bot) throws IOException {
-		StableImageDiffusionRequest.Builder builder = new StableImageDiffusionRequest.Builder();
-		builder.model(model);
-		builder.prompt(prompt);
-		builder.outputFormat("jpeg");
+		//@formatter:off
+		var builder = new StableImageDiffusionRequest.Builder()
+			.model(model)
+			.prompt(prompt)
+			.outputFormat("jpeg");
+		//@formatter:on
 
 		if (inputImage != null) {
 			byte[] image;
 			String contentType;
-			try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-				HttpGet getRequest = new HttpGet(inputImage);
-				try (CloseableHttpResponse response = client.execute(getRequest)) {
+			try (var client = HttpFactory.connect().getClient()) {
+				var getRequest = new HttpGet(inputImage);
+				try (var response = client.execute(getRequest)) {
 					contentType = response.getEntity().getContentType().getValue();
 					if (!contentType.startsWith("image/")) {
 						throw new IllegalArgumentException("The provided input image URL is not an image.");
@@ -289,7 +285,7 @@ public class ImagineCommand implements Command {
 			builder.image(image, contentType, 0.5);
 		}
 
-		StableImageResponse response = stabilityAIClient.generateImage(builder.build());
+		var response = stabilityAIClient.generateImage(builder.build());
 
 		return uploadImage(bot, response.getImage());
 	}
@@ -303,7 +299,7 @@ public class ImagineCommand implements Command {
 			return null;
 		}
 
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+		try (var out = new ByteArrayOutputStream()) {
 			ImageIO.write(image, "PNG", out);
 			return out.toByteArray();
 		}
@@ -313,7 +309,7 @@ public class ImagineCommand implements Command {
 	 * @see "https://stackoverflow.com/q/17108234/13379"
 	 */
 	private byte[] convertToJpeg(String url) throws IOException {
-		BufferedImage image = downloadImage(url);
+		var image = downloadImage(url);
 
 		/*
 		 * If the image has an alpha channel, an exception is thrown when it
@@ -323,12 +319,12 @@ public class ImagineCommand implements Command {
 		 */
 		image = removeAlphaChannel(image);
 
-		ImageWriter jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
-		ImageWriteParam jpgWriteParam = jpgWriter.getDefaultWriteParam();
+		var jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
+		var jpgWriteParam = jpgWriter.getDefaultWriteParam();
 		jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
 		jpgWriteParam.setCompressionQuality(0.9f);
 
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+		try (var out = new ByteArrayOutputStream()) {
 			jpgWriter.setOutput(ImageIO.createImageOutputStream(out));
 			jpgWriter.write(null, new IIOImage(image, null, null), jpgWriteParam);
 			return out.toByteArray();
@@ -339,10 +335,10 @@ public class ImagineCommand implements Command {
 
 	private BufferedImage downloadImage(String url) throws IOException {
 		BufferedImage image;
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			HttpGet getRequest = new HttpGet(url);
-			try (CloseableHttpResponse response = client.execute(getRequest)) {
-				try (InputStream in = response.getEntity().getContent()) {
+		try (var client = HttpFactory.connect().getClient()) {
+			var getRequest = new HttpGet(url);
+			try (var response = client.execute(getRequest)) {
+				try (var in = response.getEntity().getContent()) {
 					image = ImageIO.read(in);
 				}
 			}
@@ -366,9 +362,9 @@ public class ImagineCommand implements Command {
 			return image;
 		}
 
-		BufferedImage target = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+		var target = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
 
-		Graphics2D g = target.createGraphics();
+		var g = target.createGraphics();
 		g.fillRect(0, 0, image.getWidth(), image.getHeight());
 		g.drawImage(image, 0, 0, null);
 		g.dispose();
@@ -382,10 +378,10 @@ public class ImagineCommand implements Command {
 			return null;
 		}
 
-		String[] split = content.split("\\s+", 3);
-		String token1 = split[0];
-		String token2 = (split.length > 1) ? split[1] : null;
-		String rest = (split.length > 2) ? split[2] : null;
+		var split = content.split("\\s+", 3);
+		var token1 = split[0];
+		var token2 = (split.length > 1) ? split[1] : null;
+		var rest = (split.length > 2) ? split[2] : null;
 
 		String model = null;
 		String inputImage = null;
@@ -422,28 +418,7 @@ public class ImagineCommand implements Command {
 		return url.matches("^https?://.*");
 	}
 
-	static class ImagineCommandParameters {
-		private final String model;
-		private final String inputImage;
-		private final String prompt;
-
-		public ImagineCommandParameters(String model, String inputImage, String prompt) {
-			this.model = model;
-			this.inputImage = inputImage;
-			this.prompt = prompt;
-		}
-
-		public String getModel() {
-			return model;
-		}
-
-		public String getInputImage() {
-			return inputImage;
-		}
-
-		public String getPrompt() {
-			return prompt;
-		}
+	record ImagineCommandParameters(String model, String inputImage, String prompt) {
 	}
 
 	private String uploadImageFromUrl(IBot bot, String imageUrl) throws URISyntaxException {

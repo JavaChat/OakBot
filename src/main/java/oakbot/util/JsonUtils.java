@@ -14,7 +14,6 @@ import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -73,7 +72,7 @@ public final class JsonUtils {
 	}
 
 	private static String toString(JsonNode node, PrettyPrinter pp) {
-		ObjectWriter writer = mapper.writer(pp);
+		var writer = mapper.writer(pp);
 		try {
 			return writer.writeValueAsString(node);
 		} catch (JsonProcessingException e) {
@@ -90,12 +89,12 @@ public final class JsonUtils {
 	 * @throws IllegalArgumentException if the path wasn't valid
 	 */
 	public static String extractField(String path, JsonNode node) {
-		JsonNode n = node;
-		String[] fields = path.split("/");
+		var n = node;
+		var fields = path.split("/");
 
-		for (String field : fields) {
+		for (var field : fields) {
 			try {
-				int index = Integer.parseInt(field);
+				var index = Integer.parseInt(field);
 				n = n.path(index);
 			} catch (NumberFormatException e) {
 				n = n.path(field);

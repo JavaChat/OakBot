@@ -14,7 +14,8 @@ import oakbot.command.Command;
  * @author Michael Angstadt
  */
 public class FillTheSilenceTask implements InactivityTask {
-	private final String[] messages = { //@formatter:off
+	//@formatter:off
+	private final String[] messages = {
 		"*farts*",
 		"*picks nose*",
 		"*reads a book*",
@@ -29,7 +30,8 @@ public class FillTheSilenceTask implements InactivityTask {
 		"*uses java.io.File*",
 		"*uses java.util.Hashtable*",
 		"*opens the pod bay doors*"
-	}; //@formatter:on
+	};
+	//@formatter:on
 
 	private final Duration inactivityTime;
 
@@ -49,7 +51,7 @@ public class FillTheSilenceTask implements InactivityTask {
 
 	@Override
 	public void run(IRoom room, IBot bot) throws Exception {
-		String message = Command.random(messages);
+		var message = Command.random(messages);
 		bot.sendMessage(room.getRoomId(), new PostMessage(message));
 	}
 }

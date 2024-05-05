@@ -3,7 +3,6 @@ package oakbot.listener.chatgpt;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +47,8 @@ public class UsageQuota {
 			return;
 		}
 
-		List<Instant> times = getRequestTimes(userId);
-		Instant now = Now.instant();
+		var times = getRequestTimes(userId);
+		var now = Now.instant();
 		times.add(now);
 	}
 
@@ -64,16 +63,16 @@ public class UsageQuota {
 			return Duration.ZERO;
 		}
 
-		List<Instant> times = getRequestTimes(userId);
+		var times = getRequestTimes(userId);
 		removeOldRequestTimes(times);
 
 		if (times.size() < requestsPerPeriod) {
 			return Duration.ZERO;
 		}
 
-		Instant now = Now.instant();
-		Instant earliestRequest = times.get(0);
-		Instant canMakeRequest = earliestRequest.plus(period);
+		var now = Now.instant();
+		var earliestRequest = times.get(0);
+		var canMakeRequest = earliestRequest.plus(period);
 		return Duration.between(now, canMakeRequest);
 	}
 
@@ -82,13 +81,13 @@ public class UsageQuota {
 	}
 
 	private void removeOldRequestTimes(List<Instant> times) {
-		Instant now = Now.instant();
-		Iterator<Instant> it = times.iterator();
+		var now = Now.instant();
+		var it = times.iterator();
 
 		while (it.hasNext()) {
-			Instant instant = it.next();
-			Duration howLongAgo = Duration.between(instant, now);
-			boolean happenedBeforePeriod = howLongAgo.compareTo(period) >= 0;
+			var instant = it.next();
+			var howLongAgo = Duration.between(instant, now);
+			var happenedBeforePeriod = howLongAgo.compareTo(period) >= 0;
 			if (happenedBeforePeriod) {
 				it.remove();
 			} else {

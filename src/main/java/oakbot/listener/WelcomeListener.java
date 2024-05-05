@@ -12,7 +12,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
-import com.github.mangstadt.sochat4j.IRoom;
 import com.github.mangstadt.sochat4j.UserInfo;
 
 import oakbot.Database;
@@ -28,6 +27,7 @@ import oakbot.util.ChatBuilder;
  */
 public class WelcomeListener implements Listener {
 	private static final Logger logger = Logger.getLogger(WelcomeListener.class.getName());
+
 	private final Database db;
 	private final Map<Integer, String> welcomeMessagesByRoom;
 	private final Map<Integer, Set<Integer>> welcomedUsersByRoom = new HashMap<>();
@@ -58,13 +58,13 @@ public class WelcomeListener implements Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		int roomId = message.getRoomId();
+		var roomId = message.getRoomId();
 		if (!roomHasWelcomeMessage(roomId)) {
 			return doNothing();
 		}
 
-		int userId = message.getUserId();
-		Set<Integer> userIds = welcomedUsersByRoom.computeIfAbsent(roomId, k -> new HashSet<>());
+		var userId = message.getUserId();
+		var userIds = welcomedUsersByRoom.computeIfAbsent(roomId, k -> new HashSet<>());
 		if (hasSeenUserBefore(userId, userIds)) {
 			return doNothing();
 		}
@@ -74,7 +74,7 @@ public class WelcomeListener implements Listener {
 
 		List<UserInfo> userInfo;
 		try {
-			IRoom room = bot.getRoom(roomId);
+			var room = bot.getRoom(roomId);
 			userInfo = room.getUserInfo(List.of(userId));
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e, () -> "Could not get user info for user " + userId + ".");
@@ -85,12 +85,12 @@ public class WelcomeListener implements Listener {
 			return doNothing();
 		}
 
-		UserInfo first = userInfo.get(0);
+		var first = userInfo.get(0);
 		if (!shouldUserBeWelcomed(first)) {
 			return doNothing();
 		}
 
-		String welcomeMessage = welcomeMessagesByRoom.get(roomId);
+		var welcomeMessage = welcomeMessagesByRoom.get(roomId);
 
 		//@formatter:off
 		return ChatActions.create(
@@ -108,15 +108,15 @@ public class WelcomeListener implements Listener {
 	 */
 	@SuppressWarnings("unchecked")
 	private void loadData() {
-		Map<String, Object> map = (Map<String, Object>) db.get("welcome");
+		var map = (Map<String, Object>) db.get("welcome");
 		if (map == null) {
 			return;
 		}
 
-		for (Map.Entry<String, Object> entry : map.entrySet()) {
-			Integer roomId = Integer.parseInt(entry.getKey());
-			Map<String, Object> roomData = (Map<String, Object>) entry.getValue();
-			List<Integer> userIds = (List<Integer>) roomData.get("users");
+		for (var entry : map.entrySet()) {
+			var roomId = Integer.parseInt(entry.getKey());
+			var roomData = (Map<String, Object>) entry.getValue();
+			var userIds = (List<Integer>) roomData.get("users");
 
 			welcomedUsersByRoom.put(roomId, new HashSet<>(userIds));
 		}
@@ -126,16 +126,13 @@ public class WelcomeListener implements Listener {
 	 * Persists this listener's data to the database.
 	 */
 	private void saveData() {
-		Map<String, Object> data = new HashMap<>();
+		var data = new HashMap<String, Object>();
 
-		for (Map.Entry<Integer, Set<Integer>> entry : welcomedUsersByRoom.entrySet()) {
-			Integer roomId = entry.getKey();
-			Set<Integer> userIds = entry.getValue();
+		for (var entry : welcomedUsersByRoom.entrySet()) {
+			var roomId = entry.getKey();
+			var userIds = entry.getValue();
 
-			Map<String, Object> roomInfo = new HashMap<>(1);
-			roomInfo.put("users", userIds);
-
-			data.put(Integer.toString(roomId), roomInfo);
+			data.put(Integer.toString(roomId), Map.of("users", userIds));
 		}
 
 		db.set("welcome", data);

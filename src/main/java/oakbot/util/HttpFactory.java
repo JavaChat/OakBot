@@ -29,7 +29,7 @@ public class HttpFactory {
 	 * @return the HTTP client
 	 */
 	public static Http connect() {
-		CloseableHttpClient client = (mock == null) ? HttpClients.createDefault() : mock;
+		var client = (mock == null) ? HttpClients.createDefault() : mock;
 		return new Http(client);
 	}
 
@@ -40,7 +40,7 @@ public class HttpFactory {
 	 * @return the HTTP client
 	 */
 	public static Http connect(HttpClientBuilder builder) {
-		CloseableHttpClient client = (mock == null) ? builder.build() : mock;
+		var client = (mock == null) ? builder.build() : mock;
 		return new Http(client);
 	}
 
@@ -51,7 +51,7 @@ public class HttpFactory {
 	 * @return the HTTP client
 	 */
 	public static Http connect(CookieStore cookieStore) {
-		CloseableHttpClient client = (mock == null) ? HttpClients.custom().setDefaultCookieStore(cookieStore).build() : mock;
+		var client = (mock == null) ? HttpClients.custom().setDefaultCookieStore(cookieStore).build() : mock;
 		return new Http(client);
 	}
 

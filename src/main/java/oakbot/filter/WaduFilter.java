@@ -1,7 +1,6 @@
 package oakbot.filter;
 
 import java.util.Random;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import oakbot.command.HelpDoc;
@@ -33,9 +32,9 @@ public class WaduFilter extends ToggleableFilter {
 
 	@Override
 	public String filter(String message) {
-		boolean fixed = message.startsWith(ChatBuilder.FIXED_WIDTH_PREFIX);
+		var fixed = message.startsWith(ChatBuilder.FIXED_WIDTH_PREFIX);
 
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		if (fixed) {
 			cb.fixedWidth();
 		}
@@ -43,17 +42,17 @@ public class WaduFilter extends ToggleableFilter {
 		/*
 		 * Preserve the reply message ID, if present.
 		 */
-		Matcher m = replyRegex.matcher(message);
+		var m = replyRegex.matcher(message);
 		if (m.find()) {
 			message = message.substring(m.end());
 			cb.append(m.group());
 		}
 
-		WaduRng rng = new WaduRng(message.hashCode());
-		String[] lines = message.split("\r\n|\r|\n");
-		boolean applyFormatting = !fixed && lines.length == 1;
-		for (String line : lines) {
-			int waduWordsToGenerate = line.trim().isEmpty() ? 0 : countWords(line) / 5 + 1;
+		var rng = new WaduRng(message.hashCode());
+		var lines = message.split("\r\n|\r|\n");
+		var applyFormatting = !fixed && lines.length == 1;
+		for (var line : lines) {
+			var waduWordsToGenerate = line.trim().isEmpty() ? 0 : countWords(line) / 5 + 1;
 			appendWaduLine(waduWordsToGenerate, applyFormatting, rng, cb);
 			cb.nl();
 		}
@@ -62,8 +61,8 @@ public class WaduFilter extends ToggleableFilter {
 	}
 
 	private int countWords(String message) {
-		int count = 1;
-		Matcher m = whitespaceRegex.matcher(message);
+		var count = 1;
+		var m = whitespaceRegex.matcher(message);
 		while (m.find()) {
 			count++;
 		}
@@ -71,9 +70,9 @@ public class WaduFilter extends ToggleableFilter {
 	}
 
 	private void appendWaduLine(int waduWordsToGenerate, boolean applyFormatting, WaduRng rng, ChatBuilder cb) {
-		boolean previousWordWasWadu = false;
-		boolean startOfNewSentence = true;
-		for (int i = 0; i < waduWordsToGenerate || previousWordWasWadu; i++) {
+		var previousWordWasWadu = false;
+		var startOfNewSentence = true;
+		for (var i = 0; i < waduWordsToGenerate || previousWordWasWadu; i++) {
 			boolean sayWadu;
 			if (i == 0) {
 				sayWadu = true;
@@ -90,8 +89,8 @@ public class WaduFilter extends ToggleableFilter {
 			} else {
 				appendHek(applyFormatting, rng, cb);
 
-				boolean lastWord = (i >= waduWordsToGenerate - 1);
-				boolean endSentence = lastWord || rng.endSentence();
+				var lastWord = (i >= waduWordsToGenerate - 1);
+				var endSentence = lastWord || rng.endSentence();
 				if (endSentence) {
 					cb.append(rng.ending());
 				}
@@ -105,11 +104,11 @@ public class WaduFilter extends ToggleableFilter {
 	}
 
 	private void appendWadu(boolean applyFormatting, boolean startOfNewSentence, WaduRng rng, ChatBuilder cb) {
-		int letterACount = rng.letterACount();
-		int letterUCount = rng.letterUCount();
-		boolean italics = rng.formatItalic();
-		boolean bold = rng.formatBold();
-		boolean allCaps = rng.caps();
+		var letterACount = rng.letterACount();
+		var letterUCount = rng.letterUCount();
+		var italics = rng.formatItalic();
+		var bold = rng.formatBold();
+		var allCaps = rng.caps();
 
 		if (applyFormatting) {
 			if (italics) {
@@ -136,9 +135,9 @@ public class WaduFilter extends ToggleableFilter {
 	}
 
 	private void appendHek(boolean applyFormatting, WaduRng rng, ChatBuilder cb) {
-		boolean italics = rng.formatItalic();
-		boolean bold = rng.formatBold();
-		boolean allCaps = rng.caps();
+		var italics = rng.formatItalic();
+		var bold = rng.formatBold();
+		var allCaps = rng.caps();
 
 		if (applyFormatting) {
 			if (italics) {
@@ -181,27 +180,19 @@ public class WaduFilter extends ToggleableFilter {
 		}
 
 		private int letterACount() {
-			switch (rand(10)) {
-			case 0:
-				return 3;
-			case 1:
-			case 2:
-				return 2;
-			default:
-				return 1;
-			}
+			return switch (rand(10)) {
+			case 0 -> 3;
+			case 1, 2 -> 2;
+			default ->  1;
+			};
 		}
 
 		private int letterUCount() {
-			switch (rand(10)) {
-			case 0:
-				return 3;
-			case 1:
-			case 2:
-				return 2;
-			default:
-				return 1;
-			}
+			return switch (rand(10)) {
+			case 0 ->  3;
+			case 1, 2 -> 2;
+			default -> 1;
+			};
 		}
 
 		private boolean caps() {
@@ -213,23 +204,14 @@ public class WaduFilter extends ToggleableFilter {
 		}
 
 		private String ending() {
-			switch (rand(20)) {
-			case 0:
-				return "!!!";
-			case 1:
-			case 2:
-				return "!!";
-			case 3:
-			case 4:
-				return "!";
-			case 5:
-			case 6:
-				return "?";
-			case 7:
-				return "...";
-			default:
-				return ".";
-			}
+			return switch (rand(20)) {
+			case 0 -> "!!!";
+			case 1, 2 -> "!!";
+			case 3, 4 -> "!";
+			case 5, 6 -> "?";
+			case 7 -> "...";
+			default -> ".";
+			};
 		}
 
 		private int rand(int i) {

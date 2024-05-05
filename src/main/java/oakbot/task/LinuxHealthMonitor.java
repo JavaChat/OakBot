@@ -35,14 +35,14 @@ public class LinuxHealthMonitor extends HealthMonitor {
 		 * For some reason, the command output is sent to the error stream, so
 		 * redirect all error output to the standard stream.
 		 */
-		Process process = new ProcessBuilder(aptCheckPath).redirectErrorStream(true).start();
+		var process = new ProcessBuilder(aptCheckPath).redirectErrorStream(true).start();
 
 		String line;
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+		try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 			line = reader.readLine();
 		}
 
-		String[] split = line.split(";");
+		var split = line.split(";");
 		return Integer.parseInt(split[1]);
 	}
 }

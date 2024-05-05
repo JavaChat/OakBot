@@ -29,7 +29,7 @@ public class Rng {
 			return startInclusive;
 		}
 
-		int diff = endExclusive - startInclusive;
+		var diff = endExclusive - startInclusive;
 		return random.nextInt(diff) + startInclusive;
 	}
 

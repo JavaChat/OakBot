@@ -77,7 +77,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 			return Duration.ofDays(1).toMillis();
 		}
 
-		double timesToPostPerDay = securityUpdates / 30.0;
+		var timesToPostPerDay = securityUpdates / 30.0;
 		if (timesToPostPerDay > 8) {
 			timesToPostPerDay = 8;
 		}
@@ -94,7 +94,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 		}
 
 		if (securityUpdates >= 10) {
-			for (int roomId : roomIds) {
+			for (var roomId : roomIds) {
 				ChatBuilder cb = new ChatBuilder();
 				cb.italic(Command.random(responses));
 				PostMessage response = new PostMessage(cb).bypassFilters(true);

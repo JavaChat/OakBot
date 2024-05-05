@@ -1,13 +1,10 @@
 package oakbot.task;
 
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
-import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
@@ -22,9 +19,8 @@ import oakbot.util.Now;
  */
 public class FOTD implements ScheduledTask {
 	private static final Logger logger = Logger.getLogger(FOTD.class.getName());
-
-	private final String url = "http://www.refdesk.com";
-	private final String archiveUrl = url + "/fotd-arch.html";
+	private static final String URL = "http://www.refdesk.com";
+	private static final String ARCHIVE_URL = URL + "/fotd-arch.html";
 
 	@Override
 	public String name() {
@@ -43,8 +39,8 @@ public class FOTD implements ScheduledTask {
 
 	@Override
 	public long nextRun() {
-		LocalDateTime now = Now.local();
-		LocalDateTime next = now.truncatedTo(ChronoUnit.DAYS).withHour(12);
+		var now = Now.local();
+		var next = now.truncatedTo(ChronoUnit.DAYS).withHour(12);
 		if (now.getHour() >= 12) {
 			next = next.plusDays(1);
 		}
@@ -54,45 +50,45 @@ public class FOTD implements ScheduledTask {
 	@Override
 	public void run(IBot bot) throws Exception {
 		String response;
-		try (Http http = HttpFactory.connect()) {
-			response = http.get(url).getBody();
+		try (var http = HttpFactory.connect()) {
+			response = http.get(URL).getBody();
 		}
 
-		String fact = parseFact(response);
+		var fact = parseFact(response);
 		if (fact == null) {
-			logger.warning(() -> "Unable to parse FOTD from " + url + ".");
+			logger.warning(() -> "Unable to parse FOTD from " + URL + ".");
 			return;
 		}
 
-		fact = ChatBuilder.toMarkdown(fact, false, true, url);
-		ChatBuilder cb = new ChatBuilder(fact);
+		fact = ChatBuilder.toMarkdown(fact, false, true, URL);
+		var cb = new ChatBuilder(fact);
 
-		boolean isMultiline = fact.contains("\n");
+		var isMultiline = fact.contains("\n");
 		if (isMultiline) {
-			cb.nl().append("Source: " + archiveUrl);
+			cb.nl().append("Source: " + ARCHIVE_URL);
 		} else {
-			cb.append(' ').link("(source)", archiveUrl);
+			cb.append(' ').link("(source)", ARCHIVE_URL);
 		}
 
-		PostMessage postMessage = new PostMessage(cb).splitStrategy(SplitStrategy.WORD);
+		var postMessage = new PostMessage(cb).splitStrategy(SplitStrategy.WORD);
 		bot.broadcastMessage(postMessage);
 	}
 
 	private String parseFact(String html) {
-		Pattern p = Pattern.compile("<!-- FOTD START -->(.*?)Provided\\s*by", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-		Matcher m = p.matcher(html);
+		var p = Pattern.compile("<!-- FOTD START -->(.*?)Provided\\s*by", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		var m = p.matcher(html);
 		if (!m.find()) {
 			return null;
 		}
 
-		String fact = m.group(1);
+		var fact = m.group(1);
 
 		/*
 		 * Trim spaces and dashes from the end of the string (in the past,
 		 * there used to be a dash before "provided by").
 		 */
-		for (int i = fact.length() - 1; i >= 0; i--) {
-			char c = fact.charAt(i);
+		for (var i = fact.length() - 1; i >= 0; i--) {
+			var c = fact.charAt(i);
 			if (Character.isWhitespace(c) || c == '-') {
 				continue;
 			}

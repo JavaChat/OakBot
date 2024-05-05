@@ -1,7 +1,6 @@
 package oakbot.filter;
 
 import java.util.Random;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -40,9 +39,9 @@ public class GrootFilter extends ToggleableFilter {
 
 	@Override
 	public String filter(String message) {
-		boolean fixed = message.startsWith(ChatBuilder.FIXED_WIDTH_PREFIX);
+		var fixed = message.startsWith(ChatBuilder.FIXED_WIDTH_PREFIX);
 
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		if (fixed) {
 			cb.fixedWidth();
 		}
@@ -50,20 +49,20 @@ public class GrootFilter extends ToggleableFilter {
 		/*
 		 * Preserve the reply message ID, if present.
 		 */
-		Matcher m = replyRegex.matcher(message);
+		var m = replyRegex.matcher(message);
 		if (m.find()) {
 			message = message.substring(m.end());
 			cb.append(m.group());
 		}
 
-		GrootRng rng = new GrootRng(message.hashCode());
-		String[] lines = message.split("\r\n|\r|\n");
-		boolean applyFormatting = !fixed && lines.length == 1;
-		for (String line : lines) {
-			int grootSentencesToGenerate = line.trim().isEmpty() ? 0 : (countWords(line) / (grootWords.length * 2) + 1);
+		var rng = new GrootRng(message.hashCode());
+		var lines = message.split("\r\n|\r|\n");
+		var applyFormatting = !fixed && lines.length == 1;
+		for (var line : lines) {
+			var grootSentencesToGenerate = line.trim().isEmpty() ? 0 : (countWords(line) / (grootWords.length * 2) + 1);
 
 			//@formatter:off
-			String grootLine = IntStream.range(0, grootSentencesToGenerate)
+			var grootLine = IntStream.range(0, grootSentencesToGenerate)
 				.mapToObj(i -> grootSentence(applyFormatting, rng))
 			.collect(Collectors.joining(" "));
 			//@formatter:on
@@ -75,8 +74,8 @@ public class GrootFilter extends ToggleableFilter {
 	}
 
 	private int countWords(String message) {
-		int count = 1;
-		Matcher m = whitespaceRegex.matcher(message);
+		var count = 1;
+		var m = whitespaceRegex.matcher(message);
 		while (m.find()) {
 			count++;
 		}
@@ -84,11 +83,11 @@ public class GrootFilter extends ToggleableFilter {
 	}
 
 	private CharSequence grootSentence(boolean applyFormatting, GrootRng rng) {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 
-		boolean contraction = rng.useContractionForIAm();
-		for (int i = 0; i < grootWords.length; i++) {
-			String grootWord = grootWords[i];
+		var contraction = rng.useContractionForIAm();
+		for (var i = 0; i < grootWords.length; i++) {
+			var grootWord = grootWords[i];
 
 			if (i == AM && contraction) {
 				/*
@@ -104,8 +103,8 @@ public class GrootFilter extends ToggleableFilter {
 				cb.append(' ');
 			}
 
-			boolean bold = rng.formatBold();
-			boolean italic = rng.formatItalic();
+			var bold = rng.formatBold();
+			var italic = rng.formatItalic();
 			if (applyFormatting) {
 				if (bold) {
 					cb.bold();
@@ -167,28 +166,20 @@ public class GrootFilter extends ToggleableFilter {
 		}
 
 		private String grootWithVariableOs() {
-			switch (rand()) {
-			case 0:
-				return "Grooot";
-			case 1:
-				return "Groooot";
-			default:
-				return "Groot";
-			}
+			return switch (rand()) {
+			case 0 -> "Grooot";
+			case 1 -> "Groooot";
+			default -> "Groot";
+			};
 		}
 
 		private String endSentence() {
-			switch (rand()) {
-			case 0:
-			case 1:
-				return "!";
-			case 2:
-				return "!!";
-			case 3:
-				return "...";
-			default:
-				return ".";
-			}
+			return switch (rand()) {
+			case 0, 1 -> "!";
+			case 2 -> "!!";
+			case 3 -> "...";
+			default -> ".";
+			};
 		}
 
 		private int rand() {

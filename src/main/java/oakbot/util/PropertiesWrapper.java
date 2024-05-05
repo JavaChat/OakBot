@@ -1,8 +1,6 @@
 package oakbot.util;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,7 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +48,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 */
 	public PropertiesWrapper(Path file) throws IOException {
 		this();
-		try (Reader reader = Files.newBufferedReader(file, Charset.defaultCharset())) {
+		try (var reader = Files.newBufferedReader(file, Charset.defaultCharset())) {
 			properties.load(reader);
 		}
 	}
@@ -74,7 +72,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @return the value
 	 */
 	public String get(String key, String defaultValue) {
-		String value = properties.getProperty(key);
+		var value = properties.getProperty(key);
 		if (value != null) {
 			value = value.trim();
 		}
@@ -100,13 +98,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 			return;
 		}
 
-		String valueStr;
-		if (value instanceof LocalDateTime) {
-			LocalDateTime dateTime = (LocalDateTime) value;
-			valueStr = dateTime.format(dateTimeFormatter);
-		} else {
-			valueStr = value.toString();
-		}
+		var valueStr = (value instanceof LocalDateTime dateTime) ? dateTime.format(dateTimeFormatter) : value.toString();
 		properties.setProperty(key, valueStr);
 	}
 
@@ -135,7 +127,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @return the value
 	 */
 	public Path getPath(String key, Path defaultValue) {
-		String value = get(key);
+		var value = get(key);
 		return (value == null) ? defaultValue : Paths.get(value);
 	}
 
@@ -157,7 +149,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @throws NumberFormatException if it could parse the value as an integer
 	 */
 	public Integer getInteger(String key, Integer defaultValue) {
-		String value = get(key);
+		var value = get(key);
 		return (value == null) ? defaultValue : Integer.valueOf(value);
 	}
 
@@ -179,22 +171,17 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @return the list
 	 */
 	public List<Integer> getIntegerList(String key, List<Integer> defaultValue) {
-		String value = get(key);
+		var value = get(key);
 		if (value == null) {
 			return defaultValue;
 		}
 
-		String[] split = value.split("\\s*,\\s*");
-		List<Integer> numbers = new ArrayList<>(split.length);
-		for (String v : split) {
-			try {
-				Integer number = Integer.valueOf(v);
-				numbers.add(number);
-			} catch (NumberFormatException e) {
-				//ignore
-			}
-		}
-		return numbers;
+		//@formatter:off
+		return Arrays.stream(value.split("\\s*,\\s*"))
+			.filter(v -> v.matches("\\d+"))
+			.map(Integer::valueOf)
+		.toList();
+		//@formatter:on
 	}
 
 	/**
@@ -225,7 +212,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @throws DateTimeParseException if it could not parse the value as a date
 	 */
 	public LocalDateTime getDate(String key) throws DateTimeParseException {
-		String value = get(key);
+		var value = get(key);
 		return (value == null) ? null : LocalDateTime.parse(value, dateTimeFormatter);
 	}
 
@@ -245,7 +232,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @return the value
 	 */
 	public Boolean getBoolean(String key, Boolean defaultValue) {
-		String value = get(key);
+		var value = get(key);
 		return (value == null) ? defaultValue : Boolean.valueOf(value);
 	}
 
@@ -255,7 +242,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @return the value or null if not found
 	 */
 	public Path getFile(String key) {
-		String value = get(key);
+		var value = get(key);
 		return (value == null) ? null : Paths.get(value);
 	}
 
@@ -275,7 +262,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @throws IOException
 	 */
 	public void store(Path file, String comment) throws IOException {
-		try (Writer writer = Files.newBufferedWriter(file, Charset.defaultCharset())) {
+		try (var writer = Files.newBufferedWriter(file, Charset.defaultCharset())) {
 			properties.store(writer, comment);
 		}
 	}
@@ -285,12 +272,13 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	 * @return the property keys
 	 */
 	public Set<String> keySet() {
-		Set<Object> keySet = properties.keySet();
-		Set<String> set = new HashSet<>(keySet.size());
-		for (Object k : keySet) {
-			set.add((String) k);
-		}
-		return set;
+		var keySet = properties.keySet();
+
+		//@formatter:off
+		return keySet.stream()
+			.map(k -> (String)k)
+		.collect(Collectors.toSet());
+		//@formatter:;on
 	}
 
 	@Override
@@ -305,7 +293,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 
 			@Override
 			public Entry<String, String> next() {
-				Entry<Object, Object> entry = it.next();
+				var entry = it.next();
 				return new EntryImpl(entry);
 			}
 

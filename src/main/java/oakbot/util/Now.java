@@ -18,7 +18,7 @@ public class Now {
 	 * @return the current time
 	 */
 	public static Instant instant() {
-		Instant now = Instant.now();
+		var now = Instant.now();
 		return (offset == null) ? now : now.plus(offset);
 	}
 
@@ -27,7 +27,7 @@ public class Now {
 	 * @return the current time
 	 */
 	public static LocalDateTime local() {
-		LocalDateTime now = LocalDateTime.now();
+		var now = LocalDateTime.now();
 		return (offset == null) ? now : now.plus(offset);
 	}
 

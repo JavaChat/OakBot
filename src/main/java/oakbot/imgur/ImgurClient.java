@@ -3,11 +3,9 @@ package oakbot.imgur;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -40,7 +38,7 @@ public class ImgurClient {
 	 * file types and API details</a>
 	 */
 	public String uploadFile(byte[] data) throws ImgurException, IOException {
-		HttpPost request = postRequestWithClientId("/image");
+		var request = postRequestWithClientId("/image");
 
 		//@formatter:off
 		request.setEntity(MultipartEntityBuilder.create()
@@ -49,8 +47,8 @@ public class ImgurClient {
 		.build());
 		//@formatter:on
 
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			try (CloseableHttpResponse response = client.execute(request)) {
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
 				JsonNode responseBody;
 				try (InputStream in = response.getEntity().getContent()) {
 					responseBody = JsonUtils.parse(in);
@@ -73,17 +71,17 @@ public class ImgurClient {
 	 * @throws ImgurException if there is an error in the given response
 	 */
 	private void lookForError(JsonNode response) throws ImgurException {
-		JsonNode error = response.path("data").get("error");
+		var error = response.path("data").get("error");
 		if (error == null) {
 			return;
 		}
 
-		String message = error.asText();
+		var message = error.asText();
 		throw new ImgurException(message);
 	}
 
 	private HttpPost postRequestWithClientId(String uriPath) {
-		HttpPost request = new HttpPost("https://api.imgur.com/3" + uriPath);
+		var request = new HttpPost("https://api.imgur.com/3" + uriPath);
 		request.setHeader("Authorization", "Client-ID " + clientId);
 		return request;
 	}

@@ -8,7 +8,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -82,14 +81,14 @@ public class DadJokeListener implements Listener {
 			return doNothing();
 		}
 
-		String messageAsMarkdown = ChatBuilder.toMarkdown(message.getContent().getContent(), message.getContent().isFixedWidthFont());
-		String messageWithoutLinks = removeLinks(messageAsMarkdown);
-		Optional<String> phrase = findPhrase(messageWithoutLinks);
-		if (!phrase.isPresent()) {
+		var messageAsMarkdown = ChatBuilder.toMarkdown(message.getContent().getContent(), message.getContent().isFixedWidthFont());
+		var messageWithoutLinks = removeLinks(messageAsMarkdown);
+		var phrase = findPhrase(messageWithoutLinks);
+		if (phrase.isEmpty()) {
 			return doNothing();
 		}
 
-		String name = phrase.get();
+		var name = phrase.get();
 		if (countWords(name) > 5) {
 			return doNothing();
 		}
@@ -97,7 +96,7 @@ public class DadJokeListener implements Listener {
 		hesitate();
 
 		//@formatter:off
-		String response = name.equalsIgnoreCase(botName) ?
+		var response = name.equalsIgnoreCase(botName) ?
 			"Hi " + name + ", I'm " + botName + " too!" :
 			"Hi " + name + ", I'm " + botName + "!";
 		//@formatter:on
@@ -108,22 +107,22 @@ public class DadJokeListener implements Listener {
 	}
 
 	private boolean respondedRecently(ChatMessage message) {
-		Instant lastJoke = lastJokeByRoom.get(message.getRoomId());
+		var lastJoke = lastJokeByRoom.get(message.getRoomId());
 		if (lastJoke == null) {
 			return false;
 		}
 
-		Duration timeSinceLastJoke = Duration.between(lastJoke, Instant.now());
+		var timeSinceLastJoke = Duration.between(lastJoke, Instant.now());
 		return (timeSinceLastJoke.compareTo(timeBetweenJokes) < 0);
 	}
 
 	private Optional<String> findPhrase(String content) {
-		Matcher m = regex.matcher(content);
+		var m = regex.matcher(content);
 		if (!m.find()) {
 			return Optional.empty();
 		}
 
-		String phrase = m.group(2).trim();
+		var phrase = m.group(2).trim();
 		return phrase.isEmpty() ? Optional.empty() : Optional.of(phrase);
 	}
 
@@ -136,9 +135,9 @@ public class DadJokeListener implements Listener {
 	}
 
 	private int countWords(String phrase) {
-		Pattern p = Pattern.compile("\\s+");
-		Matcher m = p.matcher(phrase);
-		int words = 1;
+		var p = Pattern.compile("\\s+");
+		var m = p.matcher(phrase);
+		var words = 1;
 		while (m.find()) {
 			words++;
 		}

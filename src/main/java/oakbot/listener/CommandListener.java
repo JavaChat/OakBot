@@ -5,6 +5,7 @@ import static oakbot.bot.ChatActions.doNothing;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.google.common.collect.ArrayListMultimap;
@@ -14,7 +15,6 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.command.Command;
-import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 
 /**
@@ -48,48 +48,60 @@ public class CommandListener implements Listener {
 
 	/**
 	 * Gets all commands that share a name or alias with at least one other
-	 * command (case insensitive).
+	 * command (case-insensitive).
 	 * @return the commands with shared names (key = command name, value =
 	 * command classes that share that name)
 	 */
 	public Multimap<String, Command> checkForDuplicateNames() {
-		List<Command> allCommands = new ArrayList<>();
+		var allCommands = new ArrayList<Command>();
 		allCommands.addAll(this.commands);
 		allCommands.addAll(learnedCommands.getCommands());
 
 		Multimap<String, Command> byName = ArrayListMultimap.create();
-		for (Command command : allCommands) {
+		for (var command : allCommands) {
 			byName.put(command.name().toLowerCase(), command);
-			for (String alias : command.aliases()) {
-				byName.put(alias.toLowerCase(), command);
-			}
+
+			//@formatter:off
+			command.aliases().stream()
+				.map(String::toLowerCase)
+			.forEach(alias -> byName.put(alias, command));
+			//@formatter:on
 		}
 
 		Multimap<String, Command> duplicates = ArrayListMultimap.create();
 
-		byName.asMap().entrySet().stream() //@formatter:off
+		//@formatter:off
+		byName.asMap().entrySet().stream() 
 			.filter(entry -> entry.getValue().size() > 1)
-		.forEach(entry -> duplicates.putAll(entry.getKey(), entry.getValue())); //@formatter:on
+		.forEach(entry -> duplicates.putAll(entry.getKey(), entry.getValue()));
+		//@formatter:on
 
 		return duplicates;
 	}
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		ChatCommand chatCommand = ChatCommand.fromMessage(message, bot.getTrigger());
+		var chatCommand = ChatCommand.fromMessage(message, bot.getTrigger());
 		if (chatCommand == null) {
 			return doNothing();
 		}
 
-		List<Command> matchingCommands = getCommands(chatCommand.getCommandName());
+		var matchingCommands = getCommands(chatCommand.getCommandName());
 		if (matchingCommands.isEmpty()) {
 			return (onUnrecognizedCommand == null) ? doNothing() : onUnrecognizedCommand.apply(chatCommand, bot);
 		}
 
-		ChatActions actions = new ChatActions();
-		for (Command command : matchingCommands) {
-			actions.addAll(command.onMessage(chatCommand, bot));
+		if (matchingCommands.size() == 1) {
+			return matchingCommands.get(0).onMessage(chatCommand, bot);
 		}
+
+		var actions = new ChatActions();
+
+		//@formatter:off
+		matchingCommands.stream()
+			.map(command -> command.onMessage(chatCommand, bot))
+		.forEach(actions::addAll);
+		//@formatter:on
 
 		return actions;
 	}
@@ -100,17 +112,10 @@ public class CommandListener implements Listener {
 	 * @return the matching commands
 	 */
 	private List<Command> getCommands(String name) {
-		List<Command> result = new ArrayList<>();
-		for (Command command : commands) {
-			if (command.name().equals(name) || command.aliases().contains(name)) {
-				result.add(command);
-			}
-		}
-		for (LearnedCommand command : learnedCommands) {
-			if (command.name().equals(name) || command.aliases().contains(name)) {
-				result.add(command);
-			}
-		}
-		return result;
+		//@formatter:off
+		return Stream.concat(commands.stream(), learnedCommands.getCommands().stream())
+			.filter(command -> command.name().equals(name) || command.aliases().contains(name))
+		.toList();
+		//@formatter:on
 	}
 }

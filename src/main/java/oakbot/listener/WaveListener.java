@@ -7,7 +7,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -22,10 +21,11 @@ import oakbot.command.HelpDoc;
  * @author Michael Angstadt
  */
 public class WaveListener implements Listener {
-	private final String WAVE_R = "o/";
-	private final String WAVE_L = "\\o";
-	private final Pattern waveRegex = Pattern.compile("(^|\\s)(o/|\\\\o)(\\s|$)");
-	private final Duration timeBetweenWaves = Duration.ofMinutes(5);
+	private static final String WAVE_R = "o/";
+	private static final String WAVE_L = "\\o";
+	private static final Pattern waveRegex = Pattern.compile("(^|\\s)(o/|\\\\o)(\\s|$)");
+	private static final Duration timeBetweenWaves = Duration.ofMinutes(5);
+
 	private final Duration hesitation;
 	private final CatchAllMentionListener catchAllListener;
 	private final Map<Integer, Instant> lastWaveTimeByRoom = new HashMap<>();
@@ -66,8 +66,8 @@ public class WaveListener implements Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		String content = message.getContent().getContent();
-		boolean mentioned = message.getContent().isMentioned(bot.getUsername());
+		var content = message.getContent().getContent();
+		var mentioned = message.getContent().isMentioned(bot.getUsername());
 
 		String wave;
 		if (mentioned) {
@@ -75,7 +75,7 @@ public class WaveListener implements Listener {
 			 * If mentioned, look for the emoticon somewhere within the message
 			 * text.
 			 */
-			Matcher m = waveRegex.matcher(content);
+			var m = waveRegex.matcher(content);
 			if (!m.find()) {
 				return doNothing();
 			}
@@ -93,16 +93,16 @@ public class WaveListener implements Listener {
 				return doNothing();
 			}
 
-			int roomId = message.getRoomId();
-			Instant lastWave = lastWaveTimeByRoom.get(roomId);
+			var roomId = message.getRoomId();
+			var lastWave = lastWaveTimeByRoom.get(roomId);
 
 			/*
 			 * Do not respond if the bot was not mentioned and it responded
 			 * recently. Always wave back to admins.
 			 */
-			Instant now = Instant.now();
-			Duration timeSinceLastWave = (lastWave == null) ? timeBetweenWaves : Duration.between(lastWave, now);
-			boolean authorIsAdmin = bot.getAdminUsers().contains(message.getUserId());
+			var now = Instant.now();
+			var timeSinceLastWave = (lastWave == null) ? timeBetweenWaves : Duration.between(lastWave, now);
+			var authorIsAdmin = bot.getAdminUsers().contains(message.getUserId());
 			if (!authorIsAdmin && timeSinceLastWave.compareTo(timeBetweenWaves) < 0) {
 				return doNothing();
 			}
@@ -116,7 +116,7 @@ public class WaveListener implements Listener {
 		 */
 		hesitate();
 
-		String reply = reverse(wave);
+		var reply = reverse(wave);
 		return post(reply);
 	}
 

@@ -14,8 +14,8 @@ import oakbot.util.ChatBuilder;
 public abstract class ToggleableFilter extends ChatResponseFilter implements Command {
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		int roomId = chatCommand.getMessage().getRoomId();
-		boolean enabled = toggle(roomId);
+		var roomId = chatCommand.getMessage().getRoomId();
+		var enabled = toggle(roomId);
 
 		//@formatter:off
 		return ChatActions.create(

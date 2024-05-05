@@ -44,34 +44,34 @@ public class ImagineCommandTest {
 		assertNull(actual);
 
 		actual = ImagineCommand.parseContent("dall-e-3 https://www.example.com/image.png prompt goes here");
-		assertEquals("dall-e-3", actual.getModel());
-		assertEquals("https://www.example.com/image.png", actual.getInputImage());
-		assertEquals("prompt goes here", actual.getPrompt());
+		assertEquals("dall-e-3", actual.model());
+		assertEquals("https://www.example.com/image.png", actual.inputImage());
+		assertEquals("prompt goes here", actual.prompt());
 
 		actual = ImagineCommand.parseContent("https://www.example.com/image.png prompt goes here");
-		assertNull(actual.getModel());
-		assertEquals("https://www.example.com/image.png", actual.getInputImage());
-		assertEquals("prompt goes here", actual.getPrompt());
+		assertNull(actual.model());
+		assertEquals("https://www.example.com/image.png", actual.inputImage());
+		assertEquals("prompt goes here", actual.prompt());
 
 		actual = ImagineCommand.parseContent("dall-e-3 prompt goes here");
-		assertEquals("dall-e-3", actual.getModel());
-		assertNull(actual.getInputImage());
-		assertEquals("prompt goes here", actual.getPrompt());
+		assertEquals("dall-e-3", actual.model());
+		assertNull(actual.inputImage());
+		assertEquals("prompt goes here", actual.prompt());
 
 		actual = ImagineCommand.parseContent("prompt goes here");
-		assertNull(actual.getModel());
-		assertNull(actual.getInputImage());
-		assertEquals("prompt goes here", actual.getPrompt());
+		assertNull(actual.model());
+		assertNull(actual.inputImage());
+		assertEquals("prompt goes here", actual.prompt());
 
 		actual = ImagineCommand.parseContent("one two");
-		assertNull(actual.getModel());
-		assertNull(actual.getInputImage());
-		assertEquals("one two", actual.getPrompt());
+		assertNull(actual.model());
+		assertNull(actual.inputImage());
+		assertEquals("one two", actual.prompt());
 
 		actual = ImagineCommand.parseContent("one");
-		assertNull(actual.getModel());
-		assertNull(actual.getInputImage());
-		assertEquals("one", actual.getPrompt());
+		assertNull(actual.model());
+		assertNull(actual.inputImage());
+		assertEquals("one", actual.prompt());
 	}
 
 	@Test

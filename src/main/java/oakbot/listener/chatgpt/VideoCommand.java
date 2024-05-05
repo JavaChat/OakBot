@@ -4,13 +4,11 @@ import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,17 +16,13 @@ import java.util.logging.Logger;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import oakbot.ai.stabilityai.StabilityAIClient;
 import oakbot.ai.stabilityai.StabilityAIException;
 import oakbot.ai.stabilityai.StableImageDiffusionRequest;
-import oakbot.ai.stabilityai.StableImageResponse;
 import oakbot.ai.stabilityai.VideoRequest;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -82,26 +76,26 @@ public class VideoCommand implements Command {
 		/*
 		 * Check if admin.
 		 */
-		int userId = chatCommand.getMessage().getUserId();
-		boolean isAdmin = bot.getAdminUsers().contains(userId);
+		var userId = chatCommand.getMessage().getUserId();
+		var isAdmin = bot.getAdminUsers().contains(userId);
 		if (!isAdmin) {
 			return reply("Only admins can invoke this command.", chatCommand);
 		}
 
-		String content = chatCommand.getContent().trim();
+		var content = chatCommand.getContent().trim();
 		if (content.isEmpty()) {
 			return reply("Specify a prompt or image URL.", chatCommand);
 		}
 
 		try {
-			boolean isUrl = content.matches("https?://.*");
-			byte[] image = isUrl ? downloadImage(content) : generateImage(content);
+			var isUrl = content.matches("https?://.*");
+			var image = isUrl ? downloadImage(content) : generateImage(content);
 
 			image = resizeImage(image, 768, 768);
 
-			byte[] video = generateVideo(image);
+			var video = generateVideo(image);
 
-			String videoUrl = uploadVideo(video);
+			var videoUrl = uploadVideo(video);
 
 			return create(new PostMessage(videoUrl).bypassFilters(true));
 		} catch (Exception e) {
@@ -111,9 +105,10 @@ public class VideoCommand implements Command {
 	}
 
 	private byte[] downloadImage(String url) throws IOException {
-		try (CloseableHttpClient client = HttpFactory.connect().getClient()) {
-			HttpGet getRequest = new HttpGet(url);
-			try (CloseableHttpResponse response = client.execute(getRequest)) {
+		var request = new HttpGet(url);
+
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
 				return EntityUtils.toByteArray(response.getEntity());
 			}
 		}
@@ -121,27 +116,27 @@ public class VideoCommand implements Command {
 
 	private byte[] generateImage(String prompt) throws StabilityAIException, IOException {
 		//@formatter:off
-		StableImageDiffusionRequest request = new StableImageDiffusionRequest.Builder()
+		var request = new StableImageDiffusionRequest.Builder()
 			.model("sd3")
 			.prompt(prompt)
 			.outputFormat("jpeg")
 		.build();
 		//@formatter:on
 
-		StableImageResponse response = stabilityAIClient.generateImage(request);
+		var response = stabilityAIClient.generateImage(request);
 		return response.getImage();
 	}
 
 	private byte[] resizeImage(byte[] original, int targetWidth, int targetHeight) throws IOException {
 		BufferedImage originalImage;
-		try (InputStream in = new ByteArrayInputStream(original)) {
+		try (var in = new ByteArrayInputStream(original)) {
 			originalImage = ImageIO.read(in);
 		}
 
-		Image scaledImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT);
+		var scaledImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT);
 
-		BufferedImage canvas = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
-		Graphics2D graphics = canvas.createGraphics();
+		var canvas = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+		var graphics = canvas.createGraphics();
 		try {
 			graphics.drawImage(scaledImage, 0, 0, null);
 		} finally {
@@ -152,12 +147,12 @@ public class VideoCommand implements Command {
 	}
 
 	private byte[] writeAsJpeg(BufferedImage image) throws IOException {
-		ImageWriter jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
-		ImageWriteParam jpgWriteParam = jpgWriter.getDefaultWriteParam();
+		var jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
+		var jpgWriteParam = jpgWriter.getDefaultWriteParam();
 		jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
 		jpgWriteParam.setCompressionQuality(0.9f);
 
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+		try (var out = new ByteArrayOutputStream()) {
 			jpgWriter.setOutput(ImageIO.createImageOutputStream(out));
 			jpgWriter.write(null, new IIOImage(image, null, null), jpgWriteParam);
 			return out.toByteArray();
@@ -168,7 +163,7 @@ public class VideoCommand implements Command {
 
 	private byte[] generateVideo(byte[] image) throws StabilityAIException, IOException, TimeoutException {
 		//@formatter:off
-		StableImageResponse videoResponse = stabilityAIClient.videoSync(new VideoRequest.Builder()
+		var videoResponse = stabilityAIClient.videoSync(new VideoRequest.Builder()
 			.image(image, "image/jpeg")
 		.build());
 		//@formatter:on

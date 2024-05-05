@@ -26,7 +26,7 @@ public class MentionListener implements CatchAllMentionListener {
 
 	private final Map<String, String> responses;
 	{
-		String response = "You're welcome.";
+		var response = "You're welcome.";
 
 		//@formatter:off
 		responses = Map.of(
@@ -66,10 +66,10 @@ public class MentionListener implements CatchAllMentionListener {
 			return doNothing();
 		}
 
-		Instant prevResponse = timeOfLastResponseByRoom.get(message.getRoomId());
-		Instant now = Instant.now();
+		var prevResponse = timeOfLastResponseByRoom.get(message.getRoomId());
+		var now = Instant.now();
 		if (prevResponse != null) {
-			Duration elapsed = Duration.between(prevResponse, now);
+			var elapsed = Duration.between(prevResponse, now);
 			if (elapsed.compareTo(cooldownTimeBetweenResponses) < 0) {
 				return doNothing();
 			}
@@ -77,7 +77,7 @@ public class MentionListener implements CatchAllMentionListener {
 
 		timeOfLastResponseByRoom.put(message.getRoomId(), now);
 
-		String response = respond(message.getContent().getContent());
+		var response = respond(message.getContent().getContent());
 		if (response != null) {
 			return reply(response, message);
 		}
@@ -96,12 +96,14 @@ public class MentionListener implements CatchAllMentionListener {
 	}
 
 	private String respond(String content) {
-		String strippedContent = content //@formatter:off
-		.replaceAll("@\\w+", "") //remove mentions
-		.replaceAll("[^a-zA-Z ]", "") //remove everything but letters and spaces
-		.replaceAll("\\s{2,}", " ") //remove duplicate spaces
-		.trim()
-		.toLowerCase(); //@formatter:on
+		//@formatter:off
+		var strippedContent = content
+			.replaceAll("@\\w+", "") //remove mentions
+			.replaceAll("[^a-zA-Z ]", "") //remove everything but letters and spaces
+			.replaceAll("\\s{2,}", " ") //remove duplicate spaces
+			.trim()
+			.toLowerCase();
+		//@formatter:on
 
 		return responses.get(strippedContent);
 	}

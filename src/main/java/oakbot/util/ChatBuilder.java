@@ -1,5 +1,7 @@
 package oakbot.util;
 
+import java.util.stream.IntStream;
+
 import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -238,9 +240,7 @@ public class ChatBuilder implements CharSequence {
 	 * @return this
 	 */
 	public ChatBuilder repeat(char c, int repeat) {
-		for (int i = 0; i < repeat; i++) {
-			append(c);
-		}
+		IntStream.range(0, repeat).forEach(i -> append(c));
 		return this;
 	}
 
@@ -291,7 +291,7 @@ public class ChatBuilder implements CharSequence {
 
 	@Override
 	public String toString() {
-		String replyPrefix = (replyId < 0) ? "" : (":" + replyId + " ");
+		var replyPrefix = (replyId < 0) ? "" : (":" + replyId + " ");
 
 		/*
 		 * Fixed-width syntax must come before reply syntax.
@@ -300,7 +300,7 @@ public class ChatBuilder implements CharSequence {
 		 * reply syntax.)
 		 */
 		if (fixedWidth) {
-			String withIndents = sb.toString().replaceAll("(\r\n|\r|\n)", "$1" + FIXED_WIDTH_PREFIX);
+			var withIndents = sb.toString().replaceAll("(\r\n|\r|\n)", "$1" + FIXED_WIDTH_PREFIX);
 			return FIXED_WIDTH_PREFIX + replyPrefix + withIndents;
 		}
 
@@ -341,7 +341,7 @@ public class ChatBuilder implements CharSequence {
 			 */
 			markdown = "    " + content.replaceAll("(\r\n|\r|\n)", "$1    ");
 		} else {
-			boolean multiline = content.indexOf('\n') >= 0 || content.indexOf('\r') >= 0;
+			var multiline = content.indexOf('\n') >= 0 || content.indexOf('\r') >= 0;
 			if (multiline) {
 				/*
 				 * Multi-line messages will not contain HTML formatting tags
@@ -364,7 +364,7 @@ public class ChatBuilder implements CharSequence {
 					baseUrl = "";
 				}
 
-				MarkdownNodeVisitor nodeVisitor = new MarkdownNodeVisitor(includeTitleInLinks);
+				var nodeVisitor = new MarkdownNodeVisitor(includeTitleInLinks);
 				Jsoup.parse(content, baseUrl).traverse(nodeVisitor);
 				markdown = nodeVisitor.getMarkdown();
 			}
@@ -389,75 +389,52 @@ public class ChatBuilder implements CharSequence {
 
 		@Override
 		public void head(Node node, int depth) {
-			ChatBuilder cb = cb();
+			var cb = cb();
 
 			//escape characters used in Markdown syntax
-			if (node instanceof TextNode) {
-				TextNode text = (TextNode) node;
+			if (node instanceof TextNode text) {
 				cb.append(text.text().replaceAll("[\\*_\\`()\\[\\]]", "\\\\$0"));
 				return;
 			}
 
-			if (node instanceof Element) {
-				Element element = (Element) node;
+			if (node instanceof Element element) {
 				switch (element.tagName()) {
-				case "b":
-					cb.bold();
-					break;
-				case "i":
-					cb.italic();
-					break;
-				case "code":
-					cb.code();
-					break;
-				case "strike":
-					cb.strike();
-					break;
-				case "a":
-					linkText = new ChatBuilder();
-					break;
-				case "span":
+				case "b" -> cb.bold();
+				case "i" -> cb.italic();
+				case "code" -> cb.code();
+				case "strike" -> cb.strike();
+				case "a" -> linkText = new ChatBuilder();
+				case "span" -> {
 					if (linkText != null && element.classNames().contains("ob-post-tag")) {
 						inTag = true;
 					}
-					break;
+				}
 				}
 			}
 		}
 
 		@Override
 		public void tail(Node node, int depth) {
-			ChatBuilder cb = cb();
+			var cb = cb();
 
-			if (node instanceof Element) {
-				Element element = (Element) node;
+			if (node instanceof Element element) {
 				switch (element.tagName()) {
-				case "b":
-					cb.bold();
-					break;
-				case "i":
-					cb.italic();
-					break;
-				case "code":
-					cb.code();
-					break;
-				case "strike":
-					cb.strike();
-					break;
-				case "a":
-					processLink(element);
-					break;
+				case "b" -> cb.bold();
+				case "i" -> cb.italic();
+				case "code" -> cb.code();
+				case "strike" -> cb.strike();
+				case "a" -> processLink(element);
 				}
 			}
 		}
 
 		private void processLink(Element element) {
-			String text = linkText.toString();
+			var text = linkText.toString();
 
 			if (inTag) {
 				chatBuilder.tag(text);
 			} else {
-				String url = element.absUrl("href");
+				var url = element.absUrl("href");
 				if (url.isEmpty()) {
 					/*
 					 * If the <a> tag doesn't have an "href" attribute, treat it
@@ -465,7 +442,7 @@ public class ChatBuilder implements CharSequence {
 					 */
 					chatBuilder.append(text);
 				} else {
-					String title = includeTitleInLinks ? element.attr("title") : "";
+					var title = includeTitleInLinks ? element.attr("title") : "";
 					chatBuilder.link(text, url, title);
 				}
 			}

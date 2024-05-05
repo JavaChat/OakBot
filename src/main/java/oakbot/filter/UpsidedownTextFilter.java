@@ -27,10 +27,10 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 		upsideDown += "><⅋'؛˙¿¡,„";
 		//@formatter:on
 
-		int highestAsciiValue = normal.chars().max().getAsInt();
+		var highestAsciiValue = normal.chars().max().getAsInt();
 		map = new char[highestAsciiValue + 1];
 
-		for (int i = 0; i < normal.length(); i++) {
+		for (var i = 0; i < normal.length(); i++) {
 			char n = normal.charAt(i);
 			char u = upsideDown.charAt(i);
 			map[n] = u;
@@ -55,13 +55,13 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 
 	@Override
 	public String filter(String message) {
-		StringBuilder sb = new StringBuilder(message.length());
+		var sb = new StringBuilder(message.length());
 
-		boolean flip = true;
-		boolean inReplySyntax = false;
-		CharIterator it = new CharIterator(message);
+		var flip = true;
+		var inReplySyntax = false;
+		var it = new CharIterator(message);
 		while (it.hasNext()) {
-			char n = it.next();
+			var n = it.next();
 
 			if (it.index() == 0 && n == ':') {
 				//preserve reply syntax
@@ -105,7 +105,7 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 			return c;
 		}
 
-		char flipped = map[c];
+		var flipped = map[c];
 		return (flipped == 0) ? c : flipped;
 	}
 }

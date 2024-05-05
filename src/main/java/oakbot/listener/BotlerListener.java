@@ -64,7 +64,7 @@ public class BotlerListener implements Command, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String content = chatCommand.getContentMarkdown();
+		var content = chatCommand.getContentMarkdown();
 		if (content.isEmpty()) {
 			return doNothing();
 		}
@@ -82,12 +82,12 @@ public class BotlerListener implements Command, Listener {
 			return doNothing();
 		}
 
-		Instant now = Now.instant();
-		int roomId = message.getRoomId();
-		Instant lastResponse = responseTimesPerRoom.get(roomId);
+		var now = Now.instant();
+		var roomId = message.getRoomId();
+		var lastResponse = responseTimesPerRoom.get(roomId);
 
 		if (lastResponse != null) {
-			Duration sinceLastResponse = Duration.between(lastResponse, now);
+			var sinceLastResponse = Duration.between(lastResponse, now);
 			if (sinceLastResponse.compareTo(timeBetweenResponses) < 0) {
 				return doNothing();
 			}

@@ -50,7 +50,7 @@ public class TtsCommand implements Command {
 
 	@Override
 	public HelpDoc help() {
-		String requestLimit = (requestsPer24Hours > 0) ? "Users can make " + requestsPer24Hours + " requests per day. " : "";
+		var requestLimit = (requestsPer24Hours > 0) ? "Users can make " + requestsPer24Hours + " requests per day. " : "";
 
 		//@formatter:off
 		return new HelpDoc.Builder(this)
@@ -64,50 +64,56 @@ public class TtsCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		TtsCommandParameters parameters = parseContent(chatCommand.getContent());
-		String input = parameters.getInput();
+		var parameters = parseContent(chatCommand.getContent());
+		var input = parameters.input();
 		if (input.isEmpty()) {
 			return reply("What should I say?", chatCommand);
 		}
 
-		String voice = (parameters.getVoice() == null) ? defaultVoice : parameters.getVoice();
+		var voice = (parameters.voice() == null) ? defaultVoice : parameters.voice();
 
 		/*
 		 * Check usage quota.
 		 */
-		int userId = chatCommand.getMessage().getUserId();
-		Duration timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
+		var userId = chatCommand.getMessage().getUserId();
+		var timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
 		if (!timeUntilNextRequest.isZero()) {
-			long hours = timeUntilNextRequest.toHours() + 1;
+			var hours = timeUntilNextRequest.toHours() + 1;
 			return reply("Bad human! You are over quota and can't make any more requests right now. Try again in " + hours + " " + plural("hour", hours) + ".", chatCommand);
 		}
 
 		//@formatter:off
-		CreateSpeechRequest request = new CreateSpeechRequest.Builder()
+		var request = new CreateSpeechRequest.Builder()
 			.model("tts-1")
 			.voice(voice)
 			.input(input)
 		.build();
 		//@formatter:on
 
+		String url;
 		try {
-			byte[] data = openAIClient.createSpeech(request);
-			//TODO would need to upload the audio data somewhere
+			var data = openAIClient.createSpeech(request);
+			url = upload(data);
 		} catch (OpenAIException e) {
 			return post(new ChatBuilder().reply(chatCommand).code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code());
 		} catch (IOException e) {
 			return error("Network error: ", e, chatCommand);
 		}
 
-		return reply("Not implemented.", chatCommand);
+		return reply(url, chatCommand);
+	}
+
+	private String upload(byte[] data) throws IOException {
+		//TODO upload the audio data somewhere
+		return "Not implemented";
 	}
 
 	private TtsCommandParameters parseContent(String content) {
 		content = content.trim();
 
-		String[] split = content.split("\\s+", 2);
-		String token1 = split[0];
-		String rest = (split.length > 1) ? split[1] : "";
+		var split = content.split("\\s+", 2);
+		var token1 = split[0];
+		var rest = (split.length > 1) ? split[1] : "";
 
 		if (voices.contains(token1.toLowerCase())) {
 			return new TtsCommandParameters(token1.toLowerCase(), rest);
@@ -115,21 +121,6 @@ public class TtsCommand implements Command {
 		return new TtsCommandParameters(null, content);
 	}
 
-	private static class TtsCommandParameters {
-		private final String voice;
-		private final String input;
-
-		public TtsCommandParameters(String voice, String input) {
-			this.voice = voice;
-			this.input = input;
-		}
-
-		public String getVoice() {
-			return voice;
-		}
-
-		public String getInput() {
-			return input;
-		}
+	private record TtsCommandParameters(String voice, String input) {
 	}
 }

@@ -18,8 +18,8 @@ public class RelativeDateFormat {
 	 * @return the formatted date (e.g. "Today at 1:00 PM")
 	 */
 	public String format(LocalDateTime date) {
-		LocalDateTime now = LocalDateTime.now();
-		Duration diff = Duration.between(date, now);
+		var now = LocalDateTime.now();
+		var diff = Duration.between(date, now);
 
 		if (diff.toMinutes() < 1) {
 			return "A moment ago";
@@ -29,7 +29,7 @@ public class RelativeDateFormat {
 			return diff.toMinutes() + " minutes ago";
 		}
 
-		long dayDiff = diff.toDays();
+		var dayDiff = diff.toDays();
 		if (dayDiff == 0) {
 			return "Today at " + timeFormatter.format(date);
 		}

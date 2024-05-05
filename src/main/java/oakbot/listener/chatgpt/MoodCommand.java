@@ -47,11 +47,11 @@ public class MoodCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		int roomId = chatCommand.getMessage().getRoomId();
-		String content = chatCommand.getContent();
+		var roomId = chatCommand.getMessage().getRoomId();
+		var content = chatCommand.getContent();
 
 		if (content.isEmpty()) {
-			String currentMood = getMood(roomId);
+			var currentMood = getMood(roomId);
 			return reply("I'm feeling a bit " + currentMood + ".", chatCommand);
 		}
 
@@ -69,15 +69,18 @@ public class MoodCommand implements Command {
 		return moodsByRoom.getOrDefault(roomId, defaultMood);
 	}
 
+	/**
+	 * @return a mutable map containing the moods
+	 */
 	private Map<Integer, String> loadMoods() {
-		Map<String, Object> map = db.getMap(MOODS_KEY);
+		var map = db.getMap(MOODS_KEY);
 		if (map == null) {
 			return new HashMap<>();
 		}
 
-		Map<Integer, String> moods = new HashMap<>();
+		var moods = new HashMap<Integer, String>();
 
-		for (Map.Entry<String, Object> entry : map.entrySet()) {
+		for (var entry : map.entrySet()) {
 			Integer roomId = Integer.valueOf(entry.getKey());
 			String mood = (String) entry.getValue();
 			moods.put(roomId, mood);
@@ -87,7 +90,7 @@ public class MoodCommand implements Command {
 	}
 
 	private void saveMoods() {
-		Map<String, Object> map = new HashMap<>();
+		var map = new HashMap<>();
 
 		for (Map.Entry<Integer, String> entry : moodsByRoom.entrySet()) {
 			String key = Integer.toString(entry.getKey());

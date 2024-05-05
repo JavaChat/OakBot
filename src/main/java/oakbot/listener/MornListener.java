@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -66,20 +65,22 @@ public class MornListener implements Listener {
 
 	@Override
 	public HelpDoc help() {
-		List<String> greetings = responses.stream().map(s -> s[0]).collect(Collectors.toList());
-
 		//@formatter:off
+		var greetings = responses.stream()
+			.map(s -> s[0])
+		.collect(Collectors.joining(", "));
+
 		return new HelpDoc.Builder(this)
 			.summary("Replies to \"good morning\" messages.")
-			.detail("Responds to the following greetings: " + String.join(", ", greetings))
+			.detail("Responds to the following greetings: " + greetings)
 		.build();
 		//@formatter:on
 	}
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		List<String> mentions = message.getContent().getMentions();
-		boolean mentioned = message.getContent().isMentioned(bot.getUsername());
+		var mentions = message.getContent().getMentions();
+		var mentioned = message.getContent().isMentioned(bot.getUsername());
 		if (!mentions.isEmpty() && !mentioned) {
 			/*
 			 * Message isn't directed toward the bot.
@@ -87,15 +88,16 @@ public class MornListener implements Listener {
 			return doNothing();
 		}
 
-		String content = removeMentionsAndPunctuation(message.getContent().getContent());
+		var content = removeMentionsAndPunctuation(message.getContent().getContent());
 
-		Optional<String> reply = responses
-				.stream() //@formatter:off
+		//@formatter:off
+		var reply = responses.stream()
 			.filter(s -> content.equalsIgnoreCase(s[0]))
 			.map(s -> s[1])
-		.findFirst(); //@formatter:on
+		.findFirst();
+		//@formatter:on
 
-		if (!reply.isPresent()) {
+		if (reply.isEmpty()) {
 			return doNothing();
 		}
 
@@ -115,15 +117,15 @@ public class MornListener implements Listener {
 			return reply(reply.get(), message);
 		}
 
-		int roomId = message.getRoomId();
-		Instant lastReply = lastReplyByRoom.get(roomId);
+		var roomId = message.getRoomId();
+		var lastReply = lastReplyByRoom.get(roomId);
 
 		/*
 		 * Do not respond if the bot was not mentioned and it responded
 		 * recently.
 		 */
-		Instant now = Instant.now();
-		Duration timeSinceLastReply = (lastReply == null) ? timeBetweenReplies : Duration.between(lastReply, now);
+		var now = Instant.now();
+		var timeSinceLastReply = (lastReply == null) ? timeBetweenReplies : Duration.between(lastReply, now);
 		if (timeSinceLastReply.compareTo(timeBetweenReplies) < 0) {
 			return doNothing();
 		}
@@ -143,9 +145,11 @@ public class MornListener implements Listener {
 	}
 
 	private static String removeMentionsAndPunctuation(String message) {
-		return message //@formatter:off
+		//@formatter:off
+		return message
 			.replaceAll("@[a-zA-Z0-9]+", "") //remove mentions
 			.replaceAll("[!,\\.]", "") //remove punctuation
-		.trim(); //trim for good measure //@formatter:on
+		.trim(); //trim for good measure
+		//@formatter:on
 	}
 }
