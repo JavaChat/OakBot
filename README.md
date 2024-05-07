@@ -10,7 +10,7 @@ OakBot is most active in the [Java](https://chat.stackoverflow.com/rooms/139) ch
 
 # Requirements
 
-* Java 11
+* Java 17
 * [Maven](http://maven.apache.org) (for building)
 
 # Build Instructions
@@ -66,6 +66,4 @@ Argument | Description
 
 # Questions/Feedback
 
-One way to reach me is in Stack Overflow's [Java chat room](https://chat.stackoverflow.com/rooms/139). Please mention my name (@Michael) so I will see your message.
-
-You can also submit bug reports and feature requests to the [issue tracker](https://github.com/JavaChat/OakBot/issues).
+Please submit all questions, bug reports, and feature requests to the [issue tracker](https://github.com/JavaChat/OakBot/issues).
