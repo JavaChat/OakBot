@@ -9,7 +9,6 @@ import org.junit.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 
-import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 
@@ -19,14 +18,14 @@ import oakbot.bot.IBot;
 public class AfkCommandTest {
 	@Test
 	public void afk() {
-		AfkCommand afk = new AfkCommand();
+		var afk = new AfkCommand();
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 
 		{
 			//@formatter:off
-			ChatMessage message = new ChatMessage.Builder()
+			var message = new ChatMessage.Builder()
 				.messageId(1)
 				.userId(1)
 				.username("Kyle")
@@ -38,17 +37,17 @@ public class AfkCommandTest {
 			 * Message that invoke the afk command are ignored when passed into
 			 * Listener.onMessage().
 			 */
-			ChatActions actions = afk.onMessage(message, bot);
+			var actions = afk.onMessage(message, bot);
 			assertTrue(actions.isEmpty());
 
-			ChatCommand cmd = ChatCommand.fromMessage(message, "/");
+			var cmd = ChatCommand.fromMessage(message, "/");
 			actions = afk.onMessage(cmd, bot);
 			assertMessage(":1 Cya later", actions);
 		}
 
 		{
 			//@formatter:off
-			ChatMessage message = new ChatMessage.Builder()
+			var message = new ChatMessage.Builder()
 				.messageId(2)
 				.userId(2)
 				.username("John")
@@ -56,13 +55,13 @@ public class AfkCommandTest {
 			.build();
 			//@formatter:on
 
-			ChatActions actions = afk.onMessage(message, bot);
+			var actions = afk.onMessage(message, bot);
 			assertMessage(":2 Kyle is away: away", actions);
 		}
 
 		{
 			//@formatter:off
-			ChatMessage message = new ChatMessage.Builder()
+			var message = new ChatMessage.Builder()
 				.messageId(3)
 				.userId(1)
 				.username("Kyle")
@@ -70,21 +69,21 @@ public class AfkCommandTest {
 			.build();
 			//@formatter:on
 
-			ChatActions actions = afk.onMessage(message, bot);
+			var actions = afk.onMessage(message, bot);
 			assertMessage(":3 Welcome back!", actions);
 		}
 	}
 
 	@Test
 	public void mention_full() {
-		AfkCommand command = new AfkCommand();
+		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 		command.setAway(22, "Franny", "brb");
 		command.setAway(23, "Fra Niegel", "");
 		command.setAway(24, "Alexander", "");
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.messageId(1)
 			.userId(65)
 			.username("Kyle")
@@ -92,22 +91,22 @@ public class AfkCommandTest {
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 Frank is away", response);
 	}
 
 	@Test
 	public void mention_partial() {
-		AfkCommand command = new AfkCommand();
+		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 		command.setAway(22, "Franny", "brb");
 		command.setAway(23, "fra Niegel", "");
 		command.setAway(24, "Alexander", "");
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.messageId(1)
 			.userId(65)
 			.username("Kyle")
@@ -115,22 +114,22 @@ public class AfkCommandTest {
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 Frank is away\nFranny is away: brb\nfra Niegel is away", response);
 	}
 
 	@Test
 	public void mention_too_short() {
-		AfkCommand command = new AfkCommand();
+		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 		command.setAway(22, "Franny", "brb");
 		command.setAway(23, "Fra Niegel", "");
 		command.setAway(24, "Alexander", "");
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.messageId(1)
 			.userId(65)
 			.username("Kyle")
@@ -138,20 +137,20 @@ public class AfkCommandTest {
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 	}
 
 	@Test
 	public void mention_prevent_spam() {
-		AfkCommand command = new AfkCommand();
+		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 		command.setAway(22, "Franny", "");
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.messageId(1)
 			.userId(65)
 			.username("Kyle")
@@ -159,9 +158,9 @@ public class AfkCommandTest {
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 Frank is away\nFranny is away", response);
 		response = command.onMessage(message, bot);
 		assertTrue(response.isEmpty());
@@ -169,11 +168,11 @@ public class AfkCommandTest {
 
 	@Test
 	public void back() {
-		AfkCommand command = new AfkCommand();
+		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.messageId(1)
 			.userId(21)
 			.username("Frank")
@@ -181,9 +180,9 @@ public class AfkCommandTest {
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 Welcome back!", response);
 
 		response = command.onMessage(message, bot);
@@ -192,11 +191,11 @@ public class AfkCommandTest {
 
 	@Test
 	public void already_away_and_typed_afk_command() {
-		AfkCommand command = new AfkCommand();
+		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.messageId(1)
 			.userId(21)
 			.username("Frank")
@@ -204,13 +203,13 @@ public class AfkCommandTest {
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 
-		ChatCommand cmd = ChatCommand.fromMessage(message, bot.getTrigger());
+		var cmd = ChatCommand.fromMessage(message, bot.getTrigger());
 		response = command.onMessage(cmd, bot);
 		assertMessage(":1 Cya later", response);
 	}

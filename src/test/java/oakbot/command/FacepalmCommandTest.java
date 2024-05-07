@@ -29,7 +29,7 @@ public class FacepalmCommandTest {
 
 	@Test
 	public void onMessage() throws Exception {
-		String tenor = new Gobble(getClass(), "tenor-response.json").asString();
+		var tenor = new Gobble(getClass(), "tenor-response.json").asString();
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -38,10 +38,10 @@ public class FacepalmCommandTest {
 		.build());
 		//@formatter:on
 
-		FacepalmCommand command = new FacepalmCommand("key");
+		var command = new FacepalmCommand("key");
 
-		ChatCommand message = new ChatCommandBuilder(command).build();
-		ChatActions response = command.onMessage(message, mock(IBot.class));
+		var message = new ChatCommandBuilder(command).build();
+		var response = command.onMessage(message, mock(IBot.class));
 
 		//@formatter:off
 		assertPostMessage(
@@ -62,10 +62,10 @@ public class FacepalmCommandTest {
 		.build());
 		//@formatter:on
 
-		FacepalmCommand command = new FacepalmCommand("key");
+		var command = new FacepalmCommand("key");
 
-		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
-		ChatActions response = command.onMessage(message, mock(IBot.class));
+		var message = new ChatCommandBuilder(command).messageId(1).build();
+		var response = command.onMessage(message, mock(IBot.class));
 
 		assertMessage(":1 Sorry, an error occurred. >.>", response);
 	}
@@ -79,10 +79,10 @@ public class FacepalmCommandTest {
 		.build());
 		//@formatter:on
 
-		FacepalmCommand command = new FacepalmCommand("key");
+		var command = new FacepalmCommand("key");
 
-		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
-		ChatActions response = command.onMessage(message, mock(IBot.class));
+		var message = new ChatCommandBuilder(command).messageId(1).build();
+		var response = command.onMessage(message, mock(IBot.class));
 
 		assertMessage(":1 Sorry, an error occurred. >.>", response);
 	}
@@ -96,10 +96,10 @@ public class FacepalmCommandTest {
 		.build());
 		//@formatter:on
 
-		FacepalmCommand command = new FacepalmCommand("key");
+		var command = new FacepalmCommand("key");
 
-		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
-		ChatActions response = command.onMessage(message, mock(IBot.class));
+		var message = new ChatCommandBuilder(command).messageId(1).build();
+		var response = command.onMessage(message, mock(IBot.class));
 
 		assertMessage(":1 Sorry, an error occurred. >.>", response);
 	}

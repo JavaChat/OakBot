@@ -4,9 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -86,20 +84,20 @@ public class JavadocZipFileTest {
 
 	@Test
 	public void getClassInfo_not_found() throws Exception {
-		ClassInfo info = zip.getClassInfo("java.lang.Foo");
+		var info = zip.getClassInfo("java.lang.Foo");
 		assertNull(info);
 	}
 
 	@Test
 	public void getClassInfo() throws Exception {
-		ClassInfo info = zip.getClassInfo("java.lang.Object");
+		var info = zip.getClassInfo("java.lang.Object");
 		assertEquals("java.lang.Object", info.getName().getFullyQualifiedName());
 		assertEquals("Object", info.getName().getSimpleName());
 	}
 
 	private static JavadocZipFile load(String suffix) throws IOException, URISyntaxException {
-		URI uri = JavadocZipFileTest.class.getResource(JavadocZipFileTest.class.getSimpleName() + suffix + ".zip").toURI();
-		Path file = Paths.get(uri);
+		var uri = JavadocZipFileTest.class.getResource(JavadocZipFileTest.class.getSimpleName() + suffix + ".zip").toURI();
+		var file = Paths.get(uri);
 		return new JavadocZipFile(file);
 	}
 }

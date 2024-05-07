@@ -17,7 +17,7 @@ import oakbot.util.MockHttpClientBuilder;
 public class Stands4ClientTest {
 	@Test
 	public void getAbbreviations() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -26,14 +26,14 @@ public class Stands4ClientTest {
 		.build());
 		//@formatter:on
 
-		List<String> expected = List.of("As Soon As Possible", "Alliance of Security Analysis Professionals");
-		List<String> actual = client.getAbbreviations("ASAP", 2);
+		var expected = List.of("As Soon As Possible", "Alliance of Security Analysis Professionals");
+		var actual = client.getAbbreviations("ASAP", 2);
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void getAbbreviations_no_results() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -42,23 +42,23 @@ public class Stands4ClientTest {
 		.build());
 		//@formatter:on
 
-		List<String> expected = List.of();
-		List<String> actual = client.getAbbreviations("ASAP", 2);
+		var expected = List.of();
+		var actual = client.getAbbreviations("ASAP", 2);
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void getAbbreviationsAttributionUrl() {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
-		String expected = "https://www.abbreviations.com/ASAP";
-		String actual = client.getAbbreviationsAttributionUrl("ASAP");
+		var expected = "https://www.abbreviations.com/ASAP";
+		var actual = client.getAbbreviationsAttributionUrl("ASAP");
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void checkGrammar() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -67,14 +67,14 @@ public class Stands4ClientTest {
 		.build());
 		//@formatter:on
 
-		List<String> expected = List.of("The personal pronoun “I” should be uppercase.", "If the term is a proper noun, use initial capitals.");
-		List<String> actual = client.checkGrammar("i travels to new york city");
+		var expected = List.of("The personal pronoun “I” should be uppercase.", "If the term is a proper noun, use initial capitals.");
+		var actual = client.checkGrammar("i travels to new york city");
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void checkGrammar_no_results() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -83,23 +83,23 @@ public class Stands4ClientTest {
 		.build());
 		//@formatter:on
 
-		List<String> expected = List.of();
-		List<String> actual = client.checkGrammar("I love dogs.");
+		var expected = List.of();
+		var actual = client.checkGrammar("I love dogs.");
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void getGrammarAttributionUrl() {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
-		String expected = "https://www.grammar.com";
-		String actual = client.getGrammarAttributionUrl();
+		var expected = "https://www.grammar.com";
+		var actual = client.getGrammarAttributionUrl();
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void convert() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -108,14 +108,14 @@ public class Stands4ClientTest {
 		.build());
 		//@formatter:on
 
-		String expected = "2 miles = 321,869 centimeters";
-		String actual = client.convert("2 miles in centimeters");
+		var expected = "2 miles = 321,869 centimeters";
+		var actual = client.convert("2 miles in centimeters");
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void convert_error() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -135,16 +135,16 @@ public class Stands4ClientTest {
 
 	@Test
 	public void getConvertAttributionUrl() {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
-		String expected = "https://www.convert.net";
-		String actual = client.getConvertAttributionUrl();
+		var expected = "https://www.convert.net";
+		var actual = client.getConvertAttributionUrl();
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void explain() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -153,14 +153,14 @@ public class Stands4ClientTest {
 		.build());
 		//@formatter:on
 
-		Explanation actual = client.explain("in the nick of time");
+		var actual = client.explain("in the nick of time");
 		assertEquals("At the last possible moment; at the last minute.", actual.getExplanation());
 		assertEquals("He finished writing his paper and slid it under the door just in the nick of time.", actual.getExample());
 	}
 
 	@Test
 	public void explain_no_results() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -169,22 +169,22 @@ public class Stands4ClientTest {
 		.build());
 		//@formatter:on
 
-		Explanation actual = client.explain("asdf");
+		var actual = client.explain("asdf");
 		assertNull(actual);
 	}
 
 	@Test
 	public void getExplainAttributionUrl() {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
-		String expected = "https://www.phrases.com/psearch/in%20the%20nick%20of%20time";
-		String actual = client.getExplainAttributionUrl("in the nick of time");
+		var expected = "https://www.phrases.com/psearch/in%20the%20nick%20of%20time";
+		var actual = client.getExplainAttributionUrl("in the nick of time");
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void getRhymes() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -193,14 +193,14 @@ public class Stands4ClientTest {
 		.build());
 		//@formatter:on
 
-		List<String> expected = List.of("actava", "bava", "brattaslava", "cava", "chava", "fava", "guava", "gustava", "java", "lacava", "lava", "nava", "penkava", "rubalcava", "sava", "scozzafava", "srivastava", "votava");
-		List<String> actual = client.getRhymes("java");
+		var expected = List.of("actava", "bava", "brattaslava", "cava", "chava", "fava", "guava", "gustava", "java", "lacava", "lava", "nava", "penkava", "rubalcava", "sava", "scozzafava", "srivastava", "votava");
+		var actual = client.getRhymes("java");
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void getRhymes_no_results() throws Exception {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -209,17 +209,17 @@ public class Stands4ClientTest {
 		.build());
 		//@formatter:on
 
-		List<String> expected = List.of();
-		List<String> actual = client.getRhymes("asdf");
+		var expected = List.of();
+		var actual = client.getRhymes("asdf");
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void getRhymesAttributionUrl() {
-		Stands4Client client = new Stands4Client("USERID", "TOKEN");
+		var client = new Stands4Client("USERID", "TOKEN");
 
-		String expected = "https://www.rhymes.com/rhyme/java";
-		String actual = client.getRhymesAttributionUrl("java");
+		var expected = "https://www.rhymes.com/rhyme/java";
+		var actual = client.getRhymesAttributionUrl("java");
 		assertEquals(expected, actual);
 	}
 }

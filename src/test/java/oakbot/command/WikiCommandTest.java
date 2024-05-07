@@ -4,8 +4,6 @@ import static oakbot.bot.ChatActionsUtils.assertMessage;
 
 import org.junit.Test;
 
-import oakbot.bot.ChatActions;
-import oakbot.bot.ChatCommand;
 import oakbot.util.ChatCommandBuilder;
 
 /**
@@ -16,35 +14,35 @@ public class WikiCommandTest {
 
 	@Test
 	public void empty() {
-		ChatCommand message = new ChatCommandBuilder(command).messageId(1).build();
+		var message = new ChatCommandBuilder(command).messageId(1).build();
 
-		ChatActions response = command.onMessage(message, null);
+		var response = command.onMessage(message, null);
 		assertMessage(":1 Please specify the term you'd like to display.", response);
 	}
 
 	@Test
 	public void spaces() {
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("John Doe")
 		.build();
 		//@formatter:on
 
-		ChatActions response = command.onMessage(message, null);
+		var response = command.onMessage(message, null);
 		assertMessage("https://en.wikipedia.org/wiki/John_Doe", response);
 	}
 
 	@Test
 	public void url_safe() {
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("I/O")
 		.build();
 		//@formatter:on
 
-		ChatActions response = command.onMessage(message, null);
+		var response = command.onMessage(message, null);
 		assertMessage("https://en.wikipedia.org/wiki/I%2FO", response);
 	}
 }

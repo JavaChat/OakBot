@@ -19,7 +19,7 @@ import oakbot.bot.IBot;
 public class CommandTest {
 	@Test
 	public void isInvokingMe() {
-		Command command = new Command() {
+		var command = new Command() {
 			@Override
 			public String name() {
 				return "name";
@@ -50,12 +50,12 @@ public class CommandTest {
 	}
 
 	private static void assertIsInvokingMe(Command command, String content) {
-		ChatMessage message = new ChatMessage.Builder().content(content).build();
+		var message = new ChatMessage.Builder().content(content).build();
 		assertTrue(command.isInvokingMe(message, "/"));
 	}
 
 	private static void assertNotInvokingMe(Command command, String content) {
-		ChatMessage message = new ChatMessage.Builder().content(content).build();
+		var message = new ChatMessage.Builder().content(content).build();
 		assertFalse(command.isInvokingMe(message, "/"));
 	}
 }

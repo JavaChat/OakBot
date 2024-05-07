@@ -20,8 +20,6 @@ import org.junit.After;
 import org.junit.Test;
 
 import oakbot.Database;
-import oakbot.bot.ChatAction;
-import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatCommandBuilder;
@@ -37,14 +35,14 @@ public class FishCommandTest {
 
 	@Test
 	public void loadInventories_no_data() {
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 		new FishCommand(db, "PT1S", "PT1S", "PT1S");
 		verify(db).getMap("fish.caught");
 	}
 
 	@Test
 	public void loadInventories_empty() {
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 		when(db.getMap("fish.caught")).thenReturn(new HashMap<String, Object>());
 
 		new FishCommand(db, "PT1S", "PT1S", "PT1S");
@@ -53,21 +51,24 @@ public class FishCommandTest {
 
 	@Test
 	public void loadInventories_no_entry_for_user() {
-		Map<String, Object> map = new HashMap<>();
-		Map<String, Object> fish = new HashMap<>();
-		fish.put("Hellfish", 1);
-		map.put("123456", fish);
+		//@formatter:off
+		Map<String, Object> map = Map.of(
+			"123456", Map.of(
+				"Hellfish", 1
+			)
+		);
+		//@formatter:on
 
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 		when(db.getMap("fish.caught")).thenReturn(map);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		FishCommand command = new FishCommand(db, "PT1S", "PT1S", "PT1S");
+		var command = new FishCommand(db, "PT1S", "PT1S", "PT1S");
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
-		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+		var actual = command.onMessage(new ChatCommandBuilder(command)
 			.messageId(10)
 			.userId(789012)
 			.content("inv")
@@ -79,23 +80,26 @@ public class FishCommandTest {
 
 	@Test
 	public void loadInventories_test_sort_order() {
-		Map<String, Object> map = new HashMap<>();
-		Map<String, Object> fish = new HashMap<>();
-		fish.put("Hellfish", 1);
-		fish.put("Chlam", 1);
-		fish.put("Slavug", 2);
-		map.put("123456", fish);
+		//@formatter:off
+		Map<String, Object> map = Map.of(
+			"123456", Map.of(
+				"Hellfish", 1,
+				"Chlam", 1,
+				"Slavug", 2
+			)
+		);
+		//@formatter:on
 
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 		when(db.getMap("fish.caught")).thenReturn(map);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		FishCommand command = new FishCommand(db, "PT1S", "PT1S", "PT1S");
+		var command = new FishCommand(db, "PT1S", "PT1S", "PT1S");
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
-		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+		var actual = command.onMessage(new ChatCommandBuilder(command)
 			.messageId(10)
 			.userId(123456)
 			.content("inv")
@@ -107,20 +111,20 @@ public class FishCommandTest {
 
 	@Test
 	public void fish_username_does_not_end_in_s() throws Exception {
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		Random rand = mock(Random.class);
+		var rand = mock(Random.class);
 		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		FishCommand command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
-		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+		var actual = command.onMessage(new ChatCommandBuilder(command)
 			.messageId(10)
 			.roomId(1)
 			.userId(123456)
@@ -139,20 +143,20 @@ public class FishCommandTest {
 
 	@Test
 	public void fish_too_soon() throws Exception {
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		Random rand = mock(Random.class);
+		var rand = mock(Random.class);
 		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		FishCommand command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
-		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+		var actual = command.onMessage(new ChatCommandBuilder(command)
 			.messageId(10)
 			.roomId(1)
 			.userId(123456)
@@ -174,7 +178,7 @@ public class FishCommandTest {
 			.username("Zagreus")
 		.build(), bot);
 
-		List<ChatAction> expected = List.of(
+		var expected = List.of(
 			new PostMessage("🐟 *Zagreus pulls up nothing.*")
 		);
 		//@formatter:on
@@ -193,20 +197,20 @@ public class FishCommandTest {
 
 	@Test
 	public void fish_too_late() throws Exception {
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		Random rand = mock(Random.class);
+		var rand = mock(Random.class);
 		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60, 20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		FishCommand command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
-		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+		var actual = command.onMessage(new ChatCommandBuilder(command)
 			.messageId(10)
 			.roomId(1)
 			.userId(123456)
@@ -237,7 +241,7 @@ public class FishCommandTest {
 			.username("Zagreus")
 		.build(), bot);
 
-		List<ChatAction> expected = List.of(
+		var expected = List.of(
 			new PostMessage("🐟 *Zagreus pulls up nothing. They weren't quick enough.*")
 		);
 		//@formatter:on
@@ -249,20 +253,20 @@ public class FishCommandTest {
 
 	@Test
 	public void fish_quiver_again() throws Exception {
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		Random rand = mock(Random.class);
+		var rand = mock(Random.class);
 		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60, 25 * 60); //line will quiver after (15+5) and (15+10) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		FishCommand command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
-		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+		var actual = command.onMessage(new ChatCommandBuilder(command)
 			.messageId(10)
 			.roomId(1)
 			.userId(123456)
@@ -285,20 +289,20 @@ public class FishCommandTest {
 
 	@Test
 	public void fish() throws Exception {
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		Random rand = mock(Random.class);
+		var rand = mock(Random.class);
 		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		FishCommand command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
-		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+		var actual = command.onMessage(new ChatCommandBuilder(command)
 			.messageId(10)
 			.roomId(1)
 			.userId(123456)
@@ -324,7 +328,7 @@ public class FishCommandTest {
 			.username("Zagreus")
 		.build(), bot);
 
-		List<ChatAction> expected = List.of(
+		var expected = List.of(
 			new PostMessage("🐟 *Zagreus caught a **Hellfish**!*"),
 			new PostMessage("https://static.wikia.nocookie.net/hades_gamepedia_en/images/3/3d/Hellfish.png")
 		);
@@ -332,30 +336,33 @@ public class FishCommandTest {
 
 		assertEquals(expected, actual.getActions());
 
-		Map<String, Object> map = new HashMap<>();
-		Map<String, Object> fish = new HashMap<>();
-		fish.put("Hellfish", 1);
-		map.put("123456", fish);
+		//@formatter:off
+		Map<String, Object> map = Map.of(
+			"123456", Map.of(
+				"Hellfish", 1
+			)
+		);
+		//@formatter:on
 
 		verify(db).set("fish.caught", map);
 	}
 
 	@Test
 	public void fish_again() throws Exception {
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		Random rand = mock(Random.class);
+		var rand = mock(Random.class);
 		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		FishCommand command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
-		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+		var actual = command.onMessage(new ChatCommandBuilder(command)
 			.content("again")
 			.messageId(10)
 			.roomId(1)
@@ -383,7 +390,7 @@ public class FishCommandTest {
 			.username("Zagreus")
 		.build(), bot);
 
-		List<ChatAction> expected = List.of(
+		var expected = List.of(
 			new PostMessage("🐟 *Zagreus caught a **Hellfish**!*"),
 			new PostMessage("https://static.wikia.nocookie.net/hades_gamepedia_en/images/3/3d/Hellfish.png"),
 			new PostMessage("🐟 *Zagreus throws in a line.*")
@@ -392,26 +399,29 @@ public class FishCommandTest {
 
 		assertEquals(expected, actual.getActions());
 
-		Map<String, Object> map = new HashMap<>();
-		Map<String, Object> fish = new HashMap<>();
-		fish.put("Hellfish", 1);
-		map.put("123456", fish);
+		//@formatter:off
+		Map<String, Object> map = Map.of(
+			"123456", Map.of(
+				"Hellfish", 1
+			)
+		);
+		//@formatter:on
 
 		verify(db).set("fish.caught", map);
 	}
 
 	@Test
 	public void fish_status() throws Exception {
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		Random rand = mock(Random.class);
+		var rand = mock(Random.class);
 		when(rand.nextInt(15 * 60, 30 * 60)).thenReturn(20 * 60); //line will quiver after (15+5) minutes
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		FishCommand command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
 		verify(db).getMap("fish.caught");
 
 		/*
@@ -419,7 +429,7 @@ public class FishCommandTest {
 		 */
 
 		//@formatter:off
-		ChatActions actual = command.onMessage(new ChatCommandBuilder(command)
+		var actual = command.onMessage(new ChatCommandBuilder(command)
 			.content("status")
 			.messageId(10)
 			.roomId(1)
@@ -476,7 +486,7 @@ public class FishCommandTest {
 			.username("Zagreus")
 		.build(), bot);
 
-		List<ChatAction> expected = List.of(
+		var expected = List.of(
 			new PostMessage(":11 🐟 *Your line is quivering. Better pull it up.*")
 		);
 		//@formatter:on
