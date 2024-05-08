@@ -9,10 +9,8 @@ import java.util.logging.Logger;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
-import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;

@@ -3,9 +3,7 @@ package oakbot.command.http;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.utils.URIBuilder;

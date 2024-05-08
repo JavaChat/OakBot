@@ -1,21 +1,16 @@
 package oakbot.ai.stabilityai;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
-import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;

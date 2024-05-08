@@ -2,16 +2,13 @@ package oakbot.chat.mock;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
-import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.IChatClient;
 import com.github.mangstadt.sochat4j.IRoom;
 import com.github.mangstadt.sochat4j.Site;

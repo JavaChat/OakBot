@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 import oakbot.util.Rng;

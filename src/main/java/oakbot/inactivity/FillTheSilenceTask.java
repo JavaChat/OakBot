@@ -6,7 +6,6 @@ import com.github.mangstadt.sochat4j.IRoom;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.command.Command;
 import oakbot.util.Rng;
 
 /**

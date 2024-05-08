@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
-import com.github.mangstadt.sochat4j.Content;
 
 import oakbot.util.CharIterator;
 import oakbot.util.ChatBuilder;
@@ -322,7 +320,8 @@ public class ChatCommand {
 		return new CommandStringParts(openTagsBeforeFirstWord, firstWord, startOfContent);
 	}
 
-	private record CommandStringParts(List<String> openTagsBeforeFirstWord, String firstWord, int startOfContent) { }
+	private record CommandStringParts(List<String> openTagsBeforeFirstWord, String firstWord, int startOfContent) {
+	}
 
 	@Override
 	public String toString() {

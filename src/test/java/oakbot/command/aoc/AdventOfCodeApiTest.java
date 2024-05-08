@@ -3,12 +3,10 @@ package oakbot.command.aoc;
 import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
 
-import oakbot.command.aoc.AdventOfCodeApi.Player;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
 import oakbot.util.MockHttpClientBuilder;

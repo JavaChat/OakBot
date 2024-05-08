@@ -4,7 +4,6 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
 

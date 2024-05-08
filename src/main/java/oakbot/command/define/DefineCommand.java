@@ -16,12 +16,10 @@ import java.util.stream.IntStream;
 import org.apache.http.client.utils.URIBuilder;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
-import com.github.mangstadt.sochat4j.util.Http;
 import com.github.mangstadt.sochat4j.util.Leaf;
 
 import oakbot.bot.ChatActions;

@@ -3,7 +3,6 @@ package oakbot.bot;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +21,6 @@ import oakbot.command.FacepalmCommand;
 import oakbot.command.FatCatCommand;
 import oakbot.command.FishCommand;
 import oakbot.command.HelpCommand;
-import oakbot.command.HelpDoc;
 import oakbot.command.JuiceBoxCommand;
 import oakbot.command.ReactCommand;
 import oakbot.command.RemindCommand;

@@ -9,8 +9,6 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Test;
 
-import oakbot.bot.ChatActions;
-import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatCommandBuilder;
