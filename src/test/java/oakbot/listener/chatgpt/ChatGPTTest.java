@@ -20,7 +20,7 @@ public class ChatGPTTest {
 	}
 
 	private static void assertRemoveMentionsFromBeginningOfMessage(String input, String expected) {
-		String actual = ChatGPT.removeMentionsFromBeginningOfMessage(input);
+		var actual = ChatGPT.removeMentionsFromBeginningOfMessage(input);
 		assertEquals(expected, actual);
 	}
 
@@ -32,7 +32,7 @@ public class ChatGPTTest {
 	}
 
 	private static void assertRemoveReplySyntaxFromBeginningOfMessage(String input, String expected) {
-		String actual = ChatGPT.removeReplySyntaxFromBeginningOfMessage(input);
+		var actual = ChatGPT.removeReplySyntaxFromBeginningOfMessage(input);
 		assertEquals(expected, actual);
 	}
 
@@ -42,98 +42,118 @@ public class ChatGPTTest {
 
 		//@formatter:off
 		assertFormatMessagesWithCodeBlocks(
-		"Line 1\n" +
-		"\n" +
-		"```php\n" +
-		"while (true) {\n" +
-		"  echo 'Foo';\n" +
-		"}\n" +
-		"```\n" +
-		"\n" +
-		"Line 2",
+		"""
+		Line 1
 		
-		"    Line 1\n" +
-		"    \n" +
-		"    while (true) {\n" +
-		"      echo 'Foo';\n" +
-		"    }\n" +
-		"    \n" +
-		"    Line 2"
+		```php
+		while (true) {
+		  echo 'Foo';
+		}
+		```
+		
+		Line 2""",
+		
+		"""
+		    Line 1
+		   \s
+		    while (true) {
+		      echo 'Foo';
+		    }
+		   \s
+		    Line 2
+		"""
 		);
 		
 		//no language identifier
 		assertFormatMessagesWithCodeBlocks(
-		"Line 1\n" +
-		"\n" +
-		"```\n" +
-		"while (true) {\n" +
-		"  echo 'Foo';\n" +
-		"}\n" +
-		"```\n" +
-		"\n" +
-		"Line 2",
+		"""
+		Line 1
 		
-		"    Line 1\n" +
-		"    \n" +
-		"    while (true) {\n" +
-		"      echo 'Foo';\n" +
-		"    }\n" +
-		"    \n" +
-		"    Line 2"
+		```
+		while (true) {
+		  echo 'Foo';
+		}
+		```
+		
+		Line 2""",
+		
+		"""
+		    Line 1
+		   \s
+		    while (true) {
+		      echo 'Foo';
+		    }
+		   \s
+		    Line 2
+		"""
 		);
 		
 		//no newline after terminating ```
 		assertFormatMessagesWithCodeBlocks(
-		"Line 1\n" +
-		"\n" +
-		"```php\n" +
-		"while (true) {\n" +
-		"  echo 'Foo';\n" +
-		"}\n" +
-		"```",
+		"""
+		Line 1
 		
-		"    Line 1\n" +
-		"    \n" +
-		"    while (true) {\n" +
-		"      echo 'Foo';\n" +
-		"    }\n" +
-		"    "
+		```php
+		while (true) {
+		  echo 'Foo';
+		}
+		```""",
+		
+		"""
+		    Line 1
+		   \s
+		    while (true) {
+		      echo 'Foo';
+		    }
+		   \s
+		"""
 		);
 		
 		//indented code blocks
 		assertFormatMessagesWithCodeBlocks(
-		"Line 1\n" +
-		"\n" +
-		"1. Step One\n" +
-		"  ```php\n" +
-		"  while (true) {\n" +
-		"    echo 'Foo';\n" +
-		"  }\n" +
-		"  ```\n" +
-		"\n" +
-		"Line 2",
+		"""
+		Line 1
 		
-		"    Line 1\n" +
-		"    \n" +
-		"    1. Step One\n" +
-		"      while (true) {\n" +
-		"        echo 'Foo';\n" +
-		"      }\n" +
-		"    \n" +
-		"    Line 2"
+		1. Step One
+		  ```php
+		  while (true) {
+		    echo 'Foo';
+		  }
+		  ```
+		
+		Line 2""",
+		
+		"""
+		    Line 1
+		   \s
+		    1. Step One
+		      while (true) {
+		        echo 'Foo';
+		      }
+		   \s
+		    Line 2
+		"""
 		);
 		//@formatter:on
 	}
 
 	private static void assertFormatMessagesWithCodeBlocks(String input, String expected) {
-		String actual = ChatGPT.formatMessagesWithCodeBlocks(input);
+		/*
+		 * Address issue with Java text blocks where they end with a newline
+		 * when we don't want them to.
+		 */
+		if (expected.endsWith("\n")) {
+			expected = expected.substring(0, expected.length() - 1);
+		}
+
+		var actual = ChatGPT.formatMessagesWithCodeBlocks(input);
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void extractUrls() {
-		List<String> actual = ChatGPT.extractUrls("Contains no image URLs.");
-		List<String> expected = List.of();
+		var actual = ChatGPT.extractUrls("Contains no image URLs.");
+		var expected = List.of();
 		assertEquals(expected, actual);
 
 		actual = ChatGPT.extractUrls("Contains one image URL [http://www.example.com/image.png](http://www.example.com/image.png).");

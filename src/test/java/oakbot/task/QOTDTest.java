@@ -20,7 +20,7 @@ public class QOTDTest {
 	 * Live test. Outputs current QOTD to stdout.
 	 */
 	public static void main(String args[]) throws Exception {
-		QOTD qotd = new QOTD();
+		var qotd = new QOTD();
 		System.out.println(qotd.fromSlashdot());
 	}
 
@@ -32,7 +32,7 @@ public class QOTDTest {
 
 	@Test
 	public void fromSlashdot() throws Exception {
-		String slashdot = new Gobble(getClass(), "slashdot.html").asString(StandardCharsets.UTF_8);
+		var slashdot = new Gobble(getClass(), "slashdot.html").asString(StandardCharsets.UTF_8);
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -41,16 +41,16 @@ public class QOTDTest {
 		.build());
 		//@formatter:on
 
-		QOTD qotd = new QOTD();
+		var qotd = new QOTD();
 
-		String expected = "\"For a male and female to live continuously together is... biologically speaking, an extremely unnatural condition.\" -- Robert Briffault ([source](https://slashdot.org))";
-		String actual = qotd.fromSlashdot().toString();
+		var expected = "\"For a male and female to live continuously together is... biologically speaking, an extremely unnatural condition.\" -- Robert Briffault ([source](https://slashdot.org))";
+		var actual = qotd.fromSlashdot().toString();
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void fromTheySaidSo() throws Exception {
-		String theySaidSo = new Gobble(getClass(), "theysaidso.json").asString(StandardCharsets.UTF_8);
+		var theySaidSo = new Gobble(getClass(), "theysaidso.json").asString(StandardCharsets.UTF_8);
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -59,16 +59,16 @@ public class QOTDTest {
 		.build());
 		//@formatter:on
 
-		QOTD qotd = new QOTD();
+		var qotd = new QOTD();
 
-		String expected = "*\"If you like what you do, and you’re lucky enough to be good at it, do it for that reason.\"* -Phil Grimshaw [(source)](https://theysaidso.com)";
-		String actual = qotd.fromTheySaidSo().toString();
+		var expected = "*\"If you like what you do, and you’re lucky enough to be good at it, do it for that reason.\"* -Phil Grimshaw [(source)](https://theysaidso.com)";
+		var actual = qotd.fromTheySaidSo().toString();
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void fromTheySaidSo_newline() throws Exception {
-		String theySaidSo = new Gobble(getClass(), "theysaidso_newline.json").asString(StandardCharsets.UTF_8);
+		var theySaidSo = new Gobble(getClass(), "theysaidso_newline.json").asString(StandardCharsets.UTF_8);
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -77,10 +77,10 @@ public class QOTDTest {
 		.build());
 		//@formatter:on
 
-		QOTD qotd = new QOTD();
+		var qotd = new QOTD();
 
-		String expected = "If you like what you do,\nand you’re lucky enough to be good at it, do it for that reason.\n-Phil Grimshaw (source: https://theysaidso.com)";
-		String actual = qotd.fromTheySaidSo().toString();
+		var expected = "If you like what you do,\nand you’re lucky enough to be good at it, do it for that reason.\n-Phil Grimshaw (source: https://theysaidso.com)";
+		var actual = qotd.fromTheySaidSo().toString();
 		assertEquals(expected, actual);
 	}
 
@@ -88,10 +88,10 @@ public class QOTDTest {
 	public void nextRun() {
 		Now.setNow(LocalDateTime.of(2018, 7, 19, 11, 0, 0));
 
-		QOTD task = new QOTD();
+		var task = new QOTD();
 
-		long expected = Duration.ofHours(13).toMillis();
-		long actual = task.nextRun();
+		var expected = Duration.ofHours(13).toMillis();
+		var actual = task.nextRun();
 		assertApprox(expected, actual);
 	}
 

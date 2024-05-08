@@ -100,7 +100,7 @@ public class ChatCommandBuilder {
 	 */
 	public ChatCommand build() {
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.messageId(messageId)
 			.roomId(roomId)
 			.userId(userId)

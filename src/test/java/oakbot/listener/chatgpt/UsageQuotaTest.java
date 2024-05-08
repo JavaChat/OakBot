@@ -21,13 +21,13 @@ public class UsageQuotaTest {
 
 	@Test
 	public void getTimeUntilUserCanMakeRequest() {
-		Duration period = Duration.ofMinutes(10);
-		UsageQuota quota = new UsageQuota(period, 1);
-		int userId = 1;
+		var period = Duration.ofMinutes(10);
+		var quota = new UsageQuota(period, 1);
+		var userId = 1;
 
 		//no requests logged
-		Duration expected = Duration.ZERO;
-		Duration actual = quota.getTimeUntilUserCanMakeRequest(userId);
+		var expected = Duration.ZERO;
+		var actual = quota.getTimeUntilUserCanMakeRequest(userId);
 		assertEquals(expected, actual);
 
 		//request logged, quota met
@@ -58,9 +58,9 @@ public class UsageQuotaTest {
 
 	@Test
 	public void multiple_requests_per_period() {
-		Duration period = Duration.ofMinutes(10);
-		UsageQuota quota = new UsageQuota(period, 5);
-		int userId = 1;
+		var period = Duration.ofMinutes(10);
+		var quota = new UsageQuota(period, 5);
+		var userId = 1;
 
 		quota.logRequest(userId);
 		quota.logRequest(userId);
@@ -75,8 +75,8 @@ public class UsageQuotaTest {
 		quota.logRequest(userId);
 
 		//1 request left
-		Duration expected = Duration.ZERO;
-		Duration actual = quota.getTimeUntilUserCanMakeRequest(userId);
+		var expected = Duration.ZERO;
+		var actual = quota.getTimeUntilUserCanMakeRequest(userId);
 		assertEquals(expected, actual);
 
 		quota.logRequest(userId);
@@ -88,11 +88,11 @@ public class UsageQuotaTest {
 
 	@Test
 	public void allowAll() {
-		UsageQuota quota = UsageQuota.allowAll();
-		int userId = 1;
+		var quota = UsageQuota.allowAll();
+		var userId = 1;
 
-		Duration expected = Duration.ZERO;
-		Duration actual = quota.getTimeUntilUserCanMakeRequest(userId);
+		var expected = Duration.ZERO;
+		var actual = quota.getTimeUntilUserCanMakeRequest(userId);
 		assertEquals(expected, actual);
 
 		quota.logRequest(userId);
@@ -109,8 +109,8 @@ public class UsageQuotaTest {
 	}
 
 	private static void assertDurationApprox(Duration expected, Duration actual) {
-		long actualMs = actual.toMillis();
-		long expectedMs = expected.toMillis();
+		var actualMs = actual.toMillis();
+		var expectedMs = expected.toMillis();
 		assertTrue("Expected " + expected + ", but was " + actual, actualMs > expectedMs - 100);
 		assertTrue("Expected " + expected + ", but was " + actual, actualMs < expectedMs + 100);
 	}

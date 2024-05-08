@@ -33,14 +33,14 @@ public class FOTDTest {
 	 * Live test. Outputs current FOTD to stdout.
 	 */
 	public static void main(String args[]) throws Exception {
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		doAnswer(invocation -> {
 			PostMessage response = (PostMessage) invocation.getArguments()[0];
 			System.out.println(response.message());
 			return null;
 		}).when(bot).broadcastMessage(any(PostMessage.class));
 
-		FOTD fotd = new FOTD();
+		var fotd = new FOTD();
 		fotd.run(bot);
 	}
 
@@ -59,10 +59,10 @@ public class FOTDTest {
 	public void nextRun_morning() {
 		Now.setNow(LocalDateTime.of(2018, 7, 19, 11, 0, 0));
 
-		FOTD task = new FOTD();
+		var task = new FOTD();
 
-		long expected = Duration.ofHours(1).toMillis();
-		long actual = task.nextRun();
+		var expected = Duration.ofHours(1).toMillis();
+		var actual = task.nextRun();
 		assertApprox(expected, actual);
 	}
 
@@ -70,10 +70,10 @@ public class FOTDTest {
 	public void nextRun_afternoon() {
 		Now.setNow(LocalDateTime.of(2018, 7, 19, 13, 0, 0));
 
-		FOTD task = new FOTD();
+		var task = new FOTD();
 
-		long expected = Duration.ofHours(23).toMillis();
-		long actual = task.nextRun();
+		var expected = Duration.ofHours(23).toMillis();
+		var actual = task.nextRun();
 		assertApprox(expected, actual);
 	}
 
@@ -86,12 +86,12 @@ public class FOTDTest {
 		.build());
 		//@formatter:on
 
-		FOTD task = new FOTD();
+		var task = new FOTD();
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		task.run(bot);
 
-		PostMessage expected = new PostMessage("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)").splitStrategy(SplitStrategy.WORD);
+		var expected = new PostMessage("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)").splitStrategy(SplitStrategy.WORD);
 		verify(bot).broadcastMessage(expected);
 	}
 
@@ -104,12 +104,12 @@ public class FOTDTest {
 		.build());
 		//@formatter:on
 
-		FOTD task = new FOTD();
+		var task = new FOTD();
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		task.run(bot);
 
-		PostMessage expected = new PostMessage("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)").splitStrategy(SplitStrategy.WORD);
+		var expected = new PostMessage("The **fact** [(source)](http://www.refdesk.com/fotd-arch.html)").splitStrategy(SplitStrategy.WORD);
 		verify(bot).broadcastMessage(expected);
 	}
 
@@ -122,12 +122,12 @@ public class FOTDTest {
 		.build());
 		//@formatter:on
 
-		FOTD task = new FOTD();
+		var task = new FOTD();
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		task.run(bot);
 
-		PostMessage expected = new PostMessage("The <b>fact</b>\nline two\nSource: http://www.refdesk.com/fotd-arch.html").splitStrategy(SplitStrategy.WORD);
+		var expected = new PostMessage("The <b>fact</b>\nline two\nSource: http://www.refdesk.com/fotd-arch.html").splitStrategy(SplitStrategy.WORD);
 		verify(bot).broadcastMessage(expected);
 	}
 
@@ -140,9 +140,9 @@ public class FOTDTest {
 		.build());
 		//@formatter:on
 
-		FOTD task = new FOTD();
+		var task = new FOTD();
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		task.run(bot);
 
 		verify(bot, never()).broadcastMessage(any(PostMessage.class));

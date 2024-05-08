@@ -24,7 +24,6 @@ import com.github.mangstadt.sochat4j.ChatMessage;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
-import oakbot.task.XkcdExplained.Comic;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
 import oakbot.util.MockHttpClientBuilder;
@@ -35,9 +34,9 @@ public class XkcdExplainedTest {
 	 * Live test. Outputs the message to stdout.
 	 */
 	public static void main(String args[]) throws Exception {
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		doAnswer(invocation -> {
 			PostMessage message = (PostMessage) invocation.getArguments()[1];
 			System.out.println(message);
@@ -45,7 +44,7 @@ public class XkcdExplainedTest {
 		}).when(bot).sendMessage(eq(1), any(PostMessage.class));
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(-2)
 			.roomId(1)
@@ -65,7 +64,7 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void everything_is_ok() throws Exception {
-		String html = new Gobble(getClass(), "xkcd-explained-2796.html").asString();
+		var html = new Gobble(getClass(), "xkcd-explained-2796.html").asString();
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -74,12 +73,12 @@ public class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(-2)
 			.roomId(1)
@@ -90,7 +89,7 @@ public class XkcdExplainedTest {
 		task.onMessage(message, bot);
 		task.run(bot);
 
-		PostMessage expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
+		var expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
 		verify(bot).sendMessage(1, expected);
 
 		assertTrue(task.comicsByRoom.isEmpty());
@@ -98,7 +97,7 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void first_paragraph_not_wrapped_in_p_element() throws Exception {
-		String html = new Gobble(getClass(), "xkcd-explained-2796-first-para-not-wrapped-in-p-element.html").asString();
+		var html = new Gobble(getClass(), "xkcd-explained-2796-first-para-not-wrapped-in-p-element.html").asString();
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -107,12 +106,12 @@ public class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(-2)
 			.roomId(1)
@@ -123,7 +122,7 @@ public class XkcdExplainedTest {
 		task.onMessage(message, bot);
 		task.run(bot);
 
-		PostMessage expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
+		var expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
 		verify(bot).sendMessage(1, expected);
 
 		assertTrue(task.comicsByRoom.isEmpty());
@@ -131,7 +130,7 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void first_paragraph_has_newlines() throws Exception {
-		String html = new Gobble(getClass(), "xkcd-explained-2796-has-newlines.html").asString();
+		var html = new Gobble(getClass(), "xkcd-explained-2796-has-newlines.html").asString();
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -140,12 +139,12 @@ public class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(-2)
 			.roomId(1)
@@ -156,7 +155,7 @@ public class XkcdExplainedTest {
 		task.onMessage(message, bot);
 		task.run(bot);
 
-		PostMessage expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
+		var expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
 		verify(bot).sendMessage(1, expected);
 
 		assertTrue(task.comicsByRoom.isEmpty());
@@ -164,12 +163,12 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void initial_wait_time() throws Exception {
-		XkcdExplained task = new XkcdExplained("PT1H");
+		var task = new XkcdExplained("PT1H");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(-2)
 			.roomId(1)
@@ -184,7 +183,7 @@ public class XkcdExplainedTest {
 
 		assertEquals(1, task.comicsByRoom.size());
 
-		Comic comic = task.comicsByRoom.get(1);
+		var comic = task.comicsByRoom.get(1);
 		assertEquals(2802, comic.comicId);
 		assertSame(message, comic.messageContainingComic);
 		assertEquals(0, comic.timesCheckedWiki);
@@ -193,7 +192,7 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void no_wiki_page() throws Exception {
-		String html = new Gobble(getClass(), "xkcd-explained-404-response.html").asString();
+		var html = new Gobble(getClass(), "xkcd-explained-404-response.html").asString();
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -202,12 +201,12 @@ public class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(-2)
 			.roomId(1)
@@ -222,7 +221,7 @@ public class XkcdExplainedTest {
 
 		assertEquals(1, task.comicsByRoom.size());
 
-		Comic comic = task.comicsByRoom.get(1);
+		var comic = task.comicsByRoom.get(1);
 		assertEquals(2802, comic.comicId);
 		assertSame(message, comic.messageContainingComic);
 		assertEquals(1, comic.timesCheckedWiki);
@@ -231,7 +230,7 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void explanation_not_posted_yet() throws Exception {
-		String html = new Gobble(getClass(), "xkcd-explained-no-explanation.html").asString();
+		var html = new Gobble(getClass(), "xkcd-explained-no-explanation.html").asString();
 
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
@@ -240,12 +239,12 @@ public class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(-2)
 			.roomId(1)
@@ -260,7 +259,7 @@ public class XkcdExplainedTest {
 
 		assertEquals(1, task.comicsByRoom.size());
 
-		Comic comic = task.comicsByRoom.get(1);
+		var comic = task.comicsByRoom.get(1);
 		assertEquals(2796, comic.comicId);
 		assertSame(message, comic.messageContainingComic);
 		assertEquals(1, comic.timesCheckedWiki);
@@ -276,12 +275,12 @@ public class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(-2)
 			.roomId(1)
@@ -296,7 +295,7 @@ public class XkcdExplainedTest {
 
 		assertEquals(1, task.comicsByRoom.size());
 
-		Comic comic = task.comicsByRoom.get(1);
+		var comic = task.comicsByRoom.get(1);
 		assertEquals(2796, comic.comicId);
 		assertSame(message, comic.messageContainingComic);
 		assertEquals(1, comic.timesCheckedWiki);
@@ -310,12 +309,12 @@ public class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(100)
 			.roomId(1)
@@ -338,9 +337,9 @@ public class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
 		ChatMessage message = new ChatMessage.Builder()
@@ -361,21 +360,21 @@ public class XkcdExplainedTest {
 
 	@Test
 	public void give_up() throws Exception {
-		String html = new Gobble(getClass(), "xkcd-explained-no-explanation.html").asString();
+		var html = new Gobble(getClass(), "xkcd-explained-no-explanation.html").asString();
 
-		MockHttpClientBuilder mockHttp = new MockHttpClientBuilder();
+		var mockHttp = new MockHttpClientBuilder();
 		for (int i = 0; i < 8; i++) {
 			mockHttp.requestGet("https://www.explainxkcd.com/wiki/index.php/2796");
 			mockHttp.responseOk(html);
 		}
 		HttpFactory.inject(mockHttp.build());
 
-		XkcdExplained task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained("PT0S");
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
 		//@formatter:off
-		ChatMessage message = new ChatMessage.Builder()
+		var message = new ChatMessage.Builder()
 			.timestamp(LocalDateTime.now())
 			.userId(-2)
 			.roomId(1)
@@ -387,7 +386,7 @@ public class XkcdExplainedTest {
 
 		task.run(bot);
 		assertEquals(1, task.comicsByRoom.size());
-		Comic comic = task.comicsByRoom.get(1);
+		var comic = task.comicsByRoom.get(1);
 		assertEquals(2796, comic.comicId);
 		assertSame(message, comic.messageContainingComic);
 		assertEquals(1, comic.timesCheckedWiki);

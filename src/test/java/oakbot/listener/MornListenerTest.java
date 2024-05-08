@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 
-import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 
 /**
@@ -34,19 +33,19 @@ public class MornListenerTest {
 
 	private static void assertMorn(String message, String response, boolean ignoreNextMentionListenerMessage) {
 		//@formatter:off
-		ChatMessage chatMessage = new ChatMessage.Builder()
+		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
 			.content(message)
 		.build();
 		//@formatter:on
 		
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
 
-		MentionListenerMock mentionListener = new MentionListenerMock();
-		MornListener listener = new MornListener("PT0S", mentionListener);
+		var mentionListener = new MentionListenerMock();
+		var listener = new MornListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
+		var chatResponse = listener.onMessage(chatMessage, bot);
 		if (response == null) {
 			assertTrue(chatResponse.isEmpty());
 		} else {
@@ -59,19 +58,19 @@ public class MornListenerTest {
 	@Test
 	public void spam_protection() {
 		//@formatter:off
-		ChatMessage chatMessage = new ChatMessage.Builder()
+		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
 			.content("morn")
 		.build();
 		//@formatter:on
 		
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
 
-		MentionListenerMock mentionListener = new MentionListenerMock();
-		MornListener listener = new MornListener("PT0S", mentionListener);
+		var mentionListener = new MentionListenerMock();
+		var listener = new MornListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
+		var chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("morn", chatResponse);
 		chatResponse = listener.onMessage(chatMessage, bot);
 		assertTrue(chatResponse.isEmpty());
@@ -80,23 +79,23 @@ public class MornListenerTest {
 	@Test
 	public void room_specific() {
 		//@formatter:off
-		ChatMessage chatMessage1 = new ChatMessage.Builder()
+		var chatMessage1 = new ChatMessage.Builder()
 			.roomId(1)
 			.content("morn")
 		.build();
-		ChatMessage chatMessage2 = new ChatMessage.Builder()
+		var chatMessage2 = new ChatMessage.Builder()
 			.roomId(2)
 			.content("morn")
 		.build();
 		//@formatter:on
 		
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
 
-		MentionListenerMock mentionListener = new MentionListenerMock();
-		MornListener listener = new MornListener("PT0S", mentionListener);
+		var mentionListener = new MentionListenerMock();
+		var listener = new MornListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage1, bot);
+		var chatResponse = listener.onMessage(chatMessage1, bot);
 		assertMessage("morn", chatResponse);
 
 		chatResponse = listener.onMessage(chatMessage2, bot);

@@ -10,7 +10,7 @@ import org.junit.Test;
 public class ChatBuilderTest {
 	@Test
 	public void toString_reply_method_can_be_called_any_time() {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.append("one");
 		cb.reply(1);
 		cb.append(" two");
@@ -19,7 +19,7 @@ public class ChatBuilderTest {
 
 	@Test
 	public void toString_fixed_width_syntax_comes_before_reply() {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.fixedWidth();
 		cb.append("one");
 		cb.reply(1);
@@ -29,7 +29,7 @@ public class ChatBuilderTest {
 
 	@Test
 	public void toString_fixed_width() {
-		ChatBuilder cb = new ChatBuilder();
+		var cb = new ChatBuilder();
 		cb.fixedWidth();
 		cb.append("one");
 		cb.nl();
@@ -87,12 +87,12 @@ public class ChatBuilderTest {
 	}
 
 	private static void assertToMarkdown(String html, String expected, boolean fixedFont) {
-		String actual = ChatBuilder.toMarkdown(html, fixedFont);
+		var actual = ChatBuilder.toMarkdown(html, fixedFont);
 		assertEquals(expected, actual);
 	}
 
 	private static void assertToMarkdown(String html, String expected, boolean fixedFont, boolean includeTitleInLinks, String baseUrl) {
-		String actual = ChatBuilder.toMarkdown(html, fixedFont, includeTitleInLinks, baseUrl);
+		var actual = ChatBuilder.toMarkdown(html, fixedFont, includeTitleInLinks, baseUrl);
 		assertEquals(expected, actual);
 	}
 }

@@ -14,6 +14,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
@@ -22,7 +24,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -86,8 +87,8 @@ public class MockHttpClientBuilder {
 			}
 
 			if (params.length > 0) {
-				Set<NameValuePair> expectedParams = arrayToNameValuePairs(params);
-				Set<NameValuePair> actualParams = extractPostParams(request);
+				var expectedParams = arrayToNameValuePairs(params);
+				var actualParams = extractPostParams(request);
 				assertEquals(expectedParams, actualParams);
 			}
 		});
@@ -124,7 +125,7 @@ public class MockHttpClientBuilder {
 	 * @return this
 	 */
 	public MockHttpClientBuilder response(int statusCode, String body) {
-		HttpEntity entity = new StringEntity(body, StandardCharsets.UTF_8);
+		var entity = new StringEntity(body, StandardCharsets.UTF_8);
 		return response(statusCode, entity);
 	}
 
@@ -137,14 +138,14 @@ public class MockHttpClientBuilder {
 	 * @return this
 	 */
 	public MockHttpClientBuilder response(int statusCode, byte[] body, ContentType contentType) {
-		HttpEntity entity = new ByteArrayEntity(body, contentType);
+		var entity = new ByteArrayEntity(body, contentType);
 		return response(statusCode, entity);
 	}
 
 	private MockHttpClientBuilder response(int statusCode, HttpEntity entity) {
-		StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, statusCode, "");
+		var statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, statusCode, "");
 
-		CloseableHttpResponse response = mock(CloseableHttpResponse.class);
+		var response = mock(CloseableHttpResponse.class);
 		when(response.getStatusLine()).thenReturn(statusLine);
 		when(response.getEntity()).thenReturn(entity);
 		responses.add(response);
@@ -175,7 +176,7 @@ public class MockHttpClientBuilder {
 			throw new IllegalStateException("Request/response list sizes do not match.");
 		}
 
-		CloseableHttpClient client = mock(CloseableHttpClient.class);
+		var client = mock(CloseableHttpClient.class);
 
 		try {
 			when(client.execute(any(HttpUriRequest.class))).then(new Answer<HttpResponse>() {
@@ -189,10 +190,10 @@ public class MockHttpClientBuilder {
 						fail("The unit test only expected " + expectedRequests.size() + " HTTP requests to be sent, but more were generated.");
 					}
 
-					HttpRequest actualRequest = (HttpRequest) invocation.getArguments()[0];
+					var actualRequest = (HttpRequest) invocation.getArguments()[0];
 					expectedRequests.get(requestCount).accept(actualRequest);
 
-					IOException exception = responseExceptions.get(requestCount);
+					var exception = responseExceptions.get(requestCount);
 					if (exception != null) {
 						throw exception;
 					}
@@ -209,11 +210,9 @@ public class MockHttpClientBuilder {
 	}
 
 	private Set<NameValuePair> extractPostParams(HttpRequest request) {
-		if (!(request instanceof HttpEntityEnclosingRequest)) {
+		if (!(request instanceof HttpEntityEnclosingRequest entityRequest)) {
 			return Set.of();
 		}
-
-		HttpEntityEnclosingRequest entityRequest = (HttpEntityEnclosingRequest) request;
 
 		String body;
 		try {
@@ -226,14 +225,10 @@ public class MockHttpClientBuilder {
 	}
 
 	private Set<NameValuePair> arrayToNameValuePairs(String... params) {
-		Set<NameValuePair> expectedParams = new HashSet<>();
-
-		for (int i = 0; i < params.length; i += 2) {
+		return IntStream.iterate(0, i -> i < params.length, i -> i + 2).mapToObj(i -> {
 			String name = params[i];
 			String value = params[i + 1];
-			expectedParams.add(new BasicNameValuePair(name, value));
-		}
-
-		return expectedParams;
+			return new BasicNameValuePair(name, value);
+		}).collect(Collectors.toSet());
 	}
 }

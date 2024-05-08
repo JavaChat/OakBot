@@ -18,4 +18,10 @@ public class StringUtilsTest {
 		assertEquals("bus", StringUtils.plural("bus", 1));
 		assertEquals("buses", StringUtils.plural("bus", 2));
 	}
+
+	@Test
+	public void possessive() {
+		assertEquals("cat's", StringUtils.possessive("cat"));
+		assertEquals("cats'", StringUtils.possessive("cats"));
+	}
 }

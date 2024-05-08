@@ -12,7 +12,6 @@ import java.util.List;
 import org.junit.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
-import com.google.common.collect.Multimap;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -28,120 +27,122 @@ import oakbot.command.learn.LearnedCommandsDao;
 public class CommandListenerTest {
 	@Test
 	public void onMessage() {
-		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao());
+		var command = new UpperCommand();
+		var listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
-		ChatMessage message = new ChatMessage.Builder().content("/upper test").build();
+		var message = new ChatMessage.Builder().content("/upper test").build();
 		
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		
-		ChatActions response = listener.onMessage(message, bot);
+		var response = listener.onMessage(message, bot);
 
 		assertMessage("TEST", response);
 	}
 
 	@Test
 	public void onMessage_alias() {
-		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao());
+		var command = new UpperCommand();
+		var listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
-		ChatMessage message = new ChatMessage.Builder().content("/capital test").build();
+		var message = new ChatMessage.Builder().content("/capital test").build();
 		
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		
-		ChatActions response = listener.onMessage(message, bot);
+		var response = listener.onMessage(message, bot);
 
 		assertMessage("TEST", response);
 	}
 
 	@Test
 	public void onMessage_no_trigger() {
-		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao());
+		var command = new UpperCommand();
+		var listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
-		ChatMessage message = new ChatMessage.Builder().content("upper test").build();
+		var message = new ChatMessage.Builder().content("upper test").build();
 		
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		
-		ChatActions response = listener.onMessage(message, bot);
+		var response = listener.onMessage(message, bot);
 
 		assertTrue(response.isEmpty());
 	}
 
 	@Test
 	public void onMessage_learned() {
-		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		var learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("foo").output("bar").build());
 		learnedCommands.add(new LearnedCommand.Builder().name("name").output("reply").build());
-		CommandListener listener = new CommandListener(List.of(), learnedCommands);
+		var listener = new CommandListener(List.of(), learnedCommands);
 
-		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
+		var message = new ChatMessage.Builder().content("/foo").build();
 		
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 
-		ChatActions response = listener.onMessage(message, bot);
+		var response = listener.onMessage(message, bot);
 
 		assertMessage("bar", response);
 	}
 
 	@Test
 	public void onMessage_unrecognized() {
-		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao());
+		var command = new UpperCommand();
+		var listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
-		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
+		var message = new ChatMessage.Builder().content("/foo").build();
 		
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		
-		ChatActions response = listener.onMessage(message, bot);
+		var response = listener.onMessage(message, bot);
 
 		assertTrue(response.isEmpty());
 	}
 
 	@Test
 	public void onMessage_unrecognized_with_handler() {
-		Command command = new UpperCommand();
-		CommandListener listener = new CommandListener(List.of(command), new LearnedCommandsDao(), (message, context) -> {
+		var command = new UpperCommand();
+		var listener = new CommandListener(List.of(command), new LearnedCommandsDao(), (message, context) -> {
 			return ChatActions.post("Unknown command.");
 		});
 
-		ChatMessage message = new ChatMessage.Builder().content("/foo").build();
+		var message = new ChatMessage.Builder().content("/foo").build();
 		
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		
-		ChatActions response = listener.onMessage(message, bot);
+		var response = listener.onMessage(message, bot);
 
 		assertMessage("Unknown command.", response);
 	}
 
 	@Test
 	public void checkForDuplicateNames_no_duplicates() {
-		List<Command> commands = List.of( //@formatter:off
+		//@formatter:off
+		var commands = List.<Command>of(
 			new SimpleCommand("one"),
 			new SimpleCommand("two")
-		); //@formatter:on
+		);
+		//@formatter:on
 
-		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		var learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("lone").build());
 		learnedCommands.add(new LearnedCommand.Builder().name("ltwo").build());
 
-		CommandListener listener = new CommandListener(commands, learnedCommands);
+		var listener = new CommandListener(commands, learnedCommands);
 		assertTrue(listener.checkForDuplicateNames().isEmpty());
 	}
 
 	@Test
 	public void checkForDuplicateNames_duplicates() {
-		Command a = new SimpleCommand("one");
-		Command b = new SimpleCommand("two");
-		Command c = new SimpleCommand("TWO");
-		Command d = new SimpleCommand("three", "ONE");
-		List<Command> commands = List.of(a, b, c, d);
+		var a = new SimpleCommand("one");
+		var b = new SimpleCommand("two");
+		var c = new SimpleCommand("TWO");
+		var d = new SimpleCommand("three", "ONE");
+		var commands = List.<Command>of(a, b, c, d);
 
 		LearnedCommand e = new LearnedCommand.Builder().name("one").build();
 		LearnedCommand f = new LearnedCommand.Builder().name("ltwo").build();
@@ -149,10 +150,10 @@ public class CommandListenerTest {
 		learnedCommands.add(e);
 		learnedCommands.add(f);
 
-		CommandListener listener = new CommandListener(commands, learnedCommands);
-		Multimap<String, Command> duplicates = listener.checkForDuplicateNames();
+		var listener = new CommandListener(commands, learnedCommands);
+		var duplicates = listener.checkForDuplicateNames();
 
-		Collection<Command> dups = duplicates.get("one");
+		var dups = duplicates.get("one");
 		assertEquals(3, dups.size());
 		assertTrue(dups.contains(a));
 		assertTrue(dups.contains(d));

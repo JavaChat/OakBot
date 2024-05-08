@@ -10,7 +10,7 @@ import oakbot.util.JsonUtils;
  */
 public class ResponseSamples {
 	public static String chatCompletion(String responseMessage) {
-		ObjectNode root = JsonUtils.newObject();
+		var root = JsonUtils.newObject();
 
 		//@formatter:off
 		return JsonUtils.toString(root
@@ -35,7 +35,7 @@ public class ResponseSamples {
 	}
 
 	public static String createImage(String url) {
-		ObjectNode root = JsonUtils.newObject();
+		var root = JsonUtils.newObject();
 
 		//@formatter:off
 		return JsonUtils.toString(root
@@ -51,7 +51,7 @@ public class ResponseSamples {
 	}
 
 	public static String error(String message) {
-		ObjectNode root = JsonUtils.newObject();
+		var root = JsonUtils.newObject();
 
 		//@formatter:off
 		return JsonUtils.toString(root

@@ -10,8 +10,6 @@ import org.junit.Test;
 
 import oakbot.ai.openai.OpenAIClient;
 import oakbot.ai.stabilityai.StabilityAIClient;
-import oakbot.bot.ChatActions;
-import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.util.ChatCommandBuilder;
 
@@ -21,26 +19,26 @@ import oakbot.util.ChatCommandBuilder;
 public class ImagineCommandTest {
 	@Test
 	public void no_content() {
-		OpenAIClient openAIClient = new OpenAIClient("KEY");
-		StabilityAIClient stabilityAIClient = new StabilityAIClient("KEY");
-		ImagineCommand command = new ImagineCommand(openAIClient, stabilityAIClient, 1);
+		var openAIClient = new OpenAIClient("KEY");
+		var stabilityAIClient = new StabilityAIClient("KEY");
+		var command = new ImagineCommand(openAIClient, stabilityAIClient, 1);
 
 		//@formatter:off
-		ChatCommand message = new ChatCommandBuilder(command)
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		ChatActions response = command.onMessage(message, bot);
+		var response = command.onMessage(message, bot);
 		assertMessage(":1 Imagine what?", response);
 	}
 
 	@Test
 	public void parseContent() {
-		ImagineCommand.ImagineCommandParameters actual = ImagineCommand.parseContent("");
+		var actual = ImagineCommand.parseContent("");
 		assertNull(actual);
 
 		actual = ImagineCommand.parseContent("dall-e-3 https://www.example.com/image.png prompt goes here");
@@ -76,7 +74,7 @@ public class ImagineCommandTest {
 
 	@Test
 	public void validateParameters_image_variations() {
-		String model = ImagineCommand.MODEL_DALLE_2;
+		var model = ImagineCommand.MODEL_DALLE_2;
 		assertValidationError(model, null, null);
 		assertValidationPasses(model, null, "prompt");
 		assertValidationPasses(model, "image", null);
@@ -108,12 +106,12 @@ public class ImagineCommandTest {
 	}
 
 	private static void assertValidationError(String model, String image, String prompt) {
-		String error = ImagineCommand.validateParameters(model, image, prompt);
+		var error = ImagineCommand.validateParameters(model, image, prompt);
 		assertNotNull(error);
 	}
 
 	private static void assertValidationPasses(String model, String image, String prompt) {
-		String error = ImagineCommand.validateParameters(model, image, prompt);
+		var error = ImagineCommand.validateParameters(model, image, prompt);
 		assertNull(error);
 	}
 
@@ -127,7 +125,7 @@ public class ImagineCommandTest {
 		assertEquals(ImagineCommand.MODEL_STABLE_DIFFUSION, ImagineCommand.chooseWhichModelToUse(null, "image", "prompt"));
 
 		//if a model was provided, use it
-		for (String model : ImagineCommand.supportedModels) {
+		for (var model : ImagineCommand.supportedModels) {
 			assertEquals(model, ImagineCommand.chooseWhichModelToUse(model, null, "prompt"));
 		}
 	}

@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 
-import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 
 /**
@@ -31,19 +30,19 @@ public class WaveListenerTest {
 
 	private static void assertWave(String message, String response, boolean ignoreNextMentionListenerMessage) {
 		//@formatter:off
-		ChatMessage chatMessage = new ChatMessage.Builder()
+		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
 			.content(message)
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
 
-		MentionListenerMock mentionListener = new MentionListenerMock();
-		WaveListener listener = new WaveListener("PT0S", mentionListener);
+		var mentionListener = new MentionListenerMock();
+		var listener = new WaveListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
+		var chatResponse = listener.onMessage(chatMessage, bot);
 		if (response == null) {
 			assertTrue(chatResponse.isEmpty());
 		} else {
@@ -56,18 +55,18 @@ public class WaveListenerTest {
 	@Test
 	public void spam_protection() {
 		//@formatter:off
-		ChatMessage chatMessage = new ChatMessage.Builder()
+		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
 			.content("o/")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		MentionListenerMock mentionListener = new MentionListenerMock();
-		WaveListener listener = new WaveListener("PT0S", mentionListener);
+		var mentionListener = new MentionListenerMock();
+		var listener = new WaveListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
+		var chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("\\o", chatResponse);
 		chatResponse = listener.onMessage(chatMessage, bot);
 		assertTrue(chatResponse.isEmpty());
@@ -76,20 +75,20 @@ public class WaveListenerTest {
 	@Test
 	public void always_wave_to_admins() {
 		//@formatter:off
-		ChatMessage chatMessage = new ChatMessage.Builder()
+		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
 			.userId(10)
 			.content("o/")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getAdminUsers()).thenReturn(List.of(10));
 
-		MentionListenerMock mentionListener = new MentionListenerMock();
-		WaveListener listener = new WaveListener("PT0S", mentionListener);
+		var mentionListener = new MentionListenerMock();
+		var listener = new WaveListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage, bot);
+		var chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("\\o", chatResponse);
 		chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("\\o", chatResponse);
@@ -98,22 +97,22 @@ public class WaveListenerTest {
 	@Test
 	public void room_specific() {
 		//@formatter:off
-		ChatMessage chatMessage1 = new ChatMessage.Builder()
+		var chatMessage1 = new ChatMessage.Builder()
 			.roomId(1)
 			.content("o/")
 		.build();
-		ChatMessage chatMessage2 = new ChatMessage.Builder()
+		var chatMessage2 = new ChatMessage.Builder()
 			.roomId(2)
 			.content("o/")
 		.build();
 		//@formatter:on
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 
-		MentionListenerMock mentionListener = new MentionListenerMock();
-		WaveListener listener = new WaveListener("PT0S", mentionListener);
+		var mentionListener = new MentionListenerMock();
+		var listener = new WaveListener("PT0S", mentionListener);
 
-		ChatActions chatResponse = listener.onMessage(chatMessage1, bot);
+		var chatResponse = listener.onMessage(chatMessage1, bot);
 		assertMessage("\\o", chatResponse);
 
 		chatResponse = listener.onMessage(chatMessage2, bot);

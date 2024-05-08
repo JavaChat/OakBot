@@ -15,7 +15,7 @@ public class RelativeDateFormatTest {
 
 	@Test
 	public void format() {
-		LocalDateTime now = LocalDateTime.now();
+		var now = LocalDateTime.now();
 		assertEquals("A moment ago", relativeDf.format(now));
 
 		now = now.minusMinutes(30);

@@ -12,7 +12,6 @@ import org.junit.Test;
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.util.Sleeper;
 
-import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 
@@ -121,18 +120,20 @@ public class DadJokeListenerTest {
 	}
 
 	private static void assertResponse(String message, String response, CatchAllMentionListener catchAll) {
-		ChatMessage chatMessage = new ChatMessage.Builder() //@formatter:off
+		//@formatter:off
+		var chatMessage = new ChatMessage.Builder()
 			.messageId(1)
 			.roomId(1)
 			.content(message)
-			.build(); //@formatter:on
+			.build();
+		//@formatter:on
 
-		DadJokeListener listener = new DadJokeListener("Oak", catchAll);
+		var listener = new DadJokeListener("Oak", catchAll);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
 
-		ChatActions actions = listener.onMessage(chatMessage, bot);
+		var actions = listener.onMessage(chatMessage, bot);
 		assertMessage(":1 " + response, actions);
 	}
 
@@ -141,20 +142,22 @@ public class DadJokeListenerTest {
 	}
 
 	private static void assertNoResponse(String message, CatchAllMentionListener catchAll) {
-		ChatMessage chatMessage = new ChatMessage.Builder() //@formatter:off
+		//@formatter:off
+		var chatMessage = new ChatMessage.Builder()
 			.messageId(1)
 			.roomId(1)
 			.content(message)
-			.build(); //@formatter:on
+			.build();
+		//@formatter:on
 
-		DadJokeListener listener = new DadJokeListener("Oak", catchAll);
+		var listener = new DadJokeListener("Oak", catchAll);
 
-		IBot bot = mock(IBot.class);
+		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
 
-		ChatActions actions = listener.onMessage(chatMessage, bot);
+		var actions = listener.onMessage(chatMessage, bot);
 		if (!actions.isEmpty()) {
-			PostMessage postMessage = (PostMessage) actions.getActions().get(0);
+			var postMessage = (PostMessage) actions.getActions().get(0);
 			fail("The following response was returned when no response was expected: " + postMessage.message());
 		}
 	}

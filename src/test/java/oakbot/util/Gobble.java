@@ -93,7 +93,7 @@ public class Gobble {
 			throw new IllegalStateException("Cannot get raw bytes from a Reader object.");
 		}
 
-		InputStream in = buildInputStream();
+		var in = buildInputStream();
 		return consumeInputStream(in);
 	}
 
@@ -112,7 +112,7 @@ public class Gobble {
 	}
 
 	private String consumeReader(Reader reader) throws IOException {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		char[] buffer = new char[4096];
 		int read;
 		try {
@@ -126,7 +126,7 @@ public class Gobble {
 	}
 
 	private byte[] consumeInputStream(InputStream in) throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		var out = new ByteArrayOutputStream();
 		byte[] buffer = new byte[4096];
 		int read;
 		try {

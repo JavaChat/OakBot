@@ -4,11 +4,8 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,22 +20,22 @@ public class GobbleTest {
 
 	@Test
 	public void file() throws Exception {
-		String data = "one two three";
+		var data = "one two three";
 
-		Path file = folder.newFile().toPath();
+		var file = folder.newFile().toPath();
 		Files.write(file, data.getBytes());
 
-		Gobble stream = new Gobble(file);
+		var stream = new Gobble(file);
 		assertEquals(data, stream.asString());
 		assertArrayEquals(data.getBytes(), stream.asByteArray());
 	}
 
 	@Test
 	public void inputStream() throws Exception {
-		String data = "one two three";
+		var data = "one two three";
 
-		InputStream in = new ByteArrayInputStream(data.getBytes());
-		Gobble stream = new Gobble(in);
+		var in = new ByteArrayInputStream(data.getBytes());
+		var stream = new Gobble(in);
 		assertEquals(data, stream.asString());
 		assertArrayEquals(new byte[0], stream.asByteArray()); //input stream was consumed
 
@@ -49,10 +46,10 @@ public class GobbleTest {
 
 	@Test(expected = IllegalStateException.class)
 	public void reader() throws Exception {
-		String data = "one two three";
+		var data = "one two three";
 
-		Reader reader = new StringReader(data);
-		Gobble stream = new Gobble(reader);
+		var reader = new StringReader(data);
+		var stream = new Gobble(reader);
 		assertEquals(data, stream.asString());
 		stream.asByteArray();
 	}
