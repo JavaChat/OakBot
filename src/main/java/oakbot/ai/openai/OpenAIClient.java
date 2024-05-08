@@ -512,7 +512,7 @@ public class OpenAIClient {
 					var finishReason = choiceNode.path("finish_reason").asText();
 					return new ChatCompletionResponse.Choice(content, finishReason);
 				})
-				.collect(Collectors.toList()))
+				.toList())
 		.build();
 		//@formatter:on
 	}

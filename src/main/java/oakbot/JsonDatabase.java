@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -79,7 +78,7 @@ public class JsonDatabase implements Database {
 			//@formatter:off
 			return JsonUtils.streamArray(node)
 				.map(this::parseNode)
-			.collect(Collectors.toList());
+			.toList();
 			//@formatter:on
 		}
 
