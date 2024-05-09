@@ -1,8 +1,8 @@
 package oakbot.command.aoc;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -14,8 +14,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -34,7 +34,7 @@ import oakbot.util.Now;
  * @author Michael Angstadt
  */
 public class AdventOfCodeTest {
-	@After
+	@AfterEach
 	public void after() {
 		Now.restore();
 		HttpFactory.restore();

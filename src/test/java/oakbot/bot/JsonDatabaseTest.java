@@ -1,9 +1,10 @@
 package oakbot.bot;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,9 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import oakbot.JsonDatabase;
 
@@ -22,12 +22,12 @@ import oakbot.JsonDatabase;
  * @author Michael Angstadt
  */
 public class JsonDatabaseTest {
-	@Rule
-	public TemporaryFolder temp = new TemporaryFolder();
+	@TempDir
+	private Path tempDir;
 
 	@Test
 	public void round_trip() throws Exception {
-		var file = temp.newFile().toPath();
+		var file = Files.createTempFile(tempDir, "temp", ".json");
 		Files.delete(file);
 
 		Map<String, Object> map = new HashMap<>();
@@ -64,7 +64,7 @@ public class JsonDatabaseTest {
 
 	@Test
 	public void non_existant_key() throws Exception {
-		var file = temp.newFile().toPath();
+		var file = Files.createTempFile(tempDir, "temp", ".json");
 		Files.delete(file);
 
 		var db = new JsonDatabase(file);

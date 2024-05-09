@@ -2,7 +2,7 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import oakbot.util.ChatCommandBuilder;
 

@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import com.github.mangstadt.sochat4j.IRoom;
 import com.github.mangstadt.sochat4j.PingableUser;
@@ -26,7 +26,7 @@ import oakbot.util.MockHttpClientBuilder;
  * @author Michael Angstadt
  */
 public class JuiceBoxCommandTest {
-	@After
+	@AfterEach
 	public void after() {
 		HttpFactory.restore();
 	}

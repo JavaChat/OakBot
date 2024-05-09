@@ -1,8 +1,9 @@
 package oakbot.bot;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,9 +27,9 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.IChatClient;
@@ -60,7 +61,7 @@ public class BotTest {
 
 	private boolean runAfter;
 
-	@Before
+	@BeforeEach
 	public void before() {
 		eventId = 1;
 		messageId = 1;
@@ -73,7 +74,7 @@ public class BotTest {
 		Sleeper.startUnitTest();
 	}
 
-	@After
+	@AfterEach
 	public void after() throws Exception {
 		Sleeper.endUnitTest();
 
@@ -84,11 +85,10 @@ public class BotTest {
 		verify(chatClient).close();
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void builder_no_connection() throws Exception {
 		runAfter = false;
-
-		new Bot.Builder().build();
+		assertThrows(IllegalStateException.class, () -> new Bot.Builder().build());
 	}
 
 	@Test

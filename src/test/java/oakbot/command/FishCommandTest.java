@@ -1,7 +1,7 @@
 package oakbot.command;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import oakbot.Database;
 import oakbot.bot.IBot;
@@ -27,7 +27,7 @@ import oakbot.util.Now;
 import oakbot.util.Rng;
 
 public class FishCommandTest {
-	@After
+	@AfterEach
 	public void after() {
 		Now.restore();
 		Rng.restore();

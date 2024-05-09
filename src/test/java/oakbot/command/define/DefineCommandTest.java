@@ -7,8 +7,8 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import oakbot.bot.IBot;
 import oakbot.util.ChatCommandBuilder;
@@ -17,7 +17,7 @@ import oakbot.util.HttpFactory;
 import oakbot.util.MockHttpClientBuilder;
 
 public class DefineCommandTest {
-	@After
+	@AfterEach
 	public void after() {
 		HttpFactory.restore();
 	}

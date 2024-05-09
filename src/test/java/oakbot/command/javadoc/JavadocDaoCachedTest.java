@@ -1,9 +1,9 @@
 package oakbot.command.javadoc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -14,16 +14,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * @author Michael Angstadt
  */
 public class JavadocDaoCachedTest {
-	@Rule
-	public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+	@TempDir
+	private Path tempDir;
 
 	private final Path root = Paths.get("src", "test", "resources", "oakbot", "command", "javadoc");
 	private final JavadocDaoCached dao;
@@ -69,13 +68,12 @@ public class JavadocDaoCachedTest {
 
 	@Test
 	public void directory_watcher_ignore_non_zip_files() throws Exception {
-		var dir = temporaryFolder.getRoot().toPath();
-		var dao = new JavadocDaoCached(dir);
+		var dao = new JavadocDaoCached(tempDir);
 
 		assertNull(dao.getClassInfo("java.util.List"));
 
 		var source = root.resolve("JavadocZipFileTest.zip");
-		var dest = dir.resolve("JavadocZipFileTest.txt");
+		var dest = tempDir.resolve("JavadocZipFileTest.txt");
 		Files.copy(source, dest);
 		Thread.sleep(1000);
 		assertNull(dao.getClassInfo("java.util.List"));
@@ -83,13 +81,12 @@ public class JavadocDaoCachedTest {
 
 	@Test
 	public void directory_watcher_add() throws Exception {
-		var dir = temporaryFolder.getRoot().toPath();
-		var dao = new JavadocDaoCached(dir);
+		var dao = new JavadocDaoCached(tempDir);
 
 		assertNull(dao.getClassInfo("java.util.List"));
 
 		var source = root.resolve("JavadocZipFileTest.zip");
-		var dest = dir.resolve("JavadocZipFileTest.zip");
+		var dest = tempDir.resolve("JavadocZipFileTest.zip");
 		Files.copy(source, dest);
 
 		//wait for the WatchService to pick up the file
@@ -105,17 +102,16 @@ public class JavadocDaoCachedTest {
 
 	@Test
 	public void directory_watcher_remove() throws Exception {
-		var dir = temporaryFolder.getRoot().toPath();
 		var source = root.resolve("JavadocZipFileTest.zip");
-		var dest = dir.resolve("JavadocZipFileTest.zip");
+		var dest = tempDir.resolve("JavadocZipFileTest.zip");
 		Files.copy(source, dest);
 
-		var dao = new JavadocDaoCached(dir);
+		var dao = new JavadocDaoCached(tempDir);
 
 		var info = dao.getClassInfo("java.util.List");
 		assertNotNull(info);
 
-		source = dir.resolve("JavadocZipFileTest.zip");
+		source = tempDir.resolve("JavadocZipFileTest.zip");
 		Files.delete(source);
 
 		//wait for the WatchService to pick up the deleted file
@@ -130,14 +126,13 @@ public class JavadocDaoCachedTest {
 
 	@Test
 	public void directory_watcher_modified() throws Exception {
-		var dir = temporaryFolder.getRoot().toPath();
 		var source = root.resolve("JavadocZipFileTest.zip");
-		var dest = dir.resolve("JavadocZipFileTest.zip");
+		var dest = tempDir.resolve("JavadocZipFileTest.zip");
 		Files.copy(source, dest);
 
 		Thread.sleep(1500); //wait a bit before modifying the file so the timestamp is significantly different (for Macs)
 
-		var dao = new JavadocDaoCached(dir);
+		var dao = new JavadocDaoCached(tempDir);
 
 		var info = dao.getClassInfo("java.util.List");
 		assertNotNull(info);

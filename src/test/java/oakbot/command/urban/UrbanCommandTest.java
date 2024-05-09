@@ -6,8 +6,8 @@ import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import oakbot.bot.IBot;
 import oakbot.util.ChatCommandBuilder;
@@ -19,7 +19,7 @@ import oakbot.util.MockHttpClientBuilder;
  * @author Michael Angstadt
  */
 public class UrbanCommandTest {
-	@After
+	@AfterEach
 	public void after() {
 		HttpFactory.restore();
 	}

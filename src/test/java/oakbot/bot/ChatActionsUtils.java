@@ -1,7 +1,7 @@
 package oakbot.bot;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Contains utility methods for asserting the contents of a {@link ChatActions}
@@ -43,7 +43,7 @@ public class ChatActionsUtils {
 	}
 
 	private static PostMessage getFirstPostMessage(ChatActions actions) {
-		assertEquals("ChatActions object is empty or contains more than one action.", 1, actions.getActions().size());
+		assertEquals(1, actions.getActions().size(), () -> "ChatActions object is empty or contains more than one action.");
 		return (PostMessage) actions.getActions().get(0);
 	}
 }

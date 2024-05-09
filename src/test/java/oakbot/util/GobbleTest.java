@@ -1,28 +1,29 @@
 package oakbot.util;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * @author Michael Angstadt
  */
 public class GobbleTest {
-	@Rule
-	public TemporaryFolder folder = new TemporaryFolder();
+	@TempDir
+	private Path tempDir;
 
 	@Test
 	public void file() throws Exception {
 		var data = "one two three";
 
-		var file = folder.newFile().toPath();
+		var file = Files.createTempFile(tempDir, null, null);
 		Files.write(file, data.getBytes());
 
 		var stream = new Gobble(file);
@@ -44,13 +45,14 @@ public class GobbleTest {
 		assertArrayEquals(data.getBytes(), stream.asByteArray());
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void reader() throws Exception {
 		var data = "one two three";
 
 		var reader = new StringReader(data);
 		var stream = new Gobble(reader);
 		assertEquals(data, stream.asString());
-		stream.asByteArray();
+		
+		assertThrows(IllegalStateException.class, () -> stream.asByteArray());
 	}
 }

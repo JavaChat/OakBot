@@ -1,11 +1,11 @@
 package oakbot.command.aoc;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
@@ -16,7 +16,7 @@ import oakbot.util.Now;
  * @author Michael Angstadt
  */
 public class AdventOfCodeApiTest {
-	@After
+	@AfterEach
 	public void after() {
 		Now.restore();
 		HttpFactory.restore();

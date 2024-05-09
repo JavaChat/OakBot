@@ -1,16 +1,16 @@
 package oakbot.command.effective;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.github.mangstadt.sochat4j.util.Leaf;
 
@@ -51,7 +51,8 @@ public class EffectiveJavaXmlTest {
 		var prev = 0;
 		for (int number : sortedNumbers) {
 			prev++;
-			assertEquals("Item number missing: " + prev, prev, number);
+			final var prev2 = prev;
+			assertEquals(prev, number, () -> "Item number missing: " + prev2);
 		}
 	}
 
@@ -94,8 +95,8 @@ public class EffectiveJavaXmlTest {
 
 		for (var itemElement : itemElements) {
 			var titleElement = itemElement.selectFirst("title");
-			assertNotNull("Missing <title> element on item " + itemElement.attribute("number") + ".", titleElement);
-			assertFalse("Empty <title> element on item " + itemElement.attribute("number") + ".", titleElement.text().isEmpty());
+			assertNotNull(titleElement, () -> "Missing <title> element on item " + itemElement.attribute("number") + ".");
+			assertFalse(titleElement.text().isEmpty(), () -> "Empty <title> element on item " + itemElement.attribute("number") + ".");
 		}
 	}
 
@@ -108,8 +109,8 @@ public class EffectiveJavaXmlTest {
 
 		for (var itemElement : itemElements) {
 			var summaryElement = itemElement.selectFirst("summary");
-			assertNotNull("Missing <summary> element on item " + itemElement.attribute("number") + ".", summaryElement);
-			assertFalse("Empty <summary> element on item " + itemElement.attribute("number") + ".", summaryElement.text().isEmpty());
+			assertNotNull(summaryElement, () -> "Missing <summary> element on item " + itemElement.attribute("number") + ".");
+			assertFalse(summaryElement.text().isEmpty(), () -> "Empty <summary> element on item " + itemElement.attribute("number") + ".");
 		}
 	}
 }

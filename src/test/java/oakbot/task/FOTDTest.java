@@ -1,6 +1,6 @@
 package oakbot.task;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -10,9 +10,9 @@ import static org.mockito.Mockito.verify;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
@@ -44,12 +44,12 @@ public class FOTDTest {
 		fotd.run(bot);
 	}
 
-	@BeforeClass
+	@BeforeAll
 	public static void beforeClass() throws Exception {
 		refdeskPage = new Gobble(FOTDTest.class, "refdesk.html").asString();
 	}
 
-	@After
+	@AfterEach
 	public void after() {
 		Now.restore();
 		HttpFactory.restore();
@@ -149,6 +149,6 @@ public class FOTDTest {
 	}
 
 	private static void assertApprox(long expected, long actual) {
-		assertTrue("Expected " + expected + " but was " + actual + ".", expected - actual < 1000);
+		assertTrue(expected - actual < 1000, () -> "Expected " + expected + " but was " + actual + ".");
 	}
 }

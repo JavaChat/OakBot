@@ -1,9 +1,10 @@
 package oakbot.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -15,15 +16,15 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Properties;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Michael Angstadt
  */
 public class PropertiesWrapperTest {
-	@Test(expected = IOException.class)
+	@Test
 	public void constructor_file_not_found() throws Exception {
-		new PropertiesWrapper(Paths.get("foo"));
+		assertThrows(IOException.class, () -> new PropertiesWrapper(Paths.get("foo")));
 	}
 
 	@Test
@@ -70,13 +71,13 @@ public class PropertiesWrapperTest {
 		assertEquals(Integer.valueOf(1), wrapper.getInteger("foo", 1));
 	}
 
-	@Test(expected = NumberFormatException.class)
+	@Test
 	public void getInteger_invalid() {
 		Properties props = new Properties();
 		props.setProperty("key", "value");
 
 		var wrapper = new PropertiesWrapper(props);
-		wrapper.getInteger("key");
+		assertThrows(NumberFormatException.class, () -> wrapper.getInteger("key"));
 	}
 
 	@Test
@@ -90,13 +91,13 @@ public class PropertiesWrapperTest {
 		assertNull(wrapper.getDate("foo"));
 	}
 
-	@Test(expected = DateTimeParseException.class)
+	@Test
 	public void getDate_invalid() throws Exception {
 		var props = new Properties();
 		props.setProperty("key", "value");
 
 		var wrapper = new PropertiesWrapper(props);
-		wrapper.getDate("key");
+		assertThrows(DateTimeParseException.class, () -> wrapper.getDate("key"));
 	}
 
 	@Test

@@ -1,14 +1,14 @@
 package oakbot.task;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
@@ -24,7 +24,7 @@ public class QOTDTest {
 		System.out.println(qotd.fromSlashdot());
 	}
 
-	@After
+	@AfterEach
 	public void after() {
 		Now.restore();
 		HttpFactory.restore();
@@ -96,6 +96,6 @@ public class QOTDTest {
 	}
 
 	private static void assertApprox(long expected, long actual) {
-		assertTrue("Expected " + expected + " but was " + actual + ".", expected - actual < 1000);
+		assertTrue(expected - actual < 1000, () -> "Expected " + expected + " but was " + actual + ".");
 	}
 }

@@ -3,7 +3,7 @@ package oakbot.command;
 import static oakbot.bot.ChatActionsUtils.assertMessage;
 import static org.mockito.Mockito.mock;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import oakbot.bot.IBot;
 import oakbot.util.ChatCommandBuilder;

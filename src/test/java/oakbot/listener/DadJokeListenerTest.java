@@ -1,13 +1,13 @@
 package oakbot.listener;
 
 import static oakbot.bot.ChatActionsUtils.assertMessage;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.util.Sleeper;
@@ -19,12 +19,12 @@ import oakbot.bot.PostMessage;
  * @author Michael Angstadt
  */
 public class DadJokeListenerTest {
-	@BeforeClass
+	@BeforeAll
 	public static void beforeClass() {
 		Sleeper.startUnitTest();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void afterClass() {
 		Sleeper.endUnitTest();
 	}

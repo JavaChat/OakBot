@@ -1,9 +1,9 @@
 package oakbot.command.effective;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Michael Angstadt
@@ -15,7 +15,8 @@ public class EffectiveDebuggingCommandTest {
 	public void itemNumbers() throws Exception {
 		var expected = 1;
 		for (var item : command.items) {
-			assertEquals("Item numbers are not sequential at index " + (expected - 1) + ".", expected, item.number);
+			final var expected2 = expected;
+			assertEquals(expected, item.number, () -> "Item numbers are not sequential at index " + (expected2 - 1) + ".");
 			expected++;
 		}
 	}
