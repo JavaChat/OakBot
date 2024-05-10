@@ -929,7 +929,7 @@ public class Bot implements IBot {
 				cb.reply(id);
 			}
 
-			return cb.quote().append(content).toString();
+			return cb.quote(content).toString();
 		}
 	}
 

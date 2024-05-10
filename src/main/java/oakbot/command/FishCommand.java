@@ -319,9 +319,7 @@ public class FishCommand implements Command, ScheduledTask {
 		//@formatter:off
 		return new ChatBuilder()
 			.append("🐟 ")
-			.italic()
-			.append(message)
-			.italic()
+			.italic(message)
 		.toString();
 		//@formatter:on
 	}
@@ -338,7 +336,7 @@ public class FishCommand implements Command, ScheduledTask {
 		var fishesByUser = db.getMap("fish.caught");
 		if (fishesByUser != null) {
 			for (var userFishes : fishesByUser.entrySet()) {
-				int userId = Integer.parseInt(userFishes.getKey());
+				var userId = Integer.parseInt(userFishes.getKey());
 				var fishes = (Map<String, Integer>) userFishes.getValue();
 
 				var inv = new Inventory();

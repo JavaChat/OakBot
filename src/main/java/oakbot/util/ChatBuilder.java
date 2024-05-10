@@ -38,7 +38,7 @@ public class ChatBuilder implements CharSequence {
 	 * Creates a new chat builder.
 	 * @param text the text to initialize the builder with
 	 */
-	public ChatBuilder(String text) {
+	public ChatBuilder(CharSequence text) {
 		sb = new StringBuilder(text);
 	}
 
@@ -71,7 +71,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param text the text to wrap
 	 * @return this
 	 */
-	public ChatBuilder quote(String text) {
+	public ChatBuilder quote(CharSequence text) {
 		return quote().append(text);
 	}
 
@@ -88,7 +88,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param text the text to wrap
 	 * @return this
 	 */
-	public ChatBuilder bold(String text) {
+	public ChatBuilder bold(CharSequence text) {
 		return bold().append(text).bold();
 	}
 
@@ -105,7 +105,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param text the text to wrap
 	 * @return this
 	 */
-	public ChatBuilder code(String text) {
+	public ChatBuilder code(CharSequence text) {
 		return code().append(text).code();
 	}
 
@@ -122,7 +122,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param text the text to wrap
 	 * @return this
 	 */
-	public ChatBuilder italic(String text) {
+	public ChatBuilder italic(CharSequence text) {
 		return italic().append(text).italic();
 	}
 
@@ -139,7 +139,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param text the text to wrap
 	 * @return this
 	 */
-	public ChatBuilder strike(String text) {
+	public ChatBuilder strike(CharSequence text) {
 		return strike().append(text).strike();
 	}
 
@@ -209,7 +209,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param tag the tag name
 	 * @return this
 	 */
-	public ChatBuilder tag(String tag) {
+	public ChatBuilder tag(CharSequence tag) {
 		return append("[tag:").append(tag).append(']');
 	}
 
@@ -219,7 +219,7 @@ public class ChatBuilder implements CharSequence {
 	 * long and must not contain spaces)
 	 * @return this
 	 */
-	public ChatBuilder mention(String username) {
+	public ChatBuilder mention(CharSequence username) {
 		return append('@').append(username);
 	}
 
