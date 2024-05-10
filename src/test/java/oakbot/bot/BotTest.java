@@ -321,6 +321,57 @@ public class BotTest {
 	}
 
 	@Test
+	public void botler_relay_message() throws Exception {
+		/*
+		 * Setup the chat rooms.
+		 */
+		chatServer.createRoom(1);
+
+		/*
+		 * Define the chat room events to push.
+		 */
+		var event1 = event("Direct message from Botler user, treat normally.", Bot.BOTLER_ID);
+		var event2 = event("[<b><a href=\"https://discord.gg/PNMq3pBSUe\" rel=\"nofollow noopener noreferrer\">realmichael</a></b>] /fish", Bot.BOTLER_ID);
+		var event3 = event("[<b><a href=\"https://discord.gg/PNMq3pBSUe\" rel=\"nofollow noopener noreferrer\">realmichael</a></b>]", Bot.BOTLER_ID);
+
+		/*
+		 * Define the expected ChatMessage objects that will be passed down the
+		 * line.
+		 */
+		var message1 = event1.getMessage();
+		var message2 = new ChatMessage.Builder(event2.getMessage()).username("realmichael").content("/fish").build();
+		var message3 = new ChatMessage.Builder(event3.getMessage()).username("realmichael").content("").build();
+
+		/*
+		 * Create the listener.
+		 */
+		var listener = mock(Listener.class);
+		when(listener.onMessage(any(ChatMessage.class), any(IBot.class))).thenReturn(ChatActions.doNothing());
+
+		/*
+		 * Create the bot.
+		 */
+		//@formatter:off
+		var bot = bot()
+			.roomsHome(1)
+			.listeners(listener)
+		.build();
+		//@formatter:on
+
+		/*
+		 * Run the bot.
+		 */
+		runQuiet(bot, event1, event2, event3);
+
+		/*
+		 * Verify.
+		 */
+		verify(listener).onMessage(same(message1), same(bot));
+		verify(listener).onMessage(eq(message2), same(bot));
+		verify(listener).onMessage(eq(message3), same(bot));
+	}
+
+	@Test
 	public void filter_disabled_by_default() throws Exception {
 		filter(0);
 	}
@@ -386,7 +437,8 @@ public class BotTest {
 
 		var expectedEnabled = false;
 		switch (num) {
-		case 0 -> {}
+		case 0 -> {
+		}
 		case 1 -> filter.setEnabled(2, true);
 		case 2 -> {
 			filter.setEnabled(1, true);
@@ -969,7 +1021,7 @@ public class BotTest {
 		public void close() throws IOException {
 			//empty
 		}
-		
+
 		@Override
 		public String getMessageContent(long messageId) throws IOException {
 			throw new UnsupportedOperationException();

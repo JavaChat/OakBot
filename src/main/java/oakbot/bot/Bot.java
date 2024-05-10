@@ -20,6 +20,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import org.jsoup.Jsoup;
+
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.IChatClient;
 import com.github.mangstadt.sochat4j.IRoom;
@@ -50,6 +52,7 @@ import oakbot.util.ChatBuilder;
  */
 public class Bot implements IBot {
 	private static final Logger logger = Logger.getLogger(Bot.class.getName());
+	static final int BOTLER_ID = 13750349;
 
 	private final String userName;
 	private final String trigger;
@@ -225,7 +228,7 @@ public class Bot implements IBot {
 	public String uploadImage(String url) throws IOException {
 		return connection.uploadImage(url);
 	}
-	
+
 	@Override
 	public String uploadImage(byte[] data) throws IOException {
 		return connection.uploadImage(data);
@@ -666,6 +669,8 @@ public class Bot implements IBot {
 				return;
 			}
 
+			message = convertFromBotlerRelayMessage(message);
+
 			timeOfLastMessageByRoom.put(message.getRoomId(), message.getTimestamp());
 
 			var actions = handleListeners(message);
@@ -712,6 +717,45 @@ public class Bot implements IBot {
 
 				scheduleChore(hideIn, new CondenseMessageChore(postedMessage));
 			}
+		}
+
+		/**
+		 * Alters the username and content of a message if the message is a
+		 * Botler Discord relay message. Otherwise, returns the message
+		 * unaltered.
+		 * @param message the original message
+		 * @return the altered message or the same message if it's not a relay
+		 * message
+		 * @see <a href=
+		 * "https://chat.stackoverflow.com/transcript/message/57337679#57337679">example</a>
+		 */
+		private ChatMessage convertFromBotlerRelayMessage(ChatMessage message) {
+			if (message.getUserId() != BOTLER_ID) {
+				return message;
+			}
+
+			//Example message content:
+			//[<b><a href=\"https://discord.gg/PNMq3pBSUe\" rel=\"nofollow noopener noreferrer\">realmichael</a></b>] test
+			var html = message.getContent().getContent();
+			var dom = Jsoup.parse(html);
+			var element = dom.selectFirst("b a[href=\"https://discord.gg/PNMq3pBSUe\"]");
+			if (element == null) {
+				return message;
+			}
+			var discordUsername = element.text();
+
+			var endBracket = html.indexOf(']');
+			if (endBracket < 0) {
+				return message;
+			}
+			var discordMessage = html.substring(endBracket + 1).trim();
+
+			//@formatter:off
+			return new ChatMessage.Builder(message)
+				.username(discordUsername)
+				.content(discordMessage)
+			.build();
+			//@formatter:on
 		}
 
 		private ChatActions handleListeners(ChatMessage message) {
