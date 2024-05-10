@@ -216,7 +216,15 @@ public class Bot implements IBot {
 	public List<ChatMessage> getLatestMessages(int roomId, int count) throws IOException {
 		var room = connection.getRoom(roomId);
 		var notInRoom = (room == null);
-		return notInRoom ? List.of() : room.getMessages(count);
+		if (notInRoom) {
+			return List.of();
+		}
+
+		//@formatter:off
+		return room.getMessages(count).stream()
+			.map(this::convertFromBotlerRelayMessage)
+		.toList();
+		//@formatter:on
 	}
 
 	@Override
@@ -719,45 +727,6 @@ public class Bot implements IBot {
 			}
 		}
 
-		/**
-		 * Alters the username and content of a message if the message is a
-		 * Botler Discord relay message. Otherwise, returns the message
-		 * unaltered.
-		 * @param message the original message
-		 * @return the altered message or the same message if it's not a relay
-		 * message
-		 * @see <a href=
-		 * "https://chat.stackoverflow.com/transcript/message/57337679#57337679">example</a>
-		 */
-		private ChatMessage convertFromBotlerRelayMessage(ChatMessage message) {
-			if (message.getUserId() != BOTLER_ID) {
-				return message;
-			}
-
-			//Example message content:
-			//[<b><a href=\"https://discord.gg/PNMq3pBSUe\" rel=\"nofollow noopener noreferrer\">realmichael</a></b>] test
-			var html = message.getContent().getContent();
-			var dom = Jsoup.parse(html);
-			var element = dom.selectFirst("b a[href=\"https://discord.gg/PNMq3pBSUe\"]");
-			if (element == null) {
-				return message;
-			}
-			var discordUsername = element.text();
-
-			var endBracket = html.indexOf(']');
-			if (endBracket < 0) {
-				return message;
-			}
-			var discordMessage = html.substring(endBracket + 1).trim();
-
-			//@formatter:off
-			return new ChatMessage.Builder(message)
-				.username(discordUsername)
-				.content(discordMessage)
-			.build();
-			//@formatter:on
-		}
-
 		private ChatActions handleListeners(ChatMessage message) {
 			var actions = new ChatActions();
 			for (var listener : listeners) {
@@ -1056,6 +1025,44 @@ public class Bot implements IBot {
 				logger.log(Level.SEVERE, e, () -> "Problem posting delayed message [room=" + roomId + ", delay=" + message.delay() + "]: " + message.message());
 			}
 		}
+	}
+
+	/**
+	 * Alters the username and content of a message if the message is a Botler
+	 * Discord relay message. Otherwise, returns the message unaltered.
+	 * @param message the original message
+	 * @return the altered message or the same message if it's not a relay
+	 * message
+	 * @see <a href=
+	 * "https://chat.stackoverflow.com/transcript/message/57337679#57337679">example</a>
+	 */
+	private ChatMessage convertFromBotlerRelayMessage(ChatMessage message) {
+		if (message.getUserId() != BOTLER_ID) {
+			return message;
+		}
+
+		//Example message content:
+		//[<b><a href=\"https://discord.gg/PNMq3pBSUe\" rel=\"nofollow noopener noreferrer\">realmichael</a></b>] test
+		var html = message.getContent().getContent();
+		var dom = Jsoup.parse(html);
+		var element = dom.selectFirst("b a[href=\"https://discord.gg/PNMq3pBSUe\"]");
+		if (element == null) {
+			return message;
+		}
+		var discordUsername = element.text();
+
+		var endBracket = html.indexOf(']');
+		if (endBracket < 0) {
+			return message;
+		}
+		var discordMessage = html.substring(endBracket + 1).trim();
+
+		//@formatter:off
+		return new ChatMessage.Builder(message)
+				.username(discordUsername)
+				.content(discordMessage)
+				.build();
+		//@formatter:on
 	}
 
 	/**
