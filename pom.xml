@@ -65,13 +65,11 @@
 			"maven-shade-plugin" cannot be used because it causes problems with Spring.
 			It builds fine, but when it tries to load the application context XML file, it bombs.
 			See: https://stackoverflow.com/q/28254417
-
-			The latest version of this plugin requires Java 17.
 			-->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.7.14</version>
+				<version>3.2.5</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
