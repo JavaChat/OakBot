@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Angstadt
  */
-public class UpsidedownTextFilterTest {
+class UpsidedownTextFilterTest {
 	@Test
-	public void filter() {
+	void filter() {
 		var filter = new UpsidedownTextFilter();
 		assertEquals("Hǝllo' ʍoɹlp¡", filter.filter("Hello, world!"));
 		assertEquals("Hǝllo' [ʍoɹlp¡](http://google.com)", filter.filter("Hello, [world!](http://google.com)"));

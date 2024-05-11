@@ -16,14 +16,14 @@ import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
 import oakbot.util.MockHttpClientBuilder;
 
-public class DefineCommandTest {
+class DefineCommandTest {
 	@AfterEach
-	public void after() {
+	void after() {
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void no_word() {
+	void no_word() {
 		var command = new DefineCommand("apiKey");
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 
@@ -34,7 +34,7 @@ public class DefineCommandTest {
 	}
 
 	@Test
-	public void ioexception() throws Exception {
+	void ioexception() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
@@ -58,7 +58,7 @@ public class DefineCommandTest {
 	}
 
 	@Test
-	public void non_xml_response() throws Exception {
+	void non_xml_response() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
@@ -82,7 +82,7 @@ public class DefineCommandTest {
 	}
 
 	@Test
-	public void not_found() throws Exception {
+	void not_found() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
@@ -106,7 +106,7 @@ public class DefineCommandTest {
 	}
 
 	@Test
-	public void not_found_suggestions_one() throws Exception {
+	void not_found_suggestions_one() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey")
@@ -130,7 +130,7 @@ public class DefineCommandTest {
 	}
 
 	@Test
-	public void not_found_suggestions_two() throws Exception {
+	void not_found_suggestions_two() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey")
@@ -154,7 +154,7 @@ public class DefineCommandTest {
 	}
 
 	@Test
-	public void not_found_suggestions_multiple() throws Exception {
+	void not_found_suggestions_multiple() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey")
@@ -178,7 +178,7 @@ public class DefineCommandTest {
 	}
 
 	@Test
-	public void multiple_definitions() throws Exception {
+	void multiple_definitions() throws Exception {
 		var cool = new Gobble(getClass(), "cool.xml").asString(StandardCharsets.UTF_8);
 
 		//@formatter:off
@@ -275,7 +275,7 @@ public class DefineCommandTest {
 	}
 
 	@Test
-	public void encode_parameters() throws Exception {
+	void encode_parameters() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand%20piano?key=apiKey")

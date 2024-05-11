@@ -19,14 +19,14 @@ import oakbot.util.MockHttpClientBuilder;
 /**
  * @author Michael Angstadt
  */
-public class FacepalmCommandTest {
+class FacepalmCommandTest {
 	@AfterEach
 	public void after() {
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void onMessage() throws Exception {
+	void onMessage() throws Exception {
 		var tenor = new Gobble(getClass(), "tenor-response.json").asString();
 
 		//@formatter:off
@@ -52,7 +52,7 @@ public class FacepalmCommandTest {
 	}
 
 	@Test
-	public void onMessage_exception() {
+	void onMessage_exception() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://api.tenor.com/v1/random?key=key&q=facepalm&media_filter=minimal&safesearch=moderate&limit=1")
@@ -69,7 +69,7 @@ public class FacepalmCommandTest {
 	}
 
 	@Test
-	public void onMessage_bad_JSON() {
+	void onMessage_bad_JSON() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://api.tenor.com/v1/random?key=key&q=facepalm&media_filter=minimal&safesearch=moderate&limit=1")
@@ -86,7 +86,7 @@ public class FacepalmCommandTest {
 	}
 
 	@Test
-	public void onMessage_JSON_parse_error() {
+	void onMessage_JSON_parse_error() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://api.tenor.com/v1/random?key=key&q=facepalm&media_filter=minimal&safesearch=moderate&limit=1")

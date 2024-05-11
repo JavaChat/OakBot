@@ -29,14 +29,14 @@ import oakbot.util.MockHttpClientBuilder;
 /**
  * @author Michael Angstadt
  */
-public class OpenAIClientTest {
+class OpenAIClientTest {
 	@AfterEach
-	public void after() {
+	void after() {
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void chatCompletion() throws Exception {
+	void chatCompletion() throws Exception {
 		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
@@ -83,7 +83,7 @@ public class OpenAIClientTest {
 	}
 
 	@Test
-	public void chatCompletion_sanitize_name() throws Exception {
+	void chatCompletion_sanitize_name() throws Exception {
 		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
@@ -170,7 +170,7 @@ public class OpenAIClientTest {
 	}
 
 	@Test
-	public void chatCompletion_error() throws Exception {
+	void chatCompletion_error() throws Exception {
 		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
@@ -213,7 +213,7 @@ public class OpenAIClientTest {
 	}
 
 	@Test
-	public void createImage() throws Exception {
+	void createImage() throws Exception {
 		var client = new OpenAIClient("KEY");
 		var url = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
 
@@ -238,7 +238,7 @@ public class OpenAIClientTest {
 	}
 
 	@Test
-	public void createImage_error() throws Exception {
+	void createImage_error() throws Exception {
 		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
@@ -264,7 +264,7 @@ public class OpenAIClientTest {
 	}
 
 	@Test
-	public void createImageVariation() throws Exception {
+	void createImageVariation() throws Exception {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.png";
 		var resultUrl = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
@@ -310,7 +310,7 @@ public class OpenAIClientTest {
 	}
 
 	@Test
-	public void createImageVariation_bad_url_syntax() throws Exception {
+	void createImageVariation_bad_url_syntax() throws Exception {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.png user thinks they can include a prompt too";
 
@@ -325,7 +325,7 @@ public class OpenAIClientTest {
 	 * If the supplied URL returns a non-200 response, throw an exception.
 	 */
 	@Test
-	public void createImageVariation_404() throws Exception {
+	void createImageVariation_404() throws Exception {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.png";
 
@@ -348,7 +348,7 @@ public class OpenAIClientTest {
 	 * sent to OpenAI.
 	 */
 	@Test
-	public void createImageVariation_jpeg() throws Exception {
+	void createImageVariation_jpeg() throws Exception {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.png";
 		var resultUrl = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";
@@ -376,7 +376,7 @@ public class OpenAIClientTest {
 	 * OpenAI.
 	 */
 	@Test
-	public void createImageVariation_jpeg_invalid() throws Exception {
+	void createImageVariation_jpeg_invalid() throws Exception {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.jpg";
 
@@ -404,7 +404,7 @@ public class OpenAIClientTest {
 	 * type.
 	 */
 	@Test
-	public void createImageVariation_non_png_content_type() throws Exception {
+	void createImageVariation_non_png_content_type() throws Exception {
 		var client = new OpenAIClient("KEY");
 		var url = "https://www.google.com";
 
@@ -434,7 +434,7 @@ public class OpenAIClientTest {
 	 * Data without a content type will be sent to OpenAI unaltered.
 	 */
 	@Test
-	public void createImageVariation_no_content_type() throws Exception {
+	void createImageVariation_no_content_type() throws Exception {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.png";
 		var resultUrl = "https://oaidalleapiprodscus.blob.core.windows.net/private/org-N9aoMjcwsu6DCiJnMMvZSCJL/user-LiiW5Y0ymFAK6mbpkwguzsbU/img-urS5BJU18cX45rehJaB33FhW.png?st=2023-10-08T12%3A24%3A20Z&se=2023-10-08T14%3A24%3A20Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-10-08T03%3A41%3A31Z&ske=2023-10-09T03%3A41%3A31Z&sks=b&skv=2021-08-06&sig=BKj04a3Ds9gFYURBN/dPDtbEEJ0Wenfx0EVHzItfsM8%3D";

@@ -24,9 +24,9 @@ import oakbot.Database;
 /**
  * @author Michael Angstadt
  */
-public class LearnedCommandsDaoTest {
+class LearnedCommandsDaoTest {
 	@Test
-	public void non_existant_command() {
+	void non_existant_command() {
 		var dao = new LearnedCommandsDao();
 		assertFalse(dao.contains("foo"));
 		assertNull(dao.get("foo"));
@@ -34,7 +34,7 @@ public class LearnedCommandsDaoTest {
 	}
 
 	@Test
-	public void add_and_remove() {
+	void add_and_remove() {
 		var db = mock(Database.class);
 		var dao = new LearnedCommandsDao(db);
 		var now = LocalDateTime.now();
@@ -94,7 +94,7 @@ public class LearnedCommandsDaoTest {
 	}
 
 	@Test
-	public void load_from_empty_database() {
+	void load_from_empty_database() {
 		{
 			var db = mock(Database.class);
 			when(db.getList("learned-commands")).thenReturn(null);
@@ -111,7 +111,7 @@ public class LearnedCommandsDaoTest {
 	}
 
 	@Test
-	public void load_from_database() {
+	void load_from_database() {
 		LocalDateTime now = LocalDateTime.now();
 		List<Object> dbValue = new ArrayList<>();
 

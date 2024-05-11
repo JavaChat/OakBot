@@ -15,9 +15,9 @@ import oakbot.bot.IBot;
 /**
  * @author Michael Angstadt
  */
-public class AfkCommandTest {
+class AfkCommandTest {
 	@Test
-	public void afk() {
+	void afk() {
 		var afk = new AfkCommand();
 
 		var bot = mock(IBot.class);
@@ -75,7 +75,7 @@ public class AfkCommandTest {
 	}
 
 	@Test
-	public void mention_full() {
+	void mention_full() {
 		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 		command.setAway(22, "Franny", "brb");
@@ -98,7 +98,7 @@ public class AfkCommandTest {
 	}
 
 	@Test
-	public void mention_partial() {
+	void mention_partial() {
 		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 		command.setAway(22, "Franny", "brb");
@@ -121,7 +121,7 @@ public class AfkCommandTest {
 	}
 
 	@Test
-	public void mention_too_short() {
+	void mention_too_short() {
 		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 		command.setAway(22, "Franny", "brb");
@@ -144,7 +144,7 @@ public class AfkCommandTest {
 	}
 
 	@Test
-	public void mention_prevent_spam() {
+	void mention_prevent_spam() {
 		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 		command.setAway(22, "Franny", "");
@@ -167,7 +167,7 @@ public class AfkCommandTest {
 	}
 
 	@Test
-	public void back() {
+	void back() {
 		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 
@@ -190,7 +190,7 @@ public class AfkCommandTest {
 	}
 
 	@Test
-	public void already_away_and_typed_afk_command() {
+	void already_away_and_typed_afk_command() {
 		var command = new AfkCommand();
 		command.setAway(21, "Frank", "");
 

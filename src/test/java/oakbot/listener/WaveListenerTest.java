@@ -17,9 +17,9 @@ import oakbot.bot.IBot;
 /**
  * @author Michael Angstadt
  */
-public class WaveListenerTest {
+class WaveListenerTest {
 	@Test
-	public void onMessage() {
+	void onMessage() {
 		assertWave("o/", "\\o", false);
 		assertWave("\\o", "o/", false);
 		assertWave("hey o/", null, false);
@@ -53,7 +53,7 @@ public class WaveListenerTest {
 	}
 
 	@Test
-	public void spam_protection() {
+	void spam_protection() {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
@@ -73,7 +73,7 @@ public class WaveListenerTest {
 	}
 
 	@Test
-	public void always_wave_to_admins() {
+	void always_wave_to_admins() {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
@@ -95,7 +95,7 @@ public class WaveListenerTest {
 	}
 
 	@Test
-	public void room_specific() {
+	void room_specific() {
 		//@formatter:off
 		var chatMessage1 = new ChatMessage.Builder()
 			.roomId(1)

@@ -21,14 +21,14 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Angstadt
  */
-public class PropertiesWrapperTest {
+class PropertiesWrapperTest {
 	@Test
-	public void constructor_file_not_found() throws Exception {
+	void constructor_file_not_found() throws Exception {
 		assertThrows(IOException.class, () -> new PropertiesWrapper(Paths.get("foo")));
 	}
 
 	@Test
-	public void get() {
+	void get() {
 		var props = new Properties();
 		props.setProperty("key1", "value1");
 		props.setProperty("key2", " value2 ");
@@ -44,7 +44,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void getPath() {
+	void getPath() {
 		var props = new Properties();
 		props.setProperty("key1", "value1");
 		props.setProperty("key2", " value2 ");
@@ -60,7 +60,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void getInteger() {
+	void getInteger() {
 		var props = new Properties();
 		props.setProperty("key", "1");
 
@@ -72,7 +72,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void getInteger_invalid() {
+	void getInteger_invalid() {
 		Properties props = new Properties();
 		props.setProperty("key", "value");
 
@@ -81,7 +81,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void getDate() throws Exception {
+	void getDate() throws Exception {
 		var props = new Properties();
 		props.setProperty("key", "2015-04-11 15:43:00");
 
@@ -92,7 +92,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void getDate_invalid() throws Exception {
+	void getDate_invalid() throws Exception {
 		var props = new Properties();
 		props.setProperty("key", "value");
 
@@ -101,7 +101,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void getBoolean() {
+	void getBoolean() {
 		var props = new Properties();
 		props.setProperty("key1", "true");
 		props.setProperty("key2", "false");
@@ -117,7 +117,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void getFile() {
+	void getFile() {
 		var props = new Properties();
 		props.setProperty("key", "path/to/file");
 
@@ -128,7 +128,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void set() {
+	void set() {
 		var wrapper = new PropertiesWrapper();
 		var value = mock(Object.class);
 		doReturn("foo").when(value).toString();
@@ -138,7 +138,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void set_date() throws Exception {
+	void set_date() throws Exception {
 		var wrapper = new PropertiesWrapper();
 		var value = date("2015-11-04");
 		wrapper.set("key", value);
@@ -147,7 +147,7 @@ public class PropertiesWrapperTest {
 	}
 
 	@Test
-	public void getIntegerList() {
+	void getIntegerList() {
 		var props = new Properties();
 		props.setProperty("key1", "1");
 		props.setProperty("key2", "2,3 , 4");

@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Angstadt
  */
-public class ChatBuilderTest {
+class ChatBuilderTest {
 	@Test
-	public void toString_reply_method_can_be_called_any_time() {
+	void toString_reply_method_can_be_called_any_time() {
 		var cb = new ChatBuilder();
 		cb.append("one");
 		cb.reply(1);
@@ -18,7 +18,7 @@ public class ChatBuilderTest {
 	}
 
 	@Test
-	public void toString_fixed_width_syntax_comes_before_reply() {
+	void toString_fixed_width_syntax_comes_before_reply() {
 		var cb = new ChatBuilder();
 		cb.fixedWidth();
 		cb.append("one");
@@ -28,7 +28,7 @@ public class ChatBuilderTest {
 	}
 
 	@Test
-	public void toString_fixed_width() {
+	void toString_fixed_width() {
 		var cb = new ChatBuilder();
 		cb.fixedWidth();
 		cb.append("one");
@@ -38,7 +38,7 @@ public class ChatBuilderTest {
 	}
 
 	@Test
-	public void toMarkdown() {
+	void toMarkdown() {
 		//convert HTML tags to Markdown
 		assertToMarkdown("<b>value</b>", "**value**", false);
 		assertToMarkdown("<i>value</i>", "*value*", false);

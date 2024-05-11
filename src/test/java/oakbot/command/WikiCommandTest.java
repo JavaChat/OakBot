@@ -9,11 +9,11 @@ import oakbot.util.ChatCommandBuilder;
 /**
  * @author Michael Angstadt
  */
-public class WikiCommandTest {
+class WikiCommandTest {
 	private final WikiCommand command = new WikiCommand();
 
 	@Test
-	public void empty() {
+	void empty() {
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 
 		var response = command.onMessage(message, null);
@@ -21,7 +21,7 @@ public class WikiCommandTest {
 	}
 
 	@Test
-	public void spaces() {
+	void spaces() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -34,7 +34,7 @@ public class WikiCommandTest {
 	}
 
 	@Test
-	public void url_safe() {
+	void url_safe() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)

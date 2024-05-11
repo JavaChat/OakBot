@@ -14,9 +14,9 @@ import oakbot.util.MockHttpClientBuilder;
 /**
  * @author Michael Angstadt
  */
-public class Stands4ClientTest {
+class Stands4ClientTest {
 	@Test
-	public void getAbbreviations() throws Exception {
+	void getAbbreviations() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -32,7 +32,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void getAbbreviations_no_results() throws Exception {
+	void getAbbreviations_no_results() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -48,7 +48,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void getAbbreviationsAttributionUrl() {
+	void getAbbreviationsAttributionUrl() {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		var expected = "https://www.abbreviations.com/ASAP";
@@ -57,7 +57,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void checkGrammar() throws Exception {
+	void checkGrammar() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -73,7 +73,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void checkGrammar_no_results() throws Exception {
+	void checkGrammar_no_results() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -89,7 +89,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void getGrammarAttributionUrl() {
+	void getGrammarAttributionUrl() {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		var expected = "https://www.grammar.com";
@@ -98,7 +98,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void convert() throws Exception {
+	void convert() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -114,7 +114,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void convert_error() throws Exception {
+	void convert_error() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -134,7 +134,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void getConvertAttributionUrl() {
+	void getConvertAttributionUrl() {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		var expected = "https://www.convert.net";
@@ -143,7 +143,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void explain() throws Exception {
+	void explain() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -159,7 +159,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void explain_no_results() throws Exception {
+	void explain_no_results() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -174,7 +174,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void getExplainAttributionUrl() {
+	void getExplainAttributionUrl() {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		var expected = "https://www.phrases.com/psearch/in%20the%20nick%20of%20time";
@@ -183,7 +183,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void getRhymes() throws Exception {
+	void getRhymes() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -199,7 +199,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void getRhymes_no_results() throws Exception {
+	void getRhymes_no_results() throws Exception {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -215,7 +215,7 @@ public class Stands4ClientTest {
 	}
 
 	@Test
-	public void getRhymesAttributionUrl() {
+	void getRhymesAttributionUrl() {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		var expected = "https://www.rhymes.com/rhyme/java";

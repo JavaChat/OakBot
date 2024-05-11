@@ -12,11 +12,11 @@ import oakbot.util.ChatCommandBuilder;
 /**
  * @author Michael Angstadt
  */
-public class HttpCommandTest {
+class HttpCommandTest {
 	private final HttpCommand command = new HttpCommand();
 
 	@Test
-	public void xml() throws Exception {
+	void xml() throws Exception {
 		Leaf document;
 		try (var in = getClass().getResourceAsStream("http.xml")) {
 			document = Leaf.parse(in);
@@ -44,7 +44,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void no_command() {
+	void no_command() {
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 
 		var response = command.onMessage(message, null);
@@ -52,7 +52,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void status_code_not_found() {
+	void status_code_not_found() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -65,7 +65,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void status_code_found() {
+	void status_code_found() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -78,7 +78,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void method_not_found() {
+	void method_not_found() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -91,7 +91,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void method_found() {
+	void method_found() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -104,7 +104,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void paragraph_less_than_1() {
+	void paragraph_less_than_1() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -117,7 +117,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void paragraph_nan() {
+	void paragraph_nan() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -130,7 +130,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void paragraph() {
+	void paragraph() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -143,7 +143,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void paragraph_over_max() {
+	void paragraph_over_max() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -156,7 +156,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void paragraph_just_one() {
+	void paragraph_just_one() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -169,7 +169,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void section_without_rfc() {
+	void section_without_rfc() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -182,7 +182,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void section_without_rfc_with_statusCode_specific_rfc() {
+	void section_without_rfc_with_statusCode_specific_rfc() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -195,7 +195,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void section_with_rfc() {
+	void section_with_rfc() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)
@@ -208,7 +208,7 @@ public class HttpCommandTest {
 	}
 
 	@Test
-	public void rfc() {
+	void rfc() {
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
 			.messageId(1)

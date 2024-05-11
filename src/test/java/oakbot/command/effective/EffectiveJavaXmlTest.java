@@ -19,7 +19,7 @@ import com.github.mangstadt.sochat4j.util.Leaf;
  * items are correct.
  * @author Michael Angstadt
  */
-public class EffectiveJavaXmlTest {
+class EffectiveJavaXmlTest {
 	private final Leaf document;
 
 	public EffectiveJavaXmlTest() throws Exception {
@@ -29,7 +29,7 @@ public class EffectiveJavaXmlTest {
 	}
 
 	@Test
-	public void itemNumbers() throws Exception {
+	void itemNumbers() throws Exception {
 		var itemElements = document.select("/items/item");
 
 		var numbers = new HashSet<Integer>();
@@ -57,7 +57,7 @@ public class EffectiveJavaXmlTest {
 	}
 
 	@Test
-	public void pageNumbers() throws Exception {
+	void pageNumbers() throws Exception {
 		var itemElements = document.select("/items/item");
 
 		var pageNumbers = new HashMap<Integer, Integer>();
@@ -90,7 +90,7 @@ public class EffectiveJavaXmlTest {
 	 * The "title" element is required.
 	 */
 	@Test
-	public void titles() throws Exception {
+	void titles() throws Exception {
 		var itemElements = document.select("/items/item");
 
 		for (var itemElement : itemElements) {
@@ -104,7 +104,7 @@ public class EffectiveJavaXmlTest {
 	 * The "summary" element is required.
 	 */
 	@Test
-	public void summaries() throws Exception {
+	void summaries() throws Exception {
 		var itemElements = document.select("/items/item");
 
 		for (var itemElement : itemElements) {

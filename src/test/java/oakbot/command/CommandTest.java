@@ -16,9 +16,9 @@ import oakbot.bot.IBot;
 /**
  * @author Michael Angstadt
  */
-public class CommandTest {
+class CommandTest {
 	@Test
-	public void isInvokingMe() {
+	void isInvokingMe() {
 		var command = new Command() {
 			@Override
 			public String name() {

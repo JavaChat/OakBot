@@ -20,7 +20,7 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * @author Michael Angstadt
  */
-public class JavadocDaoCachedTest {
+class JavadocDaoCachedTest {
 	@TempDir
 	private Path tempDir;
 
@@ -35,39 +35,39 @@ public class JavadocDaoCachedTest {
 	}
 
 	@Test
-	public void search_multiple_results() {
+	void search_multiple_results() {
 		var actual = new HashSet<>(dao.search("list"));
 		var expected = new HashSet<>(List.of("java.awt.List", "java.util.List"));
 		assertEquals(expected, actual);
 	}
 
 	@Test
-	public void search_single_result() {
+	void search_single_result() {
 		var actual = new HashSet<>(dao.search("java.awt.list"));
 		var expected = new HashSet<>(List.of("java.awt.List"));
 		assertEquals(expected, actual);
 	}
 
 	@Test
-	public void search_no_results() {
+	void search_no_results() {
 		var names = dao.search("lsit");
 		assertTrue(names.isEmpty());
 	}
 
 	@Test
-	public void getClassInfo() throws Exception {
+	void getClassInfo() throws Exception {
 		var info = dao.getClassInfo("java.util.List");
 		assertEquals("java.util.List", info.getName().getFullyQualifiedName());
 	}
 
 	@Test
-	public void getClassInfo_case_sensitive() throws Exception {
+	void getClassInfo_case_sensitive() throws Exception {
 		var info = dao.getClassInfo("java.util.list");
 		assertNull(info);
 	}
 
 	@Test
-	public void directory_watcher_ignore_non_zip_files() throws Exception {
+	void directory_watcher_ignore_non_zip_files() throws Exception {
 		var dao = new JavadocDaoCached(tempDir);
 
 		assertNull(dao.getClassInfo("java.util.List"));
@@ -80,7 +80,7 @@ public class JavadocDaoCachedTest {
 	}
 
 	@Test
-	public void directory_watcher_add() throws Exception {
+	void directory_watcher_add() throws Exception {
 		var dao = new JavadocDaoCached(tempDir);
 
 		assertNull(dao.getClassInfo("java.util.List"));
@@ -101,7 +101,7 @@ public class JavadocDaoCachedTest {
 	}
 
 	@Test
-	public void directory_watcher_remove() throws Exception {
+	void directory_watcher_remove() throws Exception {
 		var source = root.resolve("JavadocZipFileTest.zip");
 		var dest = tempDir.resolve("JavadocZipFileTest.zip");
 		Files.copy(source, dest);
@@ -125,7 +125,7 @@ public class JavadocDaoCachedTest {
 	}
 
 	@Test
-	public void directory_watcher_modified() throws Exception {
+	void directory_watcher_modified() throws Exception {
 		var source = root.resolve("JavadocZipFileTest.zip");
 		var dest = tempDir.resolve("JavadocZipFileTest.zip");
 		Files.copy(source, dest);

@@ -18,14 +18,14 @@ import oakbot.util.MockHttpClientBuilder;
 /**
  * @author Michael Angstadt
  */
-public class UrbanCommandTest {
+class UrbanCommandTest {
 	@AfterEach
-	public void after() {
+	void after() {
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void no_word() {
+	void no_word() {
 		var command = new UrbanCommand();
 
 		//@formatter:off
@@ -41,7 +41,7 @@ public class UrbanCommandTest {
 	}
 
 	@Test
-	public void ioexception() throws Exception {
+	void ioexception() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://api.urbandictionary.com/v0/define?term=cool")
@@ -65,7 +65,7 @@ public class UrbanCommandTest {
 	}
 
 	@Test
-	public void non_json_response() throws Exception {
+	void non_json_response() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://api.urbandictionary.com/v0/define?term=cool")
@@ -89,7 +89,7 @@ public class UrbanCommandTest {
 	}
 
 	@Test
-	public void not_found() throws Exception {
+	void not_found() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://api.urbandictionary.com/v0/define?term=cool")
@@ -113,7 +113,7 @@ public class UrbanCommandTest {
 	}
 
 	@Test
-	public void no_newlines_in_definition() throws Exception {
+	void no_newlines_in_definition() throws Exception {
 		var cool = new Gobble(getClass(), "urbandictionary.cool.json").asString();
 
 		//@formatter:off
@@ -139,7 +139,7 @@ public class UrbanCommandTest {
 	}
 
 	@Test
-	public void newlines_in_definition() throws Exception {
+	void newlines_in_definition() throws Exception {
 		var snafu = new Gobble(getClass(), "urbandictionary.snafu.json").asString();
 
 		//@formatter:off
@@ -175,7 +175,7 @@ public class UrbanCommandTest {
 	}
 
 	@Test
-	public void other_definition() throws Exception {
+	void other_definition() throws Exception {
 		var cool = new Gobble(getClass(), "urbandictionary.cool.json").asString();
 
 		//@formatter:off
@@ -201,7 +201,7 @@ public class UrbanCommandTest {
 	}
 
 	@Test
-	public void other_definition_range_low() throws Exception {
+	void other_definition_range_low() throws Exception {
 		var cool = new Gobble(getClass(), "urbandictionary.cool.json").asString();
 
 		//@formatter:off
@@ -227,7 +227,7 @@ public class UrbanCommandTest {
 	}
 
 	@Test
-	public void other_definition_range_high() throws Exception {
+	void other_definition_range_high() throws Exception {
 		var cool = new Gobble(getClass(), "urbandictionary.cool.json").asString();
 
 		//@formatter:off
@@ -253,7 +253,7 @@ public class UrbanCommandTest {
 	}
 
 	@Test
-	public void word_with_spaces() throws Exception {
+	void word_with_spaces() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://api.urbandictionary.com/v0/define?term=fucked+up")

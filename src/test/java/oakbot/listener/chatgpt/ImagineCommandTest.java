@@ -16,9 +16,9 @@ import oakbot.util.ChatCommandBuilder;
 /**
  * @author Michael Angstadt
  */
-public class ImagineCommandTest {
+class ImagineCommandTest {
 	@Test
-	public void no_content() {
+	void no_content() {
 		var openAIClient = new OpenAIClient("KEY");
 		var stabilityAIClient = new StabilityAIClient("KEY");
 		var command = new ImagineCommand(openAIClient, stabilityAIClient, 1);
@@ -37,7 +37,7 @@ public class ImagineCommandTest {
 	}
 
 	@Test
-	public void parseContent() {
+	void parseContent() {
 		var actual = ImagineCommand.parseContent("");
 		assertNull(actual);
 
@@ -73,7 +73,7 @@ public class ImagineCommandTest {
 	}
 
 	@Test
-	public void validateParameters_image_variations() {
+	void validateParameters_image_variations() {
 		var model = ImagineCommand.MODEL_DALLE_2;
 		assertValidationError(model, null, null);
 		assertValidationPasses(model, null, "prompt");
@@ -116,7 +116,7 @@ public class ImagineCommandTest {
 	}
 
 	@Test
-	public void chooseWhichModelToUse() {
+	void chooseWhichModelToUse() {
 		//no model provided
 		assertEquals(ImagineCommand.MODEL_DALLE_3, ImagineCommand.chooseWhichModelToUse(null, null, "prompt"));
 

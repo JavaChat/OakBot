@@ -18,31 +18,31 @@ import oakbot.bot.PostMessage;
 /**
  * @author Michael Angstadt
  */
-public class DadJokeListenerTest {
+class DadJokeListenerTest {
 	@BeforeAll
-	public static void beforeClass() {
+	static void beforeClass() {
 		Sleeper.startUnitTest();
 	}
 
 	@AfterAll
-	public static void afterClass() {
+	static void afterClass() {
 		Sleeper.endUnitTest();
 	}
 
 	@Test
-	public void onMessage_i_or_i_am() {
+	void onMessage_i_or_i_am() {
 		assertResponse("I'm working on a project.", "Hi working on a project, I'm Oak!");
 		assertResponse("I am working on a project.", "Hi working on a project, I'm Oak!");
 	}
 
 	@Test
-	public void onMessage_case_insensitive() {
+	void onMessage_case_insensitive() {
 		assertResponse("I'm working on a project.", "Hi working on a project, I'm Oak!");
 		assertResponse("i'm working on a project.", "Hi working on a project, I'm Oak!");
 	}
 
 	@Test
-	public void onMessage_termination() {
+	void onMessage_termination() {
 		assertResponse("I'm working on a project", "Hi working on a project, I'm Oak!");
 		assertResponse("I'm working on a project. Please help!", "Hi working on a project, I'm Oak!");
 		assertResponse("I'm working on a project! Please help!", "Hi working on a project, I'm Oak!");
@@ -55,40 +55,40 @@ public class DadJokeListenerTest {
 	}
 
 	@Test
-	public void onMessage_length() {
+	void onMessage_length() {
 		assertNoResponse("I'm working on a really important project.");
 	}
 
 	@Test
-	public void onMessage_middle_of_sentence() {
+	void onMessage_middle_of_sentence() {
 		assertNoResponse("My boss is an idiot and I'm really mad.");
 	}
 
 	@Test
-	public void onMessage_html_entities() {
+	void onMessage_html_entities() {
 		assertResponse("I&#39;m working on a project", "Hi working on a project, I'm Oak!");
 	}
 
 	@Test
-	public void onMessage_html_formatting() {
+	void onMessage_html_formatting() {
 		assertResponse("I'm <i>working</i> on a project", "Hi *working* on a project, I'm Oak!");
 	}
 
 	@Test
-	public void onMessage_remove_links() {
+	void onMessage_remove_links() {
 		assertResponse("I'm <a href=\"https://www.google.com\">working</a> on a project", "Hi working on a project, I'm Oak!");
 		assertResponse("I'm working on this https://www.google.com", "Hi working on this, I'm Oak!");
 	}
 
 	@Test
-	public void onMessage_empty_phrase() {
+	void onMessage_empty_phrase() {
 		assertNoResponse("I'm");
 		assertNoResponse("I'm.");
 		assertNoResponse("I'm and");
 	}
 
 	@Test
-	public void onMessage_examples() {
+	void onMessage_examples() {
 		assertResponse("is anybody here?? i am confused and need help!", "Hi confused, I'm Oak!");
 		assertResponse("I'm playing around with Java syntax and I got this compiler error", "Hi playing around with Java syntax, I'm Oak!");
 		assertResponse("I'm working on a project and I need to record hystrix metrics and save it in my internal database", "Hi working on a project, I'm Oak!");
@@ -96,7 +96,7 @@ public class DadJokeListenerTest {
 	}
 
 	@Test
-	public void onMessage_replies_and_mentions() {
+	void onMessage_replies_and_mentions() {
 		assertResponse("@Michael I'm confused", "Hi confused, I'm Oak!");
 		assertResponse(":1234 I'm playing around with Java syntax", "Hi playing around with Java syntax, I'm Oak!");
 		assertNoResponse("@Michael abcd I'm working on a project and I need to record hystrix metrics and save it in my internal database");
@@ -105,13 +105,13 @@ public class DadJokeListenerTest {
 	}
 
 	@Test
-	public void onMessage_bot_mentioned() {
+	void onMessage_bot_mentioned() {
 		assertNoResponse("@Oak I'm confused", mock(CatchAllMentionListener.class));
 		assertResponse("@Oak I'm confused", "Hi confused, I'm Oak!", null);
 	}
 	
 	@Test
-	public void onMessage_same_name() {
+	void onMessage_same_name() {
 		assertResponse("I'm oak.", "Hi oak, I'm Oak too!");
 	}
 

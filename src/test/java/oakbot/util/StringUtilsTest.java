@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Angstadt
  */
-public class StringUtilsTest {
+class StringUtilsTest {
 	@Test
-	public void plural() {
+	void plural() {
 		assertEquals("cats", StringUtils.plural("cat", 0));
 		assertEquals("cat", StringUtils.plural("cat", 1));
 		assertEquals("cats", StringUtils.plural("cat", 2));
@@ -20,7 +20,7 @@ public class StringUtilsTest {
 	}
 
 	@Test
-	public void possessive() {
+	void possessive() {
 		assertEquals("cat's", StringUtils.possessive("cat"));
 		assertEquals("cats'", StringUtils.possessive("cats"));
 	}

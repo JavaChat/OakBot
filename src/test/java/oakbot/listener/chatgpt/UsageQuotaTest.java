@@ -13,14 +13,14 @@ import oakbot.util.Now;
 /**
  * @author Michael Angstadt
  */
-public class UsageQuotaTest {
+class UsageQuotaTest {
 	@AfterEach
-	public void after() {
+	void after() {
 		Now.restore();
 	}
 
 	@Test
-	public void getTimeUntilUserCanMakeRequest() {
+	void getTimeUntilUserCanMakeRequest() {
 		var period = Duration.ofMinutes(10);
 		var quota = new UsageQuota(period, 1);
 		var userId = 1;
@@ -57,7 +57,7 @@ public class UsageQuotaTest {
 	}
 
 	@Test
-	public void multiple_requests_per_period() {
+	void multiple_requests_per_period() {
 		var period = Duration.ofMinutes(10);
 		var quota = new UsageQuota(period, 5);
 		var userId = 1;
@@ -87,7 +87,7 @@ public class UsageQuotaTest {
 	}
 
 	@Test
-	public void allowAll() {
+	void allowAll() {
 		var quota = UsageQuota.allowAll();
 		var userId = 1;
 

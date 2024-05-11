@@ -15,12 +15,12 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * @author Michael Angstadt
  */
-public class GobbleTest {
+class GobbleTest {
 	@TempDir
 	private Path tempDir;
 
 	@Test
-	public void file() throws Exception {
+	void file() throws Exception {
 		var data = "one two three";
 
 		var file = Files.createTempFile(tempDir, null, null);
@@ -32,7 +32,7 @@ public class GobbleTest {
 	}
 
 	@Test
-	public void inputStream() throws Exception {
+	void inputStream() throws Exception {
 		var data = "one two three";
 
 		var in = new ByteArrayInputStream(data.getBytes());
@@ -46,7 +46,7 @@ public class GobbleTest {
 	}
 
 	@Test
-	public void reader() throws Exception {
+	void reader() throws Exception {
 		var data = "one two three";
 
 		var reader = new StringReader(data);

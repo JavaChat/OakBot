@@ -18,9 +18,9 @@ import oakbot.util.ChatCommandBuilder;
 /**
  * @author Michael Angstadt
  */
-public class ChatCommandTest {
+class ChatCommandTest {
 	@Test
-	public void fromMessage() {
+	void fromMessage() {
 		//typical usage
 		assertFromMessage("/name value", "name", "value", "/");
 		assertFromMessage("/name one two", "name", "one two", "/");
@@ -90,7 +90,7 @@ public class ChatCommandTest {
 	}
 
 	@Test
-	public void getContentAsArgs() {
+	void getContentAsArgs() {
 		assertContentAsArgs("", List.of());
 		assertContentAsArgs("one", List.of("one"));
 		assertContentAsArgs("one two", List.of("one", "two"));

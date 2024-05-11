@@ -15,15 +15,15 @@ import oakbot.util.Now;
 /**
  * @author Michael Angstadt
  */
-public class AdventOfCodeApiTest {
+class AdventOfCodeApiTest {
 	@AfterEach
-	public void after() {
+	void after() {
 		Now.restore();
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void getLeadeboard() throws Exception {
+	void getLeadeboard() throws Exception {
 		Now.setNow(LocalDateTime.of(2018, 12, 1, 0, 0, 0));
 		var aoc2018 = new Gobble(getClass(), "advent-of-code-2018.json").asString();
 
@@ -48,7 +48,7 @@ public class AdventOfCodeApiTest {
 	}
 
 	@Test
-	public void getLeadeboardUrl() throws Exception {
+	void getLeadeboardUrl() throws Exception {
 		Now.setNow(LocalDateTime.of(2018, 12, 1, 0, 0, 0));
 
 		var api = new AdventOfCodeApi("");

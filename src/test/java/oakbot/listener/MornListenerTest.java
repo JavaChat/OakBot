@@ -15,9 +15,9 @@ import oakbot.bot.IBot;
 /**
  * @author Michael Angstadt
  */
-public class MornListenerTest {
+class MornListenerTest {
 	@Test
-	public void onMessage() {
+	void onMessage() {
 		assertMorn("morn", "morn", false);
 		assertMorn("Morn", "morn", false);
 		assertMorn("morning", "Morning.", false);
@@ -56,7 +56,7 @@ public class MornListenerTest {
 	}
 
 	@Test
-	public void spam_protection() {
+	void spam_protection() {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
@@ -77,7 +77,7 @@ public class MornListenerTest {
 	}
 
 	@Test
-	public void room_specific() {
+	void room_specific() {
 		//@formatter:off
 		var chatMessage1 = new ChatMessage.Builder()
 			.roomId(1)

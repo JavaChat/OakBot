@@ -26,7 +26,7 @@ import oakbot.util.Now;
 /**
  * @author Michael Angstadt
  */
-public class FOTDTest {
+class FOTDTest {
 	private static String refdeskPage;
 
 	/**
@@ -45,18 +45,18 @@ public class FOTDTest {
 	}
 
 	@BeforeAll
-	public static void beforeClass() throws Exception {
+	static void beforeClass() throws Exception {
 		refdeskPage = new Gobble(FOTDTest.class, "refdesk.html").asString();
 	}
 
 	@AfterEach
-	public void after() {
+	void after() {
 		Now.restore();
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void nextRun_morning() {
+	void nextRun_morning() {
 		Now.setNow(LocalDateTime.of(2018, 7, 19, 11, 0, 0));
 
 		var task = new FOTD();
@@ -67,7 +67,7 @@ public class FOTDTest {
 	}
 
 	@Test
-	public void nextRun_afternoon() {
+	void nextRun_afternoon() {
 		Now.setNow(LocalDateTime.of(2018, 7, 19, 13, 0, 0));
 
 		var task = new FOTD();
@@ -78,7 +78,7 @@ public class FOTDTest {
 	}
 
 	@Test
-	public void run() throws Exception {
+	void run() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://www.refdesk.com")
@@ -96,7 +96,7 @@ public class FOTDTest {
 	}
 
 	@Test
-	public void run_no_dash() throws Exception {
+	void run_no_dash() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://www.refdesk.com")
@@ -114,7 +114,7 @@ public class FOTDTest {
 	}
 
 	@Test
-	public void run_multiline() throws Exception {
+	void run_multiline() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://www.refdesk.com")
@@ -132,7 +132,7 @@ public class FOTDTest {
 	}
 
 	@Test
-	public void run_fact_not_found() throws Exception {
+	void run_fact_not_found() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://www.refdesk.com")

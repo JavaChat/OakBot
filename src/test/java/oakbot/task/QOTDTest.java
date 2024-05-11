@@ -15,7 +15,7 @@ import oakbot.util.HttpFactory;
 import oakbot.util.MockHttpClientBuilder;
 import oakbot.util.Now;
 
-public class QOTDTest {
+class QOTDTest {
 	/**
 	 * Live test. Outputs current QOTD to stdout.
 	 */
@@ -25,13 +25,13 @@ public class QOTDTest {
 	}
 
 	@AfterEach
-	public void after() {
+	void after() {
 		Now.restore();
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void fromSlashdot() throws Exception {
+	void fromSlashdot() throws Exception {
 		var slashdot = new Gobble(getClass(), "slashdot.html").asString(StandardCharsets.UTF_8);
 
 		//@formatter:off
@@ -49,7 +49,7 @@ public class QOTDTest {
 	}
 
 	@Test
-	public void fromTheySaidSo() throws Exception {
+	void fromTheySaidSo() throws Exception {
 		var theySaidSo = new Gobble(getClass(), "theysaidso.json").asString(StandardCharsets.UTF_8);
 
 		//@formatter:off
@@ -67,7 +67,7 @@ public class QOTDTest {
 	}
 
 	@Test
-	public void fromTheySaidSo_newline() throws Exception {
+	void fromTheySaidSo_newline() throws Exception {
 		var theySaidSo = new Gobble(getClass(), "theysaidso_newline.json").asString(StandardCharsets.UTF_8);
 
 		//@formatter:off
@@ -85,7 +85,7 @@ public class QOTDTest {
 	}
 
 	@Test
-	public void nextRun() {
+	void nextRun() {
 		Now.setNow(LocalDateTime.of(2018, 7, 19, 11, 0, 0));
 
 		var task = new QOTD();

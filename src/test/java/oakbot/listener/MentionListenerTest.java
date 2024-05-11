@@ -15,9 +15,9 @@ import oakbot.bot.IBot;
 /**
  * @author Michael Angstadt
  */
-public class MentionListenerTest {
+class MentionListenerTest {
 	@Test
-	public void respond() {
+	void respond() {
 		assertResponse("Hey @OakBot", ":0 Type `/help` to see all my commands.");
 		assertResponse("Hey @Oak", ":0 Type `/help` to see all my commands.");
 		assertResponse("@Oak Thank  you", ":0 You're welcome.");
@@ -62,7 +62,7 @@ public class MentionListenerTest {
 	}
 
 	@Test
-	public void prevent_spam() {
+	void prevent_spam() {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.content("Hey @Oakbot")
@@ -83,7 +83,7 @@ public class MentionListenerTest {
 	}
 
 	@Test
-	public void ignore_next_message() {
+	void ignore_next_message() {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.content("Hey @Oakbot")

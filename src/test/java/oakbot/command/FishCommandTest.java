@@ -26,22 +26,22 @@ import oakbot.util.ChatCommandBuilder;
 import oakbot.util.Now;
 import oakbot.util.Rng;
 
-public class FishCommandTest {
+class FishCommandTest {
 	@AfterEach
-	public void after() {
+	void after() {
 		Now.restore();
 		Rng.restore();
 	}
 
 	@Test
-	public void loadInventories_no_data() {
+	void loadInventories_no_data() {
 		var db = mock(Database.class);
 		new FishCommand(db, "PT1S", "PT1S", "PT1S");
 		verify(db).getMap("fish.caught");
 	}
 
 	@Test
-	public void loadInventories_empty() {
+	void loadInventories_empty() {
 		var db = mock(Database.class);
 		when(db.getMap("fish.caught")).thenReturn(new HashMap<String, Object>());
 
@@ -50,7 +50,7 @@ public class FishCommandTest {
 	}
 
 	@Test
-	public void loadInventories_no_entry_for_user() {
+	void loadInventories_no_entry_for_user() {
 		//@formatter:off
 		Map<String, Object> map = Map.of(
 			"123456", Map.of(
@@ -79,7 +79,7 @@ public class FishCommandTest {
 	}
 
 	@Test
-	public void loadInventories_test_sort_order() {
+	void loadInventories_test_sort_order() {
 		//@formatter:off
 		Map<String, Object> map = Map.of(
 			"123456", Map.of(
@@ -110,7 +110,7 @@ public class FishCommandTest {
 	}
 
 	@Test
-	public void fish_username_does_not_end_in_s() throws Exception {
+	void fish_username_does_not_end_in_s() throws Exception {
 		var db = mock(Database.class);
 
 		var bot = mock(IBot.class);
@@ -142,7 +142,7 @@ public class FishCommandTest {
 	}
 
 	@Test
-	public void fish_too_soon() throws Exception {
+	void fish_too_soon() throws Exception {
 		var db = mock(Database.class);
 
 		var bot = mock(IBot.class);
@@ -196,7 +196,7 @@ public class FishCommandTest {
 	}
 
 	@Test
-	public void fish_too_late() throws Exception {
+	void fish_too_late() throws Exception {
 		var db = mock(Database.class);
 
 		var bot = mock(IBot.class);
@@ -252,7 +252,7 @@ public class FishCommandTest {
 	}
 
 	@Test
-	public void fish_quiver_again() throws Exception {
+	void fish_quiver_again() throws Exception {
 		var db = mock(Database.class);
 
 		var bot = mock(IBot.class);
@@ -288,7 +288,7 @@ public class FishCommandTest {
 	}
 
 	@Test
-	public void fish() throws Exception {
+	void fish() throws Exception {
 		var db = mock(Database.class);
 
 		var bot = mock(IBot.class);
@@ -348,7 +348,7 @@ public class FishCommandTest {
 	}
 
 	@Test
-	public void fish_again() throws Exception {
+	void fish_again() throws Exception {
 		var db = mock(Database.class);
 
 		var bot = mock(IBot.class);
@@ -411,7 +411,7 @@ public class FishCommandTest {
 	}
 
 	@Test
-	public void fish_status() throws Exception {
+	void fish_status() throws Exception {
 		var db = mock(Database.class);
 
 		var bot = mock(IBot.class);

@@ -17,9 +17,9 @@ import oakbot.bot.IBot;
 import oakbot.command.Command;
 import oakbot.util.ChatCommandBuilder;
 
-public class LearnCommandTest {
+class LearnCommandTest {
 	@Test
-	public void onMessage() throws Exception {
+	void onMessage() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		var now = LocalDateTime.now();
@@ -53,7 +53,7 @@ public class LearnCommandTest {
 	}
 
 	@Test
-	public void onMessage_no_command_name() throws Exception {
+	void onMessage_no_command_name() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		var message = new ChatCommandBuilder(command).messageId(1).build();
@@ -66,7 +66,7 @@ public class LearnCommandTest {
 	}
 
 	@Test
-	public void onMessage_no_command_output() throws Exception {
+	void onMessage_no_command_output() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		var message = new ChatCommandBuilder(command) //@formatter:off
@@ -82,7 +82,7 @@ public class LearnCommandTest {
 	}
 
 	@Test
-	public void onMessage_bad_command_name() throws Exception {
+	void onMessage_bad_command_name() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		var message = new ChatCommandBuilder(command) //@formatter:off
@@ -98,7 +98,7 @@ public class LearnCommandTest {
 	}
 
 	@Test
-	public void onMessage_command_exists() throws Exception {
+	void onMessage_command_exists() throws Exception {
 		var existing = mock(Command.class);
 		when(existing.name()).thenReturn("test");
 
@@ -117,7 +117,7 @@ public class LearnCommandTest {
 	}
 
 	@Test
-	public void onMessage_command_exists_check_alias() throws Exception {
+	void onMessage_command_exists_check_alias() throws Exception {
 		var existing = mock(Command.class);
 		when(existing.name()).thenReturn("name");
 		when(existing.aliases()).thenReturn(List.of("test"));
@@ -137,7 +137,7 @@ public class LearnCommandTest {
 	}
 
 	@Test
-	public void onMessage_learned_command_exists() throws Exception {
+	void onMessage_learned_command_exists() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("test").output("output").build());
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
@@ -154,7 +154,7 @@ public class LearnCommandTest {
 	}
 
 	@Test
-	public void onMessage_fixed_width() throws Exception {
+	void onMessage_fixed_width() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		var message = new ChatCommandBuilder(command) //@formatter:off
@@ -174,7 +174,7 @@ public class LearnCommandTest {
 	}
 
 	@Test
-	public void onMessage_IOException() throws Exception {
+	void onMessage_IOException() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		var message = new ChatCommandBuilder(command) //@formatter:off
@@ -194,7 +194,7 @@ public class LearnCommandTest {
 	}
 
 	@Test
-	public void onMessage_regex_fail() throws Exception {
+	void onMessage_regex_fail() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		var message = new ChatCommandBuilder(command) //@formatter:off

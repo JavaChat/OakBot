@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Angstadt
  */
-public class JavadocCommandArgumentsTest {
+class JavadocCommandArgumentsTest {
 	@Test
-	public void parse() {
+	void parse() {
 		var args = JavadocCommandArguments.parse("java.lang.string");
 		assertEquals("java.lang.string", args.className());
 		assertNull(args.methodName());
@@ -148,7 +148,7 @@ public class JavadocCommandArgumentsTest {
 	}
 
 	@Test
-	public void parse_invalid_paragraph() {
+	void parse_invalid_paragraph() {
 		var args = JavadocCommandArguments.parse("java.lang.string -1");
 		assertEquals("java.lang.string", args.className());
 		assertNull(args.methodName());

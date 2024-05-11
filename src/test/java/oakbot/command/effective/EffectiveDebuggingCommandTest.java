@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Angstadt
  */
-public class EffectiveDebuggingCommandTest {
+class EffectiveDebuggingCommandTest {
 	private final EffectiveDebuggingCommand command = new EffectiveDebuggingCommand();
 
 	@Test
-	public void itemNumbers() throws Exception {
+	void itemNumbers() throws Exception {
 		var expected = 1;
 		for (var item : command.items) {
 			final var expected2 = expected;
@@ -22,7 +22,7 @@ public class EffectiveDebuggingCommandTest {
 	}
 
 	@Test
-	public void pageNumbers() throws Exception {
+	void pageNumbers() throws Exception {
 		var prevPage = 0;
 
 		for (var item : command.items) {

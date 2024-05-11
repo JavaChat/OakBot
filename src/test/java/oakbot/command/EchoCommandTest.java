@@ -11,9 +11,9 @@ import oakbot.util.ChatCommandBuilder;
 /**
  * @author Michael Angstadt
  */
-public class EchoCommandTest {
+class EchoCommandTest {
 	@Test
-	public void onMessage() {
+	void onMessage() {
 		assertOnMessage("foo bar", "foo bar");
 		assertOnMessage("", ":1 Tell me what to say.");
 		assertOnMessage("<b>foo</b> bar", "**foo** bar");

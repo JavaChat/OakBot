@@ -33,15 +33,15 @@ import oakbot.util.Now;
 /**
  * @author Michael Angstadt
  */
-public class AdventOfCodeTest {
+class AdventOfCodeTest {
 	@AfterEach
-	public void after() {
+	void after() {
 		Now.restore();
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void using_default_id() throws Exception {
+	void using_default_id() throws Exception {
 		Now.setNow(LocalDateTime.of(2017, 12, 1, 0, 0, 0));
 
 		var aoc2017 = new Gobble(getClass(), "advent-of-code-2017.json").asString();
@@ -73,7 +73,7 @@ public class AdventOfCodeTest {
 	}
 
 	@Test
-	public void no_default_id() {
+	void no_default_id() {
 		Now.setNow(LocalDateTime.of(2017, 12, 1, 0, 0, 0));
 
 		//@formatter:off
@@ -102,7 +102,7 @@ public class AdventOfCodeTest {
 	}
 
 	@Test
-	public void override_default_id() throws Exception {
+	void override_default_id() throws Exception {
 		Now.setNow(LocalDateTime.of(2017, 12, 1, 0, 0, 0));
 
 		var aoc2017 = new Gobble(getClass(), "advent-of-code-2017.json").asString();
@@ -135,7 +135,7 @@ public class AdventOfCodeTest {
 	}
 
 	@Test
-	public void not_active() {
+	void not_active() {
 		Now.setNow(LocalDateTime.of(2017, 2, 1, 0, 0, 0));
 
 		//@formatter:off
@@ -163,7 +163,7 @@ public class AdventOfCodeTest {
 	}
 
 	@Test
-	public void nextRun() throws Exception {
+	void nextRun() throws Exception {
 		Now.setNow(LocalDateTime.of(2017, 12, 1, 0, 0, 0));
 
 		//@formatter:off
@@ -181,7 +181,7 @@ public class AdventOfCodeTest {
 	}
 
 	@Test
-	public void nextRun_not_december() throws Exception {
+	void nextRun_not_december() throws Exception {
 		Now.setNow(LocalDateTime.of(2017, 10, 1, 0, 0, 0));
 
 		//@formatter:off
@@ -199,7 +199,7 @@ public class AdventOfCodeTest {
 	}
 
 	@Test
-	public void announce_completions() throws Exception {
+	void announce_completions() throws Exception {
 		var start = LocalDateTime.of(2018, 12, 11, 0, 0, 0);
 
 		var mockHttp = new MockHttpClientBuilder();
@@ -289,7 +289,7 @@ public class AdventOfCodeTest {
 	}
 
 	@Test
-	public void announce_completions_anon_user() throws Exception {
+	void announce_completions_anon_user() throws Exception {
 		var start = LocalDateTime.of(2018, 12, 11, 0, 0, 0);
 
 		var mockHttp = new MockHttpClientBuilder();
@@ -341,7 +341,7 @@ public class AdventOfCodeTest {
 	}
 
 	@Test
-	public void announce_completions_at_symbol_in_username() throws Exception {
+	void announce_completions_at_symbol_in_username() throws Exception {
 		var start = LocalDateTime.of(2018, 12, 11, 0, 0, 0);
 
 		var mockHttp = new MockHttpClientBuilder();

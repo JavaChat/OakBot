@@ -52,7 +52,7 @@ import oakbot.listener.Listener;
 /**
  * @author Michael Angstadt
  */
-public class BotTest {
+class BotTest {
 	private long eventId;
 	private long messageId;
 
@@ -62,7 +62,7 @@ public class BotTest {
 	private boolean runAfter;
 
 	@BeforeEach
-	public void before() {
+	void before() {
 		eventId = 1;
 		messageId = 1;
 
@@ -75,7 +75,7 @@ public class BotTest {
 	}
 
 	@AfterEach
-	public void after() throws Exception {
+	void after() throws Exception {
 		Sleeper.endUnitTest();
 
 		if (!runAfter) {
@@ -86,13 +86,13 @@ public class BotTest {
 	}
 
 	@Test
-	public void builder_no_connection() throws Exception {
+	void builder_no_connection() throws Exception {
 		runAfter = false;
 		assertThrows(IllegalStateException.class, () -> new Bot.Builder().build());
 	}
 
 	@Test
-	public void connect_greeting_broadcast() throws Exception {
+	void connect_greeting_broadcast() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -122,7 +122,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void connect_greeting_quiet() throws Exception {
+	void connect_greeting_quiet() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -152,7 +152,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void connect_greeting_no_message() throws Exception {
+	void connect_greeting_no_message() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -181,7 +181,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void listener() throws Exception {
+	void listener() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -225,7 +225,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void command() throws Exception {
+	void command() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -279,7 +279,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void learned_command() throws Exception {
+	void learned_command() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -321,7 +321,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void botler_relay_message() throws Exception {
+	void botler_relay_message() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -372,22 +372,22 @@ public class BotTest {
 	}
 
 	@Test
-	public void filter_disabled_by_default() throws Exception {
+	void filter_disabled_by_default() throws Exception {
 		filter(0);
 	}
 
 	@Test
-	public void filter_enabled_on_another_room() throws Exception {
+	void filter_enabled_on_another_room() throws Exception {
 		filter(1);
 	}
 
 	@Test
-	public void filter_enabled_on_correct_room() throws Exception {
+	void filter_enabled_on_correct_room() throws Exception {
 		filter(2);
 	}
 
 	@Test
-	public void filter_enabled_globally() throws Exception {
+	void filter_enabled_globally() throws Exception {
 		filter(3);
 	}
 
@@ -476,7 +476,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void join_room() throws Exception {
+	void join_room() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -553,7 +553,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void leave_room() throws Exception {
+	void leave_room() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -599,7 +599,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void shutdown() throws Exception {
+	void shutdown() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -653,7 +653,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void content_null() throws Exception {
+	void content_null() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -691,7 +691,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void banned_user() throws Exception {
+	void banned_user() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -732,7 +732,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void allowed_user() throws Exception {
+	void allowed_user() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -773,7 +773,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void onebox() throws Exception {
+	void onebox() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */
@@ -844,7 +844,7 @@ public class BotTest {
 	}
 
 	@Test
-	public void unknown_command() throws Exception {
+	void unknown_command() throws Exception {
 		/*
 		 * Setup the chat rooms.
 		 */

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Angstadt
  */
-public class JavadocZipFileTest {
+class JavadocZipFileTest {
 	private final JavadocZipFile zip;
 	{
 		try {
@@ -25,21 +25,21 @@ public class JavadocZipFileTest {
 	}
 
 	@Test
-	public void info_without_file() throws Exception {
+	void info_without_file() throws Exception {
 		var zip = load("-no-info");
 		assertNull(zip.getName());
 		assertNull(zip.getBaseUrl());
 	}
 
 	@Test
-	public void info_without_attributes() throws Exception {
+	void info_without_attributes() throws Exception {
 		var zip = load("-no-attributes");
 		assertNull(zip.getName());
 		assertNull(zip.getBaseUrl());
 	}
 
 	@Test
-	public void info() {
+	void info() {
 		assertEquals("Java", zip.getName());
 		assertEquals("8", zip.getVersion());
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/", zip.getBaseUrl());
@@ -47,14 +47,14 @@ public class JavadocZipFileTest {
 	}
 
 	@Test
-	public void getUrl() {
+	void getUrl() {
 		var info = new ClassInfo.Builder().name(new ClassName("java.util", "List")).build();
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/java/util/List.html", zip.getUrl(info, false));
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/index.html?java/util/List.html", zip.getUrl(info, true));
 	}
 
 	@Test
-	public void getUrl_javadocUrlPattern() throws Exception {
+	void getUrl_javadocUrlPattern() throws Exception {
 		var zip = load("-javadocUrlPattern");
 
 		var info = new ClassInfo.Builder().name(new ClassName("android.app", "Application")).build();
@@ -63,7 +63,7 @@ public class JavadocZipFileTest {
 	}
 
 	@Test
-	public void getClassNames() throws Exception {
+	void getClassNames() throws Exception {
 		//@formatter:off
 		var actual = zip.getClassNames().stream()
 			.map(ClassName::getFullyQualifiedName)
@@ -83,13 +83,13 @@ public class JavadocZipFileTest {
 	}
 
 	@Test
-	public void getClassInfo_not_found() throws Exception {
+	void getClassInfo_not_found() throws Exception {
 		var info = zip.getClassInfo("java.lang.Foo");
 		assertNull(info);
 	}
 
 	@Test
-	public void getClassInfo() throws Exception {
+	void getClassInfo() throws Exception {
 		var info = zip.getClassInfo("java.lang.Object");
 		assertEquals("java.lang.Object", info.getName().getFullyQualifiedName());
 		assertEquals("Object", info.getName().getSimpleName());

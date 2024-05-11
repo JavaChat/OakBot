@@ -11,9 +11,9 @@ import oakbot.util.ChatCommandBuilder;
 /**
  * @author Michael Angstadt
  */
-public class LearnedCommandTest {
+class LearnedCommandTest {
 	@Test
-	public void onMessage() {
+	void onMessage() {
 		//@formatter:off
 		var cmd = new LearnedCommand.Builder()
 			.name("complement")

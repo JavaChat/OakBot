@@ -25,14 +25,14 @@ import oakbot.util.MockHttpClientBuilder;
 /**
  * @author Michael Angstadt
  */
-public class JuiceBoxCommandTest {
+class JuiceBoxCommandTest {
 	@AfterEach
-	public void after() {
+	void after() {
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void juicify_self() throws Exception {
+	void juicify_self() throws Exception {
 		var face = new Gobble(getClass(), "juiceboxify-face.html").asString();
 
 		//@formatter:off
@@ -67,7 +67,7 @@ public class JuiceBoxCommandTest {
 	}
 
 	@Test
-	public void juicify_someone_else() throws Exception {
+	void juicify_someone_else() throws Exception {
 		var face = new Gobble(getClass(), "juiceboxify-face.html").asString();
 
 		//@formatter:off
@@ -102,7 +102,7 @@ public class JuiceBoxCommandTest {
 	}
 
 	@Test
-	public void no_face() throws Exception {
+	void no_face() throws Exception {
 		var face = new Gobble(getClass(), "juiceboxify-no-face.html").asString();
 
 		//@formatter:off
@@ -137,7 +137,7 @@ public class JuiceBoxCommandTest {
 	}
 
 	@Test
-	public void user_not_in_room() throws Exception {
+	void user_not_in_room() throws Exception {
 		var command = new JuiceBoxCommand();
 
 		var room = mock(IRoom.class);

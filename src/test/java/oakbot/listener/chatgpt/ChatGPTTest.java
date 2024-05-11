@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Angstadt
  */
-public class ChatGPTTest {
+class ChatGPTTest {
 	@Test
-	public void removeMentionsFromBeginningOfMessage() {
+	void removeMentionsFromBeginningOfMessage() {
 		assertRemoveMentionsFromBeginningOfMessage("@Foo @Bar", "");
 		assertRemoveMentionsFromBeginningOfMessage("@Foo @Bar Hello @Bob world", "Hello @Bob world");
 		assertRemoveMentionsFromBeginningOfMessage("@Foo @Bar Hello world", "Hello world");
@@ -25,7 +25,7 @@ public class ChatGPTTest {
 	}
 
 	@Test
-	public void removeReplySyntaxFromBeginningOfMessage() {
+	void removeReplySyntaxFromBeginningOfMessage() {
 		assertRemoveReplySyntaxFromBeginningOfMessage(":123456", "");
 		assertRemoveReplySyntaxFromBeginningOfMessage(":123456 Hello world", "Hello world");
 		assertRemoveReplySyntaxFromBeginningOfMessage("Hello world", "Hello world");
@@ -37,7 +37,7 @@ public class ChatGPTTest {
 	}
 
 	@Test
-	public void formatMessagesWithCodeBlocks() {
+	void formatMessagesWithCodeBlocks() {
 		assertFormatMessagesWithCodeBlocks("No code blocks here", "No code blocks here");
 
 		//@formatter:off
@@ -151,7 +151,7 @@ public class ChatGPTTest {
 	}
 
 	@Test
-	public void extractUrls() {
+	void extractUrls() {
 		var actual = ChatGPT.extractUrls("Contains no image URLs.");
 		var expected = List.of();
 		assertEquals(expected, actual);

@@ -29,7 +29,7 @@ import oakbot.util.HttpFactory;
 import oakbot.util.MockHttpClientBuilder;
 import oakbot.util.Now;
 
-public class XkcdExplainedTest {
+class XkcdExplainedTest {
 	/**
 	 * Live test. Outputs the message to stdout.
 	 */
@@ -57,13 +57,13 @@ public class XkcdExplainedTest {
 	}
 
 	@AfterEach
-	public void after() {
+	 void after() {
 		Now.restore();
 		HttpFactory.restore();
 	}
 
 	@Test
-	public void everything_is_ok() throws Exception {
+	void everything_is_ok() throws Exception {
 		var html = new Gobble(getClass(), "xkcd-explained-2796.html").asString();
 
 		//@formatter:off
@@ -96,7 +96,7 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
-	public void first_paragraph_not_wrapped_in_p_element() throws Exception {
+	void first_paragraph_not_wrapped_in_p_element() throws Exception {
 		var html = new Gobble(getClass(), "xkcd-explained-2796-first-para-not-wrapped-in-p-element.html").asString();
 
 		//@formatter:off
@@ -129,7 +129,7 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
-	public void first_paragraph_has_newlines() throws Exception {
+	void first_paragraph_has_newlines() throws Exception {
 		var html = new Gobble(getClass(), "xkcd-explained-2796-has-newlines.html").asString();
 
 		//@formatter:off
@@ -162,7 +162,7 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
-	public void initial_wait_time() throws Exception {
+	void initial_wait_time() throws Exception {
 		var task = new XkcdExplained("PT1H");
 
 		var bot = mock(IBot.class);
@@ -191,7 +191,7 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
-	public void no_wiki_page() throws Exception {
+	void no_wiki_page() throws Exception {
 		var html = new Gobble(getClass(), "xkcd-explained-404-response.html").asString();
 
 		//@formatter:off
@@ -229,7 +229,7 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
-	public void explanation_not_posted_yet() throws Exception {
+	void explanation_not_posted_yet() throws Exception {
 		var html = new Gobble(getClass(), "xkcd-explained-no-explanation.html").asString();
 
 		//@formatter:off
@@ -267,7 +267,7 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
-	public void ioexception() throws Exception {
+	void ioexception() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.explainxkcd.com/wiki/index.php/2796")
@@ -303,7 +303,7 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
-	public void human_user_id() throws Exception {
+	void human_user_id() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 		.build());
@@ -331,7 +331,7 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
-	public void system_bot_posted_something_else() throws Exception {
+	void system_bot_posted_something_else() throws Exception {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 		.build());
@@ -359,7 +359,7 @@ public class XkcdExplainedTest {
 	}
 
 	@Test
-	public void give_up() throws Exception {
+	void give_up() throws Exception {
 		var html = new Gobble(getClass(), "xkcd-explained-no-explanation.html").asString();
 
 		var mockHttp = new MockHttpClientBuilder();

@@ -24,9 +24,9 @@ import oakbot.command.learn.LearnedCommandsDao;
 /**
  * @author Michael Angstadt
  */
-public class CommandListenerTest {
+class CommandListenerTest {
 	@Test
-	public void onMessage() {
+	void onMessage() {
 		var command = new UpperCommand();
 		var listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
@@ -41,7 +41,7 @@ public class CommandListenerTest {
 	}
 
 	@Test
-	public void onMessage_alias() {
+	void onMessage_alias() {
 		var command = new UpperCommand();
 		var listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
@@ -56,7 +56,7 @@ public class CommandListenerTest {
 	}
 
 	@Test
-	public void onMessage_no_trigger() {
+	void onMessage_no_trigger() {
 		var command = new UpperCommand();
 		var listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
@@ -71,7 +71,7 @@ public class CommandListenerTest {
 	}
 
 	@Test
-	public void onMessage_learned() {
+	void onMessage_learned() {
 		var learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("foo").output("bar").build());
 		learnedCommands.add(new LearnedCommand.Builder().name("name").output("reply").build());
@@ -88,7 +88,7 @@ public class CommandListenerTest {
 	}
 
 	@Test
-	public void onMessage_unrecognized() {
+	void onMessage_unrecognized() {
 		var command = new UpperCommand();
 		var listener = new CommandListener(List.of(command), new LearnedCommandsDao());
 
@@ -103,7 +103,7 @@ public class CommandListenerTest {
 	}
 
 	@Test
-	public void onMessage_unrecognized_with_handler() {
+	void onMessage_unrecognized_with_handler() {
 		var command = new UpperCommand();
 		var listener = new CommandListener(List.of(command), new LearnedCommandsDao(), (message, context) -> {
 			return ChatActions.post("Unknown command.");
@@ -120,7 +120,7 @@ public class CommandListenerTest {
 	}
 
 	@Test
-	public void checkForDuplicateNames_no_duplicates() {
+	void checkForDuplicateNames_no_duplicates() {
 		//@formatter:off
 		var commands = List.<Command>of(
 			new SimpleCommand("one"),
@@ -137,7 +137,7 @@ public class CommandListenerTest {
 	}
 
 	@Test
-	public void checkForDuplicateNames_duplicates() {
+	void checkForDuplicateNames_duplicates() {
 		var a = new SimpleCommand("one");
 		var b = new SimpleCommand("two");
 		var c = new SimpleCommand("TWO");

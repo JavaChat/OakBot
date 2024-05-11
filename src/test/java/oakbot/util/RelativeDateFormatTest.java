@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Angstadt
  */
-public class RelativeDateFormatTest {
+class RelativeDateFormatTest {
 	private final RelativeDateFormat relativeDf = new RelativeDateFormat();
 
 	@Test
-	public void format() {
+	void format() {
 		var now = LocalDateTime.now();
 		assertEquals("A moment ago", relativeDf.format(now));
 

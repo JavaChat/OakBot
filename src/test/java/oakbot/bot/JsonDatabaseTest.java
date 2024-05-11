@@ -21,12 +21,12 @@ import oakbot.JsonDatabase;
 /**
  * @author Michael Angstadt
  */
-public class JsonDatabaseTest {
+class JsonDatabaseTest {
 	@TempDir
 	private Path tempDir;
 
 	@Test
-	public void round_trip() throws Exception {
+	void round_trip() throws Exception {
 		var file = Files.createTempFile(tempDir, "temp", ".json");
 		Files.delete(file);
 
@@ -63,7 +63,7 @@ public class JsonDatabaseTest {
 	}
 
 	@Test
-	public void non_existant_key() throws Exception {
+	void non_existant_key() throws Exception {
 		var file = Files.createTempFile(tempDir, "temp", ".json");
 		Files.delete(file);
 
