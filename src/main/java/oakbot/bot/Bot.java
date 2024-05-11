@@ -1041,9 +1041,14 @@ public class Bot implements IBot {
 			return message;
 		}
 
+		var content = message.getContent();
+		if (content == null) {
+			return message;
+		}
+
 		//Example message content:
 		//[<b><a href=\"https://discord.gg/PNMq3pBSUe\" rel=\"nofollow noopener noreferrer\">realmichael</a></b>] test
-		var html = message.getContent().getContent();
+		var html = content.getContent();
 		var dom = Jsoup.parse(html);
 		var element = dom.selectFirst("b a[href=\"https://discord.gg/PNMq3pBSUe\"]");
 		if (element == null) {
@@ -1059,9 +1064,9 @@ public class Bot implements IBot {
 
 		//@formatter:off
 		return new ChatMessage.Builder(message)
-				.username(discordUsername)
-				.content(discordMessage)
-				.build();
+			.username(discordUsername)
+			.content(discordMessage)
+		.build();
 		//@formatter:on
 	}
 
