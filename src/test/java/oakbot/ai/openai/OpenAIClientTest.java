@@ -3,8 +3,8 @@ package oakbot.ai.openai;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -204,12 +204,8 @@ class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		try {
-			client.chatCompletion(chatCompletionRequest);
-			fail();
-		} catch (OpenAIException e) {
-			assertEquals("Error.", e.getMessage());
-		}
+		var e = assertThrows(OpenAIException.class, () -> client.chatCompletion(chatCompletionRequest));
+		assertEquals("Error.", e.getMessage());
 	}
 
 	@Test
@@ -254,13 +250,9 @@ class OpenAIClientTest {
 			.responseOk(ResponseSamples.error("Error."))
 		.build());
 		//@formatter:on
-
-		try {
-			client.createImage("model", "256x256", "Prompt.");
-			fail();
-		} catch (OpenAIException e) {
-			assertEquals("Error.", e.getMessage());
-		}
+		
+		var e = assertThrows(OpenAIException.class, () -> client.createImage("model", "256x256", "Prompt."));
+		assertEquals("Error.", e.getMessage());
 	}
 
 	@Test
@@ -314,11 +306,7 @@ class OpenAIClientTest {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.png user thinks they can include a prompt too";
 
-		try {
-			client.createImageVariation(url, "256x256");
-			fail();
-		} catch (IllegalArgumentException expected) {
-		}
+		assertThrows(IllegalArgumentException.class, () -> client.createImageVariation(url, "256x256"));
 	}
 
 	/**
@@ -335,12 +323,8 @@ class OpenAIClientTest {
 			.response(404, "")
 		.build());
 		//@formatter:on
-
-		try {
-			client.createImageVariation(url, "256x256");
-			fail();
-		} catch (IOException expected) {
-		}
+		
+		assertThrows(IOException.class, () -> client.createImageVariation(url, "256x256"));
 	}
 
 	/**
@@ -390,13 +374,9 @@ class OpenAIClientTest {
 			.responseOk(ResponseSamples.error("Uploaded image must be a PNG and less than 4 MB."))
 		.build());
 		//@formatter:on
-
-		try {
-			client.createImageVariation(url, "256x256");
-			fail();
-		} catch (OpenAIException e) {
-			assertEquals("Uploaded image must be a PNG and less than 4 MB.", e.getMessage());
-		}
+		
+		var e = assertThrows(OpenAIException.class, () -> client.createImageVariation(url, "256x256"));
+		assertEquals("Uploaded image must be a PNG and less than 4 MB.", e.getMessage());
 	}
 
 	/**
@@ -421,13 +401,9 @@ class OpenAIClientTest {
 			.responseOk(ResponseSamples.error("Uploaded image must be a PNG and less than 4 MB."))
 		.build());
 		//@formatter:on
-
-		try {
-			client.createImageVariation(url, "256x256");
-			fail();
-		} catch (OpenAIException e) {
-			assertEquals("Uploaded image must be a PNG and less than 4 MB.", e.getMessage());
-		}
+		
+		var e = assertThrows(OpenAIException.class, () -> client.createImageVariation(url, "256x256"));
+		assertEquals("Uploaded image must be a PNG and less than 4 MB.", e.getMessage());
 	}
 
 	/**

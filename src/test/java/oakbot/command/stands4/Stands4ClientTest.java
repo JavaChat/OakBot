@@ -2,7 +2,7 @@ package oakbot.command.stands4;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
@@ -123,14 +123,10 @@ class Stands4ClientTest {
 			.responseOk(ResponseSamples.convError())
 		.build());
 		//@formatter:on
-
-		try {
-			client.convert("i love dogs");
-			fail();
-		} catch (ConvertException e) {
-			assertEquals(4, e.getCode());
-			assertEquals("4: Invalid expression", e.getMessage());
-		}
+		
+		var e = assertThrows(ConvertException.class, () -> client.convert("i love dogs"));
+		assertEquals(4, e.getCode());
+		assertEquals("4: Invalid expression", e.getMessage());
 	}
 
 	@Test
