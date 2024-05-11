@@ -331,7 +331,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		//@formatter:on
 	}
 
-	private List<ChatCompletionRequest.Message> buildChatCompletionMessages(String prompt, List<ChatMessage> chatMessages, IBot bot) throws IOException {
+	private List<ChatCompletionRequest.Message> buildChatCompletionMessages(String prompt, List<ChatMessage> chatMessages, IBot bot) {
 		var apiMessages = new ArrayList<ChatCompletionRequest.Message>();
 
 		//@formatter:off
