@@ -24,4 +24,12 @@ class StringUtilsTest {
 		assertEquals("cat's", StringUtils.possessive("cat"));
 		assertEquals("cats'", StringUtils.possessive("cats"));
 	}
+
+	@Test
+	void countWords() {
+		assertEquals(0, StringUtils.countWords(""));
+		assertEquals(0, StringUtils.countWords("  "));
+		assertEquals(1, StringUtils.countWords("  one  "));
+		assertEquals(3, StringUtils.countWords("one two\tthree"));
+	}
 }

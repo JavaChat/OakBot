@@ -5,13 +5,13 @@ import java.util.regex.Pattern;
 
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.StringUtils;
 
 /**
  * Translates a message from English to Wadu hek.
  * @author Michael Angstadt
  */
 public class WaduFilter extends ToggleableFilter {
-	private final Pattern whitespaceRegex = Pattern.compile("\\s+");
 	private final Pattern replyRegex = Pattern.compile("^:\\d+\\s");
 
 	@Override
@@ -52,21 +52,12 @@ public class WaduFilter extends ToggleableFilter {
 		var lines = message.split("\r\n|\r|\n");
 		var applyFormatting = !fixed && lines.length == 1;
 		for (var line : lines) {
-			var waduWordsToGenerate = line.trim().isEmpty() ? 0 : countWords(line) / 5 + 1;
+			var waduWordsToGenerate = line.trim().isEmpty() ? 0 : StringUtils.countWords(line) / 5 + 1;
 			appendWaduLine(waduWordsToGenerate, applyFormatting, rng, cb);
 			cb.nl();
 		}
 
 		return cb.toString().stripTrailing();
-	}
-
-	private int countWords(String message) {
-		var count = 1;
-		var m = whitespaceRegex.matcher(message);
-		while (m.find()) {
-			count++;
-		}
-		return count;
 	}
 
 	private void appendWaduLine(int waduWordsToGenerate, boolean applyFormatting, WaduRng rng, ChatBuilder cb) {
@@ -183,13 +174,13 @@ public class WaduFilter extends ToggleableFilter {
 			return switch (rand(10)) {
 			case 0 -> 3;
 			case 1, 2 -> 2;
-			default ->  1;
+			default -> 1;
 			};
 		}
 
 		private int letterUCount() {
 			return switch (rand(10)) {
-			case 0 ->  3;
+			case 0 -> 3;
 			case 1, 2 -> 2;
 			default -> 1;
 			};

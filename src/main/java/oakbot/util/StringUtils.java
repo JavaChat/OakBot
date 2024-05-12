@@ -1,7 +1,9 @@
 package oakbot.util;
 
+import java.util.regex.Pattern;
+
 /**
- * Contains miscellaneous static utility methods.
+ * Contains miscellaneous string utility methods.
  * @author Michael Angstadt
  */
 public interface StringUtils {
@@ -27,5 +29,21 @@ public interface StringUtils {
 	 */
 	public static String possessive(String word) {
 		return word + (word.endsWith("s") ? "'" : "'s");
+	}
+
+	/**
+	 * Counts the number of words in a given string.
+	 * @param phrase the string
+	 * @return the number of words
+	 */
+	public static int countWords(String phrase) {
+		phrase = phrase.trim();
+		if (phrase.isEmpty()) {
+			return 0;
+		}
+
+		var p = Pattern.compile("\\s+");
+		var m = p.matcher(phrase);
+		return (int) m.results().count() + 1;
 	}
 }

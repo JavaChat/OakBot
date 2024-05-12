@@ -7,13 +7,13 @@ import java.util.stream.IntStream;
 
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.StringUtils;
 
 /**
  * Translates a message from English to Groot.
  * @author Michael Angstadt
  */
 public class GrootFilter extends ToggleableFilter {
-	private static final Pattern whitespaceRegex = Pattern.compile("\\s+");
 	private static final Pattern replyRegex = Pattern.compile("^:\\d+\\s");
 
 	private static final String[] grootWords = { "I", "am", "Groot" };
@@ -59,7 +59,7 @@ public class GrootFilter extends ToggleableFilter {
 		var lines = message.split("\r\n|\r|\n");
 		var applyFormatting = !fixed && lines.length == 1;
 		for (var line : lines) {
-			var grootSentencesToGenerate = line.trim().isEmpty() ? 0 : (countWords(line) / (grootWords.length * 2) + 1);
+			var grootSentencesToGenerate = line.trim().isEmpty() ? 0 : (StringUtils.countWords(line) / (grootWords.length * 2) + 1);
 
 			//@formatter:off
 			var grootLine = IntStream.range(0, grootSentencesToGenerate)
@@ -71,15 +71,6 @@ public class GrootFilter extends ToggleableFilter {
 		}
 
 		return cb.toString().stripTrailing();
-	}
-
-	private int countWords(String message) {
-		var count = 1;
-		var m = whitespaceRegex.matcher(message);
-		while (m.find()) {
-			count++;
-		}
-		return count;
 	}
 
 	private CharSequence grootSentence(boolean applyFormatting, GrootRng rng) {

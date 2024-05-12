@@ -17,6 +17,7 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
+import oakbot.util.StringUtils;
 
 /**
  * Responds to "I am [blank]" messages with "Hi [blank], I'm Oak!".
@@ -89,7 +90,7 @@ public class DadJokeListener implements Listener {
 		}
 
 		var name = phrase.get();
-		if (countWords(name) > 5) {
+		if (StringUtils.countWords(name) > 5) {
 			return doNothing();
 		}
 
@@ -132,16 +133,6 @@ public class DadJokeListener implements Listener {
 			.replaceAll("\\[(.*?)]\\([^\\)]*+\\)", "$1") //markdown links
 			.replaceAll("\\bhttps?://[^\\s]+", ""); //plaintext links
 		//@formatter:on
-	}
-
-	private int countWords(String phrase) {
-		var p = Pattern.compile("\\s+");
-		var m = p.matcher(phrase);
-		var words = 1;
-		while (m.find()) {
-			words++;
-		}
-		return words;
 	}
 
 	private void hesitate() {
