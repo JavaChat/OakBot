@@ -340,7 +340,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			.role("system")
 			.text(prompt)
 		.build());
-		
+
 		chatMessages.stream()
 			.filter(chatMessage -> chatMessage.getContent() != null) //skip deleted messages
 			.map(chatMessage -> {
@@ -348,8 +348,12 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 				var contentStr = content.getContent();
 				var fixedWidthFont = content.isFixedWidthFont();
 				var contentMd = ChatBuilder.toMarkdown(contentStr, fixedWidthFont);
+				var messagePostedByOak = (chatMessage.getUserId() == bot.getUserId());
 
-				var imageUrls = extractImageUrlsIfModelSupportsVision(contentStr);
+				/*
+				 * GPT-4o model does not allow "assistant" messages to contain image URLs.
+				 */
+				var imageUrls = messagePostedByOak ? List.<String>of() : extractImageUrlsIfModelSupportsVision(contentStr);
 
 				String truncatedContentMd;
 				if (latestMessageCharacterLimit > 0) {
@@ -358,11 +362,9 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 					truncatedContentMd = contentMd;
 				}
 
-				var messagePostedByOak = (chatMessage.getUserId() == bot.getUserId());
-
 				return new ChatCompletionRequest.Message.Builder()
 					.role(messagePostedByOak ? "assistant" : "user")
-					.name(messagePostedByOak ? bot.getUsername() : chatMessage.getUsername())
+					.name(chatMessage.getUsername())
 					.text(truncatedContentMd)
 					.imageUrls(imageUrls, "low")
 				.build();
