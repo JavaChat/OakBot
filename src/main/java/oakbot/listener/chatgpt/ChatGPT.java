@@ -51,6 +51,7 @@ import oakbot.util.HttpFactory;
 public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private static final Logger logger = Logger.getLogger(ChatGPT.class.getName());
 	private static final Collection<String> imageTypesSupportedByVisionModel = Set.of("image/png", "image/jpeg", "image/gif", "image/webp");
+	private static final Collection<String> visionModels = Set.of("gpt-4-vision-preview", "gpt-4o");
 
 	private final OpenAIClient openAIClient;
 	private final MoodCommand moodCommand;
@@ -373,7 +374,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private List<String> extractImageUrlsIfModelSupportsVision(String content) {
-		if (!modelSupportsVision()) {
+		if (!visionModels.contains(model)) {
 			return List.of();
 		}
 
@@ -430,10 +431,6 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 		var contentType = elements[0].getName();
 		return imageTypesSupportedByVisionModel.contains(contentType);
-	}
-
-	private boolean modelSupportsVision() {
-		return "gpt-4-vision-preview".equals(model);
 	}
 
 	static List<String> extractUrls(String content) {
