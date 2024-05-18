@@ -46,4 +46,21 @@ public interface StringUtils {
 		var m = p.matcher(phrase);
 		return (int) m.results().count() + 1;
 	}
+
+	/**
+	 * Returns "a" or "an", depending on what the first letter of the given word
+	 * is.
+	 * @param word the word
+	 * @return "an" if the first letter is a vowel, "a" otherwise
+	 */
+	public static String a(String word) {
+		if (word.isEmpty()) {
+			return "a";
+		}
+
+		var first = Character.toLowerCase(word.charAt(0));
+		var vowel = ("aeiou".indexOf(first) >= 0);
+
+		return vowel ? "an" : "a";
+	}
 }

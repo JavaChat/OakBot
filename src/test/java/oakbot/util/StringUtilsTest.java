@@ -32,4 +32,15 @@ class StringUtilsTest {
 		assertEquals(1, StringUtils.countWords("  one  "));
 		assertEquals(3, StringUtils.countWords("one two\tthree"));
 	}
+
+	@Test
+	void a() {
+		assertEquals("a", StringUtils.a(""));
+		assertEquals("a", StringUtils.a("cat"));
+		assertEquals("an", StringUtils.a("animal"));
+		assertEquals("an", StringUtils.a("egg"));
+		assertEquals("an", StringUtils.a("igloo"));
+		assertEquals("an", StringUtils.a("olive"));
+		assertEquals("an", StringUtils.a("umbrella"));
+	}
 }
