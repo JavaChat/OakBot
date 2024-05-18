@@ -288,6 +288,13 @@
 	<!-- /juicebox -->
 	<bean class="oakbot.command.JuiceBoxCommand" />
 
+	<!-- /phish -->
+	<bean class="oakbot.command.PhishCommand">
+		<constructor-arg ref="database" />
+		<constructor-arg value="PT15M" /> <!-- min time until ping -->
+		<constructor-arg value="PT2H" /> <!-- max time until ping -->
+	</bean>
+
 	<!-- /react -->
 	<bean class="oakbot.command.ReactCommand">
 		<constructor-arg value="" /> <!-- API key for replygif.net -->
