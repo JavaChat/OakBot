@@ -275,7 +275,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		try {
 			var parentMessageContent = bot.getOriginalMessageContent(parentId);
 
-			List<String> imageUrls = extractImageUrlsIfModelSupportsVision(parentMessageContent);
+			var imageUrls = parentMessagePostedByBot ? List.<String>of() : extractImageUrlsIfModelSupportsVision(parentMessageContent);
 
 			/*
 			 * Insert the parent message right before the child message.
