@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -16,8 +16,11 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -48,6 +51,39 @@ public class OpenAIClient {
 	}
 
 	/**
+	 * Lists all available models.
+	 * @return the models
+	 * @throws OpenAIException if OpenAI returns an error response
+	 * @throws IOException if there's a network problem
+	 * @see "https://platform.openai.com/docs/api-reference/models/list"
+	 */
+	public List<OpenAIModel> listModels() throws IOException, OpenAIException {
+		var request = getRequestWithApiKey("/v1/models");
+
+		logRequest(request);
+
+		JsonNode responseBody = null;
+		int responseStatusCode = 0;
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				responseStatusCode = response.getStatusLine().getStatusCode();
+				try (var in = response.getEntity().getContent()) {
+					responseBody = JsonUtils.parse(in);
+				}
+			}
+
+			logResponse(responseStatusCode, responseBody);
+
+			lookForError(null, responseBody);
+
+			return parseListModelsResponse(responseBody);
+		} catch (IOException e) {
+			logError(request, responseStatusCode, responseBody, e);
+			throw e;
+		}
+	}
+
+	/**
 	 * Sends a chat completion request.
 	 * @param apiRequest the request
 	 * @return the completion response
@@ -55,7 +91,7 @@ public class OpenAIClient {
 	 * @throws IOException if there's a network problem
 	 * @see "https://platform.openai.com/docs/api-reference/chat"
 	 */
-	public ChatCompletionResponse chatCompletion(ChatCompletionRequest apiRequest) throws IOException {
+	public ChatCompletionResponse chatCompletion(ChatCompletionRequest apiRequest) throws IOException, OpenAIException {
 		var request = postRequestWithApiKey("/v1/chat/completions");
 		request.setEntity(new JsonEntity(toJson(apiRequest)));
 
@@ -275,13 +311,15 @@ public class OpenAIClient {
 		}
 	}
 
-	private void logRequest(HttpPost request) {
+	private void logRequest(HttpUriRequest request) {
 		logger.fine(() -> {
 			var sb = new StringBuilder();
 			sb.append("Sending request to OpenAI: \nURI: ").append(request.getURI());
 
-			if (request.getEntity() instanceof JsonEntity entity) {
-				sb.append("\nBody: ").append(JsonUtils.prettyPrint(entity.node));
+			if (request instanceof HttpEntityEnclosingRequest entityRequest) {
+				if (entityRequest.getEntity() instanceof JsonEntity entity) {
+					sb.append("\nBody: ").append(JsonUtils.prettyPrint(entity.node));
+				}
 			}
 
 			return sb.toString();
@@ -292,14 +330,16 @@ public class OpenAIClient {
 		logger.fine(() -> "Response from OpenAI: HTTP " + statusCode + ": " + JsonUtils.prettyPrint(body));
 	}
 
-	private void logError(HttpPost request, int responseStatusCode, JsonNode responseBody, IOException e) throws IOException {
+	private void logError(HttpUriRequest request, int responseStatusCode, JsonNode responseBody, IOException e) {
 		logger.log(Level.SEVERE, e, () -> {
 			var sb = new StringBuilder();
 			sb.append("Problem communicating with OpenAI.");
 			sb.append("\nRequest: ").append(request.getURI());
 
-			if (request.getEntity() instanceof JsonEntity entity) {
-				sb.append(": ").append(JsonUtils.prettyPrint(entity.node));
+			if (request instanceof HttpEntityEnclosingRequest entityRequest) {
+				if (entityRequest.getEntity() instanceof JsonEntity entity) {
+					sb.append(": ").append(JsonUtils.prettyPrint(entity.node));
+				}
 			}
 
 			if (responseBody != null) {
@@ -309,14 +349,26 @@ public class OpenAIClient {
 
 			return sb.toString();
 		});
+	}
 
-		throw e;
+	private HttpGet getRequestWithApiKey(String uriPath) {
+		var request = new HttpGet(buildUri(uriPath));
+		setAuthorizationHeader(request);
+		return request;
 	}
 
 	private HttpPost postRequestWithApiKey(String uriPath) {
-		var request = new HttpPost("https://api.openai.com" + uriPath);
-		request.setHeader("Authorization", "Bearer " + apiKey);
+		var request = new HttpPost(buildUri(uriPath));
+		setAuthorizationHeader(request);
 		return request;
+	}
+
+	private void setAuthorizationHeader(HttpRequest request) {
+		request.setHeader("Authorization", "Bearer " + apiKey);
+	}
+
+	private String buildUri(String path) {
+		return "https://api.openai.com" + path;
 	}
 
 	private byte[] downloadImageAndAttemptToConvertToPng(CloseableHttpClient client, String url) throws IOException {
@@ -501,7 +553,7 @@ public class OpenAIClient {
 		//@formatter:off
 		return new ChatCompletionResponse.Builder()
 			.id(node.path("id").asText())
-			.created(Instant.ofEpochSecond(node.path("created").asLong()))
+			.created(JsonUtils.asEpochSecond(node.path("created")))
 			.model(node.path("model").asText())
 			.systemFingerprint(node.path("system_fingerprint").asText())
 			.promptTokens(node.path("usage").path("prompt_tokens").asInt())
@@ -535,7 +587,7 @@ public class OpenAIClient {
 	}
 
 	private CreateImageResponse parseCreateImageResponse(JsonNode node) {
-		var created = Instant.ofEpochSecond(node.path("created").asLong());
+		var created = JsonUtils.asEpochSecond(node.path("created"));
 
 		var data = node.path("data").path(0);
 
@@ -545,6 +597,15 @@ public class OpenAIClient {
 		var revisedPrompt = (revisedPromptNode == null) ? null : revisedPromptNode.asText();
 
 		return new CreateImageResponse(created, url, revisedPrompt);
+	}
+
+	private List<OpenAIModel> parseListModelsResponse(JsonNode node) {
+		return JsonUtils.streamArray(node.path("data")).map(n -> {
+			var id = n.path("id").asText();
+			var created = JsonUtils.asEpochSecond(n.path("created"));
+			var owner = n.path("owned_by").asText();
+			return new OpenAIModel(id, created, owner);
+		}).toList();
 	}
 
 	private static class JsonEntity extends StringEntity {

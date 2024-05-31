@@ -3,6 +3,7 @@ package oakbot.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -164,7 +165,7 @@ public final class JsonUtils {
 	public static Stream<JsonNode> streamArray(JsonNode array) {
 		return StreamSupport.stream(array.spliterator(), false);
 	}
-	
+
 	/**
 	 * Streams the fields in an object.
 	 * @param obj the object
@@ -172,6 +173,15 @@ public final class JsonUtils {
 	 */
 	public static Stream<Map.Entry<String, JsonNode>> streamObject(JsonNode obj) {
 		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(obj.fields(), Spliterator.ORDERED), false);
+	}
+
+	/**
+	 * Parses a JSON value representing a Unix timestamp.
+	 * @param value the JSON value
+	 * @return the timestamp
+	 */
+	public static Instant asEpochSecond(JsonNode value) {
+		return Instant.ofEpochSecond(value.asLong());
 	}
 
 	private JsonUtils() {
