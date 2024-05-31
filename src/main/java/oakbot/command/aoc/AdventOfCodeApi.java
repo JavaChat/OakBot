@@ -15,6 +15,7 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import oakbot.util.HttpFactory;
+import oakbot.util.JsonUtils;
 import oakbot.util.Now;
 
 /**
@@ -70,9 +71,9 @@ public class AdventOfCodeApi {
 				var field = fields.next();
 
 				var completed = field.getValue();
-				var first = asInstant(completed.get("1").get("get_star_ts"));
+				var first = JsonUtils.asEpochSecond(completed.get("1").get("get_star_ts"));
 				var secondNode = completed.get("2");
-				var second = (secondNode == null) ? null : asInstant(secondNode.get("get_star_ts"));
+				var second = (secondNode == null) ? null : JsonUtils.asEpochSecond(secondNode.get("get_star_ts"));
 
 				var number = Integer.valueOf(field.getKey());
 				completionTimes.put(number, new Instant[] { first, second });
@@ -108,17 +109,6 @@ public class AdventOfCodeApi {
 
 	private String jsonUrl(String leaderboardId) {
 		return getLeaderboardWebsite(leaderboardId) + ".json";
-	}
-
-	/**
-	 * Parses the value of a JSON node as an {@link Instant}.
-	 * @param node the JSON node (must contain the number of seconds since the
-	 * epoch)
-	 * @return the parsed value
-	 */
-	private static Instant asInstant(JsonNode node) {
-		var ts = node.asLong();
-		return Instant.ofEpochSecond(ts);
 	}
 
 	/**
