@@ -314,7 +314,8 @@ public class OpenAIClient {
 	private void logRequest(HttpUriRequest request) {
 		logger.fine(() -> {
 			var sb = new StringBuilder();
-			sb.append("Sending request to OpenAI: \nURI: ").append(request.getURI());
+			sb.append("Sending ").append(request.getMethod()).append(" request to OpenAI:");
+			sb.append("\nURI: ").append(request.getURI());
 
 			if (request instanceof HttpEntityEnclosingRequest entityRequest) {
 				if (entityRequest.getEntity() instanceof JsonEntity entity) {
