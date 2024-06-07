@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -244,6 +245,16 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	public Path getFile(String key) {
 		var value = get(key);
 		return (value == null) ? null : Paths.get(value);
+	}
+
+	/**
+	 * Gets a duration property value.
+	 * @param key the key
+	 * @return the value or null if not found
+	 */
+	public Duration getDuration(String key) {
+		var value = get(key);
+		return (value == null) ? null : Duration.parse(value);
 	}
 
 	/**

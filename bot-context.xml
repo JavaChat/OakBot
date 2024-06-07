@@ -121,6 +121,12 @@
 		Enables or disables learned commands.
 		-->
 		<prop key="enableLearnedCommands">true</prop>
+		
+		<!--
+		(optional)
+		How often each room's web socket connection is refreshed (a workaround to resolve random disconnects).
+		-->
+		<prop key="webSocket.refreshInterval">PT4H</prop>
 
 		<!--
 		(optional)

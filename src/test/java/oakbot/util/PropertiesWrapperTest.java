@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -57,6 +58,22 @@ class PropertiesWrapperTest {
 		assertNull(wrapper.getPath("key3"));
 		assertNull(wrapper.getPath("key4"));
 		assertNull(wrapper.getPath("does-not-exist"));
+	}
+	
+	@Test
+	void getDuration() {
+		var props = new Properties();
+		props.setProperty("key1", "PT1H");
+		props.setProperty("key2", " PT1H ");
+		props.setProperty("key3", "");
+		props.setProperty("key4", " ");
+
+		var wrapper = new PropertiesWrapper(props);
+		assertEquals(Duration.ofHours(1), wrapper.getDuration("key1"));
+		assertEquals(Duration.ofHours(1), wrapper.getDuration("key2"));
+		assertNull(wrapper.getDuration("key3"));
+		assertNull(wrapper.getDuration("key4"));
+		assertNull(wrapper.getDuration("does-not-exist"));
 	}
 
 	@Test

@@ -29,6 +29,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final Integer botUserId;
 	private final int socketPort;
 	private final Duration hideOneboxesAfter;
+	private final Duration webSocketRefreshInterval;
 	private final boolean enableLearnedCommands;
 
 	/**
@@ -48,8 +49,8 @@ public class BotProperties extends PropertiesWrapper {
 		trigger = get("trigger", "=");
 		greeting = get("greeting");
 
-		var value = get("hideOneboxesAfter");
-		hideOneboxesAfter = (value == null) ? null : Duration.parse(value);
+		hideOneboxesAfter = getDuration("hideOneboxesAfter");
+		webSocketRefreshInterval = getDuration("webSocket.refreshInterval");
 
 		homeRooms = getIntegerList("rooms.home", List.of(1)); //default to "Sandbox"
 		quietRooms = getIntegerList("rooms.quiet");
@@ -178,6 +179,10 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public Duration getHideOneboxesAfter() {
 		return hideOneboxesAfter;
+	}
+
+	public Duration getWebSocketRefreshInterval() {
+		return webSocketRefreshInterval;
 	}
 
 	public boolean isEnableLearnedCommands() {

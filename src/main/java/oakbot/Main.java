@@ -161,9 +161,12 @@ public final class Main {
             connection = new FileChatClient(botProperties.getBotUserId(), botProperties.getBotUserName(), botProperties.getAdmins().get(0), "Michael", "https://www.gravatar.com/avatar/29d7c49f6f174710788c79011219bae1");
         } else {
             var site = getSite(botProperties);
+            var email = botProperties.getLoginEmail();
+            var password = botProperties.getLoginPassword();
+            var webSocketRefreshInterval = botProperties.getWebSocketRefreshInterval();
 
-            System.out.println("Logging in as " + botProperties.getLoginEmail() + "...");
-            connection = ChatClient.connect(site, botProperties.getLoginEmail(), botProperties.getLoginPassword());
+            System.out.println("Logging in as " + email + "...");
+            connection = ChatClient.connect(site, email, password, webSocketRefreshInterval);
         }
 
         //@formatter:off
