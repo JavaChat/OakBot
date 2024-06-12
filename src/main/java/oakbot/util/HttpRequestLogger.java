@@ -34,7 +34,7 @@ public class HttpRequestLogger implements Closeable {
 	public HttpRequestLogger(Path path) throws IOException {
 		var writeHeaders = !Files.exists(path);
 
-		writer = new CSVWriter(Files.newBufferedWriter(path, StandardOpenOption.APPEND));
+		writer = new CSVWriter(Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND));
 
 		if (writeHeaders) {
 			writer.writeNext(new String[] { "Timestamp", "Request", "Response" });
