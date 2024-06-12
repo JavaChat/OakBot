@@ -395,6 +395,13 @@
 	<!-- ChatGPT -->
 	<bean class="oakbot.ai.openai.OpenAIClient" id="openAIClient">
 		<constructor-arg value="API_KEY" />
+		<!-- log all requests/responses for debugging (optional constructor arg)
+		<constructor-arg>
+			<bean class="oakbot.util.HttpRequestLogger">
+				<constructor-arg value="openai-requests.csv" />
+			</bean>
+		</constructor-arg>
+		-->
 	</bean>
 	<bean class="oakbot.ai.stabilityai.StabilityAIClient" id="stabilityAIClient">
 		<constructor-arg value="API_KEY" />

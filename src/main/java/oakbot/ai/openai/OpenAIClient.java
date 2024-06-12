@@ -30,6 +30,7 @@ import org.apache.http.util.EntityUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import oakbot.util.HttpFactory;
+import oakbot.util.HttpRequestLogger;
 import oakbot.util.JsonUtils;
 
 /**
@@ -41,13 +42,24 @@ public class OpenAIClient {
 	private static final Logger logger = Logger.getLogger(OpenAIClient.class.getName());
 
 	private final String apiKey;
+	private final HttpRequestLogger requestLogger;
 
 	/**
 	 * @param apiKey the API key
 	 * @see "https://platform.openai.com/account/api-keys"
 	 */
 	public OpenAIClient(String apiKey) {
+		this(apiKey, null);
+	}
+
+	/**
+	 * @param apiKey the API key
+	 * @param requestLogger logs each request/response (can be null)
+	 * @see "https://platform.openai.com/account/api-keys"
+	 */
+	public OpenAIClient(String apiKey, HttpRequestLogger requestLogger) {
 		this.apiKey = apiKey;
+		this.requestLogger = requestLogger;
 	}
 
 	/**
@@ -71,16 +83,18 @@ public class OpenAIClient {
 					responseBody = JsonUtils.parse(in);
 				}
 			}
-
-			logResponse(responseStatusCode, responseBody);
-
-			lookForError(null, responseBody);
-
-			return parseListModelsResponse(responseBody);
 		} catch (IOException e) {
-			logError(request, responseStatusCode, responseBody, e);
+			logIOException(request, responseStatusCode, responseBody, e);
 			throw e;
+		} finally {
+			logHttpCall(request, responseStatusCode, responseBody);
 		}
+
+		logResponse(responseStatusCode, responseBody);
+
+		lookForError(null, responseBody);
+
+		return parseListModelsResponse(responseBody);
 	}
 
 	/**
@@ -106,16 +120,18 @@ public class OpenAIClient {
 					responseBody = JsonUtils.parse(in);
 				}
 			}
-
-			logResponse(responseStatusCode, responseBody);
-
-			lookForError(null, responseBody);
-
-			return parseChatCompletionResponse(responseBody);
 		} catch (IOException e) {
-			logError(request, responseStatusCode, responseBody, e);
+			logIOException(request, responseStatusCode, responseBody, e);
 			throw e;
+		} finally {
+			logHttpCall(request, responseStatusCode, responseBody);
 		}
+		
+		logResponse(responseStatusCode, responseBody);
+
+		lookForError(null, responseBody);
+
+		return parseChatCompletionResponse(responseBody);
 	}
 
 	/**
@@ -150,16 +166,18 @@ public class OpenAIClient {
 					responseBody = JsonUtils.parse(in);
 				}
 			}
-
-			logResponse(responseStatusCode, responseBody);
-
-			lookForError(prompt, responseBody);
-
-			return parseCreateImageResponse(responseBody);
 		} catch (IOException e) {
-			logError(request, responseStatusCode, responseBody, e);
+			logIOException(request, responseStatusCode, responseBody, e);
 			throw e;
+		} finally {
+			logHttpCall(request, responseStatusCode, responseBody);
 		}
+		
+		logResponse(responseStatusCode, responseBody);
+
+		lookForError(prompt, responseBody);
+
+		return parseCreateImageResponse(responseBody);
 	}
 
 	/**
@@ -195,16 +213,18 @@ public class OpenAIClient {
 				try (var in = response.getEntity().getContent()) {
 					responseBody = JsonUtils.parse(in);
 				}
-
-				logResponse(responseStatusCode, responseBody);
-
-				lookForError(null, responseBody);
-
-				return parseCreateImageResponse(responseBody);
 			} catch (IOException e) {
-				logError(request, responseStatusCode, responseBody, e);
+				logIOException(request, responseStatusCode, responseBody, e);
 				throw e;
+			} finally {
+				logHttpCall(request, responseStatusCode, responseBody);
 			}
+			
+			logResponse(responseStatusCode, responseBody);
+
+			lookForError(null, responseBody);
+
+			return parseCreateImageResponse(responseBody);
 		}
 	}
 
@@ -246,16 +266,18 @@ public class OpenAIClient {
 					responseBody = JsonUtils.parse(in);
 				}
 			}
-
-			logResponse(responseStatusCode, responseBody);
-
-			lookForError(apiRequest.getInput(), responseBody);
-
-			return null;
 		} catch (IOException e) {
-			logError(request, responseStatusCode, responseBody, e);
+			logIOException(request, responseStatusCode, responseBody, e);
 			throw e;
+		} finally {
+			logHttpCall(request, responseStatusCode, responseBody);
 		}
+		
+		logResponse(responseStatusCode, responseBody);
+
+		lookForError(apiRequest.getInput(), responseBody);
+
+		return null;
 	}
 
 	/**
@@ -299,16 +321,18 @@ public class OpenAIClient {
 					responseBody = JsonUtils.parse(in);
 				}
 			}
-
-			logResponse(responseStatusCode, responseBody);
-
-			lookForError(input, responseBody);
-
-			return parseModerationResponse(responseBody);
 		} catch (IOException e) {
-			logError(request, responseStatusCode, responseBody, e);
+			logIOException(request, responseStatusCode, responseBody, e);
 			throw e;
+		} finally {
+			logHttpCall(request, responseStatusCode, responseBody);
 		}
+		
+		logResponse(responseStatusCode, responseBody);
+
+		lookForError(input, responseBody);
+
+		return parseModerationResponse(responseBody);
 	}
 
 	private void logRequest(HttpUriRequest request) {
@@ -331,7 +355,7 @@ public class OpenAIClient {
 		logger.fine(() -> "Response from OpenAI: HTTP " + statusCode + ": " + JsonUtils.prettyPrint(body));
 	}
 
-	private void logError(HttpUriRequest request, int responseStatusCode, JsonNode responseBody, IOException e) {
+	private void logIOException(HttpUriRequest request, int responseStatusCode, JsonNode responseBody, IOException e) {
 		logger.log(Level.SEVERE, e, () -> {
 			var sb = new StringBuilder();
 			sb.append("Problem communicating with OpenAI.");
@@ -350,6 +374,34 @@ public class OpenAIClient {
 
 			return sb.toString();
 		});
+	}
+	
+	private void logHttpCall(HttpUriRequest request, int responseStatusCode, JsonNode responseBodyJson) {
+		if (requestLogger == null) {
+			return;
+		}
+
+		var requestMethod = request.getMethod();
+		var requestUrl = request.getURI().toString();
+
+		String requestBody;
+		if (request instanceof HttpEntityEnclosingRequest entityRequest && entityRequest.getEntity() instanceof JsonEntity entity) {
+			requestBody = JsonUtils.prettyPrint(entity.node);
+		} else {
+			requestBody = "";
+		}
+
+		String responseBody;
+		if (responseStatusCode == 0) {
+			responseBody = "error sending request";
+		} else {
+			responseBody = (responseBodyJson == null) ? "could not parse response body as JSON" : JsonUtils.prettyPrint(responseBodyJson);
+		}
+
+		try {
+			requestLogger.log(requestMethod, requestUrl, requestBody, responseStatusCode, responseBody);
+		} catch (IOException ignore) {
+		}
 	}
 
 	private HttpGet getRequestWithApiKey(String uriPath) {
