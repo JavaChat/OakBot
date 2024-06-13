@@ -1,6 +1,5 @@
 package oakbot.util;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +14,7 @@ import au.com.bytecode.opencsv.CSVWriter;
  * Logs HTTP requests and responses to a CSV file.
  * @author Michael Angstadt
  */
-public class HttpRequestLogger implements Closeable {
+public class HttpRequestLogger {
 	private final CSVWriter writer;
 	private final DateTimeFormatter dtFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.of("America/New_York"));
 
@@ -61,10 +60,5 @@ public class HttpRequestLogger implements Closeable {
 			writer.writeNext(line);
 			writer.flush();
 		}
-	}
-
-	@Override
-	public void close() throws IOException {
-		writer.close();
 	}
 }
