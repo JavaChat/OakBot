@@ -225,8 +225,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			resetSpontaneousPostTimer(message.getRoomId());
 
-			var isAdmin = bot.getAdminUsers().contains(userId);
-			if (!isAdmin) {
+			if (!bot.isAdminUser(userId)) {
 				usageQuota.logRequest(userId);
 			}
 
@@ -275,7 +274,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		try {
 			var parentMessageContent = bot.getOriginalMessageContent(parentId);
 
-			var imageUrls = parentMessagePostedByBot ? List.<String>of() : extractImageUrlsIfModelSupportsVision(parentMessageContent);
+			var imageUrls = parentMessagePostedByBot ? List.<String> of() : extractImageUrlsIfModelSupportsVision(parentMessageContent);
 
 			/*
 			 * Insert the parent message right before the child message.

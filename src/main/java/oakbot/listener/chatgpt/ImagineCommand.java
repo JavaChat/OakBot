@@ -140,8 +140,7 @@ public class ImagineCommand implements Command {
 			/*
 			 * Log quota.
 			 */
-			var isAdmin = bot.getAdminUsers().contains(userId);
-			if (!isAdmin) {
+			if (!bot.isAdminUser(userId)) {
 				usageQuota.logRequest(userId);
 			}
 

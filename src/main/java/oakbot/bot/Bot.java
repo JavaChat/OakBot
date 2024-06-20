@@ -645,7 +645,7 @@ public class Bot implements IBot {
 		}
 
 		private void handleMessage(ChatMessage message) {
-			if (timeout && !getAdminUsers().contains(message.getUserId())) {
+			if (timeout && !isAdminUser(message.getUserId())) {
 				//bot is in timeout, ignore
 				return;
 			}

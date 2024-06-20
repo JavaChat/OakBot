@@ -74,11 +74,11 @@ public class FatCatCommand implements Command, Listener {
 		var action = params[0].toLowerCase();
 		var url = (params.length < 2) ? null : params[1];
 		return switch (action) {
-			case "" -> showCat(chatCommand);
-			case "list" -> listCats();
-			case "add" -> addCat(chatCommand, bot, url);
-			case "delete" -> deleteCat(chatCommand, bot, url);
-			default -> reply("Unknown action.", chatCommand);
+		case "" -> showCat(chatCommand);
+		case "list" -> listCats();
+		case "add" -> addCat(chatCommand, bot, url);
+		case "delete" -> deleteCat(chatCommand, bot, url);
+		default -> reply("Unknown action.", chatCommand);
 		};
 	}
 
@@ -193,7 +193,7 @@ public class FatCatCommand implements Command, Listener {
 
 	private boolean hasEditPerms(ChatCommand chatCommand, IBot bot) {
 		var authorId = chatCommand.getMessage().getUserId();
-		return bot.getAdminUsers().contains(authorId) || commandAdmins.contains(authorId);
+		return bot.isAdminUser(authorId) || commandAdmins.contains(authorId);
 	}
 
 	private String handleResponse(ChatMessage message) {

@@ -31,8 +31,7 @@ public class ShutdownCommand implements Command {
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		var userId = chatCommand.getMessage().getUserId();
-		var admin = bot.getAdminUsers().contains(userId);
-		if (!admin) {
+		if (!bot.isAdminUser(userId)) {
 			return reply("Only admins can shut me down. :P", chatCommand);
 		}
 

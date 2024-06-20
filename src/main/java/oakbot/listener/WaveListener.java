@@ -102,8 +102,7 @@ public class WaveListener implements Listener {
 			 */
 			var now = Instant.now();
 			var timeSinceLastWave = (lastWave == null) ? timeBetweenWaves : Duration.between(lastWave, now);
-			var authorIsAdmin = bot.getAdminUsers().contains(message.getUserId());
-			if (!authorIsAdmin && timeSinceLastWave.compareTo(timeBetweenWaves) < 0) {
+			if (!bot.isAdminUser(message.getUserId()) && timeSinceLastWave.compareTo(timeBetweenWaves) < 0) {
 				return doNothing();
 			}
 

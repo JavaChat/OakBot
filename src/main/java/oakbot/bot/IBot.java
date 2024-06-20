@@ -39,6 +39,15 @@ public interface IBot {
 	List<Integer> getAdminUsers();
 
 	/**
+	 * Determines if the given user ID belongs to an admin user.
+	 * @param userId the user ID
+	 * @return true if it's an admin user, false if not
+	 */
+	default boolean isAdminUser(int userId) {
+		return getAdminUsers().contains(userId);
+	}
+
+	/**
 	 * Of all the rooms the bot is connected to, this method returns the "home"
 	 * rooms. Users cannot make the bot leave home rooms.
 	 * @return the room IDs
@@ -127,7 +136,7 @@ public interface IBot {
 	 * @throws IOException if there's a problem uploading the image
 	 */
 	String uploadImage(String url) throws IOException;
-	
+
 	/**
 	 * Uploads an image to Stack Overflow's imgur.com service.
 	 * @param data the image data

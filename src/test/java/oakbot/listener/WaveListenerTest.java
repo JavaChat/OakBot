@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -83,7 +81,7 @@ class WaveListenerTest {
 		//@formatter:on
 
 		var bot = mock(IBot.class);
-		when(bot.getAdminUsers()).thenReturn(List.of(10));
+		when(bot.isAdminUser(10)).thenReturn(true);
 
 		var mentionListener = new MentionListenerMock();
 		var listener = new WaveListener("PT0S", mentionListener);

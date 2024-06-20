@@ -82,8 +82,7 @@ public class SummonCommand implements Command {
 		}
 
 		var userId = chatCommand.getMessage().getUserId();
-		var authorIsAdmin = bot.getAdminUsers().contains(userId);
-		if (!authorIsAdmin) {
+		if (!bot.isAdminUser(userId)) {
 			var response = checkForEnoughSummonVotes(roomToJoin, userId);
 			if (response != null) {
 				return reply(response, chatCommand);
