@@ -2,6 +2,7 @@ package oakbot.discord;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 import oakbot.util.PropertiesWrapper;
 
@@ -14,6 +15,7 @@ public class DiscordProperties extends PropertiesWrapper {
 	private final String openAIKey;
 	private final int openAIMessageHistoryCount;
 	private final String openAIPrompt;
+	private final List<Long> adminUsers;
 
 	public DiscordProperties(Path path) throws IOException {
 		super(path);
@@ -22,6 +24,7 @@ public class DiscordProperties extends PropertiesWrapper {
 		openAIKey = get("openai.key");
 		openAIMessageHistoryCount = getInteger("openai.messageHistoryCount", 10);
 		openAIPrompt = get("openai.prompt");
+		adminUsers = getLongList("admins");
 	}
 
 	public String getDiscordToken() {
@@ -42,5 +45,9 @@ public class DiscordProperties extends PropertiesWrapper {
 
 	public String getOpenAIPrompt() {
 		return openAIPrompt;
+	}
+
+	public List<Long> getAdminUsers() {
+		return adminUsers;
 	}
 }

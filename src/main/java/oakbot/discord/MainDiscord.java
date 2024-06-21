@@ -4,13 +4,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.SelfUser;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -26,8 +27,11 @@ import oakbot.util.HttpRequestLogger;
  * @see "https://discord.com/developers"
  */
 public class MainDiscord {
+	private static final String TRIGGER = "!";
 	private static OpenAIClient openAIClient;
 	private static DiscordProperties properties;
+	private static SelfUser selfUser;
+	//278175712077414411
 
 	public static void main(String[] args) throws Exception {
 		properties = new DiscordProperties(Paths.get(args[0]));
@@ -46,6 +50,8 @@ public class MainDiscord {
 		jda.getRestPing().queue(ping -> System.out.println("Logged in with ping: " + ping));
 		jda.awaitReady();
 
+		selfUser = jda.getSelfUser();
+
 		Runtime.getRuntime().addShutdownHook(new Thread(jda::shutdown));
 
 		System.out.println("Guilds joined: " + jda.getGuildCache().stream().map(Guild::getName).collect(Collectors.joining(",")));
@@ -54,10 +60,10 @@ public class MainDiscord {
 	}
 
 	private static void onMessageReceived(MessageReceivedEvent event) {
-		var botUser = event.getJDA().getSelfUser();
-
 		var author = event.getAuthor();
-		var messagePostedByBot = author.equals(botUser);
+		var authorIsAdmin = properties.getAdminUsers().contains(author.getIdLong());
+
+		var messagePostedByBot = author.equals(selfUser);
 		if (messagePostedByBot) {
 			return;
 		}
@@ -67,41 +73,67 @@ public class MainDiscord {
 			return;
 		}
 
-		var botMentioned = event.getMessage().getMentions().getUsers().contains(botUser);
+		/*
+		 * Note: If a message only contains 1 word after the mention, it is not
+		 * considered a mention for some reason
+		 */
+		var botMentioned = event.getMessage().getMentions().getUsers().contains(selfUser);
 		if (botMentioned) {
 			handleMention(event);
 			return;
 		}
 
 		var message = event.getMessage().getContentDisplay();
-		if ("o/".equals(message)) {
-			event.getMessage().addReaction(Emoji.fromUnicode("🙋‍♀️"));
-			event.getChannel().sendMessage("\\o").queue();
-		} else if ("\\o".equals(message)) {
-			event.getMessage().addReaction(Emoji.fromUnicode("🙋‍♀️"));
-			event.getChannel().sendMessage("o/").queue();
+		if ("o/".equals(message) || "\\o".equals(message)) {
+			event.getMessage().addReaction(Emoji.fromUnicode("U+1F44B")).queue();
+			return;
 		}
 
-		if ("Oak, shutdown".equals(message)) {
-			event.getChannel().sendMessage("Shutting down...").queue();
-			event.getJDA().shutdown();
+		var command = Command.parse(message);
+		if (command.isPresent()) {
+			switch (command.get().name) {
+			case "shutdown":
+				if (authorIsAdmin) {
+					event.getChannel().sendMessage("Shutting down...").queue();
+					event.getJDA().shutdown();
+				} else {
+					event.getChannel().sendMessage("Only admins can shut me down.").queue();
+				}
+				break;
+			}
 		}
 	}
 
 	private static void handleMention(MessageReceivedEvent event) {
-		var botUser = event.getJDA().getSelfUser();
 		var history = event.getChannel().getHistoryBefore(event.getMessage(), properties.getOpenAIMessageHistoryCount() - 1).complete();
 
 		var openAIMessages = new ArrayList<ChatCompletionRequest.Message>();
-		openAIMessages.add(toApiMessage(event.getMessage(), botUser));
-		history.getRetrievedHistory().stream().map(m -> toApiMessage(m, botUser)).forEach(openAIMessages::add);
-		openAIMessages.add(new ChatCompletionRequest.Message.Builder().role("system").text(properties.getOpenAIPrompt()).build());
+
+		openAIMessages.add(toChatCompletionMessage(event.getMessage()));
+
+		//@formatter:off
+		history.getRetrievedHistory().stream()
+			.map(MainDiscord::toChatCompletionMessage)
+		.forEach(openAIMessages::add);
+
+		openAIMessages.add(new ChatCompletionRequest.Message.Builder()
+			.role("system")
+			.text(properties.getOpenAIPrompt())
+		.build());
+		//@formatter:on
+
 		Collections.reverse(openAIMessages);
 
-		var apiRequest = new ChatCompletionRequest.Builder().model("gpt-4o").maxTokens(2000).messages(openAIMessages).build();
+		//@formatter:off
+		var chatCompletionRequest = new ChatCompletionRequest.Builder()
+			.model("gpt-4o")
+			.maxTokens(2000)
+			.messages(openAIMessages)
+		.build();
+		//@formatter:on
 
 		try {
-			var apiResponse = openAIClient.chatCompletion(apiRequest);
+			var apiResponse = openAIClient.chatCompletion(chatCompletionRequest);
 			var reply = apiResponse.getChoices().get(0).getContent();
 			event.getMessage().reply(reply).queue();
 		} catch (Exception e) {
@@ -109,10 +141,32 @@ public class MainDiscord {
 		}
 	}
 
-	private static ChatCompletionRequest.Message toApiMessage(Message message, User botUser) {
-		var role = message.getAuthor().equals(botUser) ? "assistant" : "user";
+	private static ChatCompletionRequest.Message toChatCompletionMessage(Message message) {
+		var role = message.getAuthor().equals(selfUser) ? "assistant" : "user";
 		var name = message.getAuthor().getEffectiveName();
 		var text = message.getContentDisplay();
 		return new ChatCompletionRequest.Message.Builder().name(name).role(role).text(text).build();
+	}
+
+	private static record Command(String name, String content) {
+		public static Optional<Command> parse(String message) {
+			if (!message.startsWith(TRIGGER)) {
+				return Optional.empty();
+			}
+
+			String name;
+			String content;
+			var afterTrigger = message.substring(TRIGGER.length()).trim();
+			var space = afterTrigger.indexOf(' ');
+			if (space < 0) {
+				name = afterTrigger;
+				content = "";
+			} else {
+				name = afterTrigger.substring(0, space).toLowerCase();
+				content = afterTrigger.substring(space + 1);
+			}
+
+			return Optional.of(new Command(name, content));
+		}
 	}
 }

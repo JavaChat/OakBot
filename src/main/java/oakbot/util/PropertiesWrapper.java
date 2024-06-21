@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -155,7 +156,7 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	}
 
 	/**
-	 * Parses a comma-delimited list of integers. If any non-integer values are
+	 * Parses a comma-delimited list of integers. If any non-numeric values are
 	 * encountered, they will be skipped.
 	 * @param key the key
 	 * @return the list or empty list if not found
@@ -165,24 +166,14 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 	}
 
 	/**
-	 * Parses a comma-delimited list of integers. If any non-integer values are
+	 * Parses a comma-delimited list of integers. If any non-numeric values are
 	 * encountered, they will be skipped.
 	 * @param key the key
 	 * @param defaultValue the list to return if the property does not exist
 	 * @return the list
 	 */
 	public List<Integer> getIntegerList(String key, List<Integer> defaultValue) {
-		var value = get(key);
-		if (value == null) {
-			return defaultValue;
-		}
-
-		//@formatter:off
-		return Arrays.stream(value.split("\\s*,\\s*"))
-			.filter(v -> v.matches("\\d+"))
-			.map(Integer::valueOf)
-		.toList();
-		//@formatter:on
+		return getNumberList(key, defaultValue, Integer::valueOf);
 	}
 
 	/**
@@ -204,6 +195,41 @@ public class PropertiesWrapper implements Iterable<Map.Entry<String, String>> {
 		}
 
 		set(key, value);
+	}
+
+	/**
+	 * Parses a comma-delimited list of longs. If any non-numeric values are
+	 * encountered, they will be skipped.
+	 * @param key the key
+	 * @return the list or empty list if not found
+	 */
+	public List<Long> getLongList(String key) {
+		return getLongList(key, new ArrayList<>(0));
+	}
+
+	/**
+	 * Parses a comma-delimited list of longs. If any non-numeric values are
+	 * encountered, they will be skipped.
+	 * @param key the key
+	 * @param defaultValue the list to return if the property does not exist
+	 * @return the list
+	 */
+	public List<Long> getLongList(String key, List<Long> defaultValue) {
+		return getNumberList(key, defaultValue, Long::valueOf);
+	}
+
+	private <T> List<T> getNumberList(String key, List<T> defaultValue, Function<String, T> func) {
+		var value = get(key);
+		if (value == null) {
+			return defaultValue;
+		}
+
+		//@formatter:off
+		return Arrays.stream(value.split("\\s*,\\s*"))
+			.filter(v -> v.matches("\\d+"))
+			.map(func::apply)
+		.toList();
+		//@formatter:on
 	}
 
 	/**

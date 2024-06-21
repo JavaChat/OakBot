@@ -59,7 +59,7 @@ class PropertiesWrapperTest {
 		assertNull(wrapper.getPath("key4"));
 		assertNull(wrapper.getPath("does-not-exist"));
 	}
-	
+
 	@Test
 	void getDuration() {
 		var props = new Properties();
@@ -177,6 +177,22 @@ class PropertiesWrapperTest {
 		assertEquals(List.of(2), wrapper.getIntegerList("key3"));
 		assertEquals(List.of(), wrapper.getIntegerList("key4"));
 		assertEquals(List.of(), wrapper.getIntegerList("foo"));
+	}
+
+	@Test
+	void getLongList() {
+		var props = new Properties();
+		props.setProperty("key1", "1");
+		props.setProperty("key2", "2,3 , 4");
+		props.setProperty("key3", "2,foo");
+		props.setProperty("key4", "");
+
+		var wrapper = new PropertiesWrapper(props);
+		assertEquals(List.of(1L), wrapper.getLongList("key1"));
+		assertEquals(List.of(2L, 3L, 4L), wrapper.getLongList("key2"));
+		assertEquals(List.of(2L), wrapper.getLongList("key3"));
+		assertEquals(List.of(), wrapper.getLongList("key4"));
+		assertEquals(List.of(), wrapper.getLongList("foo"));
 	}
 
 	private static LocalDateTime date(String date) {
