@@ -17,7 +17,7 @@ import oakbot.util.Now;
 public class UsageQuota {
 	private final Duration period;
 	private final int requestsPerPeriod;
-	private final Map<Integer, List<Instant>> requestTimesByUser = new HashMap<>();
+	private final Map<Long, List<Instant>> requestTimesByUser = new HashMap<>();
 
 	/**
 	 * @param period a period of time that it records requests for (e.g. 24
@@ -42,7 +42,7 @@ public class UsageQuota {
 	 * Records that a request has been made.
 	 * @param userId the user ID
 	 */
-	public void logRequest(int userId) {
+	public void logRequest(long userId) {
 		if (period == null) {
 			return;
 		}
@@ -58,7 +58,7 @@ public class UsageQuota {
 	 * @return the amount of time until the user can make a request or zero if
 	 * they can make a request now
 	 */
-	public Duration getTimeUntilUserCanMakeRequest(int userId) {
+	public Duration getTimeUntilUserCanMakeRequest(long userId) {
 		if (period == null) {
 			return Duration.ZERO;
 		}
@@ -76,7 +76,7 @@ public class UsageQuota {
 		return Duration.between(now, canMakeRequest);
 	}
 
-	private List<Instant> getRequestTimes(int userId) {
+	private List<Instant> getRequestTimes(long userId) {
 		return requestTimesByUser.computeIfAbsent(userId, key -> new LinkedList<Instant>());
 	}
 
