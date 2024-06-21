@@ -21,7 +21,7 @@ public class MainDiscord {
 
 		var commands = List.<DiscordCommand> of(new ShutdownCommand());
 		var listeners = List.of(new WaveListener(), new CommandListener(trigger, commands));
-		var mentionListeners = List.<DiscordListener>of(new ChatGPTListener(openAIClient, "gpt-4o", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount()));
+		var mentionListeners = List.<DiscordListener> of(new ChatGPTListener(openAIClient, "gpt-4o", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount()));
 
 		//@formatter:off
 		var bot = new DiscordBot.Builder()
@@ -35,10 +35,9 @@ public class MainDiscord {
 		.build();
 		//@formatter:on
 
+		Runtime.getRuntime().addShutdownHook(new Thread(bot::shutdown));
+
 		var jda = bot.getJDA();
-
-		Runtime.getRuntime().addShutdownHook(new Thread(jda::shutdown));
-
 		System.out.println("Guilds joined: " + jda.getGuildCache().stream().map(Guild::getName).collect(Collectors.joining(",")));
 
 		System.out.println("Bot has launched successfully. To move this process to the background, press Ctrl+Z then type \"bg\".");
