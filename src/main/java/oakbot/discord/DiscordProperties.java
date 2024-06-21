@@ -16,6 +16,7 @@ public class DiscordProperties extends PropertiesWrapper {
 	private final int openAIMessageHistoryCount;
 	private final String openAIPrompt;
 	private final List<Long> adminUsers;
+	private final List<Long> ignoredChannels;
 
 	public DiscordProperties(Path path) throws IOException {
 		super(path);
@@ -25,6 +26,7 @@ public class DiscordProperties extends PropertiesWrapper {
 		openAIMessageHistoryCount = getInteger("openai.messageHistoryCount", 10);
 		openAIPrompt = get("openai.prompt");
 		adminUsers = getLongList("admins");
+		ignoredChannels = getLongList("ignoredChannels");
 	}
 
 	public String getDiscordToken() {
@@ -49,5 +51,9 @@ public class DiscordProperties extends PropertiesWrapper {
 
 	public List<Long> getAdminUsers() {
 		return adminUsers;
+	}
+
+	public List<Long> getIgnoredChannels() {
+		return ignoredChannels;
 	}
 }

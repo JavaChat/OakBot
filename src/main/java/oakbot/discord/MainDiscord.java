@@ -73,6 +73,12 @@ public class MainDiscord {
 			return;
 		}
 
+		var channelId = event.getChannel().getIdLong();
+		var inIgnoredChannel = properties.getIgnoredChannels().contains(channelId);
+		if (inIgnoredChannel) {
+			return;
+		}
+
 		/*
 		 * Note: If a message only contains 1 word after the mention, it is not
 		 * considered a mention for some reason
