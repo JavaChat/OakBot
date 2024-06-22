@@ -19,11 +19,19 @@ public class MainDiscord {
 		var openAIClient = new OpenAIClient(properties.getOpenAIKey(), new HttpRequestLogger("openai-requests.discord.csv"));
 		var trigger = "!";
 
-		var commands = List.<DiscordCommand> of(new ShutdownCommand());
-		var listeners = List.of(new WaveListener(), new CommandListener(trigger, commands));
-		var mentionListeners = List.<DiscordListener> of(new ChatGPTListener(openAIClient, "gpt-4o", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount()));
-
 		//@formatter:off
+		var commands = List.of(
+			new ImagineCommand(openAIClient),
+			new ShutdownCommand()
+		);
+		var listeners = List.of(
+			new WaveListener(),
+			new CommandListener(trigger, commands)
+		);
+		var mentionListeners = List.<DiscordListener> of(
+			new ChatGPTListener(openAIClient, "gpt-4o", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount())
+		);
+
 		var bot = new DiscordBot.Builder()
 			.adminUsers(properties.getAdminUsers())
 			.ignoredChannels(properties.getIgnoredChannels())
@@ -38,7 +46,7 @@ public class MainDiscord {
 		Runtime.getRuntime().addShutdownHook(new Thread(bot::shutdown));
 
 		var jda = bot.getJDA();
-		System.out.println("Guilds joined: " + jda.getGuildCache().stream().map(Guild::getName).collect(Collectors.joining(",")));
+		System.out.println("Guilds joined: " + jda.getGuildCache().stream().map(Guild::getName).collect(Collectors.joining(", ")));
 
 		System.out.println("Bot has launched successfully. To move this process to the background, press Ctrl+Z then type \"bg\".");
 	}
