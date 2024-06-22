@@ -76,11 +76,17 @@ public class ChatGPTListener implements DiscordListener {
 		try {
 			var apiResponse = client.chatCompletion(chatCompletionRequest);
 			var reply = apiResponse.getChoices().get(0).getContent();
-			event.getMessage().reply(reply).queue(m -> {
-				synchronized (usageQuota) {
-					usageQuota.logRequest(userId);
-				}
-			});
+			var action = event.getMessage().reply(reply);
+
+			if (context.authorIsAdmin()) {
+				action.queue();
+			} else {
+				action.queue(m -> {
+					synchronized (usageQuota) {
+						usageQuota.logRequest(userId);
+					}
+				});
+			}
 		} catch (Exception e) {
 			event.getMessage().reply("ERROR BEEP BOOP: " + e.getMessage()).queue();
 		}
