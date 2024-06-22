@@ -17,31 +17,31 @@ import oakbot.bot.PostMessage;
  * @author Michael Angstadt
  * @see "https://thecatapi.com/"
  */
-public class CatCommand implements Command {
-	private static final Logger logger = Logger.getLogger(CatCommand.class.getName());
+public class DogCommand implements Command {
+	private static final Logger logger = Logger.getLogger(DogCommand.class.getName());
 
 	private final TheCatDogApiClient client;
 
-	public CatCommand(TheCatDogApiClient client) {
+	public DogCommand(TheCatDogApiClient client) {
 		this.client = client;
 	}
 
 	@Override
 	public String name() {
-		return "cat";
+		return "dog";
 	}
 
 	@Override
 	public List<String> aliases() {
-		return List.of("meow");
+		return List.of("woof");
 	}
 
 	@Override
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Displays a cat GIF. :3")
-			.detail("Images from thecatapi.com.")
+			.summary("Displays a dog GIF. :3")
+			.detail("Images from thedogapi.com.")
 		.build();
 		//@formatter:on
 	}
@@ -50,10 +50,10 @@ public class CatCommand implements Command {
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		String url;
 		try {
-			url = client.getRandomCatGif();
+			url = client.getRandomDogGif();
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem getting cat.");
-			return error("Error getting cat: ", e, chatCommand);
+			logger.log(Level.SEVERE, e, () -> "Problem getting dog.");
+			return error("Error getting dog: ", e, chatCommand);
 		}
 
 		//@formatter:off

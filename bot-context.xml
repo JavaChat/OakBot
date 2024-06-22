@@ -190,10 +190,12 @@
 	</bean>
 	
 	<!-- /bird -->
+	<!--
 	<bean class="oakbot.command.shibe.ShibeOnlineClient" id="shibeOnlineClient" />
 	<bean class="oakbot.command.shibe.BirdCommand">
 		<constructor-arg ref="shibeOnlineClient" />
 	</bean>
+	-->
 
 	<!-- /botler -->
 	<bean class="oakbot.listener.BotlerListener">
@@ -205,8 +207,11 @@
 	</bean>
 
 	<!-- /cat -->
+	<bean class="oakbot.command.TheCatDogApiClient" id="theCatDogApiClient">
+		<!-- <constructor-arg value="API_KEY" /> API key for thecatapi.com (optional) -->
+	</bean>
 	<bean class="oakbot.command.CatCommand">
-		<constructor-arg value="" /> <!-- API key for thecatapi.com (can be blank) -->
+		<constructor-arg ref="theCatDogApiClient" />
 	</bean>
 
 	<!-- /coffee -->
@@ -225,6 +230,11 @@
 	<!-- /delete -->
 	<bean class="oakbot.command.DeleteCommand">
 		<constructor-arg ref="chatGPT" />
+	</bean>
+	
+	<!-- /dog -->
+	<bean class="oakbot.command.DogCommand">
+		<constructor-arg ref="theCatDogApiClient" />
 	</bean>
 	
 	<!-- /echo -->
@@ -321,9 +331,11 @@
 	<bean class="oakbot.filter.UpsidedownTextFilter" />
 	
 	<!-- /shiba -->
+	<!--
 	<bean class="oakbot.command.shibe.ShibaCommand">
 		<constructor-arg ref="shibeOnlineClient" />
 	</bean>
+	-->
 
 	<!-- /shrug -->
 	<bean class="oakbot.command.ShrugCommand" />

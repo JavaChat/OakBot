@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import net.dv8tion.jda.api.entities.Guild;
 import oakbot.ai.openai.OpenAIClient;
+import oakbot.command.TheCatDogApiClient;
 import oakbot.util.HttpRequestLogger;
 
 /**
@@ -17,10 +18,13 @@ public class MainDiscord {
 	public static void main(String[] args) throws Exception {
 		var properties = new DiscordProperties(Paths.get(args[0]));
 		var openAIClient = new OpenAIClient(properties.getOpenAIKey(), new HttpRequestLogger("openai-requests.discord.csv"));
+		var theCatDogApiClient = new TheCatDogApiClient();
 		var trigger = "!";
 
 		//@formatter:off
 		var commands = List.of(
+			new CatCommand(theCatDogApiClient),
+			new DogCommand(theCatDogApiClient),
 			new ImagineCommand(openAIClient),
 			new ShutdownCommand()
 		);
