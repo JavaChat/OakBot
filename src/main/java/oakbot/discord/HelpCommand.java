@@ -58,9 +58,9 @@ public class HelpCommand implements DiscordCommand {
 
 		//build message
 		var cb = new ChatBuilder();
-		cb.append("```");
 		if (!commandSummaries.isEmpty()) {
-			cb.append("Commands=====================").nl();
+			cb.bold("Commands").nl();
+			cb.append("```").nl();
 			for (var entry : commandSummaries.entries()) {
 				var name = entry.getKey();
 				var description = entry.getValue();
@@ -69,11 +69,12 @@ public class HelpCommand implements DiscordCommand {
 				cb.repeat(' ', longestNameLength - (context.trigger().length() + name.length()) + bufferSpace);
 				cb.append(description).nl();
 			}
-			cb.nl();
+			cb.append("```").nl();
 		}
 
 		if (!listenerDescriptions.isEmpty()) {
-			cb.append("Listeners====================").nl();
+			cb.bold("Listeners").nl();
+			cb.append("```").nl();
 			for (var entry : listenerDescriptions.entries()) {
 				var name = entry.getKey();
 				var description = entry.getValue();
@@ -82,10 +83,9 @@ public class HelpCommand implements DiscordCommand {
 				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
 			}
-			cb.nl();
+			cb.append("```").nl();
 		}
-		cb.append("```");
-		
+
 		event.getMessage().reply(cb).queue();
 	}
 

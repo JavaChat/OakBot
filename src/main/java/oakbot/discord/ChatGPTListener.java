@@ -36,13 +36,13 @@ public class ChatGPTListener implements DiscordListener {
 	public String name() {
 		return "chatgpt";
 	}
-	
+
 	@Override
 	public HelpDoc help() {
 		//@formatter:off
 		return new DiscordHelpDoc.Builder(this)
-			.summary("Allows the user to have a conversation with ChatGPT.")
-			.detail("Mentioning the bot will invoke a response from ChatGPT. The last 10 messages in the chat room are sent to the ChatGPT servers for context.")
+			.summary("Allows the user to have a conversation with ChatGPT by mentioning the bot.")
+			.detail("The last 10 messages in the chat room are sent to the ChatGPT servers for context.")
 		.build();
 		//@formatter:on
 	}
