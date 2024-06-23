@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 import oakbot.ai.openai.OpenAIClient;
+import oakbot.command.HelpDoc;
 import oakbot.listener.chatgpt.UsageQuota;
 import okhttp3.OkHttpClient;
 
@@ -30,6 +31,17 @@ public class ImagineCommand implements DiscordCommand {
 	@Override
 	public String name() {
 		return "imagine";
+	}
+
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new DiscordHelpDoc.Builder(this)
+			.summary("Creates images using OpenAI's DALL·E.")
+			.detail("Users can make 2 requests per day.")
+			.example("a cute Java programmer", "Generates an image of a cute Java programmer using DALL·E 3.")
+		.build();
+		//@formatter:on
 	}
 
 	@Override

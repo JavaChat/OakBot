@@ -5,6 +5,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import oakbot.command.HelpDoc;
 import oakbot.command.TheCatDogApiClient;
 
 /**
@@ -24,6 +25,16 @@ public class CatCommand implements DiscordCommand {
 	@Override
 	public String name() {
 		return "cat";
+	}
+	
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new DiscordHelpDoc.Builder(this)
+			.summary("Displays a cat GIF. :3")
+			.detail("Images from thecatapi.com.")
+		.build();
+		//@formatter:on
 	}
 
 	@Override

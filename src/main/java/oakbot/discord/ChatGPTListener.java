@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import oakbot.ai.openai.ChatCompletionRequest;
 import oakbot.ai.openai.OpenAIClient;
+import oakbot.command.HelpDoc;
 import oakbot.listener.chatgpt.UsageQuota;
 
 /**
@@ -29,6 +30,21 @@ public class ChatGPTListener implements DiscordListener {
 		this.prompt = prompt;
 		this.maxTokens = maxTokens;
 		this.messageHistoryCount = messageHistoryCount;
+	}
+
+	@Override
+	public String name() {
+		return "chatgpt";
+	}
+	
+	@Override
+	public HelpDoc help() {
+		//@formatter:off
+		return new DiscordHelpDoc.Builder(this)
+			.summary("Allows the user to have a conversation with ChatGPT.")
+			.detail("Mentioning the bot will invoke a response from ChatGPT. The last 10 messages in the chat room are sent to the ChatGPT servers for context.")
+		.build();
+		//@formatter:on
 	}
 
 	@Override

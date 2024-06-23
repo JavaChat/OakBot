@@ -3,6 +3,7 @@ package oakbot.command;
 import static oakbot.util.StringUtils.plural;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,18 +16,16 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class HelpDoc {
-	private final Command command;
-	private final Listener listener;
-	private final ScheduledTask task;
-	private final String summary;
-	private final String detail;
-	private final boolean includeSummaryWithDetail;
-	private final List<String[]> examples;
+	protected final String name;
+	protected final Collection<String> aliases;
+	protected final String summary;
+	protected final String detail;
+	protected final boolean includeSummaryWithDetail;
+	protected final List<Example> examples;
 
-	private HelpDoc(Builder builder) {
-		command = builder.command;
-		listener = builder.listener;
-		task = builder.task;
+	protected HelpDoc(Builder builder) {
+		name = builder.name;
+		aliases = builder.aliases;
 		summary = Objects.requireNonNull(builder.summary);
 		detail = builder.detail;
 		includeSummaryWithDetail = builder.includeSummaryWithDetail;
@@ -64,7 +63,7 @@ public class HelpDoc {
 	 * @return the examples (index 0 = command parameters, index 1 =
 	 * description)
 	 */
-	public List<String[]> getExamples() {
+	public List<Example> getExamples() {
 		return examples;
 	}
 
@@ -75,24 +74,8 @@ public class HelpDoc {
 	 * @return the help message
 	 */
 	public String getHelpText(String trigger) {
-		if (command != null) {
-			return getHelpText(command, trigger);
-		}
-
-		if (listener != null) {
-			return getHelpText(listener);
-		}
-
-		if (task != null) {
-			return getHelpText(task);
-		}
-
-		return null;
-	}
-
-	private String getHelpText(Command command, String trigger) {
 		var cb = new ChatBuilder();
-		cb.append(command.name()).append(':').nl();
+		cb.append(name).append(':').nl();
 
 		if (includeSummaryWithDetail) {
 			cb.append(summary);
@@ -104,50 +87,18 @@ public class HelpDoc {
 		if (!examples.isEmpty()) {
 			cb.nl().nl().append(plural("Example", examples.size())).append(":");
 			for (var example : examples) {
-				var parameters = example[0];
-				var description = example[1];
-
-				cb.nl().append(trigger).append(command.name());
-				if (!parameters.isEmpty()) {
-					cb.append(' ').append(parameters);
+				cb.nl().append(trigger).append(name);
+				if (!example.parameters().isEmpty()) {
+					cb.append(' ').append(example.parameters());
 				}
-				if (!description.isEmpty()) {
-					cb.append(" : ").append(description);
+				if (!example.description().isEmpty()) {
+					cb.append(" : ").append(example.description());
 				}
 			}
 		}
 
-		var aliases = command.aliases();
 		if (!aliases.isEmpty()) {
 			cb.nl().nl().append(plural("Alias", aliases.size())).append(": ").append(String.join(",", aliases));
-		}
-
-		return cb.toString();
-	}
-
-	private String getHelpText(Listener listener) {
-		var cb = new ChatBuilder();
-		cb.append(listener.name()).append(':').nl();
-
-		if (includeSummaryWithDetail) {
-			cb.append(summary);
-		}
-		if (detail != null) {
-			cb.append(' ').append(detail);
-		}
-
-		return cb.toString();
-	}
-
-	private String getHelpText(ScheduledTask task) {
-		var cb = new ChatBuilder();
-		cb.append(task.name()).append(':').nl();
-
-		if (includeSummaryWithDetail) {
-			cb.append(summary);
-		}
-		if (detail != null) {
-			cb.append(' ').append(detail);
 		}
 
 		return cb.toString();
@@ -158,39 +109,37 @@ public class HelpDoc {
 	 * @author Michael Angstadt
 	 */
 	public static class Builder {
-		private Command command;
-		private Listener listener;
-		private ScheduledTask task;
+		private String name;
+		private Collection<String> aliases;
 		private String summary;
 		private String detail;
 		private boolean includeSummaryWithDetail = true;
-		private final List<String[]> examples = new ArrayList<>();
+		private final List<Example> examples = new ArrayList<>();
 
 		/**
 		 * @param command the command this documentation is for
 		 */
 		public Builder(Command command) {
-			this.command = command;
-			listener = null;
-			task = null;
+			this(command.name(), command.aliases());
 		}
 
 		/**
 		 * @param listener the listener this documentation is for
 		 */
 		public Builder(Listener listener) {
-			command = null;
-			this.listener = listener;
-			task = null;
+			this(listener.name(), List.of());
 		}
 
 		/**
 		 * @param task the task this documentation is for
 		 */
 		public Builder(ScheduledTask task) {
-			command = null;
-			listener = null;
-			this.task = task;
+			this(task.name(), List.of());
+		}
+
+		public Builder(String name, Collection<String> aliases) {
+			this.name = name;
+			this.aliases = aliases;
 		}
 
 		/**
@@ -239,7 +188,7 @@ public class HelpDoc {
 		 * @return this
 		 */
 		public Builder example(String parameters, String description) {
-			examples.add(new String[] { parameters, description });
+			examples.add(new Example(parameters, description));
 			return this;
 		}
 
@@ -250,5 +199,8 @@ public class HelpDoc {
 		public HelpDoc build() {
 			return new HelpDoc(this);
 		}
+	}
+
+	public record Example(String parameters, String description) {
 	}
 }

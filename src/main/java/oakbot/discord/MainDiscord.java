@@ -1,6 +1,7 @@
 package oakbot.discord;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,12 +23,13 @@ public class MainDiscord {
 		var trigger = "!";
 
 		//@formatter:off
-		var commands = List.of(
+		var commands = new ArrayList<>(List.of(
 			new CatCommand(theCatDogApiClient),
 			new DogCommand(theCatDogApiClient),
 			new ImagineCommand(openAIClient),
 			new ShutdownCommand()
-		);
+		));
+		
 		var listeners = List.of(
 			new WaveListener(),
 			new CommandListener(trigger, commands)
@@ -35,6 +37,11 @@ public class MainDiscord {
 		var mentionListeners = List.<DiscordListener> of(
 			new ChatGPTListener(openAIClient, "gpt-4o", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount())
 		);
+		
+		var allListeners = new ArrayList<>(listeners);
+		allListeners.addAll(mentionListeners);
+		var helpCommand = new HelpCommand(commands, allListeners);
+		commands.add(helpCommand);
 
 		var bot = new DiscordBot.Builder()
 			.adminUsers(properties.getAdminUsers())
