@@ -36,12 +36,13 @@ public class DiscordHelpDoc extends oakbot.command.HelpDoc {
 		if (!examples.isEmpty()) {
 			cb.nl().nl().bold(plural("Example", examples.size())).append(":");
 			for (var example : examples) {
-				cb.nl().append(trigger).append(name);
+				cb.nl().code().append(trigger).append(name);
 				if (!example.parameters().isEmpty()) {
 					cb.append(' ').append(example.parameters());
 				}
+				cb.code();
 				if (!example.description().isEmpty()) {
-					cb.append(" : ").append(example.description());
+					cb.append("  ").append(example.description());
 				}
 			}
 		}

@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import oakbot.command.HelpDoc;
 import oakbot.command.TheCatDogApiClient;
+import oakbot.util.ChatBuilder;
 
 /**
  * Displays a random cat picture.
@@ -26,13 +27,13 @@ public class CatCommand implements DiscordCommand {
 	public String name() {
 		return "cat";
 	}
-	
+
 	@Override
 	public HelpDoc help() {
 		//@formatter:off
 		return new DiscordHelpDoc.Builder(this)
-			.summary("Displays a cat GIF. :3")
-			.detail("Images from thecatapi.com.")
+			.summary("Displays a cat GIF. 🐱")
+			.detail(new ChatBuilder().append("Images from ").link("thecatapi.com", "https://thecatapi.com").append(".").toString())
 		.build();
 		//@formatter:on
 	}

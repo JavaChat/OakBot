@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import oakbot.ai.openai.OpenAIClient;
 import oakbot.command.HelpDoc;
 import oakbot.listener.chatgpt.UsageQuota;
+import oakbot.util.ChatBuilder;
 import okhttp3.OkHttpClient;
 
 /**
@@ -37,7 +38,7 @@ public class ImagineCommand implements DiscordCommand {
 	public HelpDoc help() {
 		//@formatter:off
 		return new DiscordHelpDoc.Builder(this)
-			.summary("Creates images using OpenAI's DALL·E.")
+			.summary(new ChatBuilder().append("Creates images using OpenAI's ").link("DALL·E 3", "https://openai.com/index/dall-e-3/").append(".").toString())
 			.detail("Users can make 2 requests per day.")
 			.example("a cute Java programmer", "Generates an image of a cute Java programmer using DALL·E 3.")
 		.build();

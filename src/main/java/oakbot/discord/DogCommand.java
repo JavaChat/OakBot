@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import oakbot.command.HelpDoc;
 import oakbot.command.TheCatDogApiClient;
+import oakbot.util.ChatBuilder;
 
 /**
  * Displays a random dog picture.
@@ -31,8 +32,8 @@ public class DogCommand implements DiscordCommand {
 	public HelpDoc help() {
 		//@formatter:off
 		return new DiscordHelpDoc.Builder(this)
-			.summary("Displays a dog GIF. :3")
-			.detail("Images from thedogapi.com.")
+			.summary("Displays a dog GIF. 🐶")
+			.detail(new ChatBuilder().append("Images from ").link("thedogapi.com", "https://thedogapi.com").append(".").toString())
 		.build();
 		//@formatter:on
 	}
