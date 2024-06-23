@@ -182,16 +182,13 @@ public class CommandsWikiPage {
 					cb.nl().nl().bold("Examples:").nl();
 
 					for (var example : examples) {
-						var parameters = example[0];
-						var description = example[1];
-
 						cb.nl().append(" * ").code().append(trigger).append(command.name());
-						if (!parameters.isEmpty()) {
-							cb.append(" ").append(escape(parameters));
+						if (!example.parameters().isEmpty()) {
+							cb.append(" ").append(escape(example.parameters()));
 						}
 						cb.code();
-						if (!description.isEmpty()) {
-							cb.append(" - ").append(escape(description));
+						if (!example.description().isEmpty()) {
+							cb.append(" - ").append(escape(example.description()));
 						}
 					}
 				}
