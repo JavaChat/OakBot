@@ -37,12 +37,15 @@ public class MainDiscord {
 		var mentionListeners = List.<DiscordListener> of(
 			new ChatGPTListener(openAIClient, "gpt-4o", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount())
 		);
-		
+		//@formatter:on
+
+		//create help command
 		var allListeners = new ArrayList<>(listeners);
 		allListeners.addAll(mentionListeners);
 		var helpCommand = new HelpCommand(commands, allListeners);
 		commands.add(helpCommand);
 
+		//@formatter:off
 		var bot = new DiscordBot.Builder()
 			.adminUsers(properties.getAdminUsers())
 			.ignoredChannels(properties.getIgnoredChannels())

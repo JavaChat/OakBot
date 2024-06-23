@@ -14,7 +14,12 @@ public class CommandListener implements DiscordListener {
 
 	public CommandListener(String trigger, List<DiscordCommand> commands) {
 		this.trigger = trigger;
-		this.commands = List.copyOf(commands);
+
+		/*
+		 * Do not copy this list defensively. List must be modified after
+		 * constructor runs in order to add "help" command.
+		 */
+		this.commands = commands;
 	}
 
 	@Override
