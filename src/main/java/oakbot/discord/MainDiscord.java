@@ -24,6 +24,7 @@ public class MainDiscord {
 
 		//@formatter:off
 		var commands = new ArrayList<>(List.of(
+			new AboutCommand(),
 			new CatCommand(theCatDogApiClient),
 			new DogCommand(theCatDogApiClient),
 			new ImagineCommand(openAIClient),
