@@ -8,6 +8,8 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -23,6 +25,8 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
  * @author Michael Angstadt
  */
 public class DiscordBot {
+	private static final Logger logger = Logger.getLogger(DiscordBot.class.getName());
+
 	private final JDA jda;
 
 	private final String trigger;
@@ -109,11 +113,23 @@ public class DiscordBot {
 		 */
 		var botMentioned = event.getMessage().getMentions().getUsers().contains(selfUser);
 		if (botMentioned) {
-			mentionListeners.forEach(l -> l.onMessage(event, context));
+			mentionListeners.forEach(l -> {
+				try {
+					l.onMessage(event, context);
+				} catch (Exception e) {
+					logUnhandledException(l, e);
+				}
+			});
 			return;
 		}
 
-		listeners.forEach(l -> l.onMessage(event, context));
+		listeners.forEach(l -> {
+			try {
+				l.onMessage(event, context);
+			} catch (Exception e) {
+				logUnhandledException(l, e);
+			}
+		});
 	}
 
 	void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
@@ -127,7 +143,15 @@ public class DiscordBot {
 		var authorIsAdmin = adminUsers.contains(author.getIdLong());
 		var context = new BotContext(authorIsAdmin, trigger);
 
-		command.onMessage(event, context);
+		try {
+			command.onMessage(event, context);
+		} catch (Exception e) {
+			logUnhandledException(command, e);
+		}
+	}
+
+	private void logUnhandledException(Object thrownBy, Exception e) {
+		logger.log(Level.SEVERE, e, () -> "Unhandled exception thrown by " + thrownBy.getClass().getName() + ".");
 	}
 
 	public void shutdown() {

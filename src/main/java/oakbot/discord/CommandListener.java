@@ -2,6 +2,8 @@ package oakbot.discord;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
@@ -9,6 +11,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
  * @author Michael Angstadt
  */
 public class CommandListener implements DiscordListener {
+	private static final Logger logger = Logger.getLogger(CommandListener.class.getName());
+
 	private final String trigger;
 	private final List<DiscordCommand> commands;
 
@@ -35,7 +39,13 @@ public class CommandListener implements DiscordListener {
 		//@formatter:off
 		commands.stream()
 			.filter(c -> c.name().equalsIgnoreCase(parts.name()))
-		.forEach(c -> c.onMessage(parts.content(), event, context));
+		.forEach(c -> {
+			try {
+				c.onMessage(parts.content(), event, context);
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, e, () -> "Unhandled exception thrown by " + c.getClass().getName() + ".");
+			}
+		});
 		//@formatter:on
 	}
 
