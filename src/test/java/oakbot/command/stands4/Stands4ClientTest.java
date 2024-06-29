@@ -114,7 +114,7 @@ class Stands4ClientTest {
 	}
 
 	@Test
-	void convert_error() throws Exception {
+	void convert_error() {
 		var client = new Stands4Client("USERID", "TOKEN");
 
 		//@formatter:off
@@ -123,7 +123,7 @@ class Stands4ClientTest {
 			.responseOk(ResponseSamples.convError())
 		.build());
 		//@formatter:on
-		
+
 		var e = assertThrows(ConvertException.class, () -> client.convert("i love dogs"));
 		assertEquals(4, e.getCode());
 		assertEquals("4: Invalid expression", e.getMessage());

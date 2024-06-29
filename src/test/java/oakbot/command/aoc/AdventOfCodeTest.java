@@ -163,7 +163,7 @@ class AdventOfCodeTest {
 	}
 
 	@Test
-	void nextRun() throws Exception {
+	void nextRun() {
 		Now.setNow(LocalDateTime.of(2017, 12, 1, 0, 0, 0));
 
 		//@formatter:off
@@ -181,7 +181,7 @@ class AdventOfCodeTest {
 	}
 
 	@Test
-	void nextRun_not_december() throws Exception {
+	void nextRun_not_december() {
 		Now.setNow(LocalDateTime.of(2017, 10, 1, 0, 0, 0));
 
 		//@formatter:off
@@ -395,24 +395,24 @@ class AdventOfCodeTest {
 	private static void assertLeaderboardResponse(String expectedId, ChatActions actual) {
 		//'@' symbols should be removed from usernames
 		var expected = """
-		    Leaderboard URL: http://adventofcode.com/2017/leaderboard/private/view/%s
-		    1.  gzgreg                   (score: 312) *****|*****|.....|.....|..... 20 stars
-		    2.  Unihedron                (score: 306) *****|*****|.....|.....|..... 20 stars
-		    3.  geisterfurz007           (score: 230) *****|*****|.....|.....|..... 20 stars
-		    3.  Lazy Zefiris             (score: 230) *****|*****|.....|.....|..... 20 stars
-		    4.  Rishav                   (score: 227) *****|****.|.....|.....|..... 18 stars
-		    5.  asterisk man             (score: 205) *****|*****|.....|.....|..... 20 stars
-		    6.  ByteCommander            (score: 201) *****|****.|.....|.....|..... 18 stars
-		    7.  Mike Angstadt            (score: 124) *****|*****|.....|.....|..... 20 stars
-		    8.  ProgramFOX               (score: 104) *****|*^...|.....|.....|..... 13 stars
-		    9.  ArcticEcho               (score: 102) *****|*....|.....|.....|..... 12 stars
-		    10. dSolver                  (score:  90) *****|*....|.....|.....|..... 12 stars
-		    11. Shady_maniac             (score:  90) **.**|.....|.....|.....|.....  8 stars
-		    12. (user #238463)           (score:  38) ***..|.....|.....|.....|.....  6 stars
-		    13. Michael Prieto           (score:  31) **^..|.....|.....|.....|.....  5 stars
-		    14. Simon                    (score:  26) **.^.|.....|.....|.....|.....  5 stars
-		    15. Hey, Michael, what's up? (score:   0) .....|.....|.....|.....|.....  0 stars
-		""".formatted(expectedId).stripTrailing();
+				    Leaderboard URL: http://adventofcode.com/2017/leaderboard/private/view/%s
+				    1.  gzgreg                   (score: 312) *****|*****|.....|.....|..... 20 stars
+				    2.  Unihedron                (score: 306) *****|*****|.....|.....|..... 20 stars
+				    3.  geisterfurz007           (score: 230) *****|*****|.....|.....|..... 20 stars
+				    3.  Lazy Zefiris             (score: 230) *****|*****|.....|.....|..... 20 stars
+				    4.  Rishav                   (score: 227) *****|****.|.....|.....|..... 18 stars
+				    5.  asterisk man             (score: 205) *****|*****|.....|.....|..... 20 stars
+				    6.  ByteCommander            (score: 201) *****|****.|.....|.....|..... 18 stars
+				    7.  Mike Angstadt            (score: 124) *****|*****|.....|.....|..... 20 stars
+				    8.  ProgramFOX               (score: 104) *****|*^...|.....|.....|..... 13 stars
+				    9.  ArcticEcho               (score: 102) *****|*....|.....|.....|..... 12 stars
+				    10. dSolver                  (score:  90) *****|*....|.....|.....|..... 12 stars
+				    11. Shady_maniac             (score:  90) **.**|.....|.....|.....|.....  8 stars
+				    12. (user #238463)           (score:  38) ***..|.....|.....|.....|.....  6 stars
+				    13. Michael Prieto           (score:  31) **^..|.....|.....|.....|.....  5 stars
+				    14. Simon                    (score:  26) **.^.|.....|.....|.....|.....  5 stars
+				    15. Hey, Michael, what's up? (score:   0) .....|.....|.....|.....|.....  0 stars
+				""".formatted(expectedId).stripTrailing();
 
 		assertMessage(expected, actual);
 	}

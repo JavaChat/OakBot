@@ -411,7 +411,7 @@ class FishCommandTest {
 	}
 
 	@Test
-	void fish_status() throws Exception {
+	void fish_status() {
 		var db = mock(Database.class);
 
 		var bot = mock(IBot.class);

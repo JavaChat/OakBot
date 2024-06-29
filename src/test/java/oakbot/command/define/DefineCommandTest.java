@@ -34,7 +34,7 @@ class DefineCommandTest {
 	}
 
 	@Test
-	void ioexception() throws Exception {
+	void ioexception() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
@@ -58,7 +58,7 @@ class DefineCommandTest {
 	}
 
 	@Test
-	void non_xml_response() throws Exception {
+	void non_xml_response() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
@@ -82,7 +82,7 @@ class DefineCommandTest {
 	}
 
 	@Test
-	void not_found() throws Exception {
+	void not_found() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/cool?key=apiKey")
@@ -106,7 +106,7 @@ class DefineCommandTest {
 	}
 
 	@Test
-	void not_found_suggestions_one() throws Exception {
+	void not_found_suggestions_one() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey")
@@ -130,7 +130,7 @@ class DefineCommandTest {
 	}
 
 	@Test
-	void not_found_suggestions_two() throws Exception {
+	void not_found_suggestions_two() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey")
@@ -154,7 +154,7 @@ class DefineCommandTest {
 	}
 
 	@Test
-	void not_found_suggestions_multiple() throws Exception {
+	void not_found_suggestions_multiple() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/col?key=apiKey")
@@ -275,7 +275,7 @@ class DefineCommandTest {
 	}
 
 	@Test
-	void encode_parameters() throws Exception {
+	void encode_parameters() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://www.dictionaryapi.com/api/v1/references/collegiate/xml/grand%20piano?key=apiKey")

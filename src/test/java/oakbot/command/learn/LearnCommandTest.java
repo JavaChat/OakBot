@@ -24,15 +24,17 @@ class LearnCommandTest {
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		var now = LocalDateTime.now();
 
-		var message = new ChatCommandBuilder(command) //@formatter:off
+		//@formatter:off
+		var message = new ChatCommandBuilder(command) 
 			.messageId(1)
 			.roomId(2)
 			.userId(100)
 			.username("Username")
 			.timestamp(now)
 			.content("name <b>command output</b>")
-		.build(); //@formatter:on
-		
+		.build();
+		//@formatter:on
+
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		when(bot.getOriginalMessageContent(1)).thenReturn("/learn name **command output**");
@@ -53,7 +55,7 @@ class LearnCommandTest {
 	}
 
 	@Test
-	void onMessage_no_command_name() throws Exception {
+	void onMessage_no_command_name() {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
 		var message = new ChatCommandBuilder(command).messageId(1).build();
@@ -66,13 +68,16 @@ class LearnCommandTest {
 	}
 
 	@Test
-	void onMessage_no_command_output() throws Exception {
+	void onMessage_no_command_output() {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
-		var message = new ChatCommandBuilder(command) //@formatter:off
+
+		//@formatter:off
+		var message = new ChatCommandBuilder(command) 
 			.messageId(1)
 			.content("test")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
@@ -82,13 +87,16 @@ class LearnCommandTest {
 	}
 
 	@Test
-	void onMessage_bad_command_name() throws Exception {
+	void onMessage_bad_command_name() {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
-		var message = new ChatCommandBuilder(command) //@formatter:off
+		
+		//@formatter:of
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("foo*bar value")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
@@ -98,16 +106,19 @@ class LearnCommandTest {
 	}
 
 	@Test
-	void onMessage_command_exists() throws Exception {
+	void onMessage_command_exists() {
 		var existing = mock(Command.class);
 		when(existing.name()).thenReturn("test");
 
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(List.of(existing), learnedCommands);
-		var message = new ChatCommandBuilder(command) //@formatter:off
+
+		//@formatter:off
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("test value")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
@@ -117,17 +128,20 @@ class LearnCommandTest {
 	}
 
 	@Test
-	void onMessage_command_exists_check_alias() throws Exception {
+	void onMessage_command_exists_check_alias() {
 		var existing = mock(Command.class);
 		when(existing.name()).thenReturn("name");
 		when(existing.aliases()).thenReturn(List.of("test"));
 
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(List.of(existing), learnedCommands);
-		var message = new ChatCommandBuilder(command) //@formatter:off
+
+		//@formatter:off
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("test value")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
@@ -137,14 +151,17 @@ class LearnCommandTest {
 	}
 
 	@Test
-	void onMessage_learned_command_exists() throws Exception {
+	void onMessage_learned_command_exists() {
 		var learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(new LearnedCommand.Builder().name("test").output("output").build());
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
-		var message = new ChatCommandBuilder(command) //@formatter:off
+
+		//@formatter:off
+		var message = new ChatCommandBuilder(command) 
 			.messageId(1)
 			.content("test value")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
@@ -157,10 +174,13 @@ class LearnCommandTest {
 	void onMessage_fixed_width() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
-		var message = new ChatCommandBuilder(command) //@formatter:off
+
+		//@formatter:off
+		var message = new ChatCommandBuilder(command) 
 			.messageId(1)
 			.content("<pre class='partial'>test **one**</pre>")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
@@ -177,10 +197,13 @@ class LearnCommandTest {
 	void onMessage_IOException() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
-		var message = new ChatCommandBuilder(command) //@formatter:off
+
+		//@formatter:off
+		var message = new ChatCommandBuilder(command)
 			.messageId(1)
 			.content("test <b>one</b>")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
@@ -197,10 +220,13 @@ class LearnCommandTest {
 	void onMessage_regex_fail() throws Exception {
 		var learnedCommands = new LearnedCommandsDao();
 		var command = new LearnCommand(Collections.emptyList(), learnedCommands);
-		var message = new ChatCommandBuilder(command) //@formatter:off
+
+		//@formatter:off
+		var message = new ChatCommandBuilder(command) 
 			.messageId(1)
 			.content("test <b>one</b>")
-		.build(); //@formatter:on
+		.build();
+		//@formatter:on
 
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");

@@ -170,7 +170,7 @@ class OpenAIClientTest {
 	}
 
 	@Test
-	void chatCompletion_error() throws Exception {
+	void chatCompletion_error() {
 		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
@@ -234,7 +234,7 @@ class OpenAIClientTest {
 	}
 
 	@Test
-	void createImage_error() throws Exception {
+	void createImage_error() {
 		var client = new OpenAIClient("KEY");
 
 		//@formatter:off
@@ -250,7 +250,7 @@ class OpenAIClientTest {
 			.responseOk(ResponseSamples.error("Error."))
 		.build());
 		//@formatter:on
-		
+
 		var e = assertThrows(OpenAIException.class, () -> client.createImage("model", "256x256", "Prompt."));
 		assertEquals("Error.", e.getMessage());
 	}
@@ -302,7 +302,7 @@ class OpenAIClientTest {
 	}
 
 	@Test
-	void createImageVariation_bad_url_syntax() throws Exception {
+	void createImageVariation_bad_url_syntax() {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.png user thinks they can include a prompt too";
 
@@ -313,7 +313,7 @@ class OpenAIClientTest {
 	 * If the supplied URL returns a non-200 response, throw an exception.
 	 */
 	@Test
-	void createImageVariation_404() throws Exception {
+	void createImageVariation_404() {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.png";
 
@@ -323,7 +323,7 @@ class OpenAIClientTest {
 			.response(404, "")
 		.build());
 		//@formatter:on
-		
+
 		assertThrows(IOException.class, () -> client.createImageVariation(url, "256x256"));
 	}
 
@@ -360,7 +360,7 @@ class OpenAIClientTest {
 	 * OpenAI.
 	 */
 	@Test
-	void createImageVariation_jpeg_invalid() throws Exception {
+	void createImageVariation_jpeg_invalid() {
 		var client = new OpenAIClient("KEY");
 		var url = "https://example.com/image.jpg";
 
@@ -374,7 +374,7 @@ class OpenAIClientTest {
 			.responseOk(ResponseSamples.error("Uploaded image must be a PNG and less than 4 MB."))
 		.build());
 		//@formatter:on
-		
+
 		var e = assertThrows(OpenAIException.class, () -> client.createImageVariation(url, "256x256"));
 		assertEquals("Uploaded image must be a PNG and less than 4 MB.", e.getMessage());
 	}
@@ -384,7 +384,7 @@ class OpenAIClientTest {
 	 * type.
 	 */
 	@Test
-	void createImageVariation_non_png_content_type() throws Exception {
+	void createImageVariation_non_png_content_type() {
 		var client = new OpenAIClient("KEY");
 		var url = "https://www.google.com";
 
@@ -401,7 +401,7 @@ class OpenAIClientTest {
 			.responseOk(ResponseSamples.error("Uploaded image must be a PNG and less than 4 MB."))
 		.build());
 		//@formatter:on
-		
+
 		var e = assertThrows(OpenAIException.class, () -> client.createImageVariation(url, "256x256"));
 		assertEquals("Uploaded image must be a PNG and less than 4 MB.", e.getMessage());
 	}

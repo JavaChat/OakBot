@@ -41,7 +41,7 @@ class UrbanCommandTest {
 	}
 
 	@Test
-	void ioexception() throws Exception {
+	void ioexception() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://api.urbandictionary.com/v0/define?term=cool")
@@ -65,7 +65,7 @@ class UrbanCommandTest {
 	}
 
 	@Test
-	void non_json_response() throws Exception {
+	void non_json_response() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://api.urbandictionary.com/v0/define?term=cool")
@@ -89,7 +89,7 @@ class UrbanCommandTest {
 	}
 
 	@Test
-	void not_found() throws Exception {
+	void not_found() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://api.urbandictionary.com/v0/define?term=cool")
@@ -253,7 +253,7 @@ class UrbanCommandTest {
 	}
 
 	@Test
-	void word_with_spaces() throws Exception {
+	void word_with_spaces() {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("http://api.urbandictionary.com/v0/define?term=fucked+up")

@@ -12,7 +12,7 @@ class EffectiveDebuggingCommandTest {
 	private final EffectiveDebuggingCommand command = new EffectiveDebuggingCommand();
 
 	@Test
-	void itemNumbers() throws Exception {
+	void itemNumbers() {
 		var expected = 1;
 		for (var item : command.items) {
 			final var expected2 = expected;
@@ -22,7 +22,7 @@ class EffectiveDebuggingCommandTest {
 	}
 
 	@Test
-	void pageNumbers() throws Exception {
+	void pageNumbers() {
 		var prevPage = 0;
 
 		for (var item : command.items) {

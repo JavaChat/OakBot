@@ -90,7 +90,7 @@ class EffectiveJavaXmlTest {
 	 * The "title" element is required.
 	 */
 	@Test
-	void titles() throws Exception {
+	void titles() {
 		var itemElements = document.select("/items/item");
 
 		for (var itemElement : itemElements) {
@@ -104,7 +104,7 @@ class EffectiveJavaXmlTest {
 	 * The "summary" element is required.
 	 */
 	@Test
-	void summaries() throws Exception {
+	void summaries() {
 		var itemElements = document.select("/items/item");
 
 		for (var itemElement : itemElements) {

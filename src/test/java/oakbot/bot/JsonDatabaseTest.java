@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -71,7 +70,7 @@ class JsonDatabaseTest {
 		assertNull(db.get("non-existant"));
 	}
 
-	private static LocalDateTime date(String date) throws ParseException {
+	private static LocalDateTime date(String date) {
 		var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		return LocalDateTime.parse(date, formatter);
 	}

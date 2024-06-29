@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
  */
 class PropertiesWrapperTest {
 	@Test
-	void constructor_file_not_found() throws Exception {
+	void constructor_file_not_found() {
 		assertThrows(IOException.class, () -> new PropertiesWrapper(Paths.get("foo")));
 	}
 
@@ -109,7 +109,7 @@ class PropertiesWrapperTest {
 	}
 
 	@Test
-	void getDate_invalid() throws Exception {
+	void getDate_invalid() {
 		var props = new Properties();
 		props.setProperty("key", "value");
 

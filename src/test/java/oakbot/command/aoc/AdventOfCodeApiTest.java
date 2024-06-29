@@ -48,7 +48,7 @@ class AdventOfCodeApiTest {
 	}
 
 	@Test
-	void getLeadeboardUrl() throws Exception {
+	void getLeadeboardUrl() {
 		Now.setNow(LocalDateTime.of(2018, 12, 1, 0, 0, 0));
 
 		var api = new AdventOfCodeApi("");
