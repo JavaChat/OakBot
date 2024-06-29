@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import oakbot.command.HelpDoc;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import oakbot.command.TheCatDogApiClient;
 import oakbot.util.ChatBuilder;
 
@@ -14,7 +15,7 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  * @see "https://thecatapi.com/"
  */
-public class CatCommand implements DiscordCommand {
+public class CatCommand implements DiscordSlashCommand {
 	private static final Logger logger = Logger.getLogger(CatCommand.class.getName());
 
 	private final TheCatDogApiClient client;
@@ -24,22 +25,18 @@ public class CatCommand implements DiscordCommand {
 	}
 
 	@Override
-	public String name() {
-		return "cat";
-	}
-
-	@Override
-	public HelpDoc help() {
+	public SlashCommandData data() {
 		//@formatter:off
-		return new DiscordHelpDoc.Builder(this)
-			.summary("Displays a cat GIF. 🐱")
-			.detail(new ChatBuilder().append("Images from ").link("thecatapi.com", "https://thecatapi.com").append(".").toString())
-		.build();
+		var description = new ChatBuilder()
+			.append("Displays a cat GIF 🐱. Images from thecatapi.com.")
+		.toString();
 		//@formatter:on
+
+		return Commands.slash("cat", description);
 	}
 
 	@Override
-	public void onMessage(String content, MessageReceivedEvent event, BotContext context) {
+	public void onMessage(SlashCommandInteractionEvent event, BotContext context) {
 		String url;
 		try {
 			url = client.getRandomCatGif();
@@ -49,6 +46,6 @@ public class CatCommand implements DiscordCommand {
 			return;
 		}
 
-		event.getChannel().sendMessage(url).queue();
+		event.reply(url).queue();
 	}
 }

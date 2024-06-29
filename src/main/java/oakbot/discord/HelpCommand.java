@@ -9,6 +9,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 
@@ -19,8 +20,10 @@ import oakbot.util.ChatBuilder;
 public class HelpCommand implements DiscordCommand {
 	private final List<DiscordCommand> commands;
 	private final List<DiscordListener> listeners;
+	private final List<DiscordSlashCommand> slashCommands;
 
-	public HelpCommand(List<DiscordCommand> commands, List<DiscordListener> listeners) {
+	public HelpCommand(List<DiscordSlashCommand> slashCommands, List<DiscordCommand> commands, List<DiscordListener> listeners) {
+		this.slashCommands = slashCommands;
 		this.commands = commands;
 		this.listeners = listeners;
 	}
@@ -50,14 +53,31 @@ public class HelpCommand implements DiscordCommand {
 			return;
 		}
 
+		var slashCommandSummaries = getSlashCommandSummaries();
 		var commandSummaries = getCommandSummaries();
 		var listenerDescriptions = getListenerSummaries();
 
-		var longestNameLength = longestNameLength(context.trigger(), commandSummaries, listenerDescriptions);
+		var longestNameLength = longestNameLength(context.trigger(), slashCommandSummaries, commandSummaries, listenerDescriptions);
 		final var bufferSpace = 2;
 
 		//build message
 		var cb = new ChatBuilder();
+
+		if (!slashCommandSummaries.isEmpty()) {
+			var slash = "/";
+			cb.bold("Slash commands").nl();
+			cb.append("```").nl();
+			for (var entry : slashCommandSummaries.entries()) {
+				var name = entry.getKey();
+				var description = entry.getValue();
+
+				cb.append(slash).append(name);
+				cb.repeat(' ', longestNameLength - (slash.length() + name.length()) + bufferSpace);
+				cb.append(description).nl();
+			}
+			cb.append("```").nl();
+		}
+
 		if (!commandSummaries.isEmpty()) {
 			cb.bold("Commands").nl();
 			cb.append("```").nl();
@@ -89,11 +109,13 @@ public class HelpCommand implements DiscordCommand {
 		event.getMessage().reply(cb).queue();
 	}
 
-	private static int longestNameLength(String trigger, Multimap<String, String> commandSummaries, Multimap<String, String> listenerDescriptions) {
+	private static int longestNameLength(String trigger, Multimap<String, String> slashCommandSummaries, Multimap<String, String> commandSummaries, Multimap<String, String> listenerDescriptions) {
+		var longestSlashCommandNameLength = longestString(slashCommandSummaries.keySet()) + "/".length();
 		var longestCommandNameLength = longestString(commandSummaries.keySet()) + trigger.length();
 		var longestListenerNameLength = longestString(listenerDescriptions.keySet());
 
-		return Math.max(longestCommandNameLength, longestListenerNameLength);
+		var m = Math.max(longestSlashCommandNameLength, longestCommandNameLength);
+		return Math.max(m, longestListenerNameLength);
 	}
 
 	private static int longestString(Collection<String> c) {
@@ -102,6 +124,22 @@ public class HelpCommand implements DiscordCommand {
 			.mapToInt(String::length)
 		.max().orElse(0);
 		//@formatter:on
+	}
+
+	private Multimap<String, String> getSlashCommandSummaries() {
+		Multimap<String, String> summaries = TreeMultimap.create();
+
+		//@formatter:off
+		slashCommands.stream()
+			.map(DiscordSlashCommand::data)
+		.forEach(data -> {
+			var name = data.getName();
+			var description = data.getDescription();
+			summaries.put(name, description);
+		});
+		//@formatter:on
+
+		return summaries;
 	}
 
 	private Multimap<String, String> getCommandSummaries() {
@@ -145,6 +183,12 @@ public class HelpCommand implements DiscordCommand {
 		var helpTexts = new ArrayList<String>();
 
 		//@formatter:off
+		slashCommands.stream()
+			.map(DiscordSlashCommand::data)
+			.filter(data -> data.getName().equalsIgnoreCase(name))
+			.map(SlashCommandData::getDescription)
+		.forEach(helpTexts::add);
+
 		commands.stream()
 			.filter(c -> c.name() != null)
 			.filter(c -> c.name().equalsIgnoreCase(name))

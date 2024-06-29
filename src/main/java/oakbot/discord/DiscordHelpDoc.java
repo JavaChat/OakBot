@@ -24,7 +24,7 @@ public class DiscordHelpDoc extends oakbot.command.HelpDoc {
 	@Override
 	public String getHelpText(String trigger) {
 		var cb = new ChatBuilder();
-		cb.bold(name).append(':').nl();
+		cb.code().append(trigger).append(name).code().nl();
 
 		if (includeSummaryWithDetail) {
 			cb.append(summary);

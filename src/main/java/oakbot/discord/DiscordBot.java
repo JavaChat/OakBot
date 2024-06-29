@@ -2,15 +2,21 @@ package oakbot.discord;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 /**
@@ -25,6 +31,7 @@ public class DiscordBot {
 
 	private final List<DiscordListener> mentionListeners;
 	private final List<DiscordListener> listeners;
+	private final Map<String, DiscordSlashCommand> slashCommands;
 
 	private DiscordBot(Builder builder) throws InterruptedException {
 		trigger = builder.trigger;
@@ -39,6 +46,11 @@ public class DiscordBot {
 			public void onMessageReceived(MessageReceivedEvent event) {
 				DiscordBot.this.onMessageReceived(event);
 			}
+
+			@Override
+			public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+				DiscordBot.this.onSlashCommandInteraction(event);
+			}
 		});
 
 		if (builder.status != null) {
@@ -47,15 +59,29 @@ public class DiscordBot {
 
 		jda = jdaBuilder.build();
 		jda.awaitReady();
+
+		if (builder.slashCommands == null) {
+			slashCommands = Map.of();
+		} else {
+			var slashCommandsMut = new HashMap<String, DiscordSlashCommand>();
+			var slashCommandData = new ArrayList<SlashCommandData>();
+			for (var slashCommand : builder.slashCommands) {
+				var data = slashCommand.data();
+				slashCommandData.add(data);
+				slashCommandsMut.put(data.getName(), slashCommand);
+			}
+
+			slashCommands = Collections.unmodifiableMap(slashCommandsMut);
+			jda.updateCommands().addCommands(slashCommandData).complete();
+		}
 	}
 
 	public JDA getJDA() {
 		return jda;
 	}
 
-	public void onMessageReceived(MessageReceivedEvent event) {
+	void onMessageReceived(MessageReceivedEvent event) {
 		var author = event.getAuthor();
-		var authorIsAdmin = adminUsers.contains(author.getIdLong());
 
 		var selfUser = event.getJDA().getSelfUser();
 		var messagePostedByBot = author.equals(selfUser);
@@ -74,6 +100,7 @@ public class DiscordBot {
 			return;
 		}
 
+		var authorIsAdmin = adminUsers.contains(author.getIdLong());
 		var context = new BotContext(authorIsAdmin, trigger);
 
 		/*
@@ -89,6 +116,20 @@ public class DiscordBot {
 		listeners.forEach(l -> l.onMessage(event, context));
 	}
 
+	void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+		var command = slashCommands.get(event.getName());
+		boolean unknownCommand = (command == null);
+		if (unknownCommand) {
+			return;
+		}
+
+		var author = event.getUser();
+		var authorIsAdmin = adminUsers.contains(author.getIdLong());
+		var context = new BotContext(authorIsAdmin, trigger);
+
+		command.onMessage(event, context);
+	}
+
 	public void shutdown() {
 		jda.shutdown();
 	}
@@ -101,6 +142,7 @@ public class DiscordBot {
 		private List<Long> ignoredChannels;
 		private List<DiscordListener> mentionListeners;
 		private List<DiscordListener> listeners;
+		private List<DiscordSlashCommand> slashCommands;
 
 		public Builder token(String token) {
 			this.token = token;
@@ -134,6 +176,11 @@ public class DiscordBot {
 
 		public Builder mentionListeners(List<DiscordListener> mentionListeners) {
 			this.mentionListeners = mentionListeners;
+			return this;
+		}
+
+		public Builder slashCommands(List<DiscordSlashCommand> slashCommands) {
+			this.slashCommands = slashCommands;
 			return this;
 		}
 

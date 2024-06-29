@@ -23,14 +23,15 @@ public class MainDiscord {
 		var trigger = "!";
 
 		//@formatter:off
-		var commands = new ArrayList<>(List.of(
-			new AboutCommand(),
+		var slashCommands = List.of(
 			new CatCommand(theCatDogApiClient),
 			new DogCommand(theCatDogApiClient),
-			new ImagineCommand(openAIClient),
+			new ImagineCommand(openAIClient)
+		);
+		var commands = new ArrayList<>(List.of(
+			new AboutCommand(),
 			new ShutdownCommand()
 		));
-		
 		var listeners = List.of(
 			new WaveListener(),
 			new CommandListener(trigger, commands)
@@ -43,13 +44,14 @@ public class MainDiscord {
 		//create help command
 		var allListeners = new ArrayList<>(listeners);
 		allListeners.addAll(mentionListeners);
-		var helpCommand = new HelpCommand(commands, allListeners);
+		var helpCommand = new HelpCommand(slashCommands, commands, allListeners);
 		commands.add(helpCommand);
 
 		//@formatter:off
 		var bot = new DiscordBot.Builder()
 			.adminUsers(properties.getAdminUsers())
 			.ignoredChannels(properties.getIgnoredChannels())
+			.slashCommands(slashCommands)
 			.listeners(listeners)
 			.mentionListeners(mentionListeners)
 			.status(properties.getDiscordStatus())

@@ -1,6 +1,7 @@
 package oakbot.discord;
 
 import static oakbot.util.StringUtils.plural;
+import static oakbot.util.StringUtils.possessive;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -9,17 +10,26 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.FileUpload;
+import oakbot.ai.openai.CreateImageResponse;
 import oakbot.ai.openai.OpenAIClient;
-import oakbot.command.HelpDoc;
 import oakbot.listener.chatgpt.UsageQuota;
+import oakbot.util.ChatBuilder;
 import okhttp3.OkHttpClient;
 
 /**
  * @author Michael Angstadt
  */
-public class ImagineCommand implements DiscordCommand {
+public class ImagineCommand implements DiscordSlashCommand {
+	private static final String OPT_PROMPT = "prompt";
+
 	private final OpenAIClient client;
 	private final UsageQuota usageQuota = new UsageQuota(Duration.ofDays(1), 2);
 	private final OkHttpClient httpClient = new OkHttpClient();
@@ -29,24 +39,20 @@ public class ImagineCommand implements DiscordCommand {
 	}
 
 	@Override
-	public String name() {
-		return "imagine";
-	}
-
-	@Override
-	public HelpDoc help() {
+	public SlashCommandData data() {
 		//@formatter:off
-		return new DiscordHelpDoc.Builder(this)
-			.summary("Creates images using OpenAI's DALL·E 3.")
-			.detail("Users can make 2 requests per day.")
-			.example("a cute Java programmer", "Generates an image of a cute Java programmer.")
-		.build();
+		var description = new ChatBuilder()
+			.append("Creates images using OpenAI's DALL·E 3. Users can make 2 requests per day.")
+		.toString();
+
+		return Commands.slash("imagine", description)
+			.addOption(OptionType.STRING, OPT_PROMPT, "Describes what the image should look like.", true);
 		//@formatter:on
 	}
 
 	@Override
-	public void onMessage(String content, MessageReceivedEvent event, BotContext context) {
-		var userId = event.getMessage().getAuthor().getIdLong();
+	public void onMessage(SlashCommandInteractionEvent event, BotContext context) {
+		var userId = event.getUser().getIdLong();
 
 		Duration timeUntilNextRequest;
 		synchronized (usageQuota) {
@@ -55,12 +61,26 @@ public class ImagineCommand implements DiscordCommand {
 
 		if (!timeUntilNextRequest.isZero()) {
 			var hours = timeUntilNextRequest.toHours() + 1;
-			event.getMessage().reply("Bad human! You are over quota. Try again in " + hours + " " + plural("hour", hours) + ".").queue();
+			event.reply("Bad human! You are over quota. Try again in " + hours + " " + plural("hour", hours) + ".").queue();
 			return;
 		}
 
-		try {
-			var response = client.createImage("dall-e-3", "1024x1024", content);
+		var prompt = event.getOption(OPT_PROMPT, OptionMapping::getAsString);
+
+		/*
+		 * If the bot doesn't respond within a very short amount of time, the
+		 * slash command times out and any files or messages you try to send are
+		 * rejected.
+		 * 
+		 * As a work around, you can chain additional actions using "flatMap".
+		 */
+		event.reply("Working...").setEphemeral(true).flatMap(m -> {
+			CreateImageResponse response;
+			try {
+				response = client.createImage("dall-e-3", "1024x1024", prompt);
+			} catch (Exception e) {
+				return event.getChannel().sendMessage(new ChatBuilder().code().append("ERROR BEEP BOOP: " + e.getMessage()).code());
+			}
 
 			if (!context.authorIsAdmin()) {
 				synchronized (usageQuota) {
@@ -68,18 +88,27 @@ public class ImagineCommand implements DiscordCommand {
 				}
 			}
 
+			var username = event.getUser().getEffectiveName();
+			var cb = new ChatBuilder().bold().append(possessive(username)).append(" prompt: ").bold().append(prompt);
+
 			var revisedPrompt = response.getRevisedPrompt();
 			if (revisedPrompt != null) {
-				event.getChannel().sendMessage("I'm going to use this prompt instead:\n" + revisedPrompt).queue();
+				cb.nl().bold("Revised prompt: ").append(revisedPrompt);
 			}
 
+			return event.getChannel().sendMessage(cb).flatMap(m2 -> sendFile(event, response, prompt));
+		}).queue();
+	}
+
+	private RestAction<Message> sendFile(SlashCommandInteractionEvent event, CreateImageResponse response, String prompt) {
+		try {
 			var image = download(response.getUrl());
-			var filename = filename(content);
+			var filename = filename(prompt);
 			var file = FileUpload.fromData(image, filename);
-			event.getChannel().sendFiles(file).queue();
-		} catch (Exception e) {
-			event.getChannel().sendMessage("`ERROR BEEP BOOP: " + e.getMessage() + "`").queue();
-			return;
+
+			return event.getChannel().sendFiles(file);
+		} catch (IOException e) {
+			return event.getChannel().sendMessage(new ChatBuilder().code().append("ERROR BEEP BOOP: " + e.getMessage()).code());
 		}
 	}
 
