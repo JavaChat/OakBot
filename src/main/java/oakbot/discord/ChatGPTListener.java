@@ -38,6 +38,11 @@ public class ChatGPTListener implements DiscordListener {
 	}
 
 	@Override
+	public boolean onlyRespondWhenMentioned() {
+		return true;
+	}
+
+	@Override
 	public HelpDoc help() {
 		//@formatter:off
 		return new DiscordHelpDoc.Builder(this)

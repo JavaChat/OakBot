@@ -33,18 +33,14 @@ public class MainDiscord {
 			new ShutdownCommand()
 		));
 		var listeners = List.of(
+			new ChatGPTListener(openAIClient, "gpt-4o", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount()),
 			new WaveListener(),
 			new CommandListener(trigger, commands)
-		);
-		var mentionListeners = List.<DiscordListener> of(
-			new ChatGPTListener(openAIClient, "gpt-4o", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount())
 		);
 		//@formatter:on
 
 		//create help command
-		var allListeners = new ArrayList<>(listeners);
-		allListeners.addAll(mentionListeners);
-		var helpCommand = new HelpCommand(slashCommands, commands, allListeners);
+		var helpCommand = new HelpCommand(slashCommands, commands, listeners);
 		commands.add(helpCommand);
 
 		//@formatter:off
@@ -53,7 +49,6 @@ public class MainDiscord {
 			.ignoredChannels(properties.getIgnoredChannels())
 			.slashCommands(slashCommands)
 			.listeners(listeners)
-			.mentionListeners(mentionListeners)
 			.status(properties.getDiscordStatus())
 			.token(properties.getDiscordToken())
 			.trigger(trigger)

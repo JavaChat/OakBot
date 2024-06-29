@@ -33,7 +33,6 @@ public class DiscordBot {
 	private final List<Long> adminUsers;
 	private final List<Long> ignoredChannels;
 
-	private final List<DiscordListener> mentionListeners;
 	private final List<DiscordListener> listeners;
 	private final Map<String, DiscordSlashCommand> slashCommands;
 
@@ -42,7 +41,6 @@ public class DiscordBot {
 		adminUsers = (builder.adminUsers == null) ? List.of() : List.copyOf(builder.adminUsers);
 		ignoredChannels = (builder.ignoredChannels == null) ? List.of() : List.copyOf(builder.ignoredChannels);
 		listeners = (builder.listeners == null) ? List.of() : List.copyOf(builder.listeners);
-		mentionListeners = (builder.mentionListeners == null) ? List.of() : List.copyOf(builder.mentionListeners);
 
 		var intents = EnumSet.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.MESSAGE_CONTENT);
 		var jdaBuilder = JDABuilder.createLight(requireNonNull(builder.token), intents).addEventListeners(new ListenerAdapter() {
@@ -107,23 +105,18 @@ public class DiscordBot {
 		var authorIsAdmin = adminUsers.contains(author.getIdLong());
 		var context = new BotContext(authorIsAdmin, trigger);
 
+		var stream = listeners.stream();
+
 		/*
 		 * Note: If a message only contains 1 word after the mention, it is not
 		 * considered a mention for some reason
 		 */
 		var botMentioned = event.getMessage().getMentions().getUsers().contains(selfUser);
-		if (botMentioned) {
-			mentionListeners.forEach(l -> {
-				try {
-					l.onMessage(event, context);
-				} catch (Exception e) {
-					logUnhandledException(l, e);
-				}
-			});
-			return;
+		if (!botMentioned) {
+			stream = stream.filter(l -> !l.onlyRespondWhenMentioned());
 		}
 
-		listeners.forEach(l -> {
+		stream.forEach(l -> {
 			try {
 				l.onMessage(event, context);
 			} catch (Exception e) {
@@ -164,7 +157,6 @@ public class DiscordBot {
 		private String status;
 		private List<Long> adminUsers;
 		private List<Long> ignoredChannels;
-		private List<DiscordListener> mentionListeners;
 		private List<DiscordListener> listeners;
 		private List<DiscordSlashCommand> slashCommands;
 
@@ -195,11 +187,6 @@ public class DiscordBot {
 
 		public Builder listeners(List<DiscordListener> listeners) {
 			this.listeners = listeners;
-			return this;
-		}
-
-		public Builder mentionListeners(List<DiscordListener> mentionListeners) {
-			this.mentionListeners = mentionListeners;
 			return this;
 		}
 

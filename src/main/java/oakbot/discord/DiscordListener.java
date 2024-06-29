@@ -15,5 +15,9 @@ public interface DiscordListener {
 		return null;
 	}
 
+	default boolean onlyRespondWhenMentioned() {
+		return false;
+	}
+
 	void onMessage(MessageReceivedEvent event, BotContext context);
 }
