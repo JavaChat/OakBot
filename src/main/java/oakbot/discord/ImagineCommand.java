@@ -1,20 +1,22 @@
 package oakbot.discord;
 
 import static oakbot.util.StringUtils.plural;
-import static oakbot.util.StringUtils.possessive;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -29,6 +31,19 @@ import okhttp3.OkHttpClient;
  */
 public class ImagineCommand implements DiscordSlashCommand {
 	private static final String OPT_PROMPT = "prompt";
+	private static final String OPT_MODEL = "model";
+
+	private static final Model DEFAULT_MODEL = new Model("OpenAI DALL·E 3", "dall-e-3");
+
+	//@formatter:off
+	private static final List<Model> MODELS = List.of(
+		new Model("OpenAI DALL·E 2", "dall-e-2"),
+		DEFAULT_MODEL
+		//new Model("Stable Image Core", "si-core"),
+		//new Model("Stable Diffusion 3", "sd3"),
+		//new Model("Stable Diffusion 3 Turbo", "sd3-turbo")
+	);
+	//@formatter:on
 
 	private final OpenAIClient client;
 	private final UsageQuota usageQuota = new UsageQuota(Duration.ofDays(1), 2);
@@ -41,12 +56,11 @@ public class ImagineCommand implements DiscordSlashCommand {
 	@Override
 	public SlashCommandData data() {
 		//@formatter:off
-		var description = new ChatBuilder()
-			.append("Creates images using OpenAI's DALL·E 3. Users can make 2 requests per day.")
-		.toString();
-
-		return Commands.slash("imagine", description)
-			.addOption(OptionType.STRING, OPT_PROMPT, "Describes what the image should look like.", true);
+		return Commands.slash("imagine", "Creates images using AI image generators. Users can make 2 requests per day.")
+			.addOption(OptionType.STRING, OPT_PROMPT, "Describes what the image should look like.", true)
+			.addOptions(new OptionData(OptionType.STRING, OPT_MODEL, "Defines which model to use (defaults to \"" + DEFAULT_MODEL.display() + "\").")
+				.addChoices(MODELS.stream().map(m -> new Choice(m.display(), m.id())).toList())
+			);
 		//@formatter:on
 	}
 
@@ -67,6 +81,12 @@ public class ImagineCommand implements DiscordSlashCommand {
 
 		var prompt = event.getOption(OPT_PROMPT, OptionMapping::getAsString);
 
+		var modelOption = event.getOption(OPT_MODEL);
+		var modelId = (modelOption == null) ? DEFAULT_MODEL.id() : modelOption.getAsString();
+		var modelDisplay = (modelOption == null) ? DEFAULT_MODEL.display() : getModelById(modelId).display();
+
+		var size = "dall-e-3".equals(modelId) ? "1024x1024" : "256x256";
+
 		/*
 		 * If the bot doesn't respond within a very short amount of time, the
 		 * slash command times out and any files or messages you try to send are
@@ -74,10 +94,11 @@ public class ImagineCommand implements DiscordSlashCommand {
 		 * 
 		 * As a work around, you can chain additional actions using "flatMap".
 		 */
-		event.reply("Working...").setEphemeral(true).flatMap(m -> {
+		var message = new ChatBuilder().append("🎨 Submitted ").bold(modelDisplay).append(" request with the following prompt: ").bold(prompt).toString();
+		event.reply(message.toString()).flatMap(m -> {
 			CreateImageResponse response;
 			try {
-				response = client.createImage("dall-e-3", "1024x1024", prompt);
+				response = client.createImage(modelId, size, prompt);
 			} catch (Exception e) {
 				return event.getChannel().sendMessage(new ChatBuilder().code().append("ERROR BEEP BOOP: " + e.getMessage()).code());
 			}
@@ -88,15 +109,12 @@ public class ImagineCommand implements DiscordSlashCommand {
 				}
 			}
 
-			var username = event.getUser().getEffectiveName();
-			var cb = new ChatBuilder().bold().append(possessive(username)).append(" prompt: ").bold().append(prompt);
-
 			var revisedPrompt = response.getRevisedPrompt();
 			if (revisedPrompt != null) {
-				cb.nl().bold("Revised prompt: ").append(revisedPrompt);
+				return event.getChannel().sendMessage(new ChatBuilder().bold("Revised prompt: ").append(revisedPrompt)).flatMap(m2 -> sendFile(event, response, prompt));
 			}
 
-			return event.getChannel().sendMessage(cb).flatMap(m2 -> sendFile(event, response, prompt));
+			return sendFile(event, response, prompt);
 		}).queue();
 	}
 
@@ -132,5 +150,16 @@ public class ImagineCommand implements DiscordSlashCommand {
 		//@formatter:on
 
 		return date + "-" + name + ".png";
+	}
+
+	private record Model(String display, String id) {
+	}
+
+	private static Model getModelById(String id) {
+		//@formatter:off
+		return MODELS.stream()
+			.filter(m -> m.id().equals(id))
+		.findFirst().orElse(null);
+		//@formatter:on
 	}
 }
