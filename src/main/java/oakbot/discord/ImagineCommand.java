@@ -2,17 +2,12 @@ package oakbot.discord;
 
 import static oakbot.util.StringUtils.plural;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
-import javax.imageio.ImageIO;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
@@ -38,6 +33,7 @@ import oakbot.ai.stabilityai.StableImageDiffusionRequest;
 import oakbot.listener.chatgpt.UsageQuota;
 import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
+import oakbot.util.ImageUtils;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 
@@ -200,7 +196,7 @@ public class ImagineCommand implements DiscordSlashCommand {
 					 * Stable Diffusion doesn't support GIF.
 					 */
 					if (contentType.startsWith("image/gif")) {
-						image = convertToPng(image);
+						image = ImageUtils.convertToPng(image);
 						if (image == null) {
 							throw new IllegalArgumentException("The provided GIF input image could not be converted to PNG.");
 						}
@@ -254,21 +250,6 @@ public class ImagineCommand implements DiscordSlashCommand {
 		//@formatter:on
 
 		return date + "-" + name + "." + extension;
-	}
-
-	private byte[] convertToPng(byte[] data) throws IOException {
-		BufferedImage image;
-		try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
-			image = ImageIO.read(in);
-		}
-		if (image == null) {
-			return null;
-		}
-
-		try (var out = new ByteArrayOutputStream()) {
-			ImageIO.write(image, "PNG", out);
-			return out.toByteArray();
-		}
 	}
 
 	private record DownloadedFile(MediaType contentType, byte[] data) {

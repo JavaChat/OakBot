@@ -6,7 +6,6 @@ import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.StringUtils.plural;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -41,6 +40,7 @@ import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
+import oakbot.util.ImageUtils;
 
 /**
  * Generates images using various AI image models.
@@ -274,7 +274,7 @@ public class ImagineCommand implements Command {
 					 * Stable Diffusion doesn't support GIF.
 					 */
 					if (contentType.startsWith("image/gif")) {
-						image = convertToPng(image);
+						image = ImageUtils.convertToPng(image);
 						if (image == null) {
 							throw new IllegalArgumentException("GIF image couldn't be converted to PNG.");
 						}
@@ -289,21 +289,6 @@ public class ImagineCommand implements Command {
 		return uploadImage(bot, response.getImage());
 	}
 
-	private byte[] convertToPng(byte[] data) throws IOException {
-		BufferedImage image;
-		try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
-			image = ImageIO.read(in);
-		}
-		if (image == null) {
-			return null;
-		}
-
-		try (var out = new ByteArrayOutputStream()) {
-			ImageIO.write(image, "PNG", out);
-			return out.toByteArray();
-		}
-	}
-
 	/**
 	 * @see "https://stackoverflow.com/q/17108234/13379"
 	 */
@@ -316,7 +301,7 @@ public class ImagineCommand implements Command {
 		 * 
 		 * javax.imageio.IIOException: Bogus input colorspace
 		 */
-		image = removeAlphaChannel(image);
+		image = ImageUtils.removeAlphaChannel(image);
 
 		var jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
 		var jpgWriteParam = jpgWriter.getDefaultWriteParam();
@@ -348,27 +333,6 @@ public class ImagineCommand implements Command {
 		}
 
 		return image;
-	}
-
-	/**
-	 * Removes the alpha channel from the image, if present.
-	 * @param image the image
-	 * @return the image with alpha channel removed
-	 * @see "https://stackoverflow.com/a/72135983/13379"
-	 */
-	private BufferedImage removeAlphaChannel(BufferedImage image) {
-		if (!image.getColorModel().hasAlpha()) {
-			return image;
-		}
-
-		var target = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-
-		var g = target.createGraphics();
-		g.fillRect(0, 0, image.getWidth(), image.getHeight());
-		g.drawImage(image, 0, 0, null);
-		g.dispose();
-
-		return target;
 	}
 
 	static ImagineCommandParameters parseContent(String content) {
