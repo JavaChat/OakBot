@@ -9,9 +9,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
-
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -32,7 +29,6 @@ import oakbot.ai.stabilityai.StableImageCoreRequest;
 import oakbot.ai.stabilityai.StableImageDiffusionRequest;
 import oakbot.listener.chatgpt.UsageQuota;
 import oakbot.util.ChatBuilder;
-import oakbot.util.HttpFactory;
 import oakbot.util.ImageUtils;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -184,26 +180,24 @@ public class ImagineCommand implements DiscordSlashCommand {
 				throw new IllegalArgumentException("The provided input image is not an image.");
 			}
 
-			byte[] image;
-			String contentType;
-			try (var client = HttpFactory.connect().getClient()) {
-				var getRequest = new HttpGet(inputImage.getUrl());
-				try (var response = client.execute(getRequest)) {
-					contentType = response.getEntity().getContentType().getValue();
-					image = EntityUtils.toByteArray(response.getEntity());
+			var image = download(inputImage.getUrl());
 
-					/*
-					 * Stable Diffusion doesn't support GIF.
-					 */
-					if (contentType.startsWith("image/gif")) {
-						image = ImageUtils.convertToPng(image);
-						if (image == null) {
-							throw new IllegalArgumentException("The provided GIF input image could not be converted to PNG.");
-						}
-					}
+			/*
+			 * Stable Diffusion does not support GIF.
+			 */
+			byte[] data;
+			String contentType;
+			if (image.contentType.type().equals("image") && image.contentType.subtype().equals("gif")) {
+				data = ImageUtils.convertToPng(image.data());
+				if (data == null) {
+					throw new IllegalArgumentException("The provided GIF input image could not be converted to PNG.");
 				}
+				contentType = "image/png";
+			} else {
+				data = image.data();
+				contentType = image.contentType().toString();
 			}
-			builder.image(image, contentType, 0.5);
+			builder.image(data, contentType, 0.5);
 		}
 
 		var response = stabilityAIClient.generateImage(builder.build());
