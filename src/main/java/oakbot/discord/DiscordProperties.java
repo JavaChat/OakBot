@@ -13,6 +13,7 @@ public class DiscordProperties extends PropertiesWrapper {
 	private final String discordToken;
 	private final String discordStatus;
 	private final String openAIKey;
+	private final String stabilityAIKey;
 	private final int openAIMessageHistoryCount;
 	private final String openAIPrompt;
 	private final List<Long> adminUsers;
@@ -25,6 +26,7 @@ public class DiscordProperties extends PropertiesWrapper {
 		openAIKey = get("openai.key");
 		openAIMessageHistoryCount = getInteger("openai.messageHistoryCount", 10);
 		openAIPrompt = get("openai.prompt");
+		stabilityAIKey = get("stabilityai.key");
 		adminUsers = getLongList("admins");
 		ignoredChannels = getLongList("ignoredChannels");
 	}
@@ -39,6 +41,10 @@ public class DiscordProperties extends PropertiesWrapper {
 
 	public String getOpenAIKey() {
 		return openAIKey;
+	}
+
+	public String getStabilityAIKey() {
+		return stabilityAIKey;
 	}
 
 	public int getOpenAIMessageHistoryCount() {

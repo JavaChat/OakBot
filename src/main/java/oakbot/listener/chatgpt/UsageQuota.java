@@ -53,6 +53,21 @@ public class UsageQuota {
 	}
 
 	/**
+	 * Removes the last request.
+	 * @param userId the user ID
+	 */
+	public void removeLast(long userId) {
+		if (period == null) {
+			return;
+		}
+
+		var times = getRequestTimes(userId);
+		if (!times.isEmpty()) {
+			times.remove(times.size() - 1);
+		}
+	}
+
+	/**
 	 * Calculates the amount of time until the user can make another request.
 	 * @param userId the user ID
 	 * @return the amount of time until the user can make a request or zero if
