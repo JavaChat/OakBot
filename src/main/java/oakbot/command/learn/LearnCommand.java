@@ -5,9 +5,10 @@ import static oakbot.bot.ChatActions.reply;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 
@@ -22,7 +23,7 @@ import oakbot.command.HelpDoc;
  * @author Michael Angstadt
  */
 public class LearnCommand implements Command {
-	private static final Logger logger = Logger.getLogger(LearnCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LearnCommand.class);
 
 	private final List<Command> hardcodedCommands;
 	private final LearnedCommandsDao learnedCommands;
@@ -87,10 +88,10 @@ public class LearnCommand implements Command {
 			if (m.find()) {
 				commandOutput = m.group(1) + m.group(2);
 			} else {
-				logger.severe(() -> "Could not parse command output from plaintext chat message. Falling back to manually converting the HTML-encoded message to Markdown: " + plainText);
+				logger.atError().log(() -> "Could not parse command output from plaintext chat message. Falling back to manually converting the HTML-encoded message to Markdown: " + plainText);
 			}
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem querying chat service for original message content. Falling back to manually converting the HTML-encoded message to Markdown.");
+			logger.atError().setCause(e).log(() -> "Problem querying chat service for original message content. Falling back to manually converting the HTML-encoded message to Markdown.");
 		}
 
 		if (commandOutput == null) {

@@ -8,13 +8,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.SplitStrategy;
@@ -34,7 +35,7 @@ import oakbot.util.Now;
  * @author Michael Angstadt
  */
 public class XkcdExplained implements ScheduledTask, Listener {
-	private static final Logger logger = Logger.getLogger(XkcdExplained.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(XkcdExplained.class);
 	private static final Pattern regex = Pattern.compile("https://xkcd.com/(\\d+)");
 	private static final int maxTimesToCheckWikiBeforeGivingUp = 8;
 
@@ -91,7 +92,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 				comic.checkedWiki();
 				if (comic.timesCheckedWiki >= maxTimesToCheckWikiBeforeGivingUp) {
 					stopChecking.add(roomId);
-					logger.severe(() -> "Still no explanation posted for comic #" + comic.comicId + " after checking wiki " + comic.timesCheckedWiki + " times. Giving up.");
+					logger.atError().log(() -> "Still no explanation posted for comic #" + comic.comicId + " after checking wiki " + comic.timesCheckedWiki + " times. Giving up.");
 				}
 				continue;
 			}

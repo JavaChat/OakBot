@@ -11,8 +11,9 @@ import java.nio.file.WatchService;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -22,7 +23,7 @@ import com.google.common.collect.Multimap;
  * @author Michael Angstadt
  */
 public class JavadocDaoCached implements JavadocDao {
-	private static final Logger logger = Logger.getLogger(JavadocDaoCached.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(JavadocDaoCached.class);
 
 	/**
 	 * Maps each Javadoc ZIP file to the list of classes it contains.
@@ -153,7 +154,7 @@ public class JavadocDaoCached implements JavadocDao {
 					key = watcher.take();
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
-					logger.log(Level.WARNING, e, () -> "Thread interrupted while watching for changes to the Javadoc ZIP files.");
+					logger.atWarn().setCause(e).log(() -> "Thread interrupted while watching for changes to the Javadoc ZIP files.");
 					break;
 				}
 
@@ -161,7 +162,7 @@ public class JavadocDaoCached implements JavadocDao {
 
 				var valid = key.reset();
 				if (!valid) {
-					logger.warning(() -> "Javadoc ZIP file watch thread has been terminated due to the watch key becoming invalid.");
+					logger.atWarn().log(() -> "Javadoc ZIP file watch thread has been terminated due to the watch key becoming invalid.");
 					break;
 				}
 			}
@@ -199,18 +200,18 @@ public class JavadocDaoCached implements JavadocDao {
 		}
 
 		private void add(Path file) {
-			logger.info(() -> "Loading ZIP file " + file + "...");
+			logger.atInfo().log(() -> "Loading ZIP file " + file + "...");
 			try {
 				register(file);
-				logger.info(() -> "ZIP file " + file + " loaded.");
+				logger.atInfo().log(() -> "ZIP file " + file + " loaded.");
 			} catch (Exception e) {
 				//catch RuntimeExceptions too
-				logger.log(Level.SEVERE, e, () -> "Could not parse Javadoc ZIP file.  ZIP file was not added to the JavadocDao.");
+				logger.atError().setCause(e).log(() -> "Could not parse Javadoc ZIP file.  ZIP file was not added to the JavadocDao.");
 			}
 		}
 
 		private void remove(Path file) {
-			logger.info(() -> "Removing ZIP file " + file + "...");
+			logger.atInfo().log(() -> "Removing ZIP file " + file + "...");
 			var fileName = file.getFileName();
 
 			synchronized (JavadocDaoCached.this) {
@@ -222,7 +223,7 @@ public class JavadocDaoCached implements JavadocDao {
 				//@formatter:on
 
 				if (found.isEmpty()) {
-					logger.warning(() -> "Tried to remove ZIP file \"" + file + "\", but it was not found in the JavadocDao.");
+					logger.atWarn().log(() -> "Tried to remove ZIP file \"" + file + "\", but it was not found in the JavadocDao.");
 					return;
 				}
 
@@ -231,7 +232,7 @@ public class JavadocDaoCached implements JavadocDao {
 				cache.keySet().removeAll(classNames);
 			}
 
-			logger.info(() -> "ZIP file " + file + " removed.");
+			logger.atInfo().log(() -> "ZIP file " + file + " removed.");
 		}
 	}
 

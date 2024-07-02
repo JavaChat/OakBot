@@ -1,8 +1,9 @@
 package oakbot.discord;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -16,7 +17,7 @@ import oakbot.util.ChatBuilder;
  * @see "https://thecatapi.com/"
  */
 public class DogCommand implements DiscordSlashCommand {
-	private static final Logger logger = Logger.getLogger(DogCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DogCommand.class);
 
 	private final TheCatDogApiClient client;
 
@@ -41,7 +42,7 @@ public class DogCommand implements DiscordSlashCommand {
 		try {
 			url = client.getRandomDogGif();
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem getting dog.");
+			logger.atError().setCause(e).log(() -> "Problem getting dog.");
 			event.getChannel().sendMessage("Error getting dog: `" + e.getMessage() + "`").queue();
 			return;
 		}

@@ -15,9 +15,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.SplitStrategy;
@@ -38,7 +39,7 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class JavadocCommand implements Command, Listener {
-	private static final Logger logger = Logger.getLogger(JavadocCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(JavadocCommand.class);
 
 	/**
 	 * Stop responding to numeric choices the user enters after this amount of
@@ -146,7 +147,7 @@ public class JavadocCommand implements Command, Listener {
 			 */
 			return handleNoMatch(chatCommand);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem getting Javadoc info from the DAO.");
+			logger.atError().setCause(e).log(() -> "Problem getting Javadoc info from the DAO.");
 			return error("Error getting Javadoc info: ", e, chatCommand);
 		}
 	}

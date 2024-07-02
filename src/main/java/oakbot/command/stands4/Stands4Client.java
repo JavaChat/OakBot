@@ -3,10 +3,10 @@ package oakbot.command.stands4;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,7 +21,7 @@ import oakbot.util.JsonUtils;
  * @see "https://www.abbreviations.com/api.php"
  */
 public class Stands4Client {
-	private static final Logger logger = Logger.getLogger(Stands4Client.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Stands4Client.class);
 
 	private final String apiUserId;
 	private final String apiToken;
@@ -287,20 +287,20 @@ public class Stands4Client {
 		try (var http = HttpFactory.connect()) {
 			response = http.get(url);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem sending STANDS4 API request: " + url);
+			logger.atError().setCause(e).log(() -> "Problem sending STANDS4 API request: " + url);
 			throw e;
 		}
 
 		try {
 			return response.getBodyAsJson();
 		} catch (JsonProcessingException e) {
-			logger.log(Level.SEVERE, e, () -> "Response could not be parsed as JSON: " + response.getBody());
+			logger.atError().setCause(e).log(() -> "Response could not be parsed as JSON: " + response.getBody());
 			throw e;
 		}
 	}
 
 	private void logBadStructure(JsonNode response, NullPointerException e) {
-		logger.log(Level.SEVERE, e, () -> "JSON response was not structured as expected: " + JsonUtils.prettyPrint(response));
+		logger.atError().setCause(e).log(() -> "JSON response was not structured as expected: " + JsonUtils.prettyPrint(response));
 	}
 
 	private IOException badStructure(NullPointerException e) {

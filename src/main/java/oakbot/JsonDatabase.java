@@ -15,8 +15,9 @@ import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -30,7 +31,7 @@ import oakbot.util.JsonUtils;
  * @author Michael Angstadt
  */
 public class JsonDatabase implements Database {
-	private static final Logger logger = Logger.getLogger(JsonDatabase.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(JsonDatabase.class);
 
 	private final Path file;
 	private final Map<String, Object> fields = new HashMap<>();
@@ -153,7 +154,7 @@ public class JsonDatabase implements Database {
 				generator.writeEndObject();
 			}
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Could not persist database.");
+			logger.atError().setCause(e).log(() -> "Could not persist database.");
 		}
 
 		changed = false;
@@ -161,7 +162,7 @@ public class JsonDatabase implements Database {
 
 	private void write(JsonGenerator generator, Object value) throws IOException {
 		if (value instanceof Map<?, ?> map) {
-            generator.writeStartObject();
+			generator.writeStartObject();
 
 			for (var entry : map.entrySet()) {
 				var fieldName = entry.getKey().toString();
@@ -176,7 +177,7 @@ public class JsonDatabase implements Database {
 		}
 
 		if (value instanceof Collection<?> list) {
-            generator.writeStartArray();
+			generator.writeStartArray();
 
 			for (var item : list) {
 				write(generator, item);
@@ -187,17 +188,17 @@ public class JsonDatabase implements Database {
 		}
 
 		if (value instanceof LocalDateTime date) {
-            generator.writeString(date.format(dateTimeFormatter));
+			generator.writeString(date.format(dateTimeFormatter));
 			return;
 		}
 
 		if (value instanceof Integer integer) {
-            generator.writeNumber(integer);
+			generator.writeNumber(integer);
 			return;
 		}
 
 		if (value instanceof Long integer) {
-            generator.writeNumber(integer);
+			generator.writeNumber(integer);
 			return;
 		}
 

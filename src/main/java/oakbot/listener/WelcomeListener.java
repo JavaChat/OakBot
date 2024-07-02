@@ -8,8 +8,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.UserInfo;
@@ -26,7 +27,7 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class WelcomeListener implements Listener {
-	private static final Logger logger = Logger.getLogger(WelcomeListener.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(WelcomeListener.class);
 
 	private final Database db;
 	private final Map<Integer, String> welcomeMessagesByRoom;
@@ -77,7 +78,7 @@ public class WelcomeListener implements Listener {
 			var room = bot.getRoom(roomId);
 			userInfo = room.getUserInfo(List.of(userId));
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Could not get user info for user " + userId + ".");
+			logger.atError().setCause(e).log(() -> "Could not get user info for user " + userId + ".");
 			return doNothing();
 		}
 

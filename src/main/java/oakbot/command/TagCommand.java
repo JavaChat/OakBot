@@ -4,11 +4,11 @@ import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
@@ -25,7 +25,7 @@ import oakbot.util.HttpFactory;
  * @author Michael Angstadt
  */
 public class TagCommand implements Command {
-	private static final Logger logger = Logger.getLogger(TagCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TagCommand.class);
 
 	@Override
 	public String name() {
@@ -56,7 +56,7 @@ public class TagCommand implements Command {
 		try (var http = HttpFactory.connect()) {
 			document = http.get(url).getBodyAsHtml();
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Error getting tag description.");
+			logger.atError().setCause(e).log(() -> "Error getting tag description.");
 			return error("An error occurred retrieving the tag description: ", e, chatCommand);
 		}
 

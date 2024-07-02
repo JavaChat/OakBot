@@ -8,12 +8,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
@@ -36,7 +36,7 @@ import oakbot.util.HttpFactory;
  * @author Michael Angstadt
  */
 public class DefineCommand implements Command {
-	private static final Logger logger = Logger.getLogger(DefineCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DefineCommand.class);
 
 	private final String apiKey;
 
@@ -72,7 +72,7 @@ public class DefineCommand implements Command {
 			var url = url(word);
 			response = http.get(url).getBodyAsXml();
 		} catch (IOException | SAXException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem getting word from dictionary.");
+			logger.atError().setCause(e).log(() -> "Problem getting word from dictionary.");
 			return error("Sorry, an unexpected error occurred while getting the definition: ", e, chatCommand);
 		}
 

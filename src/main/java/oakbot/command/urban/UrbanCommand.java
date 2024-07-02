@@ -4,11 +4,11 @@ import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
@@ -26,7 +26,7 @@ import oakbot.util.HttpFactory;
  * @author Michael Angstadt
  */
 public class UrbanCommand implements Command {
-	private static final Logger logger = Logger.getLogger(UrbanCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UrbanCommand.class);
 
 	@Override
 	public String name() {
@@ -58,7 +58,7 @@ public class UrbanCommand implements Command {
 		try (var http = HttpFactory.connect()) {
 			response = http.get(url).getBodyAsJson(UrbanResponse.class);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem getting word from Urban Dictionary.");
+			logger.atError().setCause(e).log(() -> "Problem getting word from Urban Dictionary.");
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}
 

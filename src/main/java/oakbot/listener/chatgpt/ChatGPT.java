@@ -15,8 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpResponse;
@@ -25,6 +23,8 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.jsoup.UncheckedIOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.SplitStrategy;
@@ -49,7 +49,7 @@ import oakbot.util.HttpFactory;
  * @author Michael Angstadt
  */
 public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
-	private static final Logger logger = Logger.getLogger(ChatGPT.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ChatGPT.class);
 	private static final Collection<String> imageTypesSupportedByVisionModel = Set.of("image/png", "image/jpeg", "image/gif", "image/webp");
 	private static final Collection<String> visionModels = Set.of("gpt-4-vision-preview", "gpt-4o");
 
@@ -238,7 +238,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			);
 			//@formatter:on
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem communicating with ChatGPT.");
+			logger.atError().setCause(e).log(() -> "Problem communicating with ChatGPT.");
 			return reply("I don't really feel like talking right now.", message);
 		}
 	}
@@ -289,7 +289,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			.build());
 			//@formatter:on
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem getting content of parent message.");
+			logger.atError().setCause(e).log(() -> "Problem getting content of parent message.");
 		}
 	}
 

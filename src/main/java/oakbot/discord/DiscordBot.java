@@ -8,8 +8,9 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -25,7 +26,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
  * @author Michael Angstadt
  */
 public class DiscordBot {
-	private static final Logger logger = Logger.getLogger(DiscordBot.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DiscordBot.class);
 
 	private final JDA jda;
 
@@ -144,7 +145,7 @@ public class DiscordBot {
 	}
 
 	private void logUnhandledException(Object thrownBy, Exception e) {
-		logger.log(Level.SEVERE, e, () -> "Unhandled exception thrown by " + thrownBy.getClass().getName() + ".");
+		logger.atError().setCause(e).log(() -> "Unhandled exception thrown by " + thrownBy.getClass().getName() + ".");
 	}
 
 	public void shutdown() {

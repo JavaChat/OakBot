@@ -12,8 +12,6 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -22,6 +20,8 @@ import javax.imageio.ImageWriteParam;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
@@ -47,7 +47,7 @@ import oakbot.util.ImageUtils;
  * @author Michael Angstadt
  */
 public class ImagineCommand implements Command {
-	private static final Logger logger = Logger.getLogger(ImagineCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ImagineCommand.class);
 
 	static final String MODEL_DALLE_2 = "dall-e-2";
 	static final String MODEL_DALLE_3 = "dall-e-3";
@@ -156,7 +156,7 @@ public class ImagineCommand implements Command {
 		} catch (IllegalArgumentException | URISyntaxException | OpenAIException | StabilityAIException e) {
 			return post(new ChatBuilder().reply(chatCommand).code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code());
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Network error.");
+			logger.atError().setCause(e).log(() -> "Network error.");
 			return error("Network error: ", e, chatCommand);
 		}
 	}
@@ -388,7 +388,7 @@ public class ImagineCommand implements Command {
 		try {
 			return bot.uploadImage(imageUrl);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem uploading image to chat room. URL: " + imageUrl);
+			logger.atError().setCause(e).log(() -> "Problem uploading image to chat room. URL: " + imageUrl);
 
 			/*
 			 * Add a fake parameter onto the end of the URL so SO Chat one-boxes

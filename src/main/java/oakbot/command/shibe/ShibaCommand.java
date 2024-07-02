@@ -4,8 +4,9 @@ import static oakbot.bot.ChatActions.error;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -20,7 +21,7 @@ import oakbot.command.HelpDoc;
  * @see "https://shibe.online/"
  */
 public class ShibaCommand implements Command {
-	private static final Logger logger = Logger.getLogger(ShibaCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ShibaCommand.class);
 
 	private final ShibeOnlineClient client;
 
@@ -54,7 +55,7 @@ public class ShibaCommand implements Command {
 		try {
 			url = client.getShiba();
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem getting shiba.");
+			logger.atError().setCause(e).log(() -> "Problem getting shiba.");
 			return error("Error getting shiba: ", e, chatCommand);
 		}
 

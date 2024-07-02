@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import oakbot.util.Rng;
 import org.apache.commons.text.StringEscapeUtils;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -21,6 +20,7 @@ import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.listener.Listener;
 import oakbot.util.ChatBuilder;
+import oakbot.util.Rng;
 
 /**
  * Displays a random fat cat picture from a list of user-defined fat cat

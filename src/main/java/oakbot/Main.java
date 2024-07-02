@@ -15,11 +15,11 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.logging.LogManager;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.github.mangstadt.sochat4j.ChatClient;
@@ -45,7 +45,7 @@ import oakbot.task.ScheduledTask;
  * @author Michael Angstadt
  */
 public final class Main {
-	private static final Logger logger = Logger.getLogger(Main.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
 	public static final String VERSION;
 	public static final String URL;
@@ -208,7 +208,7 @@ public final class Main {
 		t.join();
 		socketThread.closeSocket();
 
-		logger.info(() -> "Terminating.");
+		logger.atInfo().log(() -> "Terminating.");
 	}
 
 	private static void setupLogging(Path config) throws IOException {
@@ -243,13 +243,13 @@ public final class Main {
 
 	private static void createDefaultExceptionHandler() {
 		Thread.setDefaultUncaughtExceptionHandler((thread, thrown) -> {
-			logger.log(Level.SEVERE, thrown, () -> "Uncaught exception thrown.");
+			logger.atError().setCause(thrown).log(() -> "Uncaught exception thrown.");
 		});
 	}
 
 	private static void createShutdownHook(Bot bot) {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			logger.info(() -> "Running shutdown hook.");
+			logger.atInfo().log(() -> "Running shutdown hook.");
 			bot.stop();
 		}));
 	}
@@ -294,7 +294,7 @@ public final class Main {
 					if (serverSocket.isClosed()) {
 						return;
 					}
-					logger.log(Level.SEVERE, e, () -> "Problem accepting new socket connection or reading from socket.");
+					logger.atError().setCause(e).log(() -> "Problem accepting new socket connection or reading from socket.");
 				}
 			}
 		}
@@ -303,7 +303,7 @@ public final class Main {
 			try {
 				serverSocket.close();
 			} catch (IOException e) {
-				logger.log(Level.SEVERE, e, () -> "Problem closing server socket.");
+				logger.atError().setCause(e).log(() -> "Problem closing server socket.");
 			}
 		}
 	}

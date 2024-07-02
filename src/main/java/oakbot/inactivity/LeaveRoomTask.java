@@ -1,8 +1,9 @@
 package oakbot.inactivity;
 
 import java.time.Duration;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.IRoom;
 
@@ -15,7 +16,7 @@ import oakbot.bot.PostMessage;
  * @author Michael Angstadt
  */
 public class LeaveRoomTask implements InactivityTask {
-	private static final Logger logger = Logger.getLogger(LeaveRoomTask.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LeaveRoomTask.class);
 
 	private final Duration inactivityTime; //e.g. 3 days
 
@@ -38,7 +39,7 @@ public class LeaveRoomTask implements InactivityTask {
 		try {
 			bot.sendMessage(room.getRoomId(), new PostMessage("*quietly closes the door behind him*"));
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, e, () -> "Could not post message to room " + room.getRoomId() + ".");
+			logger.atError().setCause(e).log(() -> "Could not post message to room " + room.getRoomId() + ".");
 		}
 
 		bot.leave(room.getRoomId());

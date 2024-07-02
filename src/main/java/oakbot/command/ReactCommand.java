@@ -3,24 +3,24 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.reply;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import oakbot.util.Rng;
 import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.HttpFactory;
+import oakbot.util.Rng;
 
 /**
  * Displays reaction gifs of human emotions.
  * @author Michael Angstadt
  */
 public class ReactCommand implements Command {
-	private static final Logger logger = Logger.getLogger(ReactCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ReactCommand.class);
 
 	private final URIBuilder uriBuilder;
 
@@ -83,7 +83,7 @@ public class ReactCommand implements Command {
 			);
 			//@formatter:on
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, e, () -> "Problem querying reaction API.");
+			logger.atError().setCause(e).log(() -> "Problem querying reaction API.");
 
 			return reply("Sorry, an error occurred >.> : " + e.getMessage(), chatCommand);
 		}

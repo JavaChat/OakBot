@@ -2,8 +2,9 @@ package oakbot.task;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
@@ -17,7 +18,7 @@ import oakbot.util.Rng;
  * @author Michael Angstadt
  */
 public abstract class HealthMonitor implements ScheduledTask {
-	private static final Logger logger = Logger.getLogger(HealthMonitor.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(HealthMonitor.class);
 
 	private final String[] responses = { "coughs", "sneezes", "clears throat", "expectorates", "sniffles", "wheezes", "groans", "moans" };
 	private final List<Integer> roomIds;
@@ -53,7 +54,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 		if (first) {
 			first = false;
 
-			logger.info(() -> "Starting health monitor...");
+			logger.atInfo().log(() -> "Starting health monitor...");
 
 			/*
 			 * Do not start the health monitor if there is a problem checking
@@ -62,11 +63,11 @@ public abstract class HealthMonitor implements ScheduledTask {
 			try {
 				securityUpdates = getNumSecurityUpdates();
 			} catch (Exception e) {
-				logger.log(Level.INFO, e, () -> "Could not query system for security updates.  Health monitor disabled.");
+				logger.atInfo().setCause(e).log(() -> "Could not query system for security updates.  Health monitor disabled.");
 				return 0;
 			}
 
-			logger.info(() -> "Health monitor started.  There are " + securityUpdates + " security updates available.");
+			logger.atInfo().log(() -> "Health monitor started.  There are " + securityUpdates + " security updates available.");
 		}
 
 		/*
@@ -89,7 +90,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 		try {
 			securityUpdates = getNumSecurityUpdates();
 		} catch (Exception e) {
-			logger.log(Level.WARNING, e, () -> "Problem querying for security updates.");
+			logger.atWarn().setCause(e).log(() -> "Problem querying for security updates.");
 			securityUpdates = 0;
 		}
 
@@ -101,7 +102,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 				try {
 					bot.sendMessage(roomId, response);
 				} catch (Exception e) {
-					logger.log(Level.WARNING, e, () -> "Problem sending cough message [room=" + roomId + "].");
+					logger.atWarn().setCause(e).log(() -> "Problem sending cough message [room=" + roomId + "].");
 				}
 			}
 		}

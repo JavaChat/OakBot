@@ -10,8 +10,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -19,6 +17,8 @@ import javax.imageio.ImageWriteParam;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import oakbot.ai.stabilityai.StabilityAIClient;
 import oakbot.ai.stabilityai.StabilityAIException;
@@ -40,7 +40,7 @@ import oakbot.util.HttpFactory;
  * @author Michael Angstadt
  */
 public class VideoCommand implements Command {
-	private static final Logger logger = Logger.getLogger(VideoCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(VideoCommand.class);
 
 	private final StabilityAIClient stabilityAIClient;
 	private final ImgurClient imgurClient;
@@ -98,7 +98,7 @@ public class VideoCommand implements Command {
 
 			return create(new PostMessage(videoUrl).bypassFilters(true));
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, e, () -> "Problem generating video.");
+			logger.atError().setCause(e).log(() -> "Problem generating video.");
 			return post(new ChatBuilder().reply(chatCommand).code().append("ERROR BEEP BOOP: ").append(e.getClass().getName()).append(": ").append(e.getMessage()).code());
 		}
 	}

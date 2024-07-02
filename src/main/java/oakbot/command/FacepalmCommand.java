@@ -3,10 +3,10 @@ package oakbot.command;
 import static oakbot.bot.ChatActions.reply;
 
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.util.Http;
 
@@ -23,7 +23,7 @@ import oakbot.util.HttpFactory;
  * @see "https://tenor.com/gifapi/documentation"
  */
 public class FacepalmCommand implements Command {
-	private static final Logger logger = Logger.getLogger(FacepalmCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FacepalmCommand.class);
 
 	private final String uri;
 
@@ -73,7 +73,7 @@ public class FacepalmCommand implements Command {
 			imageUrl = node.get("results").get(0).get("media").get(0).get("tinygif").get("url").asText();
 		} catch (Exception e) {
 			String body = (response == null) ? null : response.getBody();
-			logger.log(Level.SEVERE, e, () -> "Problem querying Tenor API.\nURI = " + uri + "\nResponse = " + body);
+			logger.atError().setCause(e).log(() -> "Problem querying Tenor API.\nURI = " + uri + "\nResponse = " + body);
 			return reply("Sorry, an error occurred. >.>", chatCommand);
 		}
 

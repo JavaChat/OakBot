@@ -12,9 +12,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.IntStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -33,7 +34,7 @@ import oakbot.util.Now;
  * @author Michael Angstadt
  */
 public class AdventOfCode implements ScheduledTask, Command {
-	private static final Logger logger = Logger.getLogger(AdventOfCode.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AdventOfCode.class);
 
 	private final Duration pollingInterval;
 	private final AdventOfCodeApi api;
@@ -105,7 +106,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 		try {
 			players = api.getLeaderboard(leaderboardId);
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, e, () -> "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.");
+			logger.atError().setCause(e).log(() -> "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.");
 			return error("I couldn't query that leaderboard. It might not exist. Or the user that my adventofcode.com session token belongs to might not have access to that leaderboard. Or the token might have expired. Or you're trolling me: ", e, chatCommand);
 		}
 
@@ -295,7 +296,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 			try {
 				leaderboard = api.getLeaderboard(leaderboardId);
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, e, () -> "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.");
+				logger.atError().setCause(e).log(() -> "Problem querying Advent of Code leaderboard " + leaderboardId + ". The session token might not have access to that leaderboard or the token might have expired.");
 				continue;
 			}
 

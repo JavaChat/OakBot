@@ -4,8 +4,9 @@ import static oakbot.bot.ChatActions.error;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -18,7 +19,7 @@ import oakbot.bot.PostMessage;
  * @see "https://thecatapi.com/"
  */
 public class CatCommand implements Command {
-	private static final Logger logger = Logger.getLogger(CatCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CatCommand.class);
 
 	private final TheCatDogApiClient client;
 
@@ -52,7 +53,7 @@ public class CatCommand implements Command {
 		try {
 			url = client.getRandomCatGif();
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, e, () -> "Problem getting cat.");
+			logger.atError().setCause(e).log(() -> "Problem getting cat.");
 			return error("Error getting cat: ", e, chatCommand);
 		}
 

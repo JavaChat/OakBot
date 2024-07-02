@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -26,6 +24,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -39,7 +39,7 @@ import oakbot.util.JsonUtils;
  * @see "https://platform.openai.com/docs/api-reference"
  */
 public class OpenAIClient {
-	private static final Logger logger = Logger.getLogger(OpenAIClient.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(OpenAIClient.class);
 
 	private final String apiKey;
 	private final HttpRequestLogger requestLogger;
@@ -126,7 +126,7 @@ public class OpenAIClient {
 		} finally {
 			logHttpCall(request, responseStatusCode, responseBody);
 		}
-		
+
 		logResponse(responseStatusCode, responseBody);
 
 		lookForError(null, responseBody);
@@ -172,7 +172,7 @@ public class OpenAIClient {
 		} finally {
 			logHttpCall(request, responseStatusCode, responseBody);
 		}
-		
+
 		logResponse(responseStatusCode, responseBody);
 
 		lookForError(prompt, responseBody);
@@ -219,7 +219,7 @@ public class OpenAIClient {
 			} finally {
 				logHttpCall(request, responseStatusCode, responseBody);
 			}
-			
+
 			logResponse(responseStatusCode, responseBody);
 
 			lookForError(null, responseBody);
@@ -272,7 +272,7 @@ public class OpenAIClient {
 		} finally {
 			logHttpCall(request, responseStatusCode, responseBody);
 		}
-		
+
 		logResponse(responseStatusCode, responseBody);
 
 		lookForError(apiRequest.getInput(), responseBody);
@@ -327,7 +327,7 @@ public class OpenAIClient {
 		} finally {
 			logHttpCall(request, responseStatusCode, responseBody);
 		}
-		
+
 		logResponse(responseStatusCode, responseBody);
 
 		lookForError(input, responseBody);
@@ -336,7 +336,7 @@ public class OpenAIClient {
 	}
 
 	private void logRequest(HttpUriRequest request) {
-		logger.fine(() -> {
+		logger.atDebug().log(() -> {
 			var sb = new StringBuilder();
 			sb.append("Sending ").append(request.getMethod()).append(" request to OpenAI:");
 			sb.append("\nURI: ").append(request.getURI());
@@ -352,11 +352,11 @@ public class OpenAIClient {
 	}
 
 	private void logResponse(int statusCode, JsonNode body) {
-		logger.fine(() -> "Response from OpenAI: HTTP " + statusCode + ": " + JsonUtils.prettyPrint(body));
+		logger.atDebug().log(() -> "Response from OpenAI: HTTP " + statusCode + ": " + JsonUtils.prettyPrint(body));
 	}
 
 	private void logIOException(HttpUriRequest request, int responseStatusCode, JsonNode responseBody, IOException e) {
-		logger.log(Level.SEVERE, e, () -> {
+		logger.atError().setCause(e).log(() -> {
 			var sb = new StringBuilder();
 			sb.append("Problem communicating with OpenAI.");
 			sb.append("\nRequest: ").append(request.getURI());
@@ -375,7 +375,7 @@ public class OpenAIClient {
 			return sb.toString();
 		});
 	}
-	
+
 	private void logHttpCall(HttpUriRequest request, int responseStatusCode, JsonNode responseBodyJson) {
 		if (requestLogger == null) {
 			return;
@@ -441,7 +441,7 @@ public class OpenAIClient {
 				if (pngData != null) {
 					return pngData;
 				}
-				logger.warning(() -> "Unable to convert non-PNG image to PNG: " + url);
+				logger.atWarn().log(() -> "Unable to convert non-PNG image to PNG: " + url);
 			}
 
 			return origData;
@@ -508,7 +508,7 @@ public class OpenAIClient {
 			try {
 				flaggedCategories = moderate(prompt).getFlaggedCategories();
 			} catch (Exception e) {
-				logger.log(Level.WARNING, e, () -> "Ignoring failed call to moderation endpoint.");
+				logger.atWarn().setCause(e).log(() -> "Ignoring failed call to moderation endpoint.");
 				flaggedCategories = Set.of();
 			}
 

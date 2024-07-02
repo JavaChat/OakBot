@@ -1,8 +1,10 @@
 package oakbot.task;
 
 import java.time.temporal.ChronoUnit;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
@@ -18,7 +20,7 @@ import oakbot.util.Now;
  * @author Michael Angstadt
  */
 public class FOTD implements ScheduledTask {
-	private static final Logger logger = Logger.getLogger(FOTD.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FOTD.class);
 	private static final String URL = "http://www.refdesk.com";
 	private static final String ARCHIVE_URL = URL + "/fotd-arch.html";
 
@@ -56,7 +58,7 @@ public class FOTD implements ScheduledTask {
 
 		var fact = parseFact(response);
 		if (fact == null) {
-			logger.warning(() -> "Unable to parse FOTD from " + URL + ".");
+			logger.atWarn().log(() -> "Unable to parse FOTD from " + URL + ".");
 			return;
 		}
 
