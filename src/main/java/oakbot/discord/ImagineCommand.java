@@ -92,9 +92,14 @@ public class ImagineCommand implements DiscordSlashCommand {
 			var id = modelOption.getAsString();
 			model = Model.getById(id);
 			if (model == null) {
-				event.reply("Unknown model: " + id);
+				event.reply("Unknown model: " + id).queue();
 				return;
 			}
+		}
+
+		if (inputImage != null && (model == Model.DALLE_3 || model == Model.SI_CORE)) {
+			event.reply(new ChatBuilder().bold(model.display).append(" model does not support input images.").toString()).setEphemeral(true).queue();
+			return;
 		}
 
 		/*
@@ -107,20 +112,26 @@ public class ImagineCommand implements DiscordSlashCommand {
 			}
 		}
 
-		var cb = new ChatBuilder().append("🎨 Submitted ").bold(model.display).append(" request");
-		if (inputImage != null) {
-			cb.append(" with an ").bold("input image").append(", and");
+		var reply = new ChatBuilder();
+		reply.append("🎨 Submitted ").bold(model.display).append(" request");
+		if (model == Model.DALLE_2 && inputImage != null) {
+			reply.append(" with an ").bold("input image");
+			reply.append(". The prompt will be ignored because the model does not support requests that contain both a prompt and an input image.");
+		} else {
+			if (inputImage != null) {
+				reply.append(" with an ").bold("input image").append(", and");
+			}
+			reply.append(" with the following prompt: ").bold(prompt);
 		}
-		cb.append(" with the following prompt: ").bold(prompt).toString();
 
 		/*
-		 * If the bot does not respond within a couple seconds, the slash
-		 * command times out and any other files or messages you try to send are
-		 * rejected.
+		 * If the bot does not respond within 3 seconds, the slash command times
+		 * out and any other files or messages you try to send are rejected.
 		 * 
-		 * As a work around, you can chain additional actions using "flatMap".
+		 * As a work around, you can chain additional actions using "flatMap",
+		 * or call "deferReply".
 		 */
-		event.reply(cb.toString()).flatMap(m -> {
+		event.reply(reply.toString()).flatMap(m -> {
 			try {
 				return switch (model) {
 				case DALLE_2, DALLE_3 -> handleDallE(event, model, inputImage, prompt);
