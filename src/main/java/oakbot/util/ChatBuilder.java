@@ -110,6 +110,26 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
+	 * Appends the character sequence for "multi-line code block" (Discord
+	 * only). Newline is included.
+	 * @return this
+	 */
+	public ChatBuilder codeBlock() {
+		return codeBlock("");
+	}
+
+	/**
+	 * Appends the character sequence for "multi-line code block" (Discord
+	 * only). Newline is included.
+	 * @param language the language the code is in for syntax highlighting (e.g.
+	 * "java")
+	 * @return this
+	 */
+	public ChatBuilder codeBlock(String language) {
+		return append("```").append(language).nl();
+	}
+
+	/**
 	 * Appends the character sequence for "italic".
 	 * @return this
 	 */

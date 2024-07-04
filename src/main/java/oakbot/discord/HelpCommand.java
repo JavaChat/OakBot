@@ -66,7 +66,7 @@ public class HelpCommand implements DiscordCommand {
 		if (!slashCommandSummaries.isEmpty()) {
 			var slash = "/";
 			cb.bold("Slash commands").nl();
-			cb.append("```").nl();
+			cb.codeBlock();
 			for (var entry : slashCommandSummaries.entries()) {
 				var name = entry.getKey();
 				var description = entry.getValue();
@@ -75,12 +75,12 @@ public class HelpCommand implements DiscordCommand {
 				cb.repeat(' ', longestNameLength - (slash.length() + name.length()) + bufferSpace);
 				cb.append(description).nl();
 			}
-			cb.append("```").nl();
+			cb.codeBlock();
 		}
 
 		if (!commandSummaries.isEmpty()) {
 			cb.bold("Commands").nl();
-			cb.append("```").nl();
+			cb.codeBlock();
 			for (var entry : commandSummaries.entries()) {
 				var name = entry.getKey();
 				var description = entry.getValue();
@@ -89,12 +89,12 @@ public class HelpCommand implements DiscordCommand {
 				cb.repeat(' ', longestNameLength - (context.trigger().length() + name.length()) + bufferSpace);
 				cb.append(description).nl();
 			}
-			cb.append("```").nl();
+			cb.codeBlock();
 		}
 
 		if (!listenerDescriptions.isEmpty()) {
 			cb.bold("Listeners").nl();
-			cb.append("```").nl();
+			cb.codeBlock();
 			for (var entry : listenerDescriptions.entries()) {
 				var name = entry.getKey();
 				var description = entry.getValue();
@@ -103,7 +103,7 @@ public class HelpCommand implements DiscordCommand {
 				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
 			}
-			cb.append("```").nl();
+			cb.codeBlock();
 		}
 
 		event.getMessage().reply(cb).queue();
