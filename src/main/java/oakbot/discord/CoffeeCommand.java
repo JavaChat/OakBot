@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
 import oakbot.util.JsonUtils;
 import okhttp3.Request;
@@ -27,13 +26,10 @@ public class CoffeeCommand implements DiscordSlashCommand {
 
 	@Override
 	public SlashCommandData data() {
-		//@formatter:off
-		var description = new ChatBuilder()
-			.append("Displays a random coffee photo ☕. Images from https://coffee.alexflipnote.dev.")
-		.toString();
-		//@formatter:on
+		var name = "coffee";
+		var description = "Displays a random coffee photo ☕. Images from https://coffee.alexflipnote.dev.";
 
-		return Commands.slash("coffee", description);
+		return Commands.slash(name, description);
 	}
 
 	@Override

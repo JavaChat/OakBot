@@ -54,8 +54,11 @@ public class ImagineCommand implements DiscordSlashCommand {
 
 	@Override
 	public SlashCommandData data() {
+		var name = "imagine";
+		var description = "Creates images using AI image generators. Users can make 2 requests per day.";
+
 		//@formatter:off
-		return Commands.slash("imagine", "Creates images using AI image generators. Users can make 2 requests per day.")
+		return Commands.slash(name, description)
 			.addOption(OptionType.STRING, OPT_PROMPT, "Describes what the image should look like.", true)
 			.addOption(OptionType.ATTACHMENT, OPT_INPUT_IMAGE, "The input image (only supported by certain models).")
 			.addOptions(new OptionData(OptionType.STRING, OPT_MODEL, "Defines which model to use (defaults to \"" + DEFAULT_MODEL.display + "\").")

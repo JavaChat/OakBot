@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import oakbot.command.TheCatDogApiClient;
-import oakbot.util.ChatBuilder;
 
 /**
  * Displays a random dog picture.
@@ -27,13 +26,10 @@ public class DogCommand implements DiscordSlashCommand {
 
 	@Override
 	public SlashCommandData data() {
-		//@formatter:off
-		var description = new ChatBuilder()
-			.append("Displays a dog GIF 🐶. Images from thedogapi.com.")
-		.toString();
-		//@formatter:on
+		var name = "dog";
+		var description = "Displays a dog GIF 🐶. Images from thedogapi.com.";
 
-		return Commands.slash("dog", description);
+		return Commands.slash(name, description);
 	}
 
 	@Override
