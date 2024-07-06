@@ -27,6 +27,7 @@ public class MainDiscord {
 		//@formatter:off
 		var slashCommands = List.of(
 			new CatCommand(theCatDogApiClient),
+			new CoffeeCommand(),
 			new DogCommand(theCatDogApiClient),
 			new ImagineCommand(openAIClient, stabilityAIClient)
 		);

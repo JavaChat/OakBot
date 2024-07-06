@@ -4,9 +4,9 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import oakbot.util.HttpFactory;
 import oakbot.util.JsonUtils;
 import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
 /**
@@ -16,7 +16,6 @@ import okhttp3.Request;
  */
 public class TheCatDogApiClient {
 	private final String apiKey;
-	private final OkHttpClient httpClient = new OkHttpClient();
 
 	public TheCatDogApiClient() {
 		this(null);
@@ -64,7 +63,7 @@ public class TheCatDogApiClient {
 
 		var request = requestWithApiKey().url(url).get().build();
 
-		var response = httpClient.newCall(request).execute();
+		var response = HttpFactory.okHttp().newCall(request).execute();
 		JsonNode body;
 		try (var reader = response.body().charStream()) {
 			body = JsonUtils.parse(reader);

@@ -29,9 +29,9 @@ import oakbot.ai.stabilityai.StableImageCoreRequest;
 import oakbot.ai.stabilityai.StableImageDiffusionRequest;
 import oakbot.listener.chatgpt.UsageQuota;
 import oakbot.util.ChatBuilder;
+import oakbot.util.HttpFactory;
 import oakbot.util.ImageUtils;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 
 /**
  * @author Michael Angstadt
@@ -46,7 +46,6 @@ public class ImagineCommand implements DiscordSlashCommand {
 	private final OpenAIClient openAIClient;
 	private final StabilityAIClient stabilityAIClient;
 	private final UsageQuota usageQuota = new UsageQuota(Duration.ofDays(1), 2);
-	private final OkHttpClient httpClient = new OkHttpClient();
 
 	public ImagineCommand(OpenAIClient openAIClient, StabilityAIClient stabilityAIClient) {
 		this.openAIClient = openAIClient;
@@ -234,7 +233,7 @@ public class ImagineCommand implements DiscordSlashCommand {
 
 	private DownloadedFile download(String url) throws IOException {
 		var request = new okhttp3.Request.Builder().url(url).get().build();
-		var response = httpClient.newCall(request).execute();
+		var response = HttpFactory.okHttp().newCall(request).execute();
 
 		var contentType = response.body().contentType();
 		var data = response.body().bytes();

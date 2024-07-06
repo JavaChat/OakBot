@@ -7,12 +7,16 @@ import org.apache.http.impl.client.HttpClients;
 
 import com.github.mangstadt.sochat4j.util.Http;
 
+import okhttp3.OkHttpClient;
+
 /**
  * Use this class when you want to send normal HTTP requests in production, but
  * want to inject a mock HTTP client during unit testing.
  * @author Michael Angstadt
  */
 public class HttpFactory {
+	private static final OkHttpClient okHttpClient = new OkHttpClient();
+
 	private static CloseableHttpClient mock;
 
 	/**
@@ -53,6 +57,15 @@ public class HttpFactory {
 	public static Http connect(CookieStore cookieStore) {
 		var client = (mock == null) ? HttpClients.custom().setDefaultCookieStore(cookieStore).build() : mock;
 		return new Http(client);
+	}
+
+	/**
+	 * Returns the shared OkHttpClient instance. Only a single instance should
+	 * be created for performance reasons.
+	 * @return the client instance
+	 */
+	public static OkHttpClient okHttp() {
+		return okHttpClient;
 	}
 
 	/**
