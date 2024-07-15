@@ -115,7 +115,13 @@ public class ChatGPTListener implements DiscordListener {
 
 	private static ChatCompletionRequest.Message toChatCompletionMessage(Message message) {
 		var role = message.getAuthor().equals(message.getJDA().getSelfUser()) ? "assistant" : "user";
-		var name = message.getAuthor().getEffectiveName();
+
+		/*
+		 * Give ChatGPT the Discord mention string so that the user is properly
+		 * mentioned in Discord if ChatGPT decides to mention the user in its response.
+		 */
+		var name = message.getAuthor().getAsMention();
+
 		var text = message.getContentDisplay();
 		return new ChatCompletionRequest.Message.Builder().name(name).role(role).text(text).build();
 	}
