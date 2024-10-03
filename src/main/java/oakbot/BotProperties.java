@@ -31,6 +31,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final Duration hideOneboxesAfter;
 	private final Duration webSocketRefreshInterval;
 	private final boolean enableLearnedCommands;
+	private final boolean allowedToJoinRooms;
 
 	/**
 	 * @param properties the properties to parse
@@ -58,6 +59,8 @@ public class BotProperties extends PropertiesWrapper {
 		admins = getIntegerList("users.admins");
 		bannedUsers = getIntegerList("users.banned");
 		allowedUsers = getIntegerList("users.allowed");
+
+		allowedToJoinRooms = getBoolean("rooms.allowedToJoinRooms", true);
 
 		enableLearnedCommands = getBoolean("enableLearnedCommands", true);
 
@@ -187,6 +190,10 @@ public class BotProperties extends PropertiesWrapper {
 
 	public boolean isEnableLearnedCommands() {
 		return enableLearnedCommands;
+	}
+
+	public boolean isAllowedToJoinRooms() {
+		return allowedToJoinRooms;
 	}
 
 	public String getHelpWebpage() {

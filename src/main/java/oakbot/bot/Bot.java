@@ -67,6 +67,7 @@ public class Bot implements IBot {
 	private final Duration hideOneboxesAfter;
 	private final Rooms rooms;
 	private final Integer maxRooms;
+	private final boolean allowedToJoinRooms;
 	private final List<Listener> listeners;
 	private final List<ChatResponseFilter> responseFilters;
 	private final List<ScheduledTask> scheduledTasks;
@@ -107,6 +108,7 @@ public class Bot implements IBot {
 		trigger = Objects.requireNonNull(builder.trigger);
 		greeting = builder.greeting;
 		maxRooms = builder.maxRooms;
+		allowedToJoinRooms = builder.allowedToJoinRooms;
 		admins = builder.admins;
 		bannedUsers = builder.bannedUsers;
 		allowedUsers = builder.allowedUsers;
@@ -638,7 +640,9 @@ public class Bot implements IBot {
 			} else if (event instanceof MessageEditedEvent mee) {
 				handleMessage(mee.getMessage());
 			} else if (event instanceof InvitationEvent ie) {
-				handleInvitation(ie);
+				if (allowedToJoinRooms) {
+					handleInvitation(ie);
+				}
 			} else {
 				logger.atError().log(() -> "Ignoring event: " + event.getClass().getName());
 			}
@@ -1082,6 +1086,7 @@ public class Bot implements IBot {
 		private Integer userId;
 		private Duration hideOneboxesAfter;
 		private Integer maxRooms;
+		private boolean allowedToJoinRooms = true;
 		private List<Integer> roomsHome = List.of(1);
 		private List<Integer> roomsQuiet = List.of();
 		private List<Integer> admins = List.of();
@@ -1142,6 +1147,11 @@ public class Bot implements IBot {
 
 		public Builder maxRooms(Integer maxRooms) {
 			this.maxRooms = maxRooms;
+			return this;
+		}
+
+		public Builder allowedToJoinRooms(boolean allowedToJoinRooms) {
+			this.allowedToJoinRooms = allowedToJoinRooms;
 			return this;
 		}
 

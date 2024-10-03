@@ -14,6 +14,7 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.JoinRoom;
+import oakbot.util.ChatBuilder;
 
 /**
  * Makes the bot join another room.
@@ -21,15 +22,19 @@ import oakbot.bot.JoinRoom;
  */
 public class SummonCommand implements Command {
 	private final int minSummonsRequired;
+	private final boolean allowedToJoinRooms;
 	private final Duration summonTime = Duration.ofMinutes(2);
 	private final Map<Integer, Pending> pendingSummons = new HashMap<>();
 
 	/**
 	 * @param minSummonsRequired the minimum number of users that have to summon
 	 * the bot to a room before the bot actually joins the room
+	 * @param allowedToJoinRooms true if users can use this command to make the
+	 * bot join rooms, false if not
 	 */
-	public SummonCommand(int minSummonsRequired) {
+	public SummonCommand(int minSummonsRequired, boolean allowedToJoinRooms) {
 		this.minSummonsRequired = minSummonsRequired;
+		this.allowedToJoinRooms = allowedToJoinRooms;
 	}
 
 	@Override
@@ -55,6 +60,19 @@ public class SummonCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
+		var userId = chatCommand.getMessage().getUserId();
+		var authorIsAdmin = bot.isAdminUser(userId);
+
+		if (!allowedToJoinRooms && !authorIsAdmin) {
+			//@formatter:off
+			return reply(new ChatBuilder()
+				.append("Command is disabled. ")
+				.append("Please ping ").link("Michael", "https://stackoverflow.com/users/13379").append(" in the ").link("Sandbox", "/rooms/1").append(" if you would like Oak to join your chat room.")
+				.toString()
+			, chatCommand);
+			//@formatter:on
+		}
+
 		var content = chatCommand.getContent().trim();
 
 		var maxRooms = bot.getMaxRooms();
@@ -81,8 +99,7 @@ public class SummonCommand implements Command {
 			return reply("I'm already there... -_-", chatCommand);
 		}
 
-		var userId = chatCommand.getMessage().getUserId();
-		if (!bot.isAdminUser(userId)) {
+		if (!authorIsAdmin) {
 			var response = checkForEnoughSummonVotes(roomToJoin, userId);
 			if (response != null) {
 				return reply(response, chatCommand);

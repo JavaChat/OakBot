@@ -183,6 +183,7 @@ public final class Main {
 			.greeting(botProperties.getGreeting())
 			.roomsHome(botProperties.getHomeRooms())
 			.roomsQuiet(botProperties.getQuietRooms())
+			.allowedToJoinRooms(botProperties.isAllowedToJoinRooms())
 			.stats(stats)
 			.database(database)
 			.hideOneboxesAfter(botProperties.getHideOneboxesAfter()) //TODO more generic name for this property
