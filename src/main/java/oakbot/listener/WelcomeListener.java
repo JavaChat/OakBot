@@ -73,21 +73,20 @@ public class WelcomeListener implements Listener {
 		userIds.add(userId);
 		saveData();
 
-		List<UserInfo> userInfo;
+		UserInfo userInfo;
 		try {
 			var room = bot.getRoom(roomId);
-			userInfo = room.getUserInfo(List.of(userId));
+			userInfo = room.getUserInfo(userId);
 		} catch (IOException e) {
 			logger.atError().setCause(e).log(() -> "Could not get user info for user " + userId + ".");
 			return doNothing();
 		}
 
-		if (userInfo.isEmpty()) {
+		if (userInfo == null) {
 			return doNothing();
 		}
 
-		var first = userInfo.get(0);
-		if (!shouldUserBeWelcomed(first)) {
+		if (!shouldUserBeWelcomed(userInfo)) {
 			return doNothing();
 		}
 

@@ -93,13 +93,6 @@
 		
 		<!--
 		(optional)
-		Defines whether non-admin users can make the bot join other rooms using the /join command or invitations.
-		Defaults to true.
-		-->
-		<prop key="rooms.allowedToJoinRooms">true</prop>
-		
-		<!--
-		(optional)
 		The users that are allowed to run admin-level commands against the bot (notably, the "shutdown" command).
 		This is a comma-separated list of user IDs.
 		A user ID can be found in the URL of the user's profile page.
@@ -351,10 +344,7 @@
 	<bean class="oakbot.command.ShutdownCommand" />
 
 	<!-- /summon and /unsummon (/join and /leave) -->
-	<bean class="oakbot.command.SummonCommand">
-		<constructor-arg value="2" /> <!-- the number of users who must summon the bot in order for the bot to join the room -->
-		<constructor-arg value="${rooms.allowedToJoinRooms}" /> <!-- whether non-admin users are allowed to use this command or not -->
-	</bean>
+	<bean class="oakbot.command.SummonCommand" />
 	<bean class="oakbot.command.UnsummonCommand" />
 
 	<!-- /tag -->

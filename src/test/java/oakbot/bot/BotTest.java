@@ -38,6 +38,7 @@ import com.github.mangstadt.sochat4j.InvalidCredentialsException;
 import com.github.mangstadt.sochat4j.RoomNotFoundException;
 import com.github.mangstadt.sochat4j.Site;
 import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.UserInfo;
 import com.github.mangstadt.sochat4j.event.MessagePostedEvent;
 import com.github.mangstadt.sochat4j.util.Sleeper;
 
@@ -1045,6 +1046,11 @@ class BotTest {
 		@Override
 		public String uploadImage(byte[] data) throws IOException {
 			throw new IOException();
+		}
+
+		@Override
+		public List<UserInfo> getUserInfo(int roomId, List<Integer> userIds) throws IOException {
+			return List.of();
 		}
 	}
 

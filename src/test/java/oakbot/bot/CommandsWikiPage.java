@@ -143,7 +143,7 @@ public class CommandsWikiPage {
 			commands.add(new ShibaCommand(null));
 			commands.add(new ShrugCommand());
 			commands.add(new ShutdownCommand());
-			commands.add(new SummonCommand(2, false));
+			commands.add(new SummonCommand());
 			commands.add(new TagCommand());
 			commands.add(new TimeoutCommand());
 			commands.add(new UnlearnCommand(commands, learnedCommands));

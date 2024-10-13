@@ -148,4 +148,19 @@ public class FileChatClient implements IChatClient {
 	public AtomicLong getMessageIdCounter() {
 		return messageIdCounter;
 	}
+
+	@Override
+	public List<UserInfo> getUserInfo(int roomId, List<Integer> userIds) throws IOException {
+		//@formatter:off
+		return List.of(
+			new UserInfo.Builder()
+				.userId(userIds.get(0))
+				.roomId(roomId)
+				.username(humanUsername)
+				.profilePicture(humanProfilePicture)
+				.reputation(500)
+			.build()
+		);
+		//@formatter:on
+	}
 }

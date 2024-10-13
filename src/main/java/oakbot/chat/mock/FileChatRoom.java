@@ -224,17 +224,7 @@ public class FileChatRoom implements IRoom {
 
 	@Override
 	public List<UserInfo> getUserInfo(List<Integer> userIds) throws IOException {
-		//@formatter:off
-		return List.of(
-			new UserInfo.Builder()
-				.userId(userIds.get(0))
-				.roomId(roomId)
-				.username(human.getUsername())
-				.profilePicture(human.getProfilePicture())
-				.reputation(500)
-			.build()
-		);
-		//@formatter:on
+		return connection.getUserInfo(roomId, userIds);
 	}
 
 	@Override

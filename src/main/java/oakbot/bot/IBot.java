@@ -48,6 +48,16 @@ public interface IBot {
 	}
 
 	/**
+	 * Determines if the given user is an owner of the given room.
+	 * @param roomId the room ID
+	 * @param userId the user ID
+	 * @return true if the user is an owner of the room, false if they are not
+	 * or if can't be determined
+	 * @throws IOException if a network error occurred
+	 */
+	boolean isRoomOwner(int roomId, int userId) throws IOException;
+
+	/**
 	 * Of all the rooms the bot is connected to, this method returns the "home"
 	 * rooms. Users cannot make the bot leave home rooms.
 	 * @return the room IDs

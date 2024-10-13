@@ -67,7 +67,6 @@ public class Bot implements IBot {
 	private final Duration hideOneboxesAfter;
 	private final Rooms rooms;
 	private final Integer maxRooms;
-	private final boolean allowedToJoinRooms;
 	private final List<Listener> listeners;
 	private final List<ChatResponseFilter> responseFilters;
 	private final List<ScheduledTask> scheduledTasks;
@@ -108,7 +107,6 @@ public class Bot implements IBot {
 		trigger = Objects.requireNonNull(builder.trigger);
 		greeting = builder.greeting;
 		maxRooms = builder.maxRooms;
-		allowedToJoinRooms = builder.allowedToJoinRooms;
 		admins = builder.admins;
 		bannedUsers = builder.bannedUsers;
 		allowedUsers = builder.allowedUsers;
@@ -376,6 +374,12 @@ public class Bot implements IBot {
 	}
 
 	@Override
+	public boolean isRoomOwner(int roomId, int userId) throws IOException {
+		var userInfo = connection.getUserInfo(roomId, userId);
+		return (userInfo == null) ? false : userInfo.isOwner();
+	}
+
+	@Override
 	public String getTrigger() {
 		return trigger;
 	}
@@ -637,15 +641,39 @@ public class Bot implements IBot {
 		public void complete() {
 			if (event instanceof MessagePostedEvent mpe) {
 				handleMessage(mpe.getMessage());
-			} else if (event instanceof MessageEditedEvent mee) {
+				return;
+			}
+
+			if (event instanceof MessageEditedEvent mee) {
 				handleMessage(mee.getMessage());
-			} else if (event instanceof InvitationEvent ie) {
-				if (allowedToJoinRooms) {
+				return;
+			}
+
+			if (event instanceof InvitationEvent ie) {
+				var roomId = ie.getRoomId();
+				var userId = ie.getUserId();
+				var inviterIsAdmin = isAdminUser(userId);
+
+				boolean acceptInvitation;
+				if (inviterIsAdmin) {
+					acceptInvitation = true;
+				} else {
+					try {
+						acceptInvitation = isRoomOwner(roomId, userId);
+					} catch (IOException e) {
+						logger.atError().setCause(e).log(() -> "Unable to handle room invite. Error determining whether user is room owner.");
+						acceptInvitation = false;
+					}
+				}
+
+				if (acceptInvitation) {
 					handleInvitation(ie);
 				}
-			} else {
-				logger.atError().log(() -> "Ignoring event: " + event.getClass().getName());
+
+				return;
 			}
+
+			logger.atError().log(() -> "Ignoring event: " + event.getClass().getName());
 		}
 
 		private void handleMessage(ChatMessage message) {
@@ -1086,7 +1114,6 @@ public class Bot implements IBot {
 		private Integer userId;
 		private Duration hideOneboxesAfter;
 		private Integer maxRooms;
-		private boolean allowedToJoinRooms = true;
 		private List<Integer> roomsHome = List.of(1);
 		private List<Integer> roomsQuiet = List.of();
 		private List<Integer> admins = List.of();
@@ -1147,11 +1174,6 @@ public class Bot implements IBot {
 
 		public Builder maxRooms(Integer maxRooms) {
 			this.maxRooms = maxRooms;
-			return this;
-		}
-
-		public Builder allowedToJoinRooms(boolean allowedToJoinRooms) {
-			this.allowedToJoinRooms = allowedToJoinRooms;
 			return this;
 		}
 
