@@ -36,7 +36,7 @@ public class PromptCommand implements Command {
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		var roomId = chatCommand.getMessage().getRoomId();
-		var prompt = chatGpt.buildPrompt(roomId);
+		var prompt = chatGpt.buildPrompt(roomId, bot);
 		return reply(prompt, chatCommand);
 	}
 }

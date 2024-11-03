@@ -66,6 +66,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private boolean ignoreNextMessage;
 	private boolean firstRun = true;
 	private final UsageQuota usageQuota;
+	private final Map<Integer, String> roomNames = new HashMap<>();
 
 	/**
 	 * @param openAIClient the OpenAI client
@@ -156,7 +157,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 				continue;
 			}
 
-			var prompt = buildPrompt(roomId);
+			var prompt = buildPrompt(roomId, bot);
 			prompt += " Nobody is talking to you directly; you are just sharing your thoughts.";
 
 			var apiMessages = buildChatCompletionMessages(prompt, messages, bot);
@@ -215,7 +216,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		try {
 			var prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
 
-			var prompt = buildPrompt(message.getRoomId());
+			var prompt = buildPrompt(message.getRoomId(), bot);
 			var apiMessages = buildChatCompletionMessages(prompt, prevMessages, bot);
 			addParentMessage(message, prevMessages, apiMessages, bot);
 
@@ -298,12 +299,28 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		ignoreNextMessage = true;
 	}
 
-	public String buildPrompt(int roomId) {
+	public String buildPrompt(int roomId, IBot bot) {
 		var prompt = promptsByRoom.getOrDefault(roomId, defaultPrompt);
 
 		if (moodCommand != null) {
 			var mood = moodCommand.getMood(roomId);
 			prompt = prompt.replace("$MOOD", mood);
+		}
+
+		var roomName = roomNames.get(roomId);
+		if (roomName == null) {
+			var room = bot.getRoom(roomId);
+			if (room != null) {
+				try {
+					roomName = room.getRoomInfo().getName();
+					roomNames.put(roomId, roomName);
+				} catch (IOException ignore) {
+				}
+			}
+		}
+
+		if (roomName != null) {
+			prompt = prompt.replace("$ROOMNAME", roomName);
 		}
 
 		return prompt;
