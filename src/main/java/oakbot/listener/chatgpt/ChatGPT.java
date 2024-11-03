@@ -298,7 +298,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		ignoreNextMessage = true;
 	}
 
-	private String buildPrompt(int roomId) {
+	public String buildPrompt(int roomId) {
 		var prompt = promptsByRoom.getOrDefault(roomId, defaultPrompt);
 
 		if (moodCommand != null) {

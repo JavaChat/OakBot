@@ -448,6 +448,9 @@
 		<constructor-arg ref="stabilityAIClient" />
 		<constructor-arg ref="imgurClient" />
 	</bean>
+	<bean class="oakbot.listener.chatgpt.PromptCommand">
+		<constructor-arg ref="chatGPT" />
+	</bean>
 	
 	<!-- fact of the day task -->
 	<bean class="oakbot.task.FOTD" />
