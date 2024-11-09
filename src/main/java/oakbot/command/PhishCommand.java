@@ -98,9 +98,10 @@ public class PhishCommand implements Command, ScheduledTask {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		var args = chatCommand.getContentAsArgs();
-		if (!args.isEmpty()) {
-			var subCommand = args.get(0);
+		var content = chatCommand.getContent();
+		if (!content.isEmpty()) {
+			var args = chatCommand.getContent().split("\\s+", 2);
+			var subCommand = args[0];
 
 			if ("inbox".equalsIgnoreCase(subCommand)) {
 				return handleInboxCommand(chatCommand);
@@ -111,7 +112,7 @@ public class PhishCommand implements Command, ScheduledTask {
 			}
 
 			if ("delete".equalsIgnoreCase(subCommand)) {
-				var fishName = (args.size() < 2) ? null : args.get(1);
+				var fishName = (args.length < 2) ? null : args[1];
 				return handleDeleteCommand(fishName, chatCommand);
 			}
 
