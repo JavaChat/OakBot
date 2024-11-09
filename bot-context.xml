@@ -312,8 +312,8 @@
 	</bean>
 
 	<!-- /react -->
-	<bean class="oakbot.command.ReactCommand">
-		<constructor-arg value="" /> <!-- API key for replygif.net -->
+	<bean class="oakbot.command.ReactGiphyCommand">
+		<constructor-arg value="" /> <!-- API key for giphy.com -->
 	</bean>
 	
 	<!-- /remind -->

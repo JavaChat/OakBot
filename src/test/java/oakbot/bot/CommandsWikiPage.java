@@ -23,7 +23,7 @@ import oakbot.command.FishCommand;
 import oakbot.command.HelpCommand;
 import oakbot.command.JuiceBoxCommand;
 import oakbot.command.PhishCommand;
-import oakbot.command.ReactCommand;
+import oakbot.command.ReactGiphyCommand;
 import oakbot.command.RemindCommand;
 import oakbot.command.RollCommand;
 import oakbot.command.ShrugCommand;
@@ -136,7 +136,7 @@ public class CommandsWikiPage {
 			commands.add(new LearnCommand(commands, learnedCommands));
 			commands.add(new MoodCommand(db, null));
 			commands.add(new PhishCommand(db, "PT0S", "PT0S"));
-			commands.add(new ReactCommand(null));
+			commands.add(new ReactGiphyCommand(null));
 			commands.add(new RemindCommand());
 			commands.add(new RhymeCommand(null));
 			commands.add(new RollCommand());
