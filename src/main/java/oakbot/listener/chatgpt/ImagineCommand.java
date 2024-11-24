@@ -407,4 +407,8 @@ public class ImagineCommand implements Command {
 			throw new IOException("Problem uploading image to chat room. File size: " + kb + " KB", e);
 		}
 	}
+
+	public UsageQuota getUsageQuota() {
+		return usageQuota;
+	}
 }

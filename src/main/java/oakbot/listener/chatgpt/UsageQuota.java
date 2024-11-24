@@ -115,4 +115,32 @@ public class UsageQuota {
 			}
 		}
 	}
+
+	/**
+	 * Gets the current number of logged requests for the given user.
+	 * @param userId the user ID
+	 * @return the current number of logged requests
+	 */
+	public int getCurrent(int userId) {
+		var times = getRequestTimes(userId);
+		removeOldRequestTimes(times);
+		return times.size();
+	}
+
+	/**
+	 * Gets the number of requests allowed per period.
+	 * @return the number of requests allowed per period or zero if there is no
+	 * limit
+	 */
+	public int getRequestsPerPeriod() {
+		return requestsPerPeriod;
+	}
+
+	/**
+	 * Gets the amount of time it takes for a logged request to get cleared.
+	 * @return the period
+	 */
+	public Duration getPeriod() {
+		return period;
+	}
 }

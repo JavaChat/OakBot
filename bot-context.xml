@@ -439,7 +439,7 @@
 		<constructor-arg value="300" /> <!-- each chat message that is sent to ChatGPT will not exceed this number of characters (includes markdown syntax). Chat messages that do will be truncated (without cutting off words). 0 to disable truncation. Each message counts against the usage quota. Each word costs around 1.33 tokens. -->
 		<constructor-arg value="20" /> <!-- requests allowed per user per 24 hours, or <= 0 for no limit -->
 	</bean>
-	<bean class="oakbot.listener.chatgpt.ImagineCommand">
+	<bean class="oakbot.listener.chatgpt.ImagineCommand" id="imagineCommand">
 		<constructor-arg ref="openAIClient" />
 		<constructor-arg ref="stabilityAIClient" />
 		<constructor-arg value="5" /> <!-- requests allowed per user per 24 hours, or <= 0 for no limit -->
@@ -450,6 +450,10 @@
 	</bean>
 	<bean class="oakbot.listener.chatgpt.PromptCommand">
 		<constructor-arg ref="chatGPT" />
+	</bean>
+	<bean class="oakbot.listener.chatgpt.QuotaCommand">
+		<constructor-arg ref="chatGPT" />
+		<constructor-arg ref="imagineCommand" />
 	</bean>
 	
 	<!-- fact of the day task -->

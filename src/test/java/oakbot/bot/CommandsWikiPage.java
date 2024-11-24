@@ -62,6 +62,7 @@ import oakbot.listener.WelcomeListener;
 import oakbot.listener.chatgpt.ChatGPT;
 import oakbot.listener.chatgpt.ImagineCommand;
 import oakbot.listener.chatgpt.MoodCommand;
+import oakbot.listener.chatgpt.QuotaCommand;
 import oakbot.listener.chatgpt.VideoCommand;
 import oakbot.task.FOTD;
 import oakbot.task.LinuxHealthMonitor;
@@ -136,6 +137,7 @@ public class CommandsWikiPage {
 			commands.add(new LearnCommand(commands, learnedCommands));
 			commands.add(new MoodCommand(db, null));
 			commands.add(new PhishCommand(db, "PT0S", "PT0S"));
+			commands.add(new QuotaCommand(null, null));
 			commands.add(new ReactGiphyCommand(null));
 			commands.add(new RemindCommand());
 			commands.add(new RhymeCommand(null));

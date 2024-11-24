@@ -594,4 +594,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		var nextRunTime = Instant.now().plus(timeBetweenSpontaneousPosts);
 		spontaneousPostTimesByRoom.put(roomId, nextRunTime);
 	}
+
+	public UsageQuota getUsageQuota() {
+		return usageQuota;
+	}
 }
