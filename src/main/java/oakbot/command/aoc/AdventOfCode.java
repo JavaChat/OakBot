@@ -322,7 +322,9 @@ public class AdventOfCode implements ScheduledTask, Command {
 			var day = entry.getKey();
 			var playerName = buildPlayerNameForAnnouncements(player);
 
-			var cb = new ChatBuilder().bold(playerName);
+			var cb = new ChatBuilder();
+			cb.bold().append("🎄").link("AoC", "https://adventofcode.com/").append("🎄").bold().append(" ");
+			cb.bold(playerName);
 			if (justFinishedPart1 && justFinishedPart2) {
 				cb.append(" completed parts 1 and 2");
 			} else {
