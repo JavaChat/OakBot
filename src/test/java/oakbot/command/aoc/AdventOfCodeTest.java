@@ -272,19 +272,19 @@ class AdventOfCodeTest {
 		Now.fastForward(Duration.ofMinutes(15));
 
 		aoc.run(bot);
-		var expected = new PostMessage("**Unihedron** completed part 1 of day 11! \\o/");
+		var expected = new PostMessage("**🎄[AoC](https://adventofcode.com/)🎄** **Unihedron** completed part 1 of day 11! \\o/");
 		verify(bot).sendMessage(1, expected);
 
 		Now.fastForward(Duration.ofMinutes(15));
 
 		aoc.run(bot);
-		expected = new PostMessage("**Unihedron** completed part 2 of day 11! \\o/");
+		expected = new PostMessage("**🎄[AoC](https://adventofcode.com/)🎄** **Unihedron** completed part 2 of day 11! \\o/");
 		verify(bot).sendMessage(1, expected);
 
 		Now.fastForward(Duration.ofDays(1));
 
 		aoc.run(bot);
-		expected = new PostMessage("**Unihedron** completed parts 1 and 2 of day 12! \\o/");
+		expected = new PostMessage("**🎄[AoC](https://adventofcode.com/)🎄** **Unihedron** completed parts 1 and 2 of day 12! \\o/");
 		verify(bot).sendMessage(1, expected);
 	}
 
@@ -336,7 +336,7 @@ class AdventOfCodeTest {
 		Now.fastForward(Duration.ofMinutes(15));
 
 		aoc.run(bot);
-		var expected = new PostMessage("**anonymous user #376542** completed part 1 of day 11! \\o/");
+		var expected = new PostMessage("**🎄[AoC](https://adventofcode.com/)🎄** **anonymous user #376542** completed part 1 of day 11! \\o/");
 		verify(bot).sendMessage(1, expected);
 	}
 
@@ -388,7 +388,7 @@ class AdventOfCodeTest {
 		Now.fastForward(Duration.ofMinutes(15));
 
 		aoc.run(bot);
-		var expected = new PostMessage("**Hey Michael** completed part 1 of day 11! \\o/");
+		var expected = new PostMessage("**🎄[AoC](https://adventofcode.com/)🎄** **Hey Michael** completed part 1 of day 11! \\o/");
 		verify(bot).sendMessage(1, expected);
 	}
 
