@@ -35,6 +35,11 @@ public class MornListener implements Listener {
 	//@formatter:off
 	private final List<String[]> responses = List.of(
 		new String[] {"good morning", "Good morning."},
+		new String[] {"good mourning", "Good mourning."},
+		new String[] {"good moaning", "Good moaning."},
+		new String[] {"goat morning", "Goat morning."},
+		new String[] {"goat mourning", "Goat mourning."},
+		new String[] {"goat moaning", "https://www.101soundboards.com/storage/board_pictures/35147-screaming-goats-there-are-about-450-million.jpg"},
 		new String[] {"morning", "Morning."},
 		new String[] {"morn", "morn"}
 	);
