@@ -218,6 +218,14 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 	private Node skipExplanationIncompleteTable(Node node) {
 		if (node instanceof Element element) {
+			//table may be wrapped in a div
+			if ("div".equals(element.tagName())) {
+				element = element.firstElementChild();
+				if (element == null) {
+					return node;
+				}
+			}
+
 			if ("table".equals(element.tagName())) {
 				return nextSiblingThatsNotJustWhitespace(node);
 			}

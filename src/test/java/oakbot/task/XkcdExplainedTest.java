@@ -94,6 +94,39 @@ class XkcdExplainedTest {
 
 		assertTrue(task.comicsByRoom.isEmpty());
 	}
+	
+	@Test
+	void explanation_incomplete_wrapped_in_div() throws Exception {
+		var html = new Gobble(getClass(), "xkcd-explained-3072-explanation-incomplete-wrapped-in-div.html").asString();
+
+		//@formatter:off
+		HttpFactory.inject(new MockHttpClientBuilder()
+			.requestGet("https://www.explainxkcd.com/wiki/index.php/3072")
+			.responseOk(html)
+		.build());
+		//@formatter:on
+
+		var task = new XkcdExplained("PT0S");
+
+		var bot = mock(IBot.class);
+
+		//@formatter:off
+		var message = new ChatMessage.Builder()
+			.timestamp(LocalDateTime.now())
+			.userId(-2)
+			.roomId(1)
+			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/3072\"><img src=\"https://imgs.xkcd.com/comics/stargazing_4.png\" title=\"We haven't actually seen a star fall in since we invented telescopes, but I have a list of ones I'm really hoping are next.\" alt=\"We haven't actually seen a star fall in since we invented telescopes, but I have a list of ones I'm really hoping are next.\"></a></div>")
+		.build();
+		//@formatter:on
+
+		task.onMessage(message, bot);
+		task.run(bot);
+
+		var expected = new PostMessage(":0 **[XKCD #3072 Explained](https://www.explainxkcd.com/wiki/index.php/3072):** This is the fourth comic in the [Stargazing](https://www.explainxkcd.com/wiki/index.php/Category:Stargazing) series, and it followed [2274: Stargazing 3](https://www.explainxkcd.com/wiki/index.php/2274:_Stargazing_3) that came out five years before. That was the longest stretch between two comics in the series so far.");
+		verify(bot).sendMessage(1, expected);
+
+		assertTrue(task.comicsByRoom.isEmpty());
+	}
 
 	@Test
 	void first_paragraph_not_wrapped_in_p_element() throws Exception {
