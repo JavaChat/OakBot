@@ -18,27 +18,72 @@ import oakbot.bot.IBot;
 class MornListenerTest {
 	@Test
 	void onMessage() {
-		assertMorn("morn", "morn", false);
-		assertMorn("Morn", "morn", false);
-		assertMorn("morning", "Morning.", false);
-		assertMorn("good morning", "Good morning.", false);
-		assertMorn("Morn!., ", "morn", false);
-		assertMorn("Morning, @Bob! ", null, false);
-		assertMorn("Morning, @Oak! ", ":0 Morning.", true);
-		assertMorn("@Oak Morning! ", ":0 Morning.", true);
-		assertMorn("Morning, @Oak @Bob! ", ":0 Morning.", true);
-		assertMorn("hey", null, false);
-		assertMorn("morning guys", null, false);
+		assertResponse("morn", "morn");
+		assertResponse("Morn", "morn");
+		assertResponse("morning", "Morning.");
+		assertResponse("good morning", "Good morning.");
+		assertResponse("good mourning", "Good mourning.");
+		assertResponse("good moaning", "Good moaning.");
+		assertResponse("goat morning", "Goat morning.");
+		assertResponse("goat mourning", "Goat mourning.");
+		assertResponse("goat moaning", "Goat moaning.");
 	}
 
-	private static void assertMorn(String message, String response, boolean ignoreNextMentionListenerMessage) {
+	@Test
+	void onMessage_trim() {
+		assertResponse(" morn  ", "morn");
+	}
+
+	@Test
+	void onMessage_ignore_case() {
+		assertResponse("MoRn", "morn");
+	}
+
+	@Test
+	void onMessage_ignore_puncuation() {
+		assertResponse("morn!", "morn");
+		assertResponse("morn.", "morn");
+		assertResponse("morn,", "morn");
+	}
+
+	@Test
+	void onMessage_do_not_respond_when_user_is_mentioned() {
+		assertNoResponse("Morning, @Bob!");
+	}
+
+	@Test
+	void onMessage_reply_when_bot_mentioned() {
+		assertResponseMentionListenerShouldIgnoreNextMessage("Morning, @Oak!", ":0 Morning.");
+		assertResponseMentionListenerShouldIgnoreNextMessage("@Oak Morning!", ":0 Morning.");
+		assertResponseMentionListenerShouldIgnoreNextMessage("Morning, @Oak @Bob!", ":0 Morning.");
+	}
+
+	@Test
+	void onMessage_no_response() {
+		assertNoResponse("hey");
+		assertNoResponse("morning guys");
+	}
+
+	private static void assertResponse(String message, String response) {
+		assertResponse(message, response, false);
+	}
+
+	private static void assertResponseMentionListenerShouldIgnoreNextMessage(String message, String response) {
+		assertResponse(message, response, true);
+	}
+
+	private static void assertNoResponse(String message) {
+		assertResponse(message, null, false);
+	}
+
+	private static void assertResponse(String message, String response, boolean ignoreNextMentionListenerMessage) {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
 			.content(message)
 		.build();
 		//@formatter:on
-		
+
 		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
 
@@ -63,7 +108,7 @@ class MornListenerTest {
 			.content("morn")
 		.build();
 		//@formatter:on
-		
+
 		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
 
@@ -88,7 +133,7 @@ class MornListenerTest {
 			.content("morn")
 		.build();
 		//@formatter:on
-		
+
 		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
 
