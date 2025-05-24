@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -17,6 +18,7 @@ import com.github.mangstadt.sochat4j.util.Sleeper;
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.command.HelpDoc;
+import oakbot.util.ChatBuilder;
 
 /**
  * Responds to "good morning" messages.
@@ -29,19 +31,19 @@ public class MornListener implements Listener {
 	private final Map<Integer, Instant> lastReplyByRoom = new HashMap<>();
 
 	/**
-	 * The messages that the bot will respond to, along with its responses. The
-	 * longest messages must be specified first.
+	 * The messages that the bot will respond to, along with its responses.
 	 */
 	//@formatter:off
-	private final List<String[]> responses = List.of(
-		new String[] {"good morning", "Good morning."},
-		new String[] {"good mourning", "Good mourning."},
-		new String[] {"good moaning", "Good moaning."},
-		new String[] {"goat morning", "Goat morning."},
-		new String[] {"goat mourning", "Goat mourning."},
-		new String[] {"goat moaning", "Goat moaning."},
-		new String[] {"morning", "Morning."},
-		new String[] {"morn", "morn"}
+	private final List<Match> responses = List.of(
+		new StringMatch("good morning", "Good morning."),
+		new StringMatch("good mourning", "Good mourning."),
+		new StringMatch("good moaning", "Good moaning."),
+		new StringMatch("goat morning", "Goat morning."),
+		new StringMatch("goat mourning", "Goat mourning."),
+		new StringMatch("goat moaning", "Goat moaning."),
+		new StringMatch("morning", "Morning."),
+		new StringMatch("morn", "morn"),
+		new RegexMatch("(?i)yee+", new ChatBuilder().link("yee", "https://youtu.be/q6EoRBvdVPQ").toString())
 	);
 	//@formatter:on
 
@@ -72,7 +74,7 @@ public class MornListener implements Listener {
 	public HelpDoc help() {
 		//@formatter:off
 		var greetings = responses.stream()
-			.map(s -> s[0])
+			.map(Match::getGreeting)
 		.collect(Collectors.joining(", "));
 
 		return new HelpDoc.Builder(this)
@@ -97,8 +99,8 @@ public class MornListener implements Listener {
 
 		//@formatter:off
 		var reply = responses.stream()
-			.filter(s -> content.equalsIgnoreCase(s[0]))
-			.map(s -> s[1])
+			.filter(m -> m.matches(content))
+			.map(Match::getResponse)
 		.findFirst();
 		//@formatter:on
 
@@ -156,5 +158,51 @@ public class MornListener implements Listener {
 			.replaceAll("[!,\\.]", "") //remove punctuation
 		.trim(); //trim for good measure
 		//@formatter:on
+	}
+
+	private static interface Match {
+		String getGreeting();
+
+		String getResponse();
+
+		boolean matches(String content);
+	}
+
+	private static class StringMatch implements Match {
+		protected final String greeting, response;
+
+		public StringMatch(String greeting, String response) {
+			this.greeting = greeting;
+			this.response = response;
+		}
+
+		@Override
+		public String getGreeting() {
+			return greeting;
+		}
+
+		@Override
+		public String getResponse() {
+			return response;
+		}
+
+		@Override
+		public boolean matches(String content) {
+			return content.equalsIgnoreCase(greeting);
+		}
+	}
+
+	private static class RegexMatch extends StringMatch {
+		private final Pattern p;
+
+		public RegexMatch(String regex, String response) {
+			super(regex, response);
+			p = Pattern.compile(regex);
+		}
+
+		@Override
+		public boolean matches(String content) {
+			return p.matcher(content).matches();
+		}
 	}
 }

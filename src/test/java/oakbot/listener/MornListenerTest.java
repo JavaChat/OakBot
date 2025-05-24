@@ -63,6 +63,15 @@ class MornListenerTest {
 		assertNoResponse("hey");
 		assertNoResponse("morning guys");
 	}
+	
+	@Test
+	void onMessage_yee() {
+		assertResponse("yee", "[yee](https://youtu.be/q6EoRBvdVPQ)");
+		assertResponse("yeeeeeee", "[yee](https://youtu.be/q6EoRBvdVPQ)");
+		assertResponse("Yee.", "[yee](https://youtu.be/q6EoRBvdVPQ)");
+		assertResponse("Yeeeeeee.", "[yee](https://youtu.be/q6EoRBvdVPQ)");
+		assertNoResponse("ye");
+	}
 
 	private static void assertResponse(String message, String response) {
 		assertResponse(message, response, false);
