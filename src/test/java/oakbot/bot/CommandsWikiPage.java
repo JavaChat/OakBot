@@ -57,6 +57,7 @@ import oakbot.listener.DadJokeListener;
 import oakbot.listener.Listener;
 import oakbot.listener.MentionListener;
 import oakbot.listener.MornListener;
+import oakbot.listener.UnitConversionListener;
 import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
 import oakbot.listener.chatgpt.ChatGPT;
@@ -100,6 +101,7 @@ public class CommandsWikiPage {
 			listeners.add(new DadJokeListener("Oak", null));
 			listeners.add(new ChatGPT(new OpenAIClient(""), null, "", "", Map.of(), 0, "PT0S", 10, 0, 0));
 			listeners.add(new MornListener("PT1S", null));
+			listeners.add(new UnitConversionListener());
 			listeners.add(new WaveListener("PT1S", null));
 			listeners.add(new WelcomeListener(db, 1000, Map.of()));
 			listeners.add(new XkcdExplained("PT0S"));

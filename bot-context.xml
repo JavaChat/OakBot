@@ -380,6 +380,9 @@
 		<constructor-arg ref="chatGPT" /> <!-- should be set to either mentionListener or chatGPT -->
 	</bean>
 	
+	<!-- unitconversion listener -->
+	<bean class="oakbot.listener.UnitConversionListener" />
+	
 	<!-- wave listener -->
 	<bean class="oakbot.listener.WaveListener">
 		<constructor-arg value="PT1S" /> <!-- amount of time to wait before waving back -->
