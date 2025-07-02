@@ -25,9 +25,11 @@ public class UnitConversionListener implements Listener {
 	//@formatter:off
 	private final Pattern regex = Pattern.compile(
 		"(?i)" +
+		"\\b" +
 		"(\\d+([\\.,]\\d+)?)\\s*" + //support comma as a decimal separator
-		"(°|deg|degree|degrees)?\\s*" +
-		"(C|celsius|centigrade|F|fahrenheit)"
+		"(°|deg|degree|degrees|&#176;)?\\s*" +
+		"(C|celsius|centigrade|F|fahrenheit)" + 
+		"\\b"
 	);
 	//@formatter:on
 

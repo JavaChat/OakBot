@@ -19,6 +19,7 @@ class UnitConversionListenerTest {
 		assertResponse("it's 40f right now", "🌡 40°F = 4.44°C");
 		assertResponse("it's 40 f right now", "🌡 40°F = 4.44°C");
 		assertResponse("it's 40°F right now", "🌡 40°F = 4.44°C");
+		assertResponse("it's 40&#176;F right now", "🌡 40°F = 4.44°C");
 		assertResponse("it's 40 degrees f right now", "🌡 40°F = 4.44°C");
 		assertResponse("it's 40 deg f right now", "🌡 40°F = 4.44°C");
 		assertResponse("it's 40 fahrenheit right now", "🌡 40°F = 4.44°C");
@@ -26,15 +27,19 @@ class UnitConversionListenerTest {
 		assertResponse("it's 40c right now", "🌡 40°C = 104°F");
 		assertResponse("it's 40 c right now", "🌡 40°C = 104°F");
 		assertResponse("it's 40°C right now", "🌡 40°C = 104°F");
+		assertResponse("it's 40&#176;C right now", "🌡 40°C = 104°F");
 		assertResponse("it's 40 degrees c right now", "🌡 40°C = 104°F");
 		assertResponse("it's 40 deg c right now", "🌡 40°C = 104°F");
-		assertResponse("it's 40 celcius right now", "🌡 40°C = 104°F");
+		assertResponse("it's 40 celsius right now", "🌡 40°C = 104°F");
 		assertResponse("it's 40 centigrade right now", "🌡 40°C = 104°F");
 	}
 
 	@Test
 	void onMessage_empty() {
 		assertNoResponse("it's hot af right now");
+		assertNoResponse("it's40f right now");
+		assertNoResponse("40 fun");
+		assertNoResponse("40 cats");
 	}
 
 	@Test
