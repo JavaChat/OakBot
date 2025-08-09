@@ -523,7 +523,7 @@ public class OpenAIClient {
 
 		node.put("model", apiRequest.getModel());
 		putIfNotNull(node, "frequency_penalty", apiRequest.getFrequencyPenalty());
-		putIfNotNull(node, "max_tokens", apiRequest.getMaxTokens());
+		putIfNotNull(node, "max_completion_tokens", apiRequest.getMaxTokens());
 		putIfNotNull(node, "n", apiRequest.getNumCompletionsToGenerate());
 		putIfNotNull(node, "presence_penalty", apiRequest.getPresencePenalty());
 
