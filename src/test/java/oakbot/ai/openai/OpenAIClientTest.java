@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
@@ -20,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import oakbot.ai.openai.ChatCompletionRequest.Message;
 import oakbot.listener.chatgpt.ResponseSamples;
 import oakbot.util.Gobble;
 import oakbot.util.HttpFactory;
@@ -30,6 +34,34 @@ import oakbot.util.MockHttpClientBuilder;
  * @author Michael Angstadt
  */
 class OpenAIClientTest {
+	/**
+	 * Program for testing API calls.
+	 * @param args the OpenAI API key
+	 */
+	public static void main(String args[]) throws Exception {
+		/*
+		 * Send all log output to console.
+		 */
+		Logger rootLogger = Logger.getLogger("");
+		ConsoleHandler consoleHandler = new ConsoleHandler();
+		consoleHandler.setLevel(Level.ALL);
+		rootLogger.addHandler(consoleHandler);
+		rootLogger.setLevel(Level.ALL);
+
+		var apiKey = args[0];
+		var client = new OpenAIClient(apiKey);
+
+		//@formatter:off
+		var request = new ChatCompletionRequest.Builder().maxTokens(300).model("gpt-5").messages(List.of(
+			new Message.Builder().role("system").text("You are friendly.").build(),
+			new Message.Builder().role("user").text("How are you?").build()
+		)).build();
+		//@formatter:on
+
+		var response = client.chatCompletion(request);
+		System.out.println(response.getChoices().get(0).getContent());
+	}
+
 	@AfterEach
 	void after() {
 		HttpFactory.restore();
