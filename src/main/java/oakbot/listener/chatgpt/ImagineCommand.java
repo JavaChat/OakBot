@@ -51,6 +51,13 @@ public class ImagineCommand implements Command {
 
 	static final String MODEL_DALLE_2 = "dall-e-2";
 	static final String MODEL_DALLE_3 = "dall-e-3";
+	/*
+	 * "Your organization must be verified to use the model `gpt-image-1`.
+	 * Please go to: https://platform.openai.com/settings/organization/general
+	 * and click on Verify Organization."
+	 */
+	static final String MODEL_GPT_IMAGE_1 = "gpt-image-1";
+
 	static final String MODEL_STABLE_IMAGE_CORE = "si-core";
 	static final String MODEL_STABLE_DIFFUSION = "sd3";
 	static final String MODEL_STABLE_DIFFUSION_TURBO = "sd3-turbo";
@@ -123,7 +130,7 @@ public class ImagineCommand implements Command {
 
 		try {
 			List<String> messagesToPost;
-			if (MODEL_DALLE_2.equals(model) || MODEL_DALLE_3.equals(model)) {
+			if (MODEL_DALLE_2.equals(model) || MODEL_DALLE_3.equals(model) || MODEL_GPT_IMAGE_1.equals(model)) {
 				messagesToPost = handleDallE(model, inputImage, prompt, bot);
 			} else if (MODEL_STABLE_IMAGE_CORE.equals(model)) {
 				messagesToPost = List.of(handleStableImageCore(prompt, bot));
@@ -210,7 +217,7 @@ public class ImagineCommand implements Command {
 		CreateImageResponse response;
 		if (inputImageUrl == null) {
 			var lowestResolutionSupportedByModel = MODEL_DALLE_2.equals(model) ? "256x256" : "1024x1024";
-			response = openAIClient.createImage(model, lowestResolutionSupportedByModel, prompt);
+			response = openAIClient.createImage(model, lowestResolutionSupportedByModel, null, null, prompt);
 		} else {
 			response = openAIClient.createImageVariation(inputImageUrl, "256x256");
 		}
@@ -221,13 +228,17 @@ public class ImagineCommand implements Command {
 			 * 5/1/2024: StackOverflow's new image hosting system has a file
 			 * size limit of 2 MiB. The PNGs that Dall-E 3 generates are usually
 			 * larger than that, so convert them to JPEGs (side note: it seems
-			 * that the old system (imgur) converted the PNGs to JPEGs
-			 * automatically).
+			 * that Stack Overflow's old image system (imgur) converted the PNGs
+			 * to JPEGs automatically).
 			 */
 			var jpegImage = convertToJpeg(response.getUrl());
 			imageUrl = uploadImage(bot, jpegImage);
 		} else {
-			imageUrl = uploadImageFromUrl(bot, response.getUrl());
+			if (response.getUrl() != null) {
+				imageUrl = uploadImageFromUrl(bot, response.getUrl());
+			} else {
+				imageUrl = uploadImage(bot, response.getData());
+			}
 		}
 
 		var messagesToPost = new ArrayList<String>();

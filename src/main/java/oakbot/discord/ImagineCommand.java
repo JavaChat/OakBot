@@ -156,7 +156,7 @@ public class ImagineCommand implements DiscordSlashCommand {
 		CreateImageResponse response;
 		if (inputImage == null) {
 			var lowestResolutionSupportedByModel = (Model.DALLE_2 == model) ? "256x256" : "1024x1024";
-			response = openAIClient.createImage(model.id, lowestResolutionSupportedByModel, prompt);
+			response = openAIClient.createImage(model.id, lowestResolutionSupportedByModel, null, null, prompt);
 		} else {
 			response = openAIClient.createImageVariation(inputImage.getUrl(), "256x256");
 		}

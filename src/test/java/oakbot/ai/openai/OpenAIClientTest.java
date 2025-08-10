@@ -8,7 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -51,15 +55,24 @@ class OpenAIClientTest {
 		var apiKey = args[0];
 		var client = new OpenAIClient(apiKey);
 
-		//@formatter:off
-		var request = new ChatCompletionRequest.Builder().maxTokens(300).model("gpt-5").messages(List.of(
-			new Message.Builder().role("system").text("You are friendly.").build(),
-			new Message.Builder().role("user").text("How are you?").build()
-		)).build();
-		//@formatter:on
+		{
+			//@formatter:off
+			var request = new ChatCompletionRequest.Builder().maxTokens(300).model("gpt-5").messages(List.of(
+				new Message.Builder().role("system").text("You are friendly.").build(),
+				new Message.Builder().role("user").text("How are you?").build()
+			)).build();
+			//@formatter:on
 
-		var response = client.chatCompletion(request);
-		System.out.println(response.getChoices().get(0).getContent());
+			var response = client.chatCompletion(request);
+			System.out.println(response.getChoices().get(0).getContent());
+		}
+
+		{
+			var response = client.createImage("gpt-image-1", "1024x1024", "jpeg", null, "A cute Java programmer");
+			var fileName = "image." + DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()).replaceAll("[-:]", "") + ".jpg";
+			Files.write(Paths.get(fileName), response.getData());
+			System.out.println("Revised prompt: " + response.getRevisedPrompt());
+		}
 	}
 
 	@AfterEach
@@ -259,7 +272,7 @@ class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		var actual = client.createImage("model", "256x256", "Prompt.");
+		var actual = client.createImage("model", "256x256", null, null, "Prompt.");
 		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
 		assertEquals(url, actual.getUrl());
 		assertNull(actual.getRevisedPrompt());
@@ -283,7 +296,7 @@ class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		var e = assertThrows(OpenAIException.class, () -> client.createImage("model", "256x256", "Prompt."));
+		var e = assertThrows(OpenAIException.class, () -> client.createImage("model", "256x256", null, null, "Prompt."));
 		assertEquals("Error.", e.getMessage());
 	}
 

@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -138,22 +139,35 @@ public class OpenAIClient {
 	 * Creates an image.
 	 * @param model the model to use (e.g. "dall-e-2")
 	 * @param size the image size (e.g. "256x256")
+	 * @param outputFormat the image format of the generated image. Only
+	 * supported by certain models. Can be null.
+	 * @param outputCompression the compression level of the generated image.
+	 * Only supported by certain models and output formats. Can be null.
 	 * @param prompt a description of what the image should look like
 	 * @return the response
 	 * @throws OpenAIException if OpenAI returns an error response
 	 * @throws IOException if there's a network problem
 	 * @see "https://platform.openai.com/docs/api-reference/images/create"
 	 */
-	public CreateImageResponse createImage(String model, String size, String prompt) throws IOException, OpenAIException {
+	public CreateImageResponse createImage(String model, String size, String outputFormat, Integer outputCompression, String prompt) throws IOException, OpenAIException {
 		var request = postRequestWithApiKey("/v1/images/generations");
 
 		//@formatter:off
-		request.setEntity(new JsonEntity(JsonUtils.newObject()
+		var jsonObject = JsonUtils.newObject()
 			.put("model", model)
 			.put("prompt", prompt)
-			.put("size", size)
-		));
+			.put("size", size);
 		//@formatter:on
+
+		if (outputFormat != null) {
+			jsonObject.put("output_format", outputFormat);
+		}
+
+		if (outputCompression != null) {
+			jsonObject.put("output_compression", outputCompression);
+		}
+
+		request.setEntity(new JsonEntity(jsonObject));
 
 		logRequest(request);
 
@@ -644,12 +658,16 @@ public class OpenAIClient {
 
 		var data = node.path("data").path(0);
 
-		var url = data.path("url").asText();
+		var urlNode = data.get("url");
+		var url = (urlNode == null) ? null : urlNode.asText();
+
+		var b64Node = data.get("b64_json");
+		var imageData = (b64Node == null) ? null : Base64.getDecoder().decode(b64Node.asText());
 
 		var revisedPromptNode = data.get("revised_prompt");
 		var revisedPrompt = (revisedPromptNode == null) ? null : revisedPromptNode.asText();
 
-		return new CreateImageResponse(created, url, revisedPrompt);
+		return new CreateImageResponse(created, url, imageData, revisedPrompt);
 	}
 
 	private List<OpenAIModel> parseListModelsResponse(JsonNode node) {
