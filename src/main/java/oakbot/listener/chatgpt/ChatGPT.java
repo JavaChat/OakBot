@@ -473,29 +473,49 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private String sendChatCompletionRequest(ChatCompletionRequest apiRequest) throws IOException {
-		ChatCompletionResponse apiResponse;
-		try {
-			apiResponse = openAIClient.chatCompletion(apiRequest);
-		} catch (OpenAIException e) {
-			//@formatter:off
-			return new ChatBuilder()
-				.code()
-				.append("ERROR BEEP BOOP: ")
-				.append(e.getMessage())
-				.code()
-			.toString();
-			//@formatter:on
+		final int maxRetries = 3;
+		int retries = 0;
+		String response = "";
+		while (retries < maxRetries) {
+			ChatCompletionResponse apiResponse;
+			try {
+				apiResponse = openAIClient.chatCompletion(apiRequest);
+			} catch (OpenAIException e) {
+				//@formatter:off
+				return new ChatBuilder()
+					.code()
+					.append("ERROR BEEP BOOP: ")
+					.append(e.getMessage())
+					.code()
+				.toString();
+				//@formatter:on
+			}
+
+			if (apiResponse.getChoices().isEmpty()) {
+				//@formatter:off
+				return new ChatBuilder()
+					.code("ERROR BEEP BOOP: Choices array in response is empty.")
+				.toString();
+				//@formatter:on
+			}
+
+			response = apiResponse.getChoices().get(0).getContent();
+
+			/*
+			 * Sometimes, ChatGPT returns an empty response, with finish_reason
+			 * set to "length". This happens if ChatGPT can't respond due to the
+			 * max_tokens being too low. In practice, this seems to just happen
+			 * randomly and if you will get a reply if you send another request.
+			 */
+			if (response.isEmpty()) {
+				logger.atError().log(() -> "Chat completion response is empty. Resending request.");
+				retries++;
+				continue;
+			}
+
+			break;
 		}
 
-		if (apiResponse.getChoices().isEmpty()) {
-			//@formatter:off
-			return new ChatBuilder()
-				.code("ERROR BEEP BOOP: Choices array in response is empty.")
-			.toString();
-			//@formatter:on
-		}
-
-		var response = apiResponse.getChoices().get(0).getContent();
 		response = removeMentionsFromBeginningOfMessage(response);
 		response = removeReplySyntaxFromBeginningOfMessage(response);
 		return formatMessagesWithCodeBlocks(response);
