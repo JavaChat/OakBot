@@ -14,7 +14,7 @@ public class ChatCompletionRequest {
 	//private final Object logitBias;
 	//private final Boolean logprobs;
 	//private final Integer topLogprobs;
-	private final Integer maxTokens;
+	private Integer maxTokens;
 	private final Integer numCompletionsToGenerate;
 	private final Double presencePenalty;
 	private final String responseFormat;
@@ -56,6 +56,10 @@ public class ChatCompletionRequest {
 
 	public Integer getMaxTokens() {
 		return maxTokens;
+	}
+
+	public void setMaxTokens(int maxTokens) {
+		this.maxTokens = maxTokens;
 	}
 
 	public Integer getNumCompletionsToGenerate() {
@@ -353,7 +357,7 @@ public class ChatCompletionRequest {
 		public List<String> getImageUrls() {
 			return imageUrls;
 		}
-		
+
 		public String getImageDetail() {
 			return imageDetail;
 		}

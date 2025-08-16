@@ -473,10 +473,12 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private String sendChatCompletionRequest(ChatCompletionRequest apiRequest) throws IOException {
-		final int maxRetries = 3;
+		final int maxRetries = 2;
+		final double tokenIncrement = 1.2;
+
 		int retries = 0;
 		String response = "";
-		while (retries < maxRetries) {
+		while (true) {
 			ChatCompletionResponse apiResponse;
 			try {
 				apiResponse = openAIClient.chatCompletion(apiRequest);
@@ -502,18 +504,28 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			response = apiResponse.getChoices().get(0).getContent();
 
 			/*
-			 * Sometimes, ChatGPT returns an empty response, with finish_reason
-			 * set to "length". This happens if ChatGPT can't respond due to the
-			 * max_tokens being too low. In practice, this seems to just happen
-			 * randomly and if you will get a reply if you send another request.
+			 * ChatGPT sometimes returns an empty response, with a finish_reason
+			 * of "length". This happens if ChatGPT won't respond due to
+			 * wanting to use more tokens than the request allows. Resend the
+			 * request with a higher max token value.
 			 */
-			if (response.isEmpty()) {
-				logger.atError().log(() -> "Chat completion response is empty. Resending request.");
+			if (response.isEmpty() && retries < maxRetries) {
+				int maxTokens = (int) (apiRequest.getMaxTokens() * tokenIncrement);
+				apiRequest.setMaxTokens(maxTokens);
+				logger.atError().log(() -> "Chat completion response is empty. Resending request with " + maxTokens + " max tokens.");
 				retries++;
 				continue;
 			}
 
 			break;
+		}
+
+		if (response.isEmpty()) {
+			//@formatter:off
+			return new ChatBuilder()
+				.code("ERROR BEEP BOOP: Want moar tokens. max_completion_tokens = " + apiRequest.getMaxTokens())
+			.toString();
+			//@formatter:on
 		}
 
 		response = removeMentionsFromBeginningOfMessage(response);
