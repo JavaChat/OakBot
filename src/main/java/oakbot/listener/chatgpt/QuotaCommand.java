@@ -16,9 +16,9 @@ import oakbot.util.ChatBuilder;
  */
 public class QuotaCommand implements Command {
 	private final ChatGPT chatGpt;
-	private final ImagineCommand imagine;
+	private final ImagineCore imagine;
 
-	public QuotaCommand(ChatGPT chatGpt, ImagineCommand imagine) {
+	public QuotaCommand(ChatGPT chatGpt, ImagineCore imagine) {
 		this.chatGpt = chatGpt;
 		this.imagine = imagine;
 	}
