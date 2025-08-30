@@ -26,6 +26,7 @@ public class ChatCompletionRequest {
 	//private final List<Object> tools;
 	//private final Object toolChoice;
 	private final String user;
+	private final String reasoningEffort;
 
 	private ChatCompletionRequest(ChatCompletionRequest.Builder builder) {
 		messages = List.copyOf(builder.messages);
@@ -40,6 +41,7 @@ public class ChatCompletionRequest {
 		temperature = builder.temperature;
 		topP = builder.topP;
 		user = builder.user;
+		reasoningEffort = builder.reasoningEffort;
 	}
 
 	public List<Message> getMessages() {
@@ -93,6 +95,10 @@ public class ChatCompletionRequest {
 	public String getUser() {
 		return user;
 	}
+	
+	public String getReasoningEffort() {
+		return reasoningEffort;
+	}
 
 	public static class Builder {
 		private List<Message> messages;
@@ -107,6 +113,7 @@ public class ChatCompletionRequest {
 		private Double temperature;
 		private Double topP;
 		private String user;
+		private String reasoningEffort;
 
 		/**
 		 * <p>
@@ -320,6 +327,17 @@ public class ChatCompletionRequest {
 		 */
 		public Builder user(String user) {
 			this.user = user;
+			return this;
+		}
+		
+		/**
+		 * Sets how much reasoning the model should do.
+		 * @param reasoningEffort the amount of effort
+		 * @return this
+		 * @see "https://platform.openai.com/docs/api-reference/chat/create#chat_create-reasoning_effort"
+		 */
+		public Builder reasoningEffort(String reasoningEffort) {
+			this.reasoningEffort = reasoningEffort;
 			return this;
 		}
 

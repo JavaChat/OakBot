@@ -437,6 +437,7 @@
 			</util:map>
 		</constructor-arg>
 		<constructor-arg value="100" /> <!-- places a limit on the length of ChatGPT's completion (response). If this number is too short, then the completion may end abruptly (e.g. in an unfinished sentence). Each word costs around 1.33 tokens. -->
+		<constructor-arg value="low" /> <!-- reasoning effort. higher values consume more tokens. only supported by some models. may be null. -->
 		<constructor-arg value="PT12H" /> <!-- the amount of time to wait before posting a message (duration string) -->
 		<constructor-arg value="10" /> <!-- the number of chat room messages to include in the ChatGPT request to give the bot context of the conversation (each message counts against the usage quota) -->
 		<constructor-arg value="300" /> <!-- each chat message that is sent to ChatGPT will not exceed this number of characters (includes markdown syntax). Chat messages that do will be truncated (without cutting off words). 0 to disable truncation. Each message counts against the usage quota. Each word costs around 1.33 tokens. -->

@@ -59,6 +59,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private final String defaultPrompt;
 	private final Duration timeBetweenSpontaneousPosts;
 	private final int completionMaxTokens;
+	private final String reasoningEffort;
 	private final int numLatestMessagesToIncludeInRequest;
 	private final int latestMessageCharacterLimit;
 	private final Map<Integer, String> promptsByRoom;
@@ -79,6 +80,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param completionMaxTokens places a limit on the length of ChatGPT's
 	 * completion (response). If this number is too short, then the completion
 	 * may end abruptly (e.g. in an unfinished sentence).
+	 * @param reasoningEffort the amount of tokens to consume with reasoning
+	 * (e.g. "low"). Only supported by some models. May be null.
 	 * @param timeBetweenSpontaneousPosts the amount of time to wait before
 	 * posting a message (e.g. "PT12H")
 	 * @param numLatestMessagesToIncludeInRequest the number of chat room
@@ -90,13 +93,14 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param requestsPer24Hours requests allowed per user per 24 hours, or
 	 * {@literal <= 0} for no limit
 	 */
-	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours) {
+	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String reasoningEffort, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours) {
 		this.openAIClient = openAIClient;
 		this.moodCommand = moodCommand;
 		this.model = model;
 		this.defaultPrompt = defaultPrompt;
 		this.promptsByRoom = promptsByRoom;
 		this.completionMaxTokens = completionMaxTokens;
+		this.reasoningEffort = reasoningEffort;
 		this.timeBetweenSpontaneousPosts = Duration.parse(timeBetweenSpontaneousPosts);
 		this.numLatestMessagesToIncludeInRequest = numLatestMessagesToIncludeInRequest;
 		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
@@ -250,6 +254,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			.messages(apiMessages)
 			.model(model)
 			.maxTokens(completionMaxTokens)
+			.reasoningEffort(reasoningEffort)
 		.build();
 		//@formatter:on
 	}

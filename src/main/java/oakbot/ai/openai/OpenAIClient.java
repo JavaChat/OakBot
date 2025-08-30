@@ -549,6 +549,7 @@ public class OpenAIClient {
 		putIfNotNull(node, "temperature", apiRequest.getTemperature());
 		putIfNotNull(node, "top_p", apiRequest.getTopP());
 		putIfNotNull(node, "user", apiRequest.getUser());
+		putIfNotNull(node, "reasoning_effort", apiRequest.getReasoningEffort());
 
 		var messagesNode = node.putArray("messages");
 		for (var message : apiRequest.getMessages()) {
