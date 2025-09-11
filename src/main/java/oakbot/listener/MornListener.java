@@ -87,7 +87,7 @@ public class MornListener implements Listener {
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		var mentions = message.getContent().getMentions();
-		var mentioned = message.getContent().isMentioned(bot.getUsername());
+		var mentioned = message.isUserMentioned(bot.getUserId(), bot.getUsername());
 		if (!mentions.isEmpty() && !mentioned) {
 			/*
 			 * Message isn't directed toward the bot.

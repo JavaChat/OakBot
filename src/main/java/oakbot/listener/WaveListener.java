@@ -67,7 +67,7 @@ public class WaveListener implements Listener {
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		var content = message.getContent().getContent();
-		var mentioned = message.getContent().isMentioned(bot.getUsername());
+		var mentioned = message.isUserMentioned(bot.getUserId(), bot.getUsername());
 
 		String wave;
 		if (mentioned) {

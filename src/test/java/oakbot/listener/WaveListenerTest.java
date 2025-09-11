@@ -36,6 +36,7 @@ class WaveListenerTest {
 
 		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
+		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
 		var listener = new WaveListener("PT0S", mentionListener);
@@ -60,6 +61,7 @@ class WaveListenerTest {
 		//@formatter:on
 
 		var bot = mock(IBot.class);
+		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
 		var listener = new WaveListener("PT0S", mentionListener);
@@ -106,6 +108,7 @@ class WaveListenerTest {
 		//@formatter:on
 
 		var bot = mock(IBot.class);
+		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
 		var listener = new WaveListener("PT0S", mentionListener);

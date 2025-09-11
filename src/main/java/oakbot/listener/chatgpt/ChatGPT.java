@@ -203,7 +203,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		/*
 		 * Ignore this message if the bot isn't mentioned.
 		 */
-		if (!message.getContent().isMentioned(bot.getUsername())) {
+		if (!message.isUserMentioned(bot.getUserId(), bot.getUsername())) {
 			return doNothing();
 		}
 

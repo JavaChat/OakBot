@@ -63,7 +63,7 @@ class MornListenerTest {
 		assertNoResponse("hey");
 		assertNoResponse("morning guys");
 	}
-	
+
 	@Test
 	void onMessage_yee() {
 		assertResponse("yee", "[yee](https://youtu.be/q6EoRBvdVPQ)");
@@ -95,6 +95,7 @@ class MornListenerTest {
 
 		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
+		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
 		var listener = new MornListener("PT0S", mentionListener);
@@ -120,6 +121,7 @@ class MornListenerTest {
 
 		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
+		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
 		var listener = new MornListener("PT0S", mentionListener);
@@ -145,6 +147,7 @@ class MornListenerTest {
 
 		var bot = mock(IBot.class);
 		when(bot.getUsername()).thenReturn("OakBot");
+		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
 		var listener = new MornListener("PT0S", mentionListener);

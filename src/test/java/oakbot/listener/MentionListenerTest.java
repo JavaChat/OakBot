@@ -33,13 +33,14 @@ class MentionListenerTest {
 			.content(message)
 		.build();
 		//@formatter:on
-		
+
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		when(bot.getUsername()).thenReturn("OakBot");
+		when(bot.getUserId()).thenReturn(1);
 
 		var listener = new MentionListener();
-		
+
 		var actions = listener.onMessage(chatMessage, bot);
 		assertTrue(actions.isEmpty());
 	}
@@ -50,13 +51,13 @@ class MentionListenerTest {
 			.content(message)
 		.build();
 		//@formatter:on
-		
+
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		when(bot.getUsername()).thenReturn("OakBot");
 
 		var listener = new MentionListener();
-		
+
 		var actions = listener.onMessage(chatMessage, bot);
 		assertMessage(expectedResponse, actions);
 	}
@@ -68,7 +69,7 @@ class MentionListenerTest {
 			.content("Hey @Oakbot")
 		.build();
 		//@formatter:on
-		
+
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		when(bot.getUsername()).thenReturn("OakBot");
@@ -89,7 +90,7 @@ class MentionListenerTest {
 			.content("Hey @Oakbot")
 		.build();
 		//@formatter:on
-		
+
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 		when(bot.getUsername()).thenReturn("OakBot");

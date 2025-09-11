@@ -62,7 +62,7 @@ public class MentionListener implements CatchAllMentionListener {
 			return doNothing();
 		}
 
-		if (!message.getContent().isMentioned(bot.getUsername())) {
+		if (!message.isUserMentioned(bot.getUserId(), bot.getUsername())) {
 			return doNothing();
 		}
 

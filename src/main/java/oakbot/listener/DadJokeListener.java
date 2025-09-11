@@ -74,7 +74,7 @@ public class DadJokeListener implements Listener {
 		 * If the bot is mentioned in the message, let the catch-all mention
 		 * listener handle it.
 		 */
-		if (message.getContent().isMentioned(bot.getUsername()) && catchAllListener != null) {
+		if (message.isUserMentioned(bot.getUserId(), bot.getUsername()) && catchAllListener != null) {
 			return doNothing();
 		}
 
