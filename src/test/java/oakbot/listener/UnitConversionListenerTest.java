@@ -16,22 +16,39 @@ import oakbot.bot.IBot;
 class UnitConversionListenerTest {
 	@Test
 	void onMessage() {
-		assertResponse("it's 40f right now", "🌡 40°F = 4.44°C");
-		assertResponse("it's 40 f right now", "🌡 40°F = 4.44°C");
-		assertResponse("it's 40°F right now", "🌡 40°F = 4.44°C");
-		assertResponse("it's 40&#176;F right now", "🌡 40°F = 4.44°C");
-		assertResponse("it's 40 degrees f right now", "🌡 40°F = 4.44°C");
-		assertResponse("it's 40 deg f right now", "🌡 40°F = 4.44°C");
-		assertResponse("it's 40 fahrenheit right now", "🌡 40°F = 4.44°C");
+		assertResponse("it's 40f right now", "🌡 40°F = 4.44°C = 277.59°K");
+		assertResponse("it's -40f right now", "🌡 -40°F = -40°C = 233.15°K");
+		assertResponse("it's 40 f right now", "🌡 40°F = 4.44°C = 277.59°K");
+		assertResponse("it's 40°F right now", "🌡 40°F = 4.44°C = 277.59°K");
+		assertResponse("it's 40&#176;F right now", "🌡 40°F = 4.44°C = 277.59°K");
+		assertResponse("it's 40 degrees f right now", "🌡 40°F = 4.44°C = 277.59°K");
+		assertResponse("it's 40 deg f right now", "🌡 40°F = 4.44°C = 277.59°K");
+		assertResponse("it's 40 fahrenheit right now", "🌡 40°F = 4.44°C = 277.59°K");
 
-		assertResponse("it's 40c right now", "🌡 40°C = 104°F");
-		assertResponse("it's 40 c right now", "🌡 40°C = 104°F");
-		assertResponse("it's 40°C right now", "🌡 40°C = 104°F");
-		assertResponse("it's 40&#176;C right now", "🌡 40°C = 104°F");
-		assertResponse("it's 40 degrees c right now", "🌡 40°C = 104°F");
-		assertResponse("it's 40 deg c right now", "🌡 40°C = 104°F");
-		assertResponse("it's 40 celsius right now", "🌡 40°C = 104°F");
-		assertResponse("it's 40 centigrade right now", "🌡 40°C = 104°F");
+		assertResponse("it's 40c right now", "🌡 40°C = 104°F = 313.15°K");
+		assertResponse("it's 40 c right now", "🌡 40°C = 104°F = 313.15°K");
+		assertResponse("it's 40°C right now", "🌡 40°C = 104°F = 313.15°K");
+		assertResponse("it's 40&#176;C right now", "🌡 40°C = 104°F = 313.15°K");
+		assertResponse("it's 40 degrees c right now", "🌡 40°C = 104°F = 313.15°K");
+		assertResponse("it's 40 deg c right now", "🌡 40°C = 104°F = 313.15°K");
+		assertResponse("it's 40 celsius right now", "🌡 40°C = 104°F = 313.15°K");
+		assertResponse("it's 40 centigrade right now", "🌡 40°C = 104°F = 313.15°K");
+		
+		assertResponse("the photosphere of the sun is 5800 K", "🌡 5,800°K = 5,526.85°C = 9,980.33°F");
+
+		assertResponse("i ran 2 miles", "📏 2 miles = 3.22 km");
+		assertResponse("i ran 2 mile", "📏 2 miles = 3.22 km");
+
+		assertResponse("i ran 2 km today", "📏 2 km = 1.24 miles");
+		assertResponse("i ran 2 kilometers today", "📏 2 km = 1.24 miles");
+		assertResponse("i ran 2 kilometer today", "📏 2 km = 1.24 miles");
+		
+		assertResponse("it's 4 feet long", "📏 4 ft = 1.22 m");
+		assertResponse("it's 4 foot long", "📏 4 ft = 1.22 m");
+		
+		assertResponse("i weigh 160 lbs", "⚖️ 160 lbs = 72.73 kg = 11.43 st");
+		assertResponse("i weigh 72 kg", "⚖️ 72 kg = 158.4 lbs = 11.34 st");
+		assertResponse("i weigh 11 stone", "⚖️ 11 st = 69.85 kg = 154 lbs");
 	}
 
 	@Test
@@ -44,13 +61,19 @@ class UnitConversionListenerTest {
 
 	@Test
 	void onMessage_decimal_separator() {
-		assertResponse("it's 40.6f right now", "🌡 40.6°F = 4.78°C");
-		assertResponse("it's 40,6f right now", "🌡 40.6°F = 4.78°C");
+		assertResponse("it's 40.6f right now", "🌡 40.6°F = 4.78°C = 277.93°K");
+		assertResponse("it's 40,6f right now", "🌡 40.6°F = 4.78°C = 277.93°K");
 	}
 
 	@Test
 	void onMessage_remove_duplicates() {
-		assertResponse("it's 40f right now. yesterday it was 34f and the day before it was 40f", "🌡 40°F = 4.44°C\n🌡 34°F = 1.11°C");
+		assertResponse("it's 40f right now. yesterday it was 34f and the day before it was 40f", "🌡 40°F = 4.44°C = 277.59°K\n🌡 34°F = 1.11°C = 274.26°K");
+	}
+	
+	@Test
+	void onMessage_preserve_order() {
+		assertResponse("i ran 3 miles on a 70f day", "📏 3 miles = 4.83 km\n🌡 70°F = 21.11°C = 294.26°K");
+		assertResponse("on a 70f day, i ran 3 miles", "🌡 70°F = 21.11°C = 294.26°K\n📏 3 miles = 4.83 km");
 	}
 
 	private static void assertNoResponse(String message) {

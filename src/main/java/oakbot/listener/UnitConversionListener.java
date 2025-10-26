@@ -6,8 +6,14 @@ import static oakbot.bot.ChatActions.post;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 
@@ -22,17 +28,6 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class UnitConversionListener implements Listener {
-	//@formatter:off
-	private final Pattern regex = Pattern.compile(
-		"(?i)" +
-		"\\b" +
-		"(\\d+([\\.,]\\d+)?)\\s*" + //support comma as a decimal separator
-		"(°|deg|degree|degrees|&#176;)?\\s*" +
-		"(C|celsius|centigrade|F|fahrenheit)" + 
-		"\\b"
-	);
-	//@formatter:on
-
 	private final NumberFormat nf = DecimalFormat.getNumberInstance();
 	{
 		nf.setMaximumFractionDigits(2);
@@ -46,8 +41,13 @@ public class UnitConversionListener implements Listener {
 	@Override
 	public HelpDoc help() {
 		//@formatter:off
+		var units = Arrays.stream(Unit.values())
+			.map(Unit::name)
+			.map(String::toLowerCase)
+		.collect(Collectors.joining(", "));
+
 		return new HelpDoc.Builder(this)
-			.summary("Automatically detects metric/imperial units in chat messages and performs unit conversions.")
+			.summary("Checks every message posted to the chat for units of measurement and then converts those units to other units. Supports the following units: " + units)
 		.build();
 		//@formatter:on
 	}
@@ -58,66 +58,180 @@ public class UnitConversionListener implements Listener {
 			return doNothing();
 		}
 
-		var temperatures = findTemperatures(message.getContent().getContent());
-		if (temperatures.isEmpty()) {
+		var conversions = new ArrayList<Conversion>();
+		var content = message.getContent().getContent();
+		for (var unit : Unit.values()) {
+			var processedValues = new HashSet<Double>();
+
+			var m = unit.regex.matcher(content);
+			while (m.find()) {
+				var origValue = unit.parse(m);
+				if (processedValues.contains(origValue)) {
+					continue;
+				}
+
+				var convertedValues = unit.convert(origValue);
+				var line = new StringBuilder();
+				line.append(unit.emoticon).append(" ");
+				line.append(nf.format(origValue)).append(unit.suffix);
+				for (var convertedValue : convertedValues) {
+					line.append(" = ").append(nf.format(convertedValue.value)).append(convertedValue.unit.suffix);
+				}
+				var conversion = new Conversion(m.start(), line.toString());
+				conversions.add(conversion);
+				processedValues.add(origValue);
+			}
+		}
+
+		if (conversions.isEmpty()) {
 			return doNothing();
 		}
 
 		var cb = new ChatBuilder();
 
-		for (var temperature : temperatures) {
-			var line = switch (temperature.unit) {
-			case CELSIUS -> {
-				var f = convertCtoF(temperature.value());
-				yield nf.format(temperature.value()) + "°C = " + nf.format(f) + "°F";
-			}
-			case FAHRENHEIT -> {
-				var c = convertFtoC(temperature.value());
-				yield nf.format(temperature.value()) + "°F = " + nf.format(c) + "°C";
-			}
-			};
-
-			cb.append("🌡 ").append(line).nl();
-		}
+		//@formatter:off
+		conversions.stream()
+			.sorted(Comparator.comparingInt(Conversion::index)) //sort by where the value appeared in the message
+			.map(Conversion::line)
+		.forEach(line -> cb.append(line).nl());
+		//@formatter:on
 
 		return post(cb);
 	}
 
-	private double convertCtoF(double value) {
-		return value * 9 / 5 + 32;
-	}
-
-	private double convertFtoC(double value) {
-		return (value - 32) * 5 / 9;
-	}
-
-	private List<Temperature> findTemperatures(String content) {
-		var temperatures = new ArrayList<Temperature>();
-
-		var m = regex.matcher(content);
-		while (m.find()) {
-			var valueStr = m.group(1).replace(',', '.'); //support comma as a decimal separator
-			var value = Double.parseDouble(valueStr);
-
-			var unitStr = m.group(4).toLowerCase();
-			var unit = unitStr.startsWith("c") ? TemperatureUnit.CELSIUS : TemperatureUnit.FAHRENHEIT;
-
-			var temperature = new Temperature(unit, value);
-
-			//do not spam the chat with duplicate numbers
-			//do not use a set, insertion order required
-			if (!temperatures.contains(temperature)) {
-				temperatures.add(temperature);
+	private enum Unit {
+		//@formatter:off
+		CELCIUS("(°|deg|degrees?|&#176;)?\\s*(C|celsius|centigrade)", "°C", "🌡") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value * 9 / 5 + 32, Unit.FAHRENHEIT),
+					new UnitValue(value + 273.15, Unit.KELVIN)
+				);
 			}
+		},
+
+		FAHRENHEIT("(°|deg|degrees?|&#176;)?\\s*(F|fahrenheit)", "°F", "🌡") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue((value - 32) * 5 / 9, Unit.CELCIUS),
+					new UnitValue((value + 459.67) * 5 / 9, Unit.KELVIN)
+				);
+			}
+		},
+
+		KELVIN("(°|deg|degrees?|&#176;)?\\s*(K|kelvin)", "°K", "🌡") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value - 273.15, Unit.CELCIUS),
+					new UnitValue((value - 273.15) * 9 / 5 + 32, Unit.FAHRENHEIT)
+				);
+			}
+		},
+
+		KILOMETERS("(km|kilometers?)", " km", "📏") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value * 0.621371, Unit.MILES)
+				);
+			}
+		},
+
+		MILES("(miles?)", " miles", "📏") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value * 1.60934, Unit.KILOMETERS)
+				);
+			}
+		},
+
+		METERS("(cm|centimeters?)", " m", "📏") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value * 3.28, Unit.FEET)
+				);
+			}
+		},
+
+		FEET("(ft|feet|foot)", " ft", "📏") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value / 3.28, Unit.METERS)
+				);
+			}
+		},
+
+		KILOGRAMS("(kg|kilos?|kilograms?)", " kg", "⚖️") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value * 2.2, Unit.POUNDS),
+					new UnitValue(value / 6.35029, Unit.STONE)
+				);
+			}
+		},
+
+		POUNDS("(lbs?|pounds?)", " lbs", "⚖️") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value / 2.2, Unit.KILOGRAMS),
+					new UnitValue(value / 14, Unit.STONE)
+				);
+			}
+		},
+
+		STONE("(st|stone)", " st", "⚖️") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value * 6.35029, Unit.KILOGRAMS),
+					new UnitValue(value * 14, Unit.POUNDS)
+				);
+			}
+		};
+		//@formatter:on
+
+		private final Pattern regex;
+		private final String suffix;
+		private final String emoticon;
+
+		private Unit(String suffixRegex, String suffix, String emoticon) {
+			//@formatter:off
+			this.regex = Pattern.compile(
+				"(?i)" +
+				"(-|\\b)" +
+				"(\\d+([\\.,]\\d+)?)\\s*" + //treat comma as a decimal separator
+				suffixRegex + 
+				"\\b");
+			//@formatter:on
+			this.suffix = suffix;
+			this.emoticon = emoticon;
 		}
 
-		return temperatures;
+		public double parse(Matcher m) {
+			String s = m.group(2).replace(',', '.'); //treat comma as a decimal separator
+			var value = Double.parseDouble(s);
+
+			if ("-".equals(m.group(1))) {
+				value *= -1;
+			}
+
+			return value;
+		}
+
+		abstract Collection<UnitValue> convert(double d);
 	}
 
-	private record Temperature(TemperatureUnit unit, double value) {
+	private record Conversion(int index, String line) {
 	}
 
-	private enum TemperatureUnit {
-		FAHRENHEIT, CELSIUS
+	private record UnitValue(double value, Unit unit) {
 	}
 }
