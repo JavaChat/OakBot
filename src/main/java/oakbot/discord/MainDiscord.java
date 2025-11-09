@@ -36,7 +36,7 @@ public class MainDiscord {
 			new ShutdownCommand()
 		));
 		var listeners = List.of(
-			new ChatGPTListener(openAIClient, "gpt-4o", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount()),
+			new ChatGPTListener(openAIClient, "gpt-5", properties.getOpenAIPrompt(), 2000, properties.getOpenAIMessageHistoryCount()),
 			new WaveListener(),
 			new CommandListener(trigger, commands)
 		);
