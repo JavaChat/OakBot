@@ -91,6 +91,7 @@ public class ChatGPTListener implements DiscordListener {
 			.model(model)
 			.maxTokens(maxTokens)
 			.messages(openAIMessages)
+			.reasoningEffort("low")
 		.build();
 		//@formatter:on
 
