@@ -149,7 +149,7 @@ public class UnitConversionListener implements Listener {
 			}
 		},
 
-		METERS("(cm|centimeters?)", " m", "📏") {
+		METERS("(m|meters?)", " m", "📏") {
 			@Override
 			Collection<UnitValue> convert(double value) {
 				return List.of(
@@ -163,6 +163,24 @@ public class UnitConversionListener implements Listener {
 			Collection<UnitValue> convert(double value) {
 				return List.of(
 					new UnitValue(value / 3.28, Unit.METERS)
+				);
+			}
+		},
+
+		CENTIMETERS("(cm|centimeters?)", " cm", "📏") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value / 2.54, Unit.INCHES)
+				);
+			}
+		},
+
+		INCHES("(in|inch(es)?)", " in", "📏") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value * 2.54, Unit.CENTIMETERS)
 				);
 			}
 		},
