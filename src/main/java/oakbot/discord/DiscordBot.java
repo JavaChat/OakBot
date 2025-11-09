@@ -109,8 +109,9 @@ public class DiscordBot {
 		var stream = listeners.stream();
 
 		/*
-		 * Note: If a message only contains 1 word after the mention, it is not
-		 * considered a mention for some reason
+		 * Note: When a user is typing out a Discord message, if they manually
+		 * type out the mention instead of accepting Discord's auto-complete
+		 * suggestion, then the mention is not picked up by this code.
 		 */
 		var botMentioned = event.getMessage().getMentions().getUsers().contains(selfUser);
 		if (!botMentioned) {
