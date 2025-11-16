@@ -161,8 +161,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 				continue;
 			}
 
-			var prompt = buildPrompt(roomId, bot);
-			prompt += " Nobody is talking to you directly; you are just sharing your thoughts.";
+			var prompt = buildPromptForSpontaneousPost(roomId, bot);
 
 			var apiMessages = buildChatCompletionMessages(prompt, messages, bot);
 
@@ -328,6 +327,18 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			prompt = prompt.replace("$ROOMNAME", roomName);
 		}
 
+		/*
+		 * ChatGPT stopped doing this in gpt-5. The SO chat post is converted to
+		 * monospace if these are detected.
+		 */
+		prompt += " Surround all code blocks with ``` markdown syntax.";
+
+		return prompt;
+	}
+
+	public String buildPromptForSpontaneousPost(int roomId, IBot bot) {
+		var prompt = buildPrompt(roomId, bot);
+		prompt += " Nobody is talking to you directly; you are just sharing your thoughts.";
 		return prompt;
 	}
 
