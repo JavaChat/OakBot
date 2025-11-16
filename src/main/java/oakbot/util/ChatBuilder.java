@@ -201,6 +201,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param id the ID of the parent message
 	 * @return this
 	 */
+	@Deprecated
 	public ChatBuilder reply(long id) {
 		replyId = id;
 		return this;
@@ -211,6 +212,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param message the parent message
 	 * @return this
 	 */
+	@Deprecated
 	public ChatBuilder reply(ChatMessage message) {
 		return reply(message.getMessageId());
 	}
@@ -220,6 +222,7 @@ public class ChatBuilder implements CharSequence {
 	 * @param command the parent message
 	 * @return this
 	 */
+	@Deprecated
 	public ChatBuilder reply(ChatCommand command) {
 		return reply(command.getMessage());
 	}

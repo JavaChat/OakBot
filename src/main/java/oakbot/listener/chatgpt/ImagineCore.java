@@ -1,7 +1,6 @@
 package oakbot.listener.chatgpt;
 
 import static oakbot.bot.ChatActions.error;
-import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.StringUtils.plural;
 
@@ -81,7 +80,7 @@ public class ImagineCore {
 		this.requestsPer24Hours = requestsPer24Hours;
 		usageQuota = (requestsPer24Hours > 0) ? new UsageQuota(Duration.ofDays(1), requestsPer24Hours) : UsageQuota.allowAll();
 	}
-	
+
 	public String helpDetail() {
 		var requestLimit = (requestsPer24Hours > 0) ? "Users can make " + requestsPer24Hours + " requests per day. " : "";
 		return requestLimit + "Syntax: [model] [input image URL] [prompt]. Supported models: " + supportedModels;
@@ -153,7 +152,7 @@ public class ImagineCore {
 
 			return actions;
 		} catch (IllegalArgumentException | URISyntaxException | OpenAIException | StabilityAIException e) {
-			return post(new ChatBuilder().reply(chatCommand).code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code());
+			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
 		} catch (IOException e) {
 			logger.atError().setCause(e).log(() -> "Network error.");
 			return error("Network error: ", e, chatCommand);

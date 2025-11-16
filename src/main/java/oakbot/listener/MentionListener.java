@@ -1,7 +1,6 @@
 package oakbot.listener;
 
 import static oakbot.bot.ChatActions.doNothing;
-import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.time.Duration;
@@ -83,9 +82,8 @@ public class MentionListener implements CatchAllMentionListener {
 		}
 
 		//@formatter:off
-		return post(new ChatBuilder()
-			.reply(message)
-			.append("Type ").code().append(bot.getTrigger()).append("help").code().append(" to see all my commands.")
+		return reply(new ChatBuilder()
+			.append("Type ").code().append(bot.getTrigger()).append("help").code().append(" to see all my commands."), message
 		);
 		//@formatter:on
 	}

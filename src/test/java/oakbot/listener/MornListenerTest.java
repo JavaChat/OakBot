@@ -53,9 +53,9 @@ class MornListenerTest {
 
 	@Test
 	void onMessage_reply_when_bot_mentioned() {
-		assertResponseMentionListenerShouldIgnoreNextMessage("Morning, @Oak!", ":0 Morning.");
-		assertResponseMentionListenerShouldIgnoreNextMessage("@Oak Morning!", ":0 Morning.");
-		assertResponseMentionListenerShouldIgnoreNextMessage("Morning, @Oak @Bob!", ":0 Morning.");
+		assertResponseMentionListenerShouldIgnoreNextMessage("Morning, @Oak!", "Morning.");
+		assertResponseMentionListenerShouldIgnoreNextMessage("@Oak Morning!", "Morning.");
+		assertResponseMentionListenerShouldIgnoreNextMessage("Morning, @Oak @Bob!", "Morning.");
 	}
 
 	@Test
@@ -90,6 +90,7 @@ class MornListenerTest {
 		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
 			.content(message)
+			.messageId(1)
 		.build();
 		//@formatter:on
 
@@ -104,7 +105,8 @@ class MornListenerTest {
 		if (response == null) {
 			assertTrue(chatResponse.isEmpty());
 		} else {
-			assertMessage(response, chatResponse);
+			var expectedParentId = ignoreNextMentionListenerMessage ? 1 : 0;
+			assertMessage(response, expectedParentId, chatResponse);
 		}
 
 		assertEquals(ignoreNextMentionListenerMessage, mentionListener.ignored);

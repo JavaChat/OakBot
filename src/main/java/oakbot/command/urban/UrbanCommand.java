@@ -15,7 +15,6 @@ import com.github.mangstadt.sochat4j.SplitStrategy;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
@@ -75,30 +74,20 @@ public class UrbanCommand implements Command {
 			definition = removeLinks(definition);
 
 			//@formatter:off
-			return ChatActions.create(
-				new PostMessage(
-					new ChatBuilder()
-					.reply(chatCommand)
-					.append(urbanWord.getWord())
-					.append(" (").append(urbanWord.getPermalink()).append("):").nl()
-					.append(definition)
-				).splitStrategy(SplitStrategy.WORD)
-			);
+			return reply(new ChatBuilder()
+				.append(urbanWord.getWord())
+				.append(" (").append(urbanWord.getPermalink()).append("):").nl()
+				.append(definition), chatCommand, SplitStrategy.WORD);
 			//@formatter:on
 		}
 
 		definition = encodeLinks(definition);
 
 		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(
-				new ChatBuilder()
-				.reply(chatCommand)
-				.link(new ChatBuilder().bold().code(urbanWord.getWord()).bold().toString(), urbanWord.getPermalink())
-				.append(": ")
-				.append(definition)
-			).splitStrategy(SplitStrategy.WORD)
-		);
+		return reply(new ChatBuilder()
+			.link(new ChatBuilder().bold().code(urbanWord.getWord()).bold().toString(), urbanWord.getPermalink())
+			.append(": ")
+			.append(definition), chatCommand, SplitStrategy.WORD);
 		//@formatter:on
 	}
 

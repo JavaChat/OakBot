@@ -98,7 +98,7 @@ class AdventOfCodeTest {
 		when(bot.getTrigger()).thenReturn("/");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Please specify a leaderboard ID (e.g. /aoc 123456).", response);
+		assertMessage("Please specify a leaderboard ID (e.g. /aoc 123456).", 1, response);
 	}
 
 	@Test
@@ -159,7 +159,7 @@ class AdventOfCodeTest {
 		var bot = mock(IBot.class);
 
 		var response = aoc.onMessage(message, bot);
-		assertMessage(":1 This command is only active during the month of December.", response);
+		assertMessage("This command is only active during the month of December.", 1, response);
 	}
 
 	@Test

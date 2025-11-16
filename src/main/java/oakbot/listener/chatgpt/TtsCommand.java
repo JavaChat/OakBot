@@ -1,7 +1,6 @@
 package oakbot.listener.chatgpt;
 
 import static oakbot.bot.ChatActions.error;
-import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.StringUtils.plural;
 
@@ -95,7 +94,7 @@ public class TtsCommand implements Command {
 			var data = openAIClient.createSpeech(request);
 			url = upload(data);
 		} catch (OpenAIException e) {
-			return post(new ChatBuilder().reply(chatCommand).code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code());
+			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
 		} catch (IOException e) {
 			return error("Network error: ", e, chatCommand);
 		}

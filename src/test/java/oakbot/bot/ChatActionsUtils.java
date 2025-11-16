@@ -16,8 +16,20 @@ public class ChatActionsUtils {
 	 * @param actions the actions
 	 */
 	public static void assertMessage(String expected, ChatActions actions) {
+		assertMessage(expected, 0, actions);
+	}
+
+	/**
+	 * Asserts the contents of a {@link ChatActions} object that contains only a
+	 * single {@link PostMessage} action.
+	 * @param expected the expected message
+	 * @param expectedParentId the expected parent ID
+	 * @param actions the actions
+	 */
+	public static void assertMessage(String expected, long expectedParentId, ChatActions actions) {
 		var actual = getFirstPostMessage(actions);
 		assertEquals(expected, actual.message());
+		assertEquals(expectedParentId, actual.parentId());
 	}
 
 	/**
@@ -27,8 +39,20 @@ public class ChatActionsUtils {
 	 * @param actions the actions
 	 */
 	public static void assertMessageStartsWith(String expected, ChatActions actions) {
+		assertMessageStartsWith(expected, 0, actions);
+	}
+
+	/**
+	 * Asserts the contents of a {@link ChatActions} object that contains only a
+	 * single {@link PostMessage} action.
+	 * @param expected the text that the message should start with
+	 * @param expectedParentId the expected parent ID
+	 * @param actions the actions
+	 */
+	public static void assertMessageStartsWith(String expected, long expectedParentId, ChatActions actions) {
 		var actual = getFirstPostMessage(actions);
 		assertTrue(actual.message().startsWith(expected));
+		assertEquals(expectedParentId, actual.parentId());
 	}
 
 	/**

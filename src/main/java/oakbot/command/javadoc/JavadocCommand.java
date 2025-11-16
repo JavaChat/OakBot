@@ -1,5 +1,6 @@
 package oakbot.command.javadoc;
 
+import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
@@ -305,9 +306,7 @@ public class JavadocCommand implements Command, Listener {
 		var cb = new ChatBuilder();
 
 		var username = arguments.targetUser();
-		if (username == null) {
-			cb.reply(message);
-		} else {
+		if (username != null) {
 			cb.mention(username).append(' ');
 		}
 
@@ -321,10 +320,16 @@ public class JavadocCommand implements Command, Listener {
 		var condensedMessage = buildCondensedMessage(info);
 
 		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(cb).splitStrategy(SplitStrategy.WORD).condensedMessage(condensedMessage)
-		);
+		var reply = new PostMessage(cb)
+			.splitStrategy(SplitStrategy.WORD)
+			.condensedMessage(condensedMessage);
 		//@formatter:on
+
+		if (username == null) {
+			reply.parentId(message.getMessage().getMessageId());
+		}
+
+		return create(reply);
 	}
 
 	private void appendPreamble(MethodInfo info, ChatBuilder cb) {
@@ -386,7 +391,6 @@ public class JavadocCommand implements Command, Listener {
 	 */
 	private ChatActions printMethodChoices(Multimap<ClassInfo, MethodInfo> matchingMethods, JavadocCommandArguments arguments, ChatCommand message) {
 		var cb = new ChatBuilder();
-		cb.reply(message);
 
 		var methodParams = arguments.parameters();
 		cb.append(buildChoicesQuestion(matchingMethods, methodParams));
@@ -410,7 +414,10 @@ public class JavadocCommand implements Command, Listener {
 
 		//@formatter:off
 		return ChatActions.create(
-			new PostMessage(cb).splitStrategy(SplitStrategy.NEWLINE).ephemeral(true)
+			new PostMessage(cb)
+				.splitStrategy(SplitStrategy.NEWLINE)
+				.ephemeral(true)
+				.parentId(message.getMessage().getMessageId())
 		);
 		//@formatter:on
 	}
@@ -466,7 +473,6 @@ public class JavadocCommand implements Command, Listener {
 		choices.sort(null);
 
 		var cb = new ChatBuilder();
-		cb.reply(message);
 		cb.append("Which one do you mean? (type the number)");
 
 		var count = 1;
@@ -481,7 +487,10 @@ public class JavadocCommand implements Command, Listener {
 
 		//@formatter:off
 		return ChatActions.create(
-			new PostMessage(cb).splitStrategy(SplitStrategy.NEWLINE).ephemeral(true)
+			new PostMessage(cb)
+				.splitStrategy(SplitStrategy.NEWLINE)
+				.ephemeral(true)
+				.parentId(message.getMessage().getMessageId())
 		);
 		//@formatter:on
 	}
@@ -490,9 +499,7 @@ public class JavadocCommand implements Command, Listener {
 		var cb = new ChatBuilder();
 
 		var username = arguments.targetUser();
-		if (username == null) {
-			cb.reply(message);
-		} else {
+		if (username != null) {
 			cb.mention(username).append(' ');
 		}
 
@@ -504,10 +511,16 @@ public class JavadocCommand implements Command, Listener {
 		appendDescription(info, paragraph, cb);
 
 		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(cb).splitStrategy(SplitStrategy.WORD).condensedMessage(buildCondensedMessage(info))
-		);
+		var reply = new PostMessage(cb)
+			.splitStrategy(SplitStrategy.WORD)
+			.condensedMessage(buildCondensedMessage(info));
 		//@formatter:on
+
+		if (username == null) {
+			reply.parentId(message.getMessage().getMessageId());
+		}
+
+		return create(reply);
 	}
 
 	private void appendPreamble(ClassInfo info, ChatBuilder cb) {

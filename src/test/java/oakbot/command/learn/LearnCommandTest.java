@@ -40,7 +40,7 @@ class LearnCommandTest {
 		when(bot.getOriginalMessageContent(1)).thenReturn("/learn name **command output**");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Saved.", response);
+		assertMessage("Saved.", 1, response);
 
 		var learned = learnedCommands.get("name");
 		assertEquals(Long.valueOf(1), learned.getMessageId());
@@ -64,7 +64,7 @@ class LearnCommandTest {
 		when(bot.getTrigger()).thenReturn("/");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 You haven't specified the command name or its output.", response);
+		assertMessage("You haven't specified the command name or its output.", 1, response);
 	}
 
 	@Test
@@ -83,7 +83,7 @@ class LearnCommandTest {
 		when(bot.getTrigger()).thenReturn("/");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 You haven't specified the command output.", response);
+		assertMessage("You haven't specified the command output.", 1, response);
 	}
 
 	@Test
@@ -102,7 +102,7 @@ class LearnCommandTest {
 		when(bot.getTrigger()).thenReturn("/");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Tricksy hobbitses. Command names can only contain letters (a-z) and numbers.", response);
+		assertMessage("Tricksy hobbitses. Command names can only contain letters (a-z) and numbers.", 1, response);
 	}
 
 	@Test
@@ -124,7 +124,7 @@ class LearnCommandTest {
 		when(bot.getTrigger()).thenReturn("/");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 A command with that name already exists.", response);
+		assertMessage("A command with that name already exists.", 1, response);
 	}
 
 	@Test
@@ -147,7 +147,7 @@ class LearnCommandTest {
 		when(bot.getTrigger()).thenReturn("/");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 A command with that name already exists.", response);
+		assertMessage("A command with that name already exists.", 1, response);
 	}
 
 	@Test
@@ -167,7 +167,7 @@ class LearnCommandTest {
 		when(bot.getTrigger()).thenReturn("/");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 A command with that name already exists.", response);
+		assertMessage("A command with that name already exists.", 1, response);
 	}
 
 	@Test
@@ -187,7 +187,7 @@ class LearnCommandTest {
 		when(bot.getOriginalMessageContent(1)).thenReturn("    /learn test **one**");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Saved.", response);
+		assertMessage("Saved.", 1, response);
 
 		var learned = learnedCommands.get("test");
 		assertMessage("    **one**", learned.onMessage(message, null));
@@ -210,7 +210,7 @@ class LearnCommandTest {
 		when(bot.getOriginalMessageContent(1)).thenThrow(new IOException());
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Saved.", response);
+		assertMessage("Saved.", 1, response);
 
 		var learned = learnedCommands.get("test");
 		assertMessage("**one**", learned.onMessage(message, null));
@@ -233,7 +233,7 @@ class LearnCommandTest {
 		when(bot.getOriginalMessageContent(1)).thenReturn("plaintext message doesn't match");
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Saved.", response);
+		assertMessage("Saved.", 1, response);
 
 		var learned = learnedCommands.get("test");
 		assertMessage("**one**", learned.onMessage(message, null));

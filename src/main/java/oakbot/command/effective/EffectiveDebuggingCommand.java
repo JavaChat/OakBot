@@ -10,7 +10,6 @@ import com.github.mangstadt.sochat4j.SplitStrategy;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
@@ -195,17 +194,13 @@ public class EffectiveDebuggingCommand implements Command {
 	}
 
 	private ChatActions displayItems(ChatCommand chatCommand, List<Item> items) {
-		var cb = new ChatBuilder().reply(chatCommand);
+		var cb = new ChatBuilder();
 		for (var item : items) {
 			cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title)).append(" (p. ").append(item.page).append(")").nl();
 		}
 		cb.append("(source: Effective Debugging, 66 Specific Ways to Debug Software and Systems by Diomidis Spinellis)");
 
-		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(cb).splitStrategy(SplitStrategy.NEWLINE)
-		);
-		//@formatter:on
+		return reply(cb, chatCommand, SplitStrategy.NEWLINE);
 	}
 
 	private static String removeMarkdown(String s) {

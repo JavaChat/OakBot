@@ -109,7 +109,6 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 			//@formatter:off
 			String beginningMd = new ChatBuilder()
-				.reply(comic.messageContainingComic.getMessageId())
 				.bold().link("XKCD #" + comic.comicId + " Explained", url).append(":").bold()
 				.append(" ")
 			.toString();
@@ -121,7 +120,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 			explanationMd = SplitStrategy.WORD.split(explanationMd, trimLength).get(0);
 			var message = beginningMd + explanationMd;
 
-			var postMessage = new PostMessage(message);
+			var postMessage = new PostMessage(message).parentId(comic.messageContainingComic.getMessageId());
 			bot.sendMessage(roomId, postMessage);
 		}
 

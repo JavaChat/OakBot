@@ -83,13 +83,14 @@ class XkcdExplainedTest {
 			.userId(-2)
 			.roomId(1)
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/2796\"><img src=\"https://imgs.xkcd.com/comics/actual_progress.png\" title=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" alt=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" /></a></div>")
+			.messageId(123)
 		.build();
 		//@formatter:on
 
 		task.onMessage(message, bot);
 		task.run(bot);
 
-		var expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
+		var expected = new PostMessage("**[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...").parentId(123);
 		verify(bot).sendMessage(1, expected);
 
 		assertTrue(task.comicsByRoom.isEmpty());
@@ -116,13 +117,14 @@ class XkcdExplainedTest {
 			.userId(-2)
 			.roomId(1)
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/3072\"><img src=\"https://imgs.xkcd.com/comics/stargazing_4.png\" title=\"We haven't actually seen a star fall in since we invented telescopes, but I have a list of ones I'm really hoping are next.\" alt=\"We haven't actually seen a star fall in since we invented telescopes, but I have a list of ones I'm really hoping are next.\"></a></div>")
+			.messageId(123)
 		.build();
 		//@formatter:on
 
 		task.onMessage(message, bot);
 		task.run(bot);
 
-		var expected = new PostMessage(":0 **[XKCD #3072 Explained](https://www.explainxkcd.com/wiki/index.php/3072):** This is the fourth comic in the [Stargazing](https://www.explainxkcd.com/wiki/index.php/Category:Stargazing) series, and it followed [2274: Stargazing 3](https://www.explainxkcd.com/wiki/index.php/2274:_Stargazing_3) that came out five years before. That was the longest stretch between two comics in the series so far.");
+		var expected = new PostMessage("**[XKCD #3072 Explained](https://www.explainxkcd.com/wiki/index.php/3072):** This is the fourth comic in the [Stargazing](https://www.explainxkcd.com/wiki/index.php/Category:Stargazing) series, and it followed [2274: Stargazing 3](https://www.explainxkcd.com/wiki/index.php/2274:_Stargazing_3) that came out five years before. That was the longest stretch between two comics in the series so far.").parentId(123);
 		verify(bot).sendMessage(1, expected);
 
 		assertTrue(task.comicsByRoom.isEmpty());
@@ -149,13 +151,14 @@ class XkcdExplainedTest {
 			.userId(-2)
 			.roomId(1)
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/2796\"><img src=\"https://imgs.xkcd.com/comics/actual_progress.png\" title=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" alt=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" /></a></div>")
+			.messageId(123)
 		.build();
 		//@formatter:on
 
 		task.onMessage(message, bot);
 		task.run(bot);
 
-		var expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
+		var expected = new PostMessage("**[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...").parentId(123);
 		verify(bot).sendMessage(1, expected);
 
 		assertTrue(task.comicsByRoom.isEmpty());
@@ -182,13 +185,14 @@ class XkcdExplainedTest {
 			.userId(-2)
 			.roomId(1)
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/2796\"><img src=\"https://imgs.xkcd.com/comics/actual_progress.png\" title=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" alt=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" /></a></div>")
+			.messageId(123)
 		.build();
 		//@formatter:on
 
 		task.onMessage(message, bot);
 		task.run(bot);
 
-		var expected = new PostMessage(":0 **[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...");
+		var expected = new PostMessage("**[XKCD #2796 Explained](https://www.explainxkcd.com/wiki/index.php/2796):** This *comic* shows a chart ranking locations in our solar system \\(the eight currently recognised planets and Earth's own moon\\) along two scales: their walkability and their proximity to shops. As this is a \"real estate analysis\", this comic mocks real life \"real estate analyses\" for people who are looking for a new home. Walkability measures the ease of walking as a form of transportation in an area \\(often ...").parentId(123);
 		verify(bot).sendMessage(1, expected);
 
 		assertTrue(task.comicsByRoom.isEmpty());

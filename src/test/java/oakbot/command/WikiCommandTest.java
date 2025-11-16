@@ -17,7 +17,7 @@ class WikiCommandTest {
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 
 		var response = command.onMessage(message, null);
-		assertMessage(":1 Please specify the term you'd like to display.", response);
+		assertMessage("Please specify the term you'd like to display.", 1, response);
 	}
 
 	@Test

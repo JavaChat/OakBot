@@ -75,7 +75,7 @@ class FishCommandTest {
 		.build(), bot);
 		//@formatter:on
 
-		assertMessage(":10 🐟 *Your inventory is empty.*", actual);
+		assertMessage("🐟 *Your inventory is empty.*", 10, actual);
 	}
 
 	@Test
@@ -106,7 +106,7 @@ class FishCommandTest {
 		.build(), bot);
 		//@formatter:on
 
-		assertMessage(":10 🐟 *Your inventory: Slavug (x2), Chlam, Hellfish*", actual);
+		assertMessage("🐟 *Your inventory: Slavug (x2), Chlam, Hellfish*", 10, actual);
 	}
 
 	@Test
@@ -438,7 +438,7 @@ class FishCommandTest {
 		.build(), bot);
 		//@formatter:on
 
-		assertMessage(":10 🐟 *You don't have any lines out.*", actual);
+		assertMessage("🐟 *You don't have any lines out.*", 10, actual);
 
 		/*
 		 * Throw out the line.
@@ -469,7 +469,7 @@ class FishCommandTest {
 		.build(), bot);
 		//@formatter:on
 
-		assertMessage(":10 🐟 *Your line doesn't have anything. You should wait until it quivers.*", actual);
+		assertMessage("🐟 *Your line doesn't have anything. You should wait until it quivers.*", 10, actual);
 
 		/*
 		 * Check status after quiver.
@@ -487,7 +487,7 @@ class FishCommandTest {
 		.build(), bot);
 
 		var expected = List.of(
-			new PostMessage(":11 🐟 *Your line is quivering. Better pull it up.*")
+			new PostMessage("🐟 *Your line is quivering. Better pull it up.*").parentId(11)
 		);
 		//@formatter:on
 

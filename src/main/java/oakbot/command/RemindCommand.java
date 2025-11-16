@@ -52,7 +52,7 @@ public class RemindCommand implements Command {
 
 		//@formatter:off
 		return ChatActions.create(
-			new PostMessage(new ChatBuilder().reply(chatCommand).append("Created.")),
+			new PostMessage(new ChatBuilder().append("Created.")).parentId(chatCommand.getMessage().getMessageId()),
 			new PostMessage(new ChatBuilder().mention(mention).append(" ").append(reminder)).delay(duration)
 		);
 		//@formatter:on

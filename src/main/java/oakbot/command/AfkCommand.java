@@ -1,7 +1,6 @@
 package oakbot.command;
 
 import static oakbot.bot.ChatActions.doNothing;
-import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.time.Duration;
@@ -82,7 +81,6 @@ public class AfkCommand implements Command, Listener {
 		var usersNotWarnedAbout = filterUsersNotWarnedAbout(mentionedAfkUsers, message.getUserId());
 		if (!usersNotWarnedAbout.isEmpty()) {
 			var cb = new ChatBuilder();
-			cb.reply(message);
 			var first = true;
 			usersNotWarnedAbout.sort(Comparator.comparing(AfkUser::getUsername));
 			for (var afkUser : usersNotWarnedAbout) {
@@ -100,7 +98,7 @@ public class AfkCommand implements Command, Listener {
 
 				first = false;
 			}
-			return post(cb);
+			return reply(cb, message);
 		}
 
 		if (returned) {

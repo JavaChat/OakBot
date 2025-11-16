@@ -2,7 +2,6 @@ package oakbot.command;
 
 import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.doNothing;
-import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.util.List;
@@ -111,10 +110,9 @@ public class DeleteCommand implements Command, Listener {
 	private ChatActions deleteAction(long messageToDelete, long messageToReplyToOnError) {
 		//@formatter:off
 		return create(new DeleteMessage(messageToDelete).onError(e ->
-			post(new ChatBuilder()
-				.reply(messageToReplyToOnError)
+			reply(new ChatBuilder()
 				.append("Unable to delete message: ")
-				.code(e.getMessage())
+				.code(e.getMessage()), messageToReplyToOnError
 			)
 		));
 		//@formatter:on

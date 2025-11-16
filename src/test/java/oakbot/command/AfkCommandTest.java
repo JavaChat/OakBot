@@ -42,7 +42,7 @@ class AfkCommandTest {
 
 			var cmd = ChatCommand.fromMessage(message, "/");
 			actions = afk.onMessage(cmd, bot);
-			assertMessage(":1 Cya later", actions);
+			assertMessage("Cya later", 1, actions);
 		}
 
 		{
@@ -56,7 +56,7 @@ class AfkCommandTest {
 			//@formatter:on
 
 			var actions = afk.onMessage(message, bot);
-			assertMessage(":2 Kyle is away: away", actions);
+			assertMessage("Kyle is away: away", 2, actions);
 		}
 
 		{
@@ -70,7 +70,7 @@ class AfkCommandTest {
 			//@formatter:on
 
 			var actions = afk.onMessage(message, bot);
-			assertMessage(":3 Welcome back!", actions);
+			assertMessage("Welcome back!", 3, actions);
 		}
 	}
 
@@ -94,7 +94,7 @@ class AfkCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Frank is away", response);
+		assertMessage("Frank is away", 1, response);
 	}
 
 	@Test
@@ -117,7 +117,7 @@ class AfkCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Frank is away\nFranny is away: brb\nfra Niegel is away", response);
+		assertMessage("Frank is away\nFranny is away: brb\nfra Niegel is away", 1, response);
 	}
 
 	@Test
@@ -161,7 +161,7 @@ class AfkCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Frank is away\nFranny is away", response);
+		assertMessage("Frank is away\nFranny is away", 1, response);
 		response = command.onMessage(message, bot);
 		assertTrue(response.isEmpty());
 	}
@@ -183,7 +183,7 @@ class AfkCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Welcome back!", response);
+		assertMessage("Welcome back!", 1, response);
 
 		response = command.onMessage(message, bot);
 		assertTrue(response.isEmpty());
@@ -211,6 +211,6 @@ class AfkCommandTest {
 
 		var cmd = ChatCommand.fromMessage(message, bot.getTrigger());
 		response = command.onMessage(cmd, bot);
-		assertMessage(":1 Cya later", response);
+		assertMessage("Cya later", 1, response);
 	}
 }

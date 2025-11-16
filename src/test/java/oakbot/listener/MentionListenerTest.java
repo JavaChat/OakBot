@@ -18,11 +18,11 @@ import oakbot.bot.IBot;
 class MentionListenerTest {
 	@Test
 	void respond() {
-		assertResponse("Hey @OakBot", ":0 Type `/help` to see all my commands.");
-		assertResponse("Hey @Oak", ":0 Type `/help` to see all my commands.");
-		assertResponse("@Oak Thank  you", ":0 You're welcome.");
-		assertResponse("Thanks @Oak", ":0 You're welcome.");
-		assertResponse("@Oak  thx!", ":0 You're welcome.");
+		assertResponse("Hey @OakBot", "Type `/help` to see all my commands.");
+		assertResponse("Hey @Oak", "Type `/help` to see all my commands.");
+		assertResponse("@Oak Thank  you", "You're welcome.");
+		assertResponse("Thanks @Oak", "You're welcome.");
+		assertResponse("@Oak  thx!", "You're welcome.");
 		assertNoResponse("Hey @OakBott");
 		assertNoResponse("Hey");
 	}
@@ -31,6 +31,7 @@ class MentionListenerTest {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.content(message)
+			.messageId(1)
 		.build();
 		//@formatter:on
 
@@ -49,6 +50,7 @@ class MentionListenerTest {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.content(message)
+			.messageId(1)
 		.build();
 		//@formatter:on
 
@@ -59,7 +61,7 @@ class MentionListenerTest {
 		var listener = new MentionListener();
 
 		var actions = listener.onMessage(chatMessage, bot);
-		assertMessage(expectedResponse, actions);
+		assertMessage(expectedResponse, 1, actions);
 	}
 
 	@Test

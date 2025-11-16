@@ -160,12 +160,7 @@ public class FileChatRoom implements IRoom {
 	}
 
 	@Override
-	public long sendMessage(String message) {
-		return sendMessage(message, null).get(0);
-	}
-
-	@Override
-	public List<Long> sendMessage(String message, SplitStrategy splitStragey) {
+	public List<Long> sendMessage(String message, long parentId, SplitStrategy splitStragey) {
 		var id = postMessage(botUserId, botUsername, message);
 		return List.of(id);
 	}
@@ -218,7 +213,7 @@ public class FileChatRoom implements IRoom {
 	}
 
 	@Override
-	public void editMessage(long messageId, String updatedMessage) throws RoomNotFoundException, RoomPermissionException, IOException {
+	public void editMessage(long messageId, long parentId, String updatedMessage) throws RoomNotFoundException, RoomPermissionException, IOException {
 		System.out.println(roomId + " > " + botUsername + " > (edited message " + messageId + "): " + updatedMessage);
 	}
 

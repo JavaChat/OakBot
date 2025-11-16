@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
  * @author Michael Angstadt
  */
 class ChatBuilderTest {
+	@SuppressWarnings("deprecation")
 	@Test
 	void toString_reply_method_can_be_called_any_time() {
 		var cb = new ChatBuilder();
@@ -17,6 +18,7 @@ class ChatBuilderTest {
 		assertEquals(":1 one two", cb.toString());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	void toString_fixed_width_syntax_comes_before_reply() {
 		var cb = new ChatBuilder();

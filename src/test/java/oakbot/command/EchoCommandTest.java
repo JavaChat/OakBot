@@ -14,12 +14,12 @@ import oakbot.util.ChatCommandBuilder;
 class EchoCommandTest {
 	@Test
 	void onMessage() {
-		assertOnMessage("foo bar", "foo bar");
-		assertOnMessage("", ":1 Tell me what to say.");
-		assertOnMessage("<b>foo</b> bar", "**foo** bar");
+		assertOnMessage("foo bar", "foo bar", 0);
+		assertOnMessage("", "Tell me what to say.", 1);
+		assertOnMessage("<b>foo</b> bar", "**foo** bar", 0);
 	}
 
-	private static void assertOnMessage(String input, String expectedResponse) {
+	private static void assertOnMessage(String input, String expectedResponse, long expectedParentId) {
 		var echo = new EchoCommand();
 
 		//@formatter:off
@@ -33,6 +33,6 @@ class EchoCommandTest {
 
 		var actions = echo.onMessage(chatCommand, bot);
 
-		assertMessage(expectedResponse, actions);
+		assertMessage(expectedResponse, expectedParentId, actions);
 	}
 }

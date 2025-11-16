@@ -1,7 +1,6 @@
 package oakbot.listener.chatgpt;
 
 import static oakbot.bot.ChatActions.create;
-import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.awt.Image;
@@ -99,7 +98,7 @@ public class VideoCommand implements Command {
 			return create(new PostMessage(videoUrl).bypassFilters(true));
 		} catch (Exception e) {
 			logger.atError().setCause(e).log(() -> "Problem generating video.");
-			return post(new ChatBuilder().reply(chatCommand).code().append("ERROR BEEP BOOP: ").append(e.getClass().getName()).append(": ").append(e.getMessage()).code());
+			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getClass().getName()).append(": ").append(e.getMessage()).code(), chatCommand);
 		}
 	}
 

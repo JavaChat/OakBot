@@ -1,5 +1,7 @@
 package oakbot.filter;
 
+import static oakbot.bot.ChatActions.create;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
@@ -18,11 +20,10 @@ public abstract class ToggleableFilter extends ChatResponseFilter implements Com
 		var enabled = toggle(roomId);
 
 		//@formatter:off
-		return ChatActions.create(
+		return create(
 			new PostMessage(new ChatBuilder()
-				.reply(chatCommand)
 				.append("Filter ").append(enabled ? "enabled" : "disabled").append(".")
-			).bypassFilters(true)
+			).bypassFilters(true).parentId(chatCommand.getMessage().getMessageId())
 		);
 		//@formatter:on
 	}

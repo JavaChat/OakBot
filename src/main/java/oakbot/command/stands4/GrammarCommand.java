@@ -1,7 +1,6 @@
 package oakbot.command.stands4;
 
 import static oakbot.bot.ChatActions.error;
-import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -61,19 +60,17 @@ public class GrammarCommand implements Command {
 
 		if (results.isEmpty()) {
 			//@formatter:off
-			return post(new ChatBuilder()
-				.reply(chatCommand)
+			return reply(new ChatBuilder()
 				.append("No errors found.")
-				.append(" (checked by ").append(url).append(")")
+				.append(" (checked by ").append(url).append(")"), chatCommand
 			);
 			//@formatter:on
 		}
 
 		//@formatter:off
-		return post(new ChatBuilder()
-			.reply(chatCommand)
+		return reply(new ChatBuilder()
 			.append(String.join("\n", results))
-			.nl().append("checked by: ").append(url)
+			.nl().append("checked by: ").append(url), chatCommand
 		);
 		//@formatter:on
 	}

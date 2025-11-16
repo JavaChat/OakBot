@@ -1,5 +1,6 @@
 package oakbot.command;
 
+import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.reply;
 
 import java.util.List;
@@ -76,8 +77,8 @@ public class UnsummonCommand implements Command {
 		}
 
 		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(new ChatBuilder().reply(chatCommand).append(reply)),
+		return create(
+			new PostMessage(new ChatBuilder().append(reply)).parentId(chatCommand.getMessage().getMessageId()),
 			new LeaveRoom(roomToLeave)
 		);
 		//@formatter:on

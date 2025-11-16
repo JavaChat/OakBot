@@ -63,7 +63,7 @@ class JuiceBoxCommandTest {
 		var message = new ChatCommandBuilder(command).username("Michael").build();
 		var response = command.onMessage(message, bot);
 
-		assertMessage(":0 https://juiceboxify.me/images/8176425e07bbe2caf82c90e82ac07dc445013e68.jpg", response);
+		assertMessage("https://juiceboxify.me/images/8176425e07bbe2caf82c90e82ac07dc445013e68.jpg", 0, response);
 	}
 
 	@Test
@@ -98,7 +98,7 @@ class JuiceBoxCommandTest {
 		var message = new ChatCommandBuilder(command).username("Michael").content("oakbot").build();
 		var response = command.onMessage(message, bot);
 
-		assertMessage(":0 https://juiceboxify.me/images/8176425e07bbe2caf82c90e82ac07dc445013e68.jpg", response);
+		assertMessage("https://juiceboxify.me/images/8176425e07bbe2caf82c90e82ac07dc445013e68.jpg", 0, response);
 	}
 
 	@Test
@@ -133,7 +133,7 @@ class JuiceBoxCommandTest {
 		var message = new ChatCommandBuilder(command).username("Michael").content("oakbot").build();
 		var response = command.onMessage(message, bot);
 
-		assertMessage(":0 User has no face.", response);
+		assertMessage("User has no face.", 0, response);
 	}
 
 	@Test
@@ -153,6 +153,6 @@ class JuiceBoxCommandTest {
 		var message = new ChatCommandBuilder(command).username("Michael").content("JonSkeet").build();
 		var response = command.onMessage(message, bot);
 
-		assertMessage(":0 User not found (they must be in this room).", response);
+		assertMessage("User not found (they must be in this room).", 0, response);
 	}
 }

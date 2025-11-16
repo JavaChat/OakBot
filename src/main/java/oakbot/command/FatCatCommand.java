@@ -128,7 +128,6 @@ public class FatCatCommand implements Command, Listener {
 		if (cat == null) {
 			//@formatter:off
 			return post(new ChatBuilder()
-				.reply(chatCommand)
 				.append("Specify the URL of the cat you want to add: ")
 				.code()
 				.append(bot.getTrigger())
@@ -163,14 +162,13 @@ public class FatCatCommand implements Command, Listener {
 
 		if (cat == null) {
 			//@formatter:off
-			return post(new ChatBuilder()
-				.reply(chatCommand)
+			return reply(new ChatBuilder()
 				.append("Specify the URL of the cat you want to delete: ")
 				.code()
 				.append(bot.getTrigger())
 				.append(name())
 				.append(" delete URL")
-				.code()
+				.code(), chatCommand
 			);
 			//@formatter:on
 		}

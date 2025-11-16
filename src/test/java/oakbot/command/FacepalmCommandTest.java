@@ -65,7 +65,7 @@ class FacepalmCommandTest {
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 		var response = command.onMessage(message, mock(IBot.class));
 
-		assertMessage(":1 Sorry, an error occurred. >.>", response);
+		assertMessage("Sorry, an error occurred. >.>", 1, response);
 	}
 
 	@Test
@@ -82,7 +82,7 @@ class FacepalmCommandTest {
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 		var response = command.onMessage(message, mock(IBot.class));
 
-		assertMessage(":1 Sorry, an error occurred. >.>", response);
+		assertMessage("Sorry, an error occurred. >.>", 1, response);
 	}
 
 	@Test
@@ -99,6 +99,6 @@ class FacepalmCommandTest {
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 		var response = command.onMessage(message, mock(IBot.class));
 
-		assertMessage(":1 Sorry, an error occurred. >.>", response);
+		assertMessage("Sorry, an error occurred. >.>", 1, response);
 	}
 }

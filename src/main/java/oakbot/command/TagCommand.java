@@ -15,7 +15,6 @@ import com.github.mangstadt.sochat4j.SplitStrategy;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
 
@@ -68,14 +67,9 @@ public class TagCommand implements Command {
 		var definition = element.text();
 
 		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(new ChatBuilder()
-				.reply(chatCommand)
-				.tag(tag)
-				.append(' ').append(definition)
-			)
-			.splitStrategy(SplitStrategy.WORD)
-		);
+		return reply(new ChatBuilder()
+			.tag(tag)
+			.append(' ').append(definition), chatCommand, SplitStrategy.WORD);
 		//@formatter:on
 	}
 

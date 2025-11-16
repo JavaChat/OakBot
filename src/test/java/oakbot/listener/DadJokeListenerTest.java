@@ -134,7 +134,7 @@ class DadJokeListenerTest {
 		when(bot.getUsername()).thenReturn("OakBot");
 
 		var actions = listener.onMessage(chatMessage, bot);
-		assertMessage(":1 " + response, actions);
+		assertMessage(response, 1, actions);
 	}
 
 	private static void assertNoResponse(String message) {

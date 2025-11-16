@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -118,8 +119,8 @@ class BotTest {
 		/*
 		 * Verify.
 		 */
-		verify(room1).sendMessage("Greetings.", SplitStrategy.NONE);
-		verify(room2).sendMessage("Greetings.", SplitStrategy.NONE);
+		verify(room1).sendMessage("Greetings.", 0, SplitStrategy.NONE);
+		verify(room2).sendMessage("Greetings.", 0, SplitStrategy.NONE);
 	}
 
 	@Test
@@ -148,8 +149,8 @@ class BotTest {
 		/*
 		 * Verify.
 		 */
-		verify(room1, times(0)).sendMessage("Greetings.", SplitStrategy.NONE);
-		verify(room2, times(0)).sendMessage("Greetings.", SplitStrategy.NONE);
+		verify(room1, times(0)).sendMessage("Greetings.", 0, SplitStrategy.NONE);
+		verify(room2, times(0)).sendMessage("Greetings.", 0, SplitStrategy.NONE);
 	}
 
 	@Test
@@ -177,8 +178,8 @@ class BotTest {
 		/*
 		 * Verify.
 		 */
-		verify(room1, times(0)).sendMessage("Greetings.", SplitStrategy.NONE);
-		verify(room2, times(0)).sendMessage("Greetings.", SplitStrategy.NONE);
+		verify(room1, times(0)).sendMessage("Greetings.", 0, SplitStrategy.NONE);
+		verify(room2, times(0)).sendMessage("Greetings.", 0, SplitStrategy.NONE);
 	}
 
 	@Test
@@ -221,8 +222,8 @@ class BotTest {
 		 */
 		verify(listener).onMessage(same(event1.getMessage()), same(bot));
 		verify(listener).onMessage(same(event2.getMessage()), same(bot));
-		verify(room1, times(1)).sendMessage(anyString(), any(SplitStrategy.class));
-		verify(room1).sendMessage("reply", SplitStrategy.NONE);
+		verify(room1, times(1)).sendMessage(anyString(), anyLong(), any(SplitStrategy.class));
+		verify(room1).sendMessage("reply", 0, SplitStrategy.NONE);
 	}
 
 	@Test
@@ -275,8 +276,8 @@ class BotTest {
 		verify(command).onMessage(eq(expectedChatCommand2), same(bot));
 		verify(command).onMessage(eq(expectedChatCommand3), same(bot));
 		verify(command).onMessage(eq(expectedChatCommand4), same(bot));
-		verify(room1, times(1)).sendMessage(anyString(), any(SplitStrategy.class));
-		verify(room1).sendMessage("reply", SplitStrategy.NONE);
+		verify(room1, times(1)).sendMessage(anyString(), anyLong(), any(SplitStrategy.class));
+		verify(room1).sendMessage("reply", 0, SplitStrategy.NONE);
 	}
 
 	@Test
@@ -317,8 +318,8 @@ class BotTest {
 		/*
 		 * Verify.
 		 */
-		verify(room1, times(1)).sendMessage(anyString(), any(SplitStrategy.class));
-		verify(room1).sendMessage("bar", SplitStrategy.NONE);
+		verify(room1, times(1)).sendMessage(anyString(), anyLong(), any(SplitStrategy.class));
+		verify(room1).sendMessage("bar", 0, SplitStrategy.NONE);
 	}
 
 	@Test
@@ -472,8 +473,8 @@ class BotTest {
 		 * Verify.
 		 */
 		var expectedMessage = expectedEnabled ? "REPLY" : "reply";
-		verify(room1, times(4)).sendMessage(anyString(), any(SplitStrategy.class));
-		verify(room1, times(4)).sendMessage(expectedMessage, SplitStrategy.NONE);
+		verify(room1, times(4)).sendMessage(anyString(), anyLong(), any(SplitStrategy.class));
+		verify(room1, times(4)).sendMessage(expectedMessage, 0, SplitStrategy.NONE);
 	}
 
 	@Test
@@ -544,13 +545,13 @@ class BotTest {
 		verify(chatClient, times(2)).joinRoom(4);
 		verify(chatClient, times(2)).joinRoom(999);
 
-		verify(room1, times(2)).sendMessage("success", SplitStrategy.NONE);
-		verify(room1, times(2)).sendMessage("ifRoomDoesNotExist", SplitStrategy.NONE);
-		verify(room1, times(2)).sendMessage("ifLackingPermissionToPost", SplitStrategy.NONE);
-		verify(room1, times(2)).sendMessage("onError", SplitStrategy.NONE);
+		verify(room1, times(2)).sendMessage("success", 0, SplitStrategy.NONE);
+		verify(room1, times(2)).sendMessage("ifRoomDoesNotExist", 0, SplitStrategy.NONE);
+		verify(room1, times(2)).sendMessage("ifLackingPermissionToPost", 0, SplitStrategy.NONE);
+		verify(room1, times(2)).sendMessage("onError", 0, SplitStrategy.NONE);
 
-		verify(room2, times(1)).sendMessage(anyString(), any(SplitStrategy.class));
-		verify(room2).sendMessage("Greetings.", SplitStrategy.NONE);
+		verify(room2, times(1)).sendMessage(anyString(), anyLong(), any(SplitStrategy.class));
+		verify(room2).sendMessage("Greetings.", 0, SplitStrategy.NONE);
 	}
 
 	@Test
@@ -779,7 +780,7 @@ class BotTest {
 		 * Setup the chat rooms.
 		 */
 		var room1 = chatServer.createRoom(1);
-		when(room1.sendMessage("http://en.wikipedia.org/wiki/Java", SplitStrategy.NONE)).thenReturn(List.of(100L));
+		when(room1.sendMessage("http://en.wikipedia.org/wiki/Java", 0, SplitStrategy.NONE)).thenReturn(List.of(100L));
 
 		/*
 		 * Define the chat room events to push.
@@ -825,7 +826,7 @@ class BotTest {
 		doAnswer((invocation) -> {
 			bot.stop();
 			return null;
-		}).when(room1).editMessage(100, "> http://en.wikipedia.org/wiki/Java");
+		}).when(room1).editMessage(100, 0, "> http://en.wikipedia.org/wiki/Java");
 
 		/*
 		 * Run the bot.
@@ -839,8 +840,8 @@ class BotTest {
 		/*
 		 * Verify.
 		 */
-		verify(room1).sendMessage("http://en.wikipedia.org/wiki/Java", SplitStrategy.NONE);
-		verify(room1).editMessage(100, "> http://en.wikipedia.org/wiki/Java");
+		verify(room1).sendMessage("http://en.wikipedia.org/wiki/Java", 0, SplitStrategy.NONE);
+		verify(room1).editMessage(100, 0, "> http://en.wikipedia.org/wiki/Java");
 		assertTrue(stop - start >= 1000);
 	}
 
@@ -888,8 +889,8 @@ class BotTest {
 		 * Verify.
 		 */
 		verify(handler, times(2)).apply(any(ChatCommand.class), same(bot));
-		verify(room1, times(1)).sendMessage(anyString(), any(SplitStrategy.class));
-		verify(room1).sendMessage("reply", SplitStrategy.NONE);
+		verify(room1, times(1)).sendMessage(anyString(), anyLong(), any(SplitStrategy.class));
+		verify(room1).sendMessage("reply", 0, SplitStrategy.NONE);
 	}
 
 	private MessagePostedEvent event(String content) {
@@ -945,7 +946,7 @@ class BotTest {
 			when(room.getRoomId()).thenReturn(roomId);
 			when(room.getFkey()).thenReturn("0123456789abcdef0123456789abcdef");
 			when(room.canPost()).thenReturn(canPost);
-			when(room.sendMessage(anyString(), any(SplitStrategy.class))).thenReturn(List.of(messageId++));
+			when(room.sendMessage(anyString(), anyLong(), any(SplitStrategy.class))).thenReturn(List.of(messageId++));
 			doAnswer((invocation) -> {
 				chatClient.joined.remove(roomId);
 				return null;

@@ -12,6 +12,7 @@ import com.github.mangstadt.sochat4j.SplitStrategy;
 public class PostMessage implements ChatAction {
 	private String message;
 	private String condensedMessage;
+	private long parentId;
 	private SplitStrategy splitStrategy = SplitStrategy.NONE;
 	private boolean bypassFilters;
 	private boolean ephemeral;
@@ -73,6 +74,24 @@ public class PostMessage implements ChatAction {
 	 */
 	public PostMessage condensedMessage(CharSequence condensedMessage) {
 		this.condensedMessage = (condensedMessage == null) ? null : condensedMessage.toString();
+		return this;
+	}
+
+	/**
+	 * Gets the ID of the message that is being replied to.
+	 * @return the parent ID or 0 if not set
+	 */
+	public long parentId() {
+		return parentId;
+	}
+
+	/**
+	 * Sets the ID of the message that is being replied to.
+	 * @param parentId the parent ID
+	 * @return this
+	 */
+	public PostMessage parentId(long parentId) {
+		this.parentId = parentId;
 		return this;
 	}
 
@@ -181,7 +200,7 @@ public class PostMessage implements ChatAction {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(broadcast, bypassFilters, condensedMessage, delay, ephemeral, message, splitStrategy);
+		return Objects.hash(broadcast, bypassFilters, condensedMessage, delay, ephemeral, message, parentId, splitStrategy);
 	}
 
 	@Override
@@ -189,12 +208,12 @@ public class PostMessage implements ChatAction {
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
-		var other = (PostMessage) obj;
-		return broadcast == other.broadcast && bypassFilters == other.bypassFilters && Objects.equals(condensedMessage, other.condensedMessage) && Objects.equals(delay, other.delay) && ephemeral == other.ephemeral && Objects.equals(message, other.message) && splitStrategy == other.splitStrategy;
+		PostMessage other = (PostMessage) obj;
+		return broadcast == other.broadcast && bypassFilters == other.bypassFilters && Objects.equals(condensedMessage, other.condensedMessage) && Objects.equals(delay, other.delay) && ephemeral == other.ephemeral && Objects.equals(message, other.message) && parentId == other.parentId && splitStrategy == other.splitStrategy;
 	}
 
 	@Override
 	public String toString() {
-		return "PostMessage [message=" + message + ", condensedMessage=" + condensedMessage + ", splitStrategy=" + splitStrategy + ", bypassFilters=" + bypassFilters + ", ephemeral=" + ephemeral + ", broadcast=" + broadcast + ", delay=" + delay + "]";
+		return "PostMessage [message=" + message + ", condensedMessage=" + condensedMessage + ", parentId=" + parentId + ", splitStrategy=" + splitStrategy + ", bypassFilters=" + bypassFilters + ", ephemeral=" + ephemeral + ", broadcast=" + broadcast + ", delay=" + delay + "]";
 	}
 }

@@ -1,6 +1,6 @@
 package oakbot.listener.chatgpt;
 
-import static oakbot.bot.ChatActions.post;
+import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.StringUtils.plural;
 
 import oakbot.bot.ChatActions;
@@ -41,11 +41,11 @@ public class QuotaCommand implements Command {
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		var userId = chatCommand.getMessage().getUserId();
 
-		var cb = new ChatBuilder().reply(chatCommand);
+		var cb = new ChatBuilder();
 		printQuota("Conversation (ChatGPT)", chatGpt.getUsageQuota(), userId, cb);
 		printQuota("Image generation", imagine.getUsageQuota(), userId, cb);
 
-		return post(cb);
+		return reply(cb, chatCommand);
 	}
 
 	private void printQuota(String label, UsageQuota quota, int userId, ChatBuilder cb) {

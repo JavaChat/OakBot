@@ -1,7 +1,6 @@
 package oakbot.command.stands4;
 
 import static oakbot.bot.ChatActions.error;
-import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
@@ -62,10 +61,9 @@ public class ConvertCommand implements Command {
 		var url = client.getConvertAttributionUrl();
 
 		//@formatter:off
-		return post(new ChatBuilder()
-			.reply(chatCommand)
+		return reply(new ChatBuilder()
 			.append(result)
-			.append(" (").link("source", url).append(")") 
+			.append(" (").link("source", url).append(")"), chatCommand 
 		);
 		//@formatter:on
 	}

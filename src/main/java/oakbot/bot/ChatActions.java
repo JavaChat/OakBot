@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.SplitStrategy;
 
 import oakbot.util.ChatBuilder;
 
@@ -53,11 +54,11 @@ public class ChatActions implements Iterable<ChatAction> {
 	 * @param parent the message to reply to
 	 * @return the created object
 	 */
-	public static ChatActions reply(String message, ChatMessage parent) {
+	public static ChatActions reply(CharSequence message, long parentId) {
 		//@formatter:off
-		return post(new ChatBuilder()
-			.reply(parent)
-			.append(message)
+		return ChatActions.create(
+			new PostMessage(message)
+				.parentId(parentId)
 		);
 		//@formatter:on
 	}
@@ -69,8 +70,37 @@ public class ChatActions implements Iterable<ChatAction> {
 	 * @param parent the message to reply to
 	 * @return the created object
 	 */
-	public static ChatActions reply(String message, ChatCommand parent) {
+	public static ChatActions reply(CharSequence message, ChatMessage parent) {
+		return reply(message, parent.getMessageId());
+	}
+
+	/**
+	 * Convenience method for creating a list with a single
+	 * {@link PostMessage} action that is a reply to a chat message.
+	 * @param message the message to post
+	 * @param parent the message to reply to
+	 * @return the created object
+	 */
+	public static ChatActions reply(CharSequence message, ChatCommand parent) {
 		return reply(message, parent.getMessage());
+	}
+
+	/**
+	 * Convenience method for creating a list with a single
+	 * {@link PostMessage} action that is a reply to a chat message.
+	 * @param message the message to post
+	 * @param parent the message to reply to
+	 * @param splitStrategy the split strategy
+	 * @return the created object
+	 */
+	public static ChatActions reply(CharSequence message, ChatCommand parent, SplitStrategy splitStrategy) {
+		//@formatter:off
+		return ChatActions.create(
+			new PostMessage(message)
+				.parentId(parent.getMessage().getMessageId())
+				.splitStrategy(splitStrategy)
+		);
+		//@formatter:on
 	}
 
 	/**
@@ -84,10 +114,9 @@ public class ChatActions implements Iterable<ChatAction> {
 	 */
 	public static ChatActions error(CharSequence message, Exception exception, ChatCommand parent) {
 		//@formatter:off
-		return post(new ChatBuilder()
-			.reply(parent)
+		return reply(new ChatBuilder()
 			.append(message)
-			.code(exception.getMessage())
+			.code(exception.getMessage()), parent
 		);
 		//@formatter:on
 	}

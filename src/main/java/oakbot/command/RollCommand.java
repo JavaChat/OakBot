@@ -1,6 +1,5 @@
 package oakbot.command;
 
-import static oakbot.bot.ChatActions.post;
 import static oakbot.bot.ChatActions.reply;
 
 import java.util.Arrays;
@@ -52,9 +51,8 @@ public class RollCommand implements Command {
 
 		if (parameters.times <= 0) {
 			//@formatter:off
-			return post(new ChatBuilder()
-				.reply(chatCommand)
-				.italic("rolls nothing")
+			return reply(new ChatBuilder()
+				.italic("rolls nothing"), chatCommand
 			);
 			//@formatter:on
 		}
@@ -70,7 +68,6 @@ public class RollCommand implements Command {
 		//@formatter:on
 
 		var cb = new ChatBuilder();
-		cb.reply(chatCommand);
 
 		//@formatter:off
 		cb.append(Arrays.stream(results)
@@ -85,7 +82,7 @@ public class RollCommand implements Command {
 			cb.nl().append("Average = ").append(Double.toString(average));
 		}
 
-		return post(cb);
+		return reply(cb, chatCommand);
 	}
 
 	private Parameters parseParameters(ChatCommand chatCommand) {

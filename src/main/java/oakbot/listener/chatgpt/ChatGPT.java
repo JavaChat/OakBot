@@ -235,10 +235,9 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			//@formatter:off
 			return create(
-				new PostMessage(new ChatBuilder()
-					.reply(message)
-					.append(response)
-				).splitStrategy(SplitStrategy.WORD)
+				new PostMessage(response)
+					.splitStrategy(SplitStrategy.WORD)
+					.parentId(message.getMessageId())
 			);
 			//@formatter:on
 		} catch (IOException e) {

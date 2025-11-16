@@ -271,11 +271,11 @@ public class Bot implements IBot {
 		logger.atInfo().log(() -> "Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);
 
 		synchronized (postedMessages) {
-			var messageIds = room.sendMessage(filteredMessage, message.splitStrategy());
+			var messageIds = room.sendMessage(filteredMessage, message.parentId(), message.splitStrategy());
 			var condensedMessage = message.condensedMessage();
 			var ephemeral = message.ephemeral();
 
-			var postedMessage = new PostedMessage(Instant.now(), filteredMessage, condensedMessage, ephemeral, room.getRoomId(), messageIds);
+			var postedMessage = new PostedMessage(Instant.now(), filteredMessage, condensedMessage, ephemeral, room.getRoomId(), message.parentId(), messageIds);
 			postedMessages.put(messageIds.get(0), postedMessage);
 		}
 	}
@@ -486,6 +486,7 @@ public class Bot implements IBot {
 		private final String condensedContent;
 		private final boolean ephemeral;
 		private final int roomId;
+		private final long parentId;
 		private final List<Long> messageIds;
 
 		/**
@@ -498,16 +499,18 @@ public class Bot implements IBot {
 		 * @param ephemeral true to delete the message after the amount of time
 		 * specified in the "hideOneboxesAfter" setting, false not to
 		 * @param roomId the ID of the room the message was posted in
+		 * @param parentId the ID of the message that this was a reply to
 		 * @param messageIds the ID of each message that was actually posted to
 		 * the room (the chat client may split up the original message due to
 		 * length limitations)
 		 */
-		public PostedMessage(Instant timePosted, String originalContent, String condensedContent, boolean ephemeral, int roomId, List<Long> messageIds) {
+		public PostedMessage(Instant timePosted, String originalContent, String condensedContent, boolean ephemeral, int roomId, long parentId, List<Long> messageIds) {
 			this.timePosted = timePosted;
 			this.originalContent = originalContent;
 			this.condensedContent = condensedContent;
 			this.ephemeral = ephemeral;
 			this.roomId = roomId;
+			this.parentId = parentId;
 			this.messageIds = messageIds;
 		}
 
@@ -574,6 +577,14 @@ public class Bot implements IBot {
 		 */
 		public boolean isEphemeral() {
 			return ephemeral;
+		}
+		
+		/**
+		 * Gets the ID of the message that this was a reply to.
+		 * @return the parent ID or 0 if it's not a reply
+		 */
+		public long getParentId() {
+			return parentId;
 		}
 	}
 
@@ -945,7 +956,7 @@ public class Bot implements IBot {
 
 					var messageIds = postedMessage.getMessageIds();
 					var quotedContent = quote(condensedContent);
-					room.editMessage(messageIds.get(0), quotedContent);
+					room.editMessage(messageIds.get(0), postedMessage.getParentId(), quotedContent);
 
 					/*
 					 * If the original content was split up into
@@ -963,6 +974,7 @@ public class Bot implements IBot {
 			}
 		}
 
+		@SuppressWarnings("deprecation")
 		private String quote(String content) {
 			var cb = new ChatBuilder();
 

@@ -16,7 +16,6 @@ import com.github.mangstadt.sochat4j.util.Leaf;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
@@ -178,30 +177,20 @@ public class EffectiveJavaCommand implements Command {
 
 	private ChatActions displayItem(ChatCommand chatCommand, Item item) {
 		var cb = new ChatBuilder();
-		cb.reply(chatCommand);
 		cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title));
 		cb.nl().append(removeMarkdown(item.summary));
 		cb.nl().append("(source: Effective Java, Third Edition by Joshua Bloch, p.").append(item.page).append(")");
 
-		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(cb).splitStrategy(SplitStrategy.WORD)
-		);
-		//@formatter:on
+		return reply(cb, chatCommand, SplitStrategy.WORD);
 	}
 
 	private ChatActions displayItems(ChatCommand chatCommand, List<Item> items) {
 		var cb = new ChatBuilder();
-		cb.reply(chatCommand);
 		for (var item : items) {
 			cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title)).nl();
 		}
 
-		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(cb).splitStrategy(SplitStrategy.NEWLINE)
-		);
-		//@formatter:on
+		return reply(cb, chatCommand, SplitStrategy.NEWLINE);
 	}
 
 	private static String removeMarkdown(String s) {

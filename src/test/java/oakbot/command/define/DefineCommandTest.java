@@ -30,7 +30,7 @@ class DefineCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Please specify the word you'd like to define.", response);
+		assertMessage("Please specify the word you'd like to define.", 1, response);
 	}
 
 	@Test
@@ -54,7 +54,7 @@ class DefineCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessageStartsWith(":1 Sorry", response);
+		assertMessageStartsWith("Sorry", 1, response);
 	}
 
 	@Test
@@ -78,7 +78,7 @@ class DefineCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessageStartsWith(":1 Sorry", response);
+		assertMessageStartsWith("Sorry", 1, response);
 	}
 
 	@Test
@@ -102,7 +102,7 @@ class DefineCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 No definitions found.", response);
+		assertMessage("No definitions found.", 1, response);
 	}
 
 	@Test
@@ -126,7 +126,7 @@ class DefineCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 No definitions found. Did you mean cool?", response);
+		assertMessage("No definitions found. Did you mean cool?", 1, response);
 	}
 
 	@Test
@@ -150,7 +150,7 @@ class DefineCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 No definitions found. Did you mean cool or cold?", response);
+		assertMessage("No definitions found. Did you mean cool or cold?", 1, response);
 	}
 
 	@Test
@@ -174,7 +174,7 @@ class DefineCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 No definitions found. Did you mean cool, cold, or colt?", response);
+		assertMessage("No definitions found. Did you mean cool, cold, or colt?", 1, response);
 	}
 
 	@Test

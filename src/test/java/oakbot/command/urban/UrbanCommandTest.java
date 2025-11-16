@@ -37,7 +37,7 @@ class UrbanCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 You have to type a word to see its definition... -_-", response);
+		assertMessage("You have to type a word to see its definition... -_-", 1, response);
 	}
 
 	@Test
@@ -61,7 +61,7 @@ class UrbanCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessageStartsWith(":1 Sorry", response);
+		assertMessageStartsWith("Sorry", 1, response);
 	}
 
 	@Test
@@ -85,7 +85,7 @@ class UrbanCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessageStartsWith(":1 Sorry", response);
+		assertMessageStartsWith("Sorry", 1, response);
 	}
 
 	@Test
@@ -109,7 +109,7 @@ class UrbanCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 No definition found.", response);
+		assertMessage("No definition found.", 1, response);
 	}
 
 	@Test
@@ -135,7 +135,7 @@ class UrbanCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 [**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", response);
+		assertMessage("[**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", 1, response);
 	}
 
 	@Test
@@ -164,13 +164,13 @@ class UrbanCommandTest {
 
 		//@formatter:off
 		assertMessage("""
-		:1 SNAFU (http://snafu.urbanup.com/449743):
+		SNAFU (http://snafu.urbanup.com/449743):
 		One of a progression of military situational indicators:\r
 		\r
 		1. SNAFU - Situation Normal, All Fucked Up - Thing are running normally.\r
 		2. TARFUN - Things Are Really Fucked Up Now - Houston, we have a problem.\r
 		3. FUBAR - Fucked Up Beyond All Recognition - Burn it to the ground and start over from scratch; it's totally destroyed."""
-		, response);
+		, 1, response);
 		//@formatter:on
 	}
 
@@ -197,7 +197,7 @@ class UrbanCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 [**`cool`**](http://cool.urbanup.com/1030338): A word to use when you don't know what else to say, or when you are not that interested in the conversation. Sometimes, it can be used when you do not have any knowledge of the subject, yet you want to act as if you know-it-all.", response);
+		assertMessage("[**`cool`**](http://cool.urbanup.com/1030338): A word to use when you don't know what else to say, or when you are not that interested in the conversation. Sometimes, it can be used when you do not have any knowledge of the subject, yet you want to act as if you know-it-all.", 1, response);
 	}
 
 	@Test
@@ -223,7 +223,7 @@ class UrbanCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 [**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", response);
+		assertMessage("[**`cool`**](http://cool.urbanup.com/120269): The best way to say something is neat-o, [awesome](http://www.urbandictionary.com/define.php?term=awesome), or swell. The phrase \"cool\" is very relaxed, never goes out of style, and people will never laugh at you for using it, very conveniant for people like me who don't care about what's \"in.\"", 1, response);
 	}
 
 	@Test
@@ -249,7 +249,7 @@ class UrbanCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 [**`cool`**](http://cool.urbanup.com/1096252): a simplified way of telling someone to shut the fuck up because you don't give a shit.", response);
+		assertMessage("[**`cool`**](http://cool.urbanup.com/1096252): a simplified way of telling someone to shut the fuck up because you don't give a shit.", 1, response);
 	}
 
 	@Test
@@ -273,6 +273,6 @@ class UrbanCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 [**`fucked up`**](Permalink): Definition", response);
+		assertMessage("[**`fucked up`**](Permalink): Definition", 1, response);
 	}
 }

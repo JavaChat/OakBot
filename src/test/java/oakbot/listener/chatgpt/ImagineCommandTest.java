@@ -34,7 +34,7 @@ class ImagineCommandTest {
 		var bot = mock(IBot.class);
 
 		var response = command.onMessage(message, bot);
-		assertMessage(":1 Imagine what?", response);
+		assertMessage("Imagine what?", 1, response);
 	}
 
 	@Test

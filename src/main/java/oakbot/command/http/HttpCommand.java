@@ -15,7 +15,6 @@ import com.github.mangstadt.sochat4j.util.Leaf;
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
-import oakbot.bot.PostMessage;
 import oakbot.command.Command;
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
@@ -81,7 +80,6 @@ public class HttpCommand implements Command {
 		var defaultRfc = getRfc(element);
 
 		var cb = new ChatBuilder();
-		cb.reply(chatCommand);
 		if (paragraph == 1) {
 			var name = element.attribute("name");
 			var section = element.attribute("section");
@@ -113,11 +111,7 @@ public class HttpCommand implements Command {
 			cb.append(" (").append(paragraph).append("/").append(paragraphs.length).append(")");
 		}
 
-		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(cb).splitStrategy(SplitStrategy.WORD)
-		);
-		//@formatter:on
+		return reply(cb, chatCommand, SplitStrategy.WORD);
 	}
 
 	private static int getParagraph(List<String> args) {

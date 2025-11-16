@@ -264,15 +264,10 @@ public class HelpCommand implements Command {
 		}
 
 		var cb = new ChatBuilder();
-		cb.reply(message);
 		for (var helpText : helpTexts) {
 			cb.append(helpText).nl();
 		}
 
-		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(cb.toString().trim()).splitStrategy(SplitStrategy.NEWLINE)
-		);
-		//@formatter:on
+		return reply(cb.toString().trim(), message, SplitStrategy.NEWLINE);
 	}
 }

@@ -1,5 +1,6 @@
 package oakbot.listener;
 
+import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.doNothing;
 
 import java.io.IOException;
@@ -20,7 +21,6 @@ import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.command.HelpDoc;
-import oakbot.util.ChatBuilder;
 
 /**
  * Welcomes new users to the chat room.
@@ -93,12 +93,10 @@ public class WelcomeListener implements Listener {
 		var welcomeMessage = welcomeMessagesByRoom.get(roomId);
 
 		//@formatter:off
-		return ChatActions.create(
-			new PostMessage(new ChatBuilder()
-				.reply(message)
-				.append(welcomeMessage)
-			)
-			.bypassFilters(true)
+		return create(
+			new PostMessage(welcomeMessage)
+				.bypassFilters(true)
+				.parentId(message.getMessageId())
 		);
 		//@formatter:on
 	}
