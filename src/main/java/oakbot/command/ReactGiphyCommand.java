@@ -62,7 +62,9 @@ public class ReactGiphyCommand implements Command {
 			 * URL must end in a file extension in order for chat to display the
 			 * image.
 			 */
-			var imageUrlForChat = imageUrl + "&.gif";
+			if (!imageUrl.endsWith(".gif")) {
+				imageUrl += "&a=.gif";
+			}
 
 			//@formatter:off
 			var condensedMessage = new ChatBuilder()
@@ -71,7 +73,7 @@ public class ReactGiphyCommand implements Command {
 				.append(" (powered by ").link("GIPHY", "https://giphy.com").append(")");
 
 			return ChatActions.create(
-				new PostMessage(imageUrlForChat).bypassFilters(true).condensedMessage(condensedMessage)
+				new PostMessage(imageUrl).bypassFilters(true).condensedMessage(condensedMessage)
 			);
 			//@formatter:on
 		} catch (Exception e) {
