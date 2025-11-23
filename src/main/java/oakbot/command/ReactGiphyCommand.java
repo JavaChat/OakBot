@@ -58,14 +58,6 @@ public class ReactGiphyCommand implements Command {
 				return reply("404 human emotion not found.", chatCommand);
 			}
 
-			/*
-			 * URL must end in a file extension in order for chat to display the
-			 * image.
-			 */
-			if (!imageUrl.endsWith(".gif")) {
-				imageUrl += "&a=.gif";
-			}
-
 			//@formatter:off
 			var condensedMessage = new ChatBuilder()
 				.append("Reaction: ")
@@ -73,7 +65,9 @@ public class ReactGiphyCommand implements Command {
 				.append(" (powered by ").link("GIPHY", "https://giphy.com").append(")");
 
 			return ChatActions.create(
-				new PostMessage(imageUrl).bypassFilters(true).condensedMessage(condensedMessage)
+				new PostMessage(new ChatBuilder().image(imageUrl))
+					.bypassFilters(true)
+					.condensedMessage(condensedMessage)
 			);
 			//@formatter:on
 		} catch (Exception e) {

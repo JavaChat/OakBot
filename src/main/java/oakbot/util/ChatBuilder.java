@@ -58,6 +58,23 @@ public class ChatBuilder implements CharSequence {
 	}
 
 	/**
+	 * <p>
+	 * Inserts an image into the message using explicit syntax. Note that images
+	 * and text cannot be mixed.
+	 * </p>
+	 * <p>
+	 * This method must be used if the image URL does not end with the file
+	 * extension of a supported image format (e.g. ".jpg", ".gif"). If the URL
+	 * ends with such as extension, then this syntax is not necessary.
+	 * </p>
+	 * @param url the image URL
+	 * @return this
+	 */
+	public ChatBuilder image(CharSequence url) {
+		return append('!').append(url);
+	}
+
+	/**
 	 * Appends the character sequence for "blockquote". This must go at the
 	 * beginning of the string.
 	 * @return this
