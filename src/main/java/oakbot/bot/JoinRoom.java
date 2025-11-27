@@ -118,4 +118,44 @@ public class JoinRoom implements ChatAction {
 		onError = actions;
 		return this;
 	}
+
+	@Override
+	public ChatActions execute(ActionContext context) {
+		var bot = context.getBot();
+		
+		// Check max rooms limit
+		var maxRooms = bot.getMaxRooms();
+		if (maxRooms != null && bot.getRooms().size() >= maxRooms) {
+			return onError.apply(new java.io.IOException("Cannot join room. Max rooms reached."));
+		}
+
+		try {
+			bot.join(roomId);
+			var room = bot.getRoom(roomId);
+			
+			if (room != null && room.canPost()) {
+				return onSuccess.get();
+			}
+			
+			// Can't post, leave the room
+			try {
+				bot.leave(roomId);
+			} catch (Exception e) {
+				// Log but don't propagate
+			}
+			
+			return ifLackingPermissionToPost.get();
+		} catch (com.github.mangstadt.sochat4j.RoomNotFoundException e) {
+			return ifRoomDoesNotExist.get();
+		} catch (com.github.mangstadt.sochat4j.PrivateRoomException | com.github.mangstadt.sochat4j.RoomPermissionException e) {
+			try {
+				bot.leave(roomId);
+			} catch (Exception e2) {
+				// Log but don't propagate
+			}
+			return ifLackingPermissionToPost.get();
+		} catch (Exception e) {
+			return onError.apply(e);
+		}
+	}
 }

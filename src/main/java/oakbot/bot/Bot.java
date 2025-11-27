@@ -54,17 +54,11 @@ public class Bot implements IBot {
 	private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 	static final int BOTLER_ID = 13750349;
 
-	private final String userName;
-	private final String trigger;
-	private final String greeting;
-	private final Integer userId;
+	private final BotConfiguration config;
+	private final SecurityConfiguration security;
 	private final IChatClient connection;
 	private final AtomicLong choreIdCounter = new AtomicLong();
 	private final BlockingQueue<Chore> choreQueue = new PriorityBlockingQueue<>();
-	private final List<Integer> admins;
-	private final List<Integer> bannedUsers;
-	private final List<Integer> allowedUsers;
-	private final Duration hideOneboxesAfter;
 	private final Rooms rooms;
 	private final Integer maxRooms;
 	private final List<Listener> listeners;
@@ -101,15 +95,13 @@ public class Bot implements IBot {
 	private Bot(Builder builder) {
 		connection = Objects.requireNonNull(builder.connection);
 
-		userName = (connection.getUsername() == null) ? builder.userName : connection.getUsername();
-		userId = (connection.getUserId() == null) ? builder.userId : connection.getUserId();
-		hideOneboxesAfter = builder.hideOneboxesAfter;
-		trigger = Objects.requireNonNull(builder.trigger);
-		greeting = builder.greeting;
+		var userName = (connection.getUsername() == null) ? builder.userName : connection.getUsername();
+		var userId = (connection.getUserId() == null) ? builder.userId : connection.getUserId();
+		
+		config = new BotConfiguration(userName, userId, builder.trigger, builder.greeting, builder.hideOneboxesAfter);
+		security = new SecurityConfiguration(builder.admins, builder.bannedUsers, builder.allowedUsers);
+		
 		maxRooms = builder.maxRooms;
-		admins = builder.admins;
-		bannedUsers = builder.bannedUsers;
-		allowedUsers = builder.allowedUsers;
 		stats = builder.stats;
 		database = (builder.database == null) ? new MemoryDatabase() : builder.database;
 		rooms = new Rooms(database, builder.roomsHome, builder.roomsQuiet);
@@ -322,9 +314,9 @@ public class Bot implements IBot {
 		room.addEventListener(MessageEditedEvent.class, event -> choreQueue.add(new ChatEventChore(event)));
 		room.addEventListener(InvitationEvent.class, event -> choreQueue.add(new ChatEventChore(event)));
 
-		if (!quiet && greeting != null) {
+		if (!quiet && config.getGreeting() != null) {
 			try {
-				sendMessage(room, greeting);
+				sendMessage(room, config.getGreeting());
 			} catch (RoomPermissionException e) {
 				logger.atWarn().setCause(e).log(() -> "Unable to post greeting when joining room " + roomId + ".");
 			}
@@ -360,17 +352,21 @@ public class Bot implements IBot {
 
 	@Override
 	public String getUsername() {
-		return userName;
+		return config.getUserName();
 	}
 
 	@Override
 	public Integer getUserId() {
-		return userId;
+		return config.getUserId();
 	}
 
 	@Override
 	public List<Integer> getAdminUsers() {
-		return admins;
+		return security.getAdmins();
+	}
+
+	private boolean isAdminUser(Integer userId) {
+		return security.isAdmin(userId);
 	}
 
 	@Override
@@ -381,7 +377,7 @@ public class Bot implements IBot {
 
 	@Override
 	public String getTrigger() {
-		return trigger;
+		return config.getTrigger();
 	}
 
 	@Override
@@ -603,27 +599,51 @@ public class Bot implements IBot {
 			 * The "lowest" value will be popped off the queue first.
 			 */
 
-			if (this instanceof StopChore && that instanceof StopChore) {
+			if (isBothStopChore(that)) {
 				return 0;
 			}
-			if (this instanceof StopChore) {
+			if (isThisStopChore()) {
 				return -1;
 			}
-			if (that instanceof StopChore) {
+			if (isThatStopChore(that)) {
 				return 1;
 			}
 
-			if (this instanceof CondenseMessageChore && that instanceof CondenseMessageChore) {
+			if (isBothCondenseMessageChore(that)) {
 				return Long.compare(this.choreId, that.choreId);
 			}
-			if (this instanceof CondenseMessageChore) {
+			if (isThisCondenseMessageChore()) {
 				return -1;
 			}
-			if (that instanceof CondenseMessageChore) {
+			if (isThatCondenseMessageChore(that)) {
 				return 1;
 			}
 
 			return Long.compare(this.choreId, that.choreId);
+		}
+
+		private boolean isBothStopChore(Chore that) {
+			return this instanceof StopChore && that instanceof StopChore;
+		}
+
+		private boolean isThisStopChore() {
+			return this instanceof StopChore;
+		}
+
+		private boolean isThatStopChore(Chore that) {
+			return that instanceof StopChore;
+		}
+
+		private boolean isBothCondenseMessageChore(Chore that) {
+			return this instanceof CondenseMessageChore && that instanceof CondenseMessageChore;
+		}
+
+		private boolean isThisCondenseMessageChore() {
+			return this instanceof CondenseMessageChore;
+		}
+
+		private boolean isThatCondenseMessageChore(Chore that) {
+			return that instanceof CondenseMessageChore;
 		}
 	}
 
@@ -688,22 +708,30 @@ public class Bot implements IBot {
 		}
 
 		private void handleMessage(ChatMessage message) {
-			if (timeout && !isAdminUser(message.getUserId())) {
+			var userId = message.getUserId();
+			var isAdminUser = isAdminUser(userId);
+			var isBotInTimeout = timeout && !isAdminUser;
+			
+			if (isBotInTimeout) {
 				//bot is in timeout, ignore
 				return;
 			}
 
-			if (message.getContent() == null) {
+			var messageWasDeleted = message.getContent() == null;
+			if (messageWasDeleted) {
 				//user deleted their message, ignore
 				return;
 			}
 
-			if (!allowedUsers.isEmpty() && !allowedUsers.contains(message.getUserId())) {
+			var hasAllowedUsersList = !security.getAllowedUsers().isEmpty();
+			var userIsAllowed = security.isAllowed(userId);
+			if (hasAllowedUsersList && !userIsAllowed) {
 				//message was posted by a user who is not in the green list, ignore
 				return;
 			}
 
-			if (bannedUsers.contains(message.getUserId())) {
+			var userIsBanned = security.isBanned(userId);
+			if (userIsBanned) {
 				//message was posted by a banned user, ignore
 				return;
 			}
@@ -757,9 +785,9 @@ public class Bot implements IBot {
 			 * the URL is still preserved.
 			 */
 			var messageIsOnebox = message.getContent().isOnebox();
-			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
+			if (postedMessage != null && config.getHideOneboxesAfter() != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
 				var postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
-				var hideIn = hideOneboxesAfter.minus(postedMessageAge);
+				var hideIn = config.getHideOneboxesAfter().minus(postedMessageAge);
 
 				logger.atInfo().log(() -> {
 					var action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
@@ -796,34 +824,22 @@ public class Bot implements IBot {
 			var queue = new LinkedList<>(actions.getActions());
 			while (!queue.isEmpty()) {
 				var action = queue.removeFirst();
-
-				if (action instanceof PostMessage pm) {
-					handlePostMessageAction(pm, message);
-					continue;
-				}
-
-				if (action instanceof DeleteMessage dm) {
-					var response = handleDeleteMessageAction(dm, message);
-					queue.addAll(response.getActions());
-					continue;
-				}
-
-				if (action instanceof JoinRoom jr) {
-					var response = handleJoinRoomAction(jr);
-					queue.addAll(response.getActions());
-					continue;
-				}
-
-				if (action instanceof LeaveRoom lr) {
-					handleLeaveRoomAction(lr);
-					continue;
-				}
-
-				if (action instanceof Shutdown) {
-					stop();
-					continue;
-				}
+				processAction(action, message, queue);
 			}
+		}
+
+		private void processAction(ChatAction action, ChatMessage message, LinkedList<ChatAction> queue) {
+			// Polymorphic dispatch - each action knows how to execute itself
+			// Special handling for PostMessage delays is done within PostMessage.execute()
+			if (action instanceof PostMessage pm && pm.delay() != null) {
+				// Delayed messages need access to internal scheduling
+				handlePostMessageAction(pm, message);
+				return;
+			}
+			
+			var context = new ActionContext(this, message);
+			var response = action.execute(context);
+			queue.addAll(response.getActions());
 		}
 
 		private void handlePostMessageAction(PostMessage action, ChatMessage message) {
