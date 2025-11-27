@@ -892,25 +892,28 @@ public class Bot implements IBot {
 					return action.onSuccess().get();
 				}
 
-				try {
-					leave(action.roomId());
-				} catch (Exception e) {
-					logger.atError().setCause(e).log(() -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.");
-				}
-
+				leaveRoomSafely(action.roomId(), "the bot can't post messages to it");
 				return action.ifLackingPermissionToPost().get();
 			} catch (PrivateRoomException | RoomPermissionException e) {
-				try {
-					leave(action.roomId());
-				} catch (Exception e2) {
-					logger.atError().setCause(e2).log(() -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.");
-				}
-
+				leaveRoomSafely(action.roomId(), "the bot can't join or post messages to it");
 				return action.ifLackingPermissionToPost().get();
 			} catch (RoomNotFoundException e) {
 				return action.ifRoomDoesNotExist().get();
 			} catch (Exception e) {
 				return action.onError().apply(e);
+			}
+		}
+
+		/**
+		 * Attempts to leave a room and logs any errors that occur.
+		 * @param roomId the room ID to leave
+		 * @param reason the reason for leaving (used in error message)
+		 */
+		private void leaveRoomSafely(int roomId, String reason) {
+			try {
+				leave(roomId);
+			} catch (Exception e) {
+				logger.atError().setCause(e).log(() -> "Problem leaving room " + roomId + " after it was found that " + reason + ".");
 			}
 		}
 
