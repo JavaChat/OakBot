@@ -53,6 +53,8 @@ import oakbot.util.ChatBuilder;
 public class Bot implements IBot {
 	private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 	static final int BOTLER_ID = 13750349;
+	
+	private static final int ROOM_JOIN_DELAY_MS = 2000;
 
 	private final BotConfiguration config;
 	private final SecurityConfiguration security;
@@ -152,7 +154,7 @@ public class Bot implements IBot {
 				 * resolve an issue where the bot chooses to ignore all messages
 				 * in certain rooms.
 				 */
-				Sleeper.sleep(2000);
+				Sleeper.sleep(ROOM_JOIN_DELAY_MS);
 			}
 
 			try {
@@ -593,6 +595,16 @@ public class Bot implements IBot {
 
 		public abstract void complete();
 
+		/**
+		 * Logs an error that occurred during chore execution.
+		 * This method is pulled up from subclasses to provide common error logging functionality.
+		 * @param message the error message
+		 * @param cause the exception that caused the error
+		 */
+		protected void logError(String message, Exception cause) {
+			logger.atError().setCause(cause).log(() -> message);
+		}
+
 		@Override
 		public int compareTo(Chore that) {
 			/*
@@ -986,7 +998,7 @@ public class Bot implements IBot {
 					room.deleteMessage(id);
 				}
 			} catch (Exception e) {
-				logger.atError().setCause(e).log(() -> "Problem editing chat message [room=" + roomId + ", id=" + postedMessage.getMessageIds().get(0) + "]");
+				logError("Problem editing chat message [room=" + roomId + ", id=" + postedMessage.getMessageIds().get(0) + "]", e);
 			}
 		}
 
@@ -1018,7 +1030,7 @@ public class Bot implements IBot {
 			try {
 				task.run(Bot.this);
 			} catch (Exception e) {
-				logger.atError().setCause(e).log(() -> "Problem running scheduled task.");
+				logError("Problem running scheduled task.", e);
 			}
 			scheduleTask(task);
 		}
@@ -1052,7 +1064,7 @@ public class Bot implements IBot {
 					try {
 						task.run(room, Bot.this);
 					} catch (Exception e) {
-						logger.atError().setCause(e).log(() -> "Problem running inactivity task in room " + room.getRoomId() + ".");
+						logError("Problem running inactivity task in room " + room.getRoomId() + ".", e);
 					}
 				}
 
@@ -1082,7 +1094,7 @@ public class Bot implements IBot {
 					sendMessage(roomId, message);
 				}
 			} catch (Exception e) {
-				logger.atError().setCause(e).log(() -> "Problem posting delayed message [room=" + roomId + ", delay=" + message.delay() + "]: " + message.message());
+				logError("Problem posting delayed message [room=" + roomId + ", delay=" + message.delay() + "]: " + message.message(), e);
 			}
 		}
 	}
