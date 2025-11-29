@@ -16,6 +16,7 @@ import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
@@ -55,6 +56,7 @@ public class Bot implements IBot {
 	static final int BOTLER_ID = 13750349;
 	
 	private static final int ROOM_JOIN_DELAY_MS = 2000;
+    private static final Duration ROOM_JOIN_DELAY = Duration.ofSeconds(2);
 
 	private final BotConfiguration config;
 	private final SecurityConfiguration security;
@@ -154,7 +156,7 @@ public class Bot implements IBot {
 				 * resolve an issue where the bot chooses to ignore all messages
 				 * in certain rooms.
 				 */
-				Sleeper.sleep(ROOM_JOIN_DELAY_MS);
+				Sleeper.sleep(ROOM_JOIN_DELAY);
 			}
 
 			try {
@@ -595,16 +597,6 @@ public class Bot implements IBot {
 
 		public abstract void complete();
 
-		/**
-		 * Logs an error that occurred during chore execution.
-		 * This method is pulled up from subclasses to provide common error logging functionality.
-		 * @param message the error message
-		 * @param cause the exception that caused the error
-		 */
-		protected void logError(String message, Exception cause) {
-			logger.atError().setCause(cause).log(() -> message);
-		}
-
 		@Override
 		public int compareTo(Chore that) {
 			/*
@@ -892,11 +884,9 @@ public class Bot implements IBot {
 					return action.onSuccess().get();
 				}
 
-				leaveRoomSafely(action.roomId(), "the bot can't post messages to it");
-				return action.ifLackingPermissionToPost().get();
+                leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.");				return action.ifLackingPermissionToPost().get();
 			} catch (PrivateRoomException | RoomPermissionException e) {
-				leaveRoomSafely(action.roomId(), "the bot can't join or post messages to it");
-				return action.ifLackingPermissionToPost().get();
+                leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.");				return action.ifLackingPermissionToPost().get();
 			} catch (RoomNotFoundException e) {
 				return action.ifRoomDoesNotExist().get();
 			} catch (Exception e) {
@@ -907,14 +897,13 @@ public class Bot implements IBot {
 		/**
 		 * Attempts to leave a room and logs any errors that occur.
 		 * @param roomId the room ID to leave
-		 * @param reason the reason for leaving (used in error message)
-		 */
-		private void leaveRoomSafely(int roomId, String reason) {
-			try {
+         * @param logMessage supplier for the complete log message (evaluated only if an error occurs)
+         **/
+        private void leaveRoomSafely(int roomId, Supplier<String> logMessage) {
+            try {
 				leave(roomId);
 			} catch (Exception e) {
-				logger.atError().setCause(e).log(() -> "Problem leaving room " + roomId + " after it was found that " + reason + ".");
-			}
+                logger.atError().setCause(e).log(logMessage);			}
 		}
 
 		private void handleLeaveRoomAction(LeaveRoom action) {
@@ -1001,7 +990,7 @@ public class Bot implements IBot {
 					room.deleteMessage(id);
 				}
 			} catch (Exception e) {
-				logError("Problem editing chat message [room=" + roomId + ", id=" + postedMessage.getMessageIds().get(0) + "]", e);
+                logger.atError().setCause(e).log(() -> "Problem editing chat message [room=" + roomId + ", id=" + postedMessage.getMessageIds().get(0) + "]");
 			}
 		}
 
@@ -1033,7 +1022,7 @@ public class Bot implements IBot {
 			try {
 				task.run(Bot.this);
 			} catch (Exception e) {
-				logError("Problem running scheduled task.", e);
+                logger.atError().setCause(e).log(() -> "Problem running scheduled task.");
 			}
 			scheduleTask(task);
 		}
@@ -1067,7 +1056,7 @@ public class Bot implements IBot {
 					try {
 						task.run(room, Bot.this);
 					} catch (Exception e) {
-						logError("Problem running inactivity task in room " + room.getRoomId() + ".", e);
+                        logger.atError().setCause(e).log(() -> "Problem running inactivity task in room " + room.getRoomId() + ".");
 					}
 				}
 
@@ -1097,7 +1086,7 @@ public class Bot implements IBot {
 					sendMessage(roomId, message);
 				}
 			} catch (Exception e) {
-				logError("Problem posting delayed message [room=" + roomId + ", delay=" + message.delay() + "]: " + message.message(), e);
+                logger.atError().setCause(e).log(() -> "Problem posting delayed message [room=" + roomId + ", delay=" + message.delay() + "]: " + message.message());
 			}
 		}
 	}
