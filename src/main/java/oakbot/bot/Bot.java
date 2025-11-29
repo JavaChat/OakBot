@@ -879,10 +879,10 @@ public class Bot implements IBot {
                     return action.onSuccess().get();
                 }
 
-                leaveRoomSafely(action.roomId(), "the bot can't post messages to it");
+                leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.");
                 return action.ifLackingPermissionToPost().get();
             } catch (PrivateRoomException | RoomPermissionException e) {
-                leaveRoomSafely(action.roomId(), "the bot can't join or post messages to it");
+                leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.");
                 return action.ifLackingPermissionToPost().get();
             } catch (RoomNotFoundException e) {
                 return action.ifRoomDoesNotExist().get();
@@ -895,13 +895,13 @@ public class Bot implements IBot {
          * Attempts to leave a room and logs any errors that occur.
          *
          * @param roomId the room ID to leave
-         * @param reason the reason for leaving (used in error message)
+         * @param logMessage supplier for the complete log message (evaluated only if an error occurs)
          */
-        private void leaveRoomSafely(int roomId, String reason) {
+        private void leaveRoomSafely(int roomId, Supplier<String> logMessage) {
             try {
                 leave(roomId);
             } catch (Exception e) {
-                logger.atError().setCause(e).log(() -> "Problem leaving room " + roomId + " after it was found that " + reason + ".");
+                logger.atError().setCause(e).log(logMessage);
             }
         }
 
