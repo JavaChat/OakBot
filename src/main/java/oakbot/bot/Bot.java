@@ -840,7 +840,7 @@ public class Bot implements IBot {
 				return;
 			}
 			
-			var context = new ActionContext(this, message);
+			var context = new ActionContext(Bot.this, message);
 			var response = action.execute(context);
 			queue.addAll(response.getActions());
 		}
