@@ -45,12 +45,12 @@ public class AboutCommand implements Command {
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		var relativeDf = new RelativeDateFormat();
-		var built = LocalDateTime.ofInstant(Main.BUILT, ZoneId.systemDefault());
+		var built = LocalDateTime.ofInstant(Main.getBuilt(), ZoneId.systemDefault());
 
 		//@formatter:off
 		var cb = new ChatBuilder()
 		.bold("OakBot").append(" by ").link("Michael", "https://stackoverflow.com/users/13379/michael").append(" | ")
-		.link("source code", Main.URL).append(" | ")
+		.link("source code", Main.getUrl()).append(" | ")
 		.append("JAR built on: ").append(relativeDf.format(built)).append(" | ")
 		.append("started up: ").append(relativeDf.format(startedUp));
 		//@formatter:on
