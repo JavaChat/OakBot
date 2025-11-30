@@ -317,9 +317,9 @@ public class Bot implements IBot {
 		room.addEventListener(MessageEditedEvent.class, event -> choreQueue.add(new ChatEventChore(event)));
 		room.addEventListener(InvitationEvent.class, event -> choreQueue.add(new ChatEventChore(event)));
 
-		if (!quiet && config.getGreeting() != null) {
+		if (!quiet && config.greeting() != null) {
 			try {
-				sendMessage(room, config.getGreeting());
+				sendMessage(room, config.greeting());
 			} catch (RoomPermissionException e) {
 				logger.atWarn().setCause(e).log(() -> "Unable to post greeting when joining room " + roomId + ".");
 			}
@@ -355,12 +355,12 @@ public class Bot implements IBot {
 
 	@Override
 	public String getUsername() {
-		return config.getUserName();
+		return config.userName();
 	}
 
 	@Override
 	public Integer getUserId() {
-		return config.getUserId();
+		return config.userId();
 	}
 
 	@Override
@@ -380,7 +380,7 @@ public class Bot implements IBot {
 
 	@Override
 	public String getTrigger() {
-		return config.getTrigger();
+		return config.trigger();
 	}
 
 	@Override
@@ -788,9 +788,9 @@ public class Bot implements IBot {
 			 * the URL is still preserved.
 			 */
 			var messageIsOnebox = message.getContent().isOnebox();
-			if (postedMessage != null && config.getHideOneboxesAfter() != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
+			if (postedMessage != null && config.hideOneboxesAfter() != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
 				var postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
-				var hideIn = config.getHideOneboxesAfter().minus(postedMessageAge);
+				var hideIn = config.hideOneboxesAfter().minus(postedMessageAge);
 
 				logger.atInfo().log(() -> {
 					var action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
