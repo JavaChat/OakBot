@@ -32,13 +32,4 @@ public class LeaveRoom implements ChatAction {
 		return this;
 	}
 
-	@Override
-	public ChatActions execute(ActionContext context) {
-		try {
-			context.getBot().leave(roomId);
-		} catch (Exception e) {
-			// Log but don't propagate
-		}
-		return ChatActions.doNothing();
-	}
 }
