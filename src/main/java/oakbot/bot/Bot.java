@@ -832,22 +832,17 @@ public class Bot implements IBot {
 		}
 
 		private void processAction(ChatAction action, ChatMessage message, LinkedList<ChatAction> queue) {
-			// Conditional dispatch based on action type (replaces polymorphism)
-			if (action instanceof PostMessage pm) {
+			// Polymorphic dispatch - each action knows how to execute itself
+			// Special handling for PostMessage delays is done within PostMessage.execute()
+			if (action instanceof PostMessage pm && pm.delay() != null) {
+				// Delayed messages need access to internal scheduling
 				handlePostMessageAction(pm, message);
-			} else if (action instanceof DeleteMessage dm) {
-				var response = handleDeleteMessageAction(dm, message);
-				queue.addAll(response.getActions());
-			} else if (action instanceof JoinRoom jr) {
-				var response = handleJoinRoomAction(jr);
-				queue.addAll(response.getActions());
-			} else if (action instanceof LeaveRoom lr) {
-				handleLeaveRoomAction(lr);
-			} else if (action instanceof Shutdown) {
-				stop();
-			} else {
-				logger.atWarn().log(() -> "Unknown action type: " + action.getClass().getName());
+				return;
 			}
+			
+			var context = new ActionContext(Bot.this, message);
+			var response = action.execute(context);
+			queue.addAll(response.getActions());
 		}
 
 		private void handlePostMessageAction(PostMessage action, ChatMessage message) {

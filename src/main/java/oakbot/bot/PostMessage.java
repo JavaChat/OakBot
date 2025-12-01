@@ -199,6 +199,29 @@ public class PostMessage implements ChatAction {
 	}
 
 	@Override
+	public ChatActions execute(ActionContext context) {
+		try {
+			var bot = context.getBot();
+			var roomId = context.getRoomId();
+			
+			if (delay != null) {
+				// Delayed messages require access to Bot's internal scheduling
+				// Return empty actions and let Bot handle it specially
+				return ChatActions.doNothing();
+			} else {
+				if (broadcast) {
+					bot.broadcastMessage(this);
+				} else {
+					bot.sendMessage(roomId, this);
+				}
+			}
+		} catch (Exception e) {
+			// Exceptions are logged by Bot
+		}
+		return ChatActions.doNothing();
+	}
+
+	@Override
 	public int hashCode() {
 		return Objects.hash(broadcast, bypassFilters, condensedMessage, delay, ephemeral, message, parentId, splitStrategy);
 	}

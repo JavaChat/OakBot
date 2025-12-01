@@ -76,4 +76,15 @@ public class DeleteMessage implements ChatAction {
 		return this;
 	}
 
+	@Override
+	public ChatActions execute(ActionContext context) {
+		try {
+			var room = context.getBot().getRoom(context.getRoomId());
+			room.deleteMessage(messageId);
+			return onSuccess.get();
+		} catch (Exception e) {
+			return onError.apply(e);
+		}
+	}
+
 }

@@ -5,4 +5,9 @@ package oakbot.bot;
  * @author Michael Angstadt
  */
 public class Shutdown implements ChatAction {
+	@Override
+	public ChatActions execute(ActionContext context) {
+		context.getBot().stop();
+		return ChatActions.doNothing();
+	}
 }
