@@ -1021,7 +1021,7 @@ public class Bot implements IBot {
 			try {
 				task.run(Bot.this);
 			} catch (Exception e) {
-                logger.atError().setCause(e).log(() -> "Problem running scheduled task.");
+				logger.atError().setCause(e).log(() -> "Problem running scheduled task.");
 			}
 			scheduleTask(task);
 		}
@@ -1055,7 +1055,7 @@ public class Bot implements IBot {
 					try {
 						task.run(room, Bot.this);
 					} catch (Exception e) {
-                        logger.atError().setCause(e).log(() -> "Problem running inactivity task in room " + room.getRoomId() + ".");
+						logger.atError().setCause(e).log(() -> "Problem running inactivity task in room " + room.getRoomId() + ".");
 					}
 				}
 
@@ -1085,7 +1085,7 @@ public class Bot implements IBot {
 					sendMessage(roomId, message);
 				}
 			} catch (Exception e) {
-                logger.atError().setCause(e).log(() -> "Problem posting delayed message [room=" + roomId + ", delay=" + message.delay() + "]: " + message.message());
+				logger.atError().setCause(e).log(() -> "Problem posting delayed message [room=" + roomId + ", delay=" + message.delay() + "]: " + message.message());
 			}
 		}
 	}
