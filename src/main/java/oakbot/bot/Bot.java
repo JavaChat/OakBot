@@ -745,7 +745,7 @@ public class Bot implements IBot {
 				return;
 			}
 
-			if (message.getUserId() == userId) {
+			if (message.getUserId() == config.userId()) {
 				//message was posted by this bot
 				handleBotMessage(message);
 				return;
@@ -882,10 +882,11 @@ public class Bot implements IBot {
 				if (joinedRoom.canPost()) {
 					return action.onSuccess().get();
 				}
-
-                leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.");				return action.ifLackingPermissionToPost().get();
+				leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.");				
+				return action.ifLackingPermissionToPost().get();
 			} catch (PrivateRoomException | RoomPermissionException e) {
-                leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.");				return action.ifLackingPermissionToPost().get();
+				leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.");				
+				return action.ifLackingPermissionToPost().get();
 			} catch (RoomNotFoundException e) {
 				return action.ifRoomDoesNotExist().get();
 			} catch (Exception e) {
@@ -901,8 +902,10 @@ public class Bot implements IBot {
         private void leaveRoomSafely(int roomId, Supplier<String> logMessage) {
             try {
 				leave(roomId);
-			} catch (Exception e) {
-                logger.atError().setCause(e).log(logMessage);			}
+			} 
+			catch (Exception e) {
+                logger.atError().setCause(e).log(logMessage);			
+			}
 		}
 
 		private void handleLeaveRoomAction(LeaveRoom action) {
