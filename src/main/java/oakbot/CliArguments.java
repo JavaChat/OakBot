@@ -74,6 +74,6 @@ public class CliArguments {
 		  Prints the version of this program.
 		
 		--help
-		  Prints this help message.""".formatted(Main.VERSION, Main.URL, defaultContext);
+		  Prints this help message.""".formatted(Main.getVersion(), Main.getUrl(), defaultContext);
 	}
 }

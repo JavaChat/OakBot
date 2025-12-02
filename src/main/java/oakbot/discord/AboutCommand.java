@@ -33,12 +33,12 @@ public class AboutCommand implements DiscordCommand {
 	@Override
 	public void onMessage(String content, MessageReceivedEvent event, BotContext context) {
 		var relativeDf = new RelativeDateFormat();
-		var built = LocalDateTime.ofInstant(Main.BUILT, ZoneId.systemDefault());
+		var built = LocalDateTime.ofInstant(Main.getBuilt(), ZoneId.systemDefault());
 
 		//@formatter:off
 		var cb = new ChatBuilder()
 		.bold("OakBot").append(" by ").link("Michael", "https://stackoverflow.com/users/13379/michael").nl()
-		.link("source code", Main.URL).nl()
+		.link("source code", Main.getUrl()).nl()
 		.append("JAR built on: ").append(relativeDf.format(built)).append(" | ")
 		.append("started up: ").append(relativeDf.format(startedUp));
 		//@formatter:on
