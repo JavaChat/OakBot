@@ -47,9 +47,9 @@ import oakbot.task.ScheduledTask;
 public final class Main {
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	public static final String VERSION;
-	public static final String URL;
-	public static final Instant BUILT;
+	private static final String VERSION;
+	private static final String URL;
+	private static final Instant BUILT;
 
 	static {
 		var props = new Properties();
@@ -78,24 +78,36 @@ public final class Main {
 		BUILT = built;
 	}
 
-	private static final String defaultContextPath = "bot-context.xml";
+	public static String getVersion() {
+		return VERSION;
+	}
+
+	public static String getUrl() {
+		return URL;
+	}
+
+	public static Instant getBuilt() {
+		return BUILT;
+	}
+
+	private static final String DEFAULT_CONTEXT_PATH = "bot-context.xml";
 
 	public static void main(String[] args) throws Exception {
 		var arguments = new CliArguments(args);
 
 		if (arguments.help()) {
-			var help = arguments.printHelp(defaultContextPath);
+			var help = arguments.printHelp(DEFAULT_CONTEXT_PATH);
 			System.out.println(help);
 			return;
 		}
 
 		if (arguments.version()) {
-			System.out.println(Main.VERSION);
+			System.out.println(Main.getVersion());
 			return;
 		}
 
 		var mock = arguments.mock();
-		var contextPath = (arguments.context() == null) ? defaultContextPath : arguments.context();
+		var contextPath = (arguments.context() == null) ? DEFAULT_CONTEXT_PATH : arguments.context();
 
 		BotProperties botProperties;
 		Database database;
