@@ -745,7 +745,7 @@ public class Bot implements IBot {
 				return;
 			}
 
-			if (message.getUserId() == userId) {
+			if (message.getUserId() == config.userId()) {
 				//message was posted by this bot
 				handleBotMessage(message);
 				return;
