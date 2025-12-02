@@ -31,5 +31,4 @@ public class LeaveRoom implements ChatAction {
 		this.roomId = roomId;
 		return this;
 	}
-
 }

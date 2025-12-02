@@ -75,5 +75,4 @@ public class DeleteMessage implements ChatAction {
 		onError = actions;
 		return this;
 	}
-
 }

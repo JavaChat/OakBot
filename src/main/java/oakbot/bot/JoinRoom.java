@@ -118,5 +118,4 @@ public class JoinRoom implements ChatAction {
 		onError = actions;
 		return this;
 	}
-
 }
