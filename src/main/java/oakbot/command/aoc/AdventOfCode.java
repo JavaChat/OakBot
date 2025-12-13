@@ -38,7 +38,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 	private final Duration pollingInterval;
 	private final AdventOfCodeApi api;
-	private final Map<Integer, String> monitoredLeaderboardByRoom;
+	private final Map<Integer, AdventOfCodeLeaderboard> monitoredLeaderboardByRoom;
 	private final Map<Integer, Instant> lastChecked = new HashMap<>();
 
 	/**
@@ -51,7 +51,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 	 * leaderboard ID. Can be empty.
 	 * @param api for retrieving data from AoC
 	 */
-	public AdventOfCode(String pollingInterval, Map<Integer, String> monitoredLeaderboardByRoom, AdventOfCodeApi api) {
+	public AdventOfCode(String pollingInterval, Map<Integer, AdventOfCodeLeaderboard> monitoredLeaderboardByRoom, AdventOfCodeApi api) {
 		this.pollingInterval = Duration.parse(pollingInterval);
 		this.monitoredLeaderboardByRoom = monitoredLeaderboardByRoom;
 		this.api = api;
@@ -92,14 +92,19 @@ public class AdventOfCode implements ScheduledTask, Command {
 		var displayDefaultLeaderboard = content.isEmpty();
 
 		String leaderboardId;
+		String joinCode;
 		if (displayDefaultLeaderboard) {
 			var roomId = chatCommand.getMessage().getRoomId();
-			leaderboardId = monitoredLeaderboardByRoom.get(roomId);
-			if (leaderboardId == null) {
+			var leaderboard = monitoredLeaderboardByRoom.get(roomId);
+			if (leaderboard == null) {
 				return reply("Please specify a leaderboard ID (e.g. " + bot.getTrigger() + name() + " 123456).", chatCommand);
 			}
+
+			leaderboardId = leaderboard.id();
+			joinCode = leaderboard.joinCode();
 		} else {
 			leaderboardId = content;
+			joinCode = null;
 		}
 
 		List<Player> players;
@@ -111,7 +116,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 		}
 
 		var websiteUrl = api.getLeaderboardWebsite(leaderboardId);
-		var leaderboardStr = buildLeaderboard(players, websiteUrl);
+		var leaderboardStr = buildLeaderboard(players, websiteUrl, joinCode);
 
 		var condensed = new ChatBuilder();
 		condensed.append("Type ").code().append(bot.getTrigger()).append(name());
@@ -127,7 +132,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 		//@formatter:on
 	}
 
-	private String buildLeaderboard(List<Player> players, String websiteUrl) {
+	private String buildLeaderboard(List<Player> players, String websiteUrl, String joinCode) {
 		sortPlayersByScoreDescending(players);
 		var names = buildPlayerNameStrings(players);
 		var lengthOfLongestName = lengthOfLongestName(names);
@@ -136,6 +141,9 @@ public class AdventOfCode implements ScheduledTask, Command {
 		var cb = new ChatBuilder();
 		cb.fixedWidth();
 		cb.append("Leaderboard URL: ").append(websiteUrl).nl();
+		if (joinCode != null) {
+			cb.append("Leaderboard join code: ").append(joinCode).nl();
+		}
 
 		var rank = 0;
 		var prevScore = -1;

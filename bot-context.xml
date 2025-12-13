@@ -179,11 +179,15 @@
 		-->
 		<constructor-arg value="session token goes here" />
 	</bean>
+	<bean class="oakbot.command.aoc.AdventOfCodeLeaderboard" id="aocLeaderboard">
+		<constructor-arg value="123456" /> <!-- leaderboard ID -->
+		<constructor-arg value="abc-123" /> <!-- join code (leave out this argument if you want to keep it private) -->
+	</bean>
 	<bean class="oakbot.command.aoc.AdventOfCode">
 		<constructor-arg value="PT15M" /> <!-- polling interval. AoC asks that this not be less than 15 minutes. -->
 		<constructor-arg>
 			<util:map> <!-- the leaderboard to show for each room if the user does not specify a leaderboard ID (can be empty) -->
-				<entry key="1" value="123456" />
+				<entry key="1" value-ref="aocLeaderboard" />
 			</util:map>
 		</constructor-arg>
 		<constructor-arg ref="aocApi" />

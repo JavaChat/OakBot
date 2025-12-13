@@ -55,9 +55,9 @@ class AdventOfCodeTest {
 
 		var api = new AdventOfCodeApi("");
 
-		var leaderboardIds = Map.of(1, "123456");
+		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456", "join-code"));
 
-		var aoc = new AdventOfCode("PT0S", leaderboardIds, api);
+		var aoc = new AdventOfCode("PT0S", leaderboards, api);
 
 		//@formatter:off
 		var message = new ChatCommandBuilder(aoc)
@@ -69,7 +69,7 @@ class AdventOfCodeTest {
 		var bot = mock(IBot.class);
 
 		var response = aoc.onMessage(message, bot);
-		assertLeaderboardResponse("123456", response);
+		assertLeaderboardResponse("123456", "join-code", response);
 	}
 
 	@Test
@@ -83,9 +83,9 @@ class AdventOfCodeTest {
 
 		var api = new AdventOfCodeApi("");
 
-		Map<Integer, String> leaderboardIds = Map.of();
+		Map<Integer, AdventOfCodeLeaderboard> leaderboards = Map.of();
 
-		var command = new AdventOfCode("PT0S", leaderboardIds, api);
+		var command = new AdventOfCode("PT0S", leaderboards, api);
 
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
@@ -116,9 +116,9 @@ class AdventOfCodeTest {
 
 		var api = new AdventOfCodeApi("");
 
-		var leaderboardIds = Map.of(1, "123456");
+		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456"));
 
-		var aoc = new AdventOfCode("PT0S", leaderboardIds, api);
+		var aoc = new AdventOfCode("PT0S", leaderboards, api);
 
 		//@formatter:off
 		var message = new ChatCommandBuilder(aoc)
@@ -131,7 +131,7 @@ class AdventOfCodeTest {
 		var bot = mock(IBot.class);
 
 		var response = aoc.onMessage(message, bot);
-		assertLeaderboardResponse("098765", response);
+		assertLeaderboardResponse("098765", null, response);
 	}
 
 	@Test
@@ -145,9 +145,9 @@ class AdventOfCodeTest {
 
 		var api = new AdventOfCodeApi("");
 
-		Map<Integer, String> leaderboardIds = Map.of();
+		Map<Integer, AdventOfCodeLeaderboard> leaderboards = Map.of();
 
-		var aoc = new AdventOfCode("PT0S", leaderboardIds, api);
+		var aoc = new AdventOfCode("PT0S", leaderboards, api);
 
 		//@formatter:off
 		var message = new ChatCommandBuilder(aoc)
@@ -173,9 +173,9 @@ class AdventOfCodeTest {
 
 		var api = new AdventOfCodeApi("");
 
-		Map<Integer, String> leaderboardIds = Map.of();
+		Map<Integer, AdventOfCodeLeaderboard> leaderboards = Map.of();
 
-		var aoc = new AdventOfCode("PT15M", leaderboardIds, api);
+		var aoc = new AdventOfCode("PT15M", leaderboards, api);
 
 		assertEquals(Duration.ofMinutes(15).toMillis(), aoc.nextRun());
 	}
@@ -191,9 +191,9 @@ class AdventOfCodeTest {
 
 		var api = new AdventOfCodeApi("");
 
-		Map<Integer, String> leaderboardIds = Map.of();
+		Map<Integer, AdventOfCodeLeaderboard> leaderboards = Map.of();
 
-		var aoc = new AdventOfCode("PT15M", leaderboardIds, api);
+		var aoc = new AdventOfCode("PT15M", leaderboards, api);
 
 		assertTrue(aoc.nextRun() > Duration.ofMinutes(15).toMillis());
 	}
@@ -260,9 +260,9 @@ class AdventOfCodeTest {
 
 		var api = new AdventOfCodeApi("");
 
-		var leaderboardIds = Map.of(1, "123456");
+		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456"));
 
-		var aoc = new AdventOfCode("PT0S", leaderboardIds, api);
+		var aoc = new AdventOfCode("PT0S", leaderboards, api);
 
 		var bot = mock(IBot.class);
 
@@ -324,9 +324,9 @@ class AdventOfCodeTest {
 
 		var api = new AdventOfCodeApi("");
 
-		var leaderboardIds = Map.of(1, "123456");
+		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456"));
 
-		var aoc = new AdventOfCode("PT0S", leaderboardIds, api);
+		var aoc = new AdventOfCode("PT0S", leaderboards, api);
 
 		var bot = mock(IBot.class);
 
@@ -376,9 +376,9 @@ class AdventOfCodeTest {
 
 		var api = new AdventOfCodeApi("");
 
-		var leaderboardIds = Map.of(1, "123456");
+		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456"));
 
-		var aoc = new AdventOfCode("PT0S", leaderboardIds, api);
+		var aoc = new AdventOfCode("PT0S", leaderboards, api);
 
 		var bot = mock(IBot.class);
 
@@ -392,10 +392,12 @@ class AdventOfCodeTest {
 		verify(bot).sendMessage(1, expected);
 	}
 
-	private static void assertLeaderboardResponse(String expectedId, ChatActions actual) {
+	private static void assertLeaderboardResponse(String expectedId, String joinCode, ChatActions actual) {
+		var joinCodeStr = (joinCode == null) ? "" : System.lineSeparator() + "    Leaderboard join code: " + joinCode;
+
 		//'@' symbols should be removed from usernames
 		var expected = """
-				    Leaderboard URL: http://adventofcode.com/2017/leaderboard/private/view/%s
+				    Leaderboard URL: http://adventofcode.com/2017/leaderboard/private/view/%s%s
 				    1.  gzgreg                   (score: 312) *****|*****|.....|.....|..... 20 stars
 				    2.  Unihedron                (score: 306) *****|*****|.....|.....|..... 20 stars
 				    3.  geisterfurz007           (score: 230) *****|*****|.....|.....|..... 20 stars
@@ -412,7 +414,7 @@ class AdventOfCodeTest {
 				    13. Michael Prieto           (score:  31) **^..|.....|.....|.....|.....  5 stars
 				    14. Simon                    (score:  26) **.^.|.....|.....|.....|.....  5 stars
 				    15. Hey, Michael, what's up? (score:   0) .....|.....|.....|.....|.....  0 stars
-				""".formatted(expectedId).stripTrailing();
+				""".formatted(expectedId, joinCodeStr).stripTrailing();
 
 		assertMessage(expected, actual);
 	}
