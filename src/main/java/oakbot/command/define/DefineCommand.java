@@ -88,11 +88,11 @@ public class DefineCommand implements Command {
 
 		var cb = new ChatBuilder();
 		for (var definition : definitions) {
-			cb.append(word).append(" (").append(definition.getWordType()).append("):").nl();
-			cb.append(definition.getDefinition());
-			var example = definition.getExample();
+			cb.append(word).append(" (").append(definition.wordType()).append("):").nl();
+			cb.append(definition.definition());
+			var example = definition.example();
 			if (example != null) {
-				cb.append(" (").append(definition.getExample()).append(")");
+				cb.append(" (").append(definition.example()).append(")");
 			}
 			cb.nl().nl();
 		}
@@ -133,11 +133,7 @@ public class DefineCommand implements Command {
 					continue;
 				}
 
-				Definition definition = new Definition();
-				definition.setWordType(type);
-				definition.setDefinition(definitionText);
-				definition.setExample(getExample(dtNode));
-
+				var definition = new Definition(type, definitionText, getExample(dtNode));
 				definitions.add(definition);
 			}
 		}

@@ -60,11 +60,11 @@ public class ExplainCommand implements Command {
 		if (result == null) {
 			cb.append("No explanation found.");
 		} else {
-			cb.append(result.getExplanation());
+			cb.append(result.explanation());
 
-			var example = result.getExample();
+			var example = result.example();
 			if (example != null) {
-				cb.append(" ").italic(result.getExample());
+				cb.append(" ").italic(result.example());
 			}
 		}
 
