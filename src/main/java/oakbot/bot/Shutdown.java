@@ -5,5 +5,5 @@ package oakbot.bot;
  * @author Michael Angstadt
  */
 public class Shutdown implements ChatAction {
-	//empty
+    //empty
 }
