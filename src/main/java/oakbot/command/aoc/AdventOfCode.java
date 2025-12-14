@@ -298,7 +298,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 	public void run(IBot bot) throws Exception {
 		for (var entry : monitoredLeaderboardByRoom.entrySet()) {
 			var roomId = entry.getKey();
-			var leaderboardId = entry.getValue();
+			var leaderboardId = entry.getValue().id();
 
 			List<Player> leaderboard;
 			try {
