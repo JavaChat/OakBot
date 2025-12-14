@@ -393,7 +393,7 @@ class AdventOfCodeTest {
 	}
 
 	private static void assertLeaderboardResponse(String expectedId, String joinCode, ChatActions actual) {
-		var joinCodeStr = (joinCode == null) ? "" : System.lineSeparator() + "    Leaderboard join code: " + joinCode;
+		var joinCodeStr = (joinCode == null) ? "" : "\n    Leaderboard join code: " + joinCode;
 
 		//'@' symbols should be removed from usernames
 		var expected = """

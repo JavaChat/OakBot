@@ -76,7 +76,7 @@ public class LearnCommand implements Command {
 
 		String commandOutput = null;
 		try {
-			var plainText = bot.getOriginalMessageContent(message.getMessageId());
+			var plainText = bot.getOriginalMessageContent(message.id());
 
 			/*
 			 * Capture the text that comes before the command name, in case the
@@ -100,11 +100,11 @@ public class LearnCommand implements Command {
 
 		//@formatter:off
 		learnedCommands.add(new LearnedCommand.Builder()
-			.authorUserId(message.getUserId())
-			.authorUsername(message.getUsername())
-			.roomId(message.getRoomId())
-			.messageId(message.getMessageId())
-			.created(message.getTimestamp())
+			.authorUserId(message.userId())
+			.authorUsername(message.username())
+			.roomId(message.roomId())
+			.messageId(message.id())
+			.created(message.timestamp())
 			.name(commandName)
 			.output(commandOutput)
 		.build());

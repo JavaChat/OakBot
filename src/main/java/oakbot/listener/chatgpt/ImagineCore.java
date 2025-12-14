@@ -98,7 +98,7 @@ public class ImagineCore {
 		/*
 		 * Check usage quota.
 		 */
-		var userId = chatCommand.getMessage().getUserId();
+		var userId = chatCommand.getMessage().userId();
 		var timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
 		if (!timeUntilNextRequest.isZero()) {
 			var hours = timeUntilNextRequest.toHours() + 1;

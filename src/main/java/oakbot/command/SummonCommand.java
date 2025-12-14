@@ -57,7 +57,7 @@ public class SummonCommand implements Command {
 			return reply("Invalid room ID.", chatCommand);
 		}
 
-		if (roomToJoin == chatCommand.getMessage().getRoomId()) {
+		if (roomToJoin == chatCommand.getMessage().roomId()) {
 			return reply("That's the ID for this room... -_-", chatCommand);
 		}
 
@@ -65,7 +65,7 @@ public class SummonCommand implements Command {
 			return reply("I'm already there... -_-", chatCommand);
 		}
 
-		var userId = chatCommand.getMessage().getUserId();
+		var userId = chatCommand.getMessage().userId();
 		var authorIsAdmin = bot.isAdminUser(userId);
 		if (!authorIsAdmin) {
 			boolean authorIsOwnerOfRoomToJoin;

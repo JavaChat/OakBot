@@ -47,7 +47,7 @@ public class MoodCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		var roomId = chatCommand.getMessage().getRoomId();
+		var roomId = chatCommand.getMessage().roomId();
 		var content = chatCommand.getContent();
 
 		if (content.isEmpty()) {

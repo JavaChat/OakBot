@@ -86,7 +86,7 @@ public class MornListener implements Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		var mentions = message.getContent().getMentions();
+		var mentions = message.content().getMentions();
 		var mentioned = message.isUserMentioned(bot.getUserId(), bot.getUsername());
 		if (!mentions.isEmpty() && !mentioned) {
 			/*
@@ -95,7 +95,7 @@ public class MornListener implements Listener {
 			return doNothing();
 		}
 
-		var content = removeMentionsAndPunctuation(message.getContent().getContent());
+		var content = removeMentionsAndPunctuation(message.content().getContent());
 
 		//@formatter:off
 		var reply = responses.stream()
@@ -124,7 +124,7 @@ public class MornListener implements Listener {
 			return reply(reply.get(), message);
 		}
 
-		var roomId = message.getRoomId();
+		var roomId = message.roomId();
 		var lastReply = lastReplyByRoom.get(roomId);
 
 		/*

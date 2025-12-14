@@ -90,7 +90,7 @@ class MornListenerTest {
 		var chatMessage = new ChatMessage.Builder()
 			.roomId(1)
 			.content(message)
-			.messageId(1)
+			.id(1)
 		.build();
 		//@formatter:on
 

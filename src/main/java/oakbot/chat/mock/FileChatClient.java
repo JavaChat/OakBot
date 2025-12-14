@@ -114,8 +114,8 @@ public class FileChatClient implements IChatClient {
 	private String _getMessageContent(long messageId) throws IOException {
 		for (var room : rooms) {
 			for (var message : room.getAllMessages()) {
-				if (message.getMessageId() == messageId) {
-					return message.getContent().getContent();
+				if (message.id() == messageId) {
+					return message.content().getContent();
 				}
 			}
 		}

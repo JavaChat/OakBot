@@ -54,7 +54,7 @@ public class FileChatRoom implements IRoom {
 			try (var reader = new ChatRoomFileReader(inputFile)) {
 				String line;
 				while ((line = reader.readLine()) != null) {
-					postMessage(human.getUserId(), human.getUsername(), line);
+					postMessage(human.userId(), human.username(), line);
 				}
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
@@ -181,7 +181,7 @@ public class FileChatRoom implements IRoom {
 			.userId(userId)
 			.username(username)
 			.content(content)
-			.messageId(id)
+			.id(id)
 			.timestamp(LocalDateTime.now())
 		.build();
 		//@formatter:on
@@ -198,7 +198,7 @@ public class FileChatRoom implements IRoom {
 			//@formatter:off
 			listener.accept(new MessagePostedEvent.Builder()
 				.eventId(eventId.getAndIncrement())
-				.timestamp(message.getTimestamp())
+				.timestamp(message.timestamp())
 				.message(message)
 			.build());
 			//@formatter:on
@@ -226,7 +226,7 @@ public class FileChatRoom implements IRoom {
 	public List<PingableUser> getPingableUsers() throws IOException {
 		//@formatter:off
 		return List.of(
-			new PingableUser(roomId, human.getUserId(), human.getUsername(), LocalDateTime.now()),
+			new PingableUser(roomId, human.userId(), human.username(), LocalDateTime.now()),
 			new PingableUser(roomId, botUserId, botUsername, LocalDateTime.now())
 		);
 		//@formatter:on
@@ -261,7 +261,7 @@ public class FileChatRoom implements IRoom {
 		synchronized (messages) {
 			sb.append(roomId).append(": ").append(messages.size()).append(" messages\n");
 			for (var message : messages) {
-				sb.append("  ").append(message.getContent()).append("\n");
+				sb.append("  ").append(message.content()).append("\n");
 			}
 		}
 

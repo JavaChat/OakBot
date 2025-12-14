@@ -47,7 +47,7 @@ public class UnsummonCommand implements Command {
 		int roomToLeave;
 		boolean inRoomToLeave;
 		if (content.isEmpty()) {
-			roomToLeave = chatCommand.getMessage().getRoomId();
+			roomToLeave = chatCommand.getMessage().roomId();
 			inRoomToLeave = true;
 		} else {
 			try {
@@ -55,7 +55,7 @@ public class UnsummonCommand implements Command {
 			} catch (NumberFormatException e) {
 				return reply("Please specify the room ID.", chatCommand);
 			}
-			inRoomToLeave = (roomToLeave == chatCommand.getMessage().getRoomId());
+			inRoomToLeave = (roomToLeave == chatCommand.getMessage().roomId());
 		}
 
 		if (!bot.getRooms().contains(roomToLeave)) {
@@ -78,7 +78,7 @@ public class UnsummonCommand implements Command {
 
 		//@formatter:off
 		return create(
-			new PostMessage(new ChatBuilder().append(reply)).parentId(chatCommand.getMessage().getMessageId()),
+			new PostMessage(new ChatBuilder().append(reply)).parentId(chatCommand.getMessage().id()),
 			new LeaveRoom(roomToLeave)
 		);
 		//@formatter:on

@@ -122,7 +122,7 @@ class DadJokeListenerTest {
 	private static void assertResponse(String message, String response, CatchAllMentionListener catchAll) {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
-			.messageId(1)
+			.id(1)
 			.roomId(1)
 			.content(message)
 			.build();
@@ -144,7 +144,7 @@ class DadJokeListenerTest {
 	private static void assertNoResponse(String message, CatchAllMentionListener catchAll) {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
-			.messageId(1)
+			.id(1)
 			.roomId(1)
 			.content(message)
 			.build();

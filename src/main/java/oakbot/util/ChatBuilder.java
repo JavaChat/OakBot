@@ -231,7 +231,7 @@ public class ChatBuilder implements CharSequence {
 	 */
 	@Deprecated
 	public ChatBuilder reply(ChatMessage message) {
-		return reply(message.getMessageId());
+		return reply(message.id());
 	}
 
 	/**

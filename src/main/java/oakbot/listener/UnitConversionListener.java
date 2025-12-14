@@ -54,12 +54,12 @@ public class UnitConversionListener implements Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		if (message.getContent().isOnebox()) {
+		if (message.content().isOnebox()) {
 			return doNothing();
 		}
 
 		var conversions = new ArrayList<Conversion>();
-		var content = message.getContent().getContent();
+		var content = message.content().getContent();
 		for (var unit : Unit.values()) {
 			var processedValues = new HashSet<Double>();
 

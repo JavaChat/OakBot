@@ -129,7 +129,7 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private ChatActions handleInvCommand(ChatCommand chatCommand) {
-		var userId = chatCommand.getMessage().getUserId();
+		var userId = chatCommand.getMessage().userId();
 		var inv = inventoryByUser.get(userId);
 
 		String message;
@@ -165,8 +165,8 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private ChatActions handleStatusCommand(ChatCommand chatCommand) {
-		var roomId = chatCommand.getMessage().getRoomId();
-		var userId = chatCommand.getMessage().getUserId();
+		var roomId = chatCommand.getMessage().roomId();
+		var userId = chatCommand.getMessage().userId();
 		var pendingCatchesInThisRoom = getPendingCatchesInRoom(roomId);
 		var pendingCatch = pendingCatchesInThisRoom.get(userId);
 
@@ -187,8 +187,8 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private ChatActions handleReleaseCommand(String fishName, ChatCommand chatCommand) {
-		var userId = chatCommand.getMessage().getUserId();
-		var username = chatCommand.getMessage().getUsername();
+		var userId = chatCommand.getMessage().userId();
+		var username = chatCommand.getMessage().username();
 		var inv = inventoryByUser.get(userId);
 
 		if (fishName == null) {
@@ -211,9 +211,9 @@ public class FishCommand implements Command, ScheduledTask {
 	}
 
 	private ChatActions throwOrPullLine(ChatCommand chatCommand, boolean again) {
-		var roomId = chatCommand.getMessage().getRoomId();
-		var userId = chatCommand.getMessage().getUserId();
-		var username = chatCommand.getMessage().getUsername();
+		var roomId = chatCommand.getMessage().roomId();
+		var userId = chatCommand.getMessage().userId();
+		var username = chatCommand.getMessage().username();
 		var pendingCatchesInThisRoom = getPendingCatchesInRoom(roomId);
 
 		var pendingCatch = pendingCatchesInThisRoom.remove(userId);

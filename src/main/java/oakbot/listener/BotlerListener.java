@@ -74,16 +74,16 @@ public class BotlerListener implements Command, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		if (message.getUserId() != botlerUserId) {
+		if (message.userId() != botlerUserId) {
 			return doNothing();
 		}
 
-		if (!botlerStartupMessage.equals(message.getContent().getContent())) {
+		if (!botlerStartupMessage.equals(message.content().getContent())) {
 			return doNothing();
 		}
 
 		var now = Now.instant();
-		var roomId = message.getRoomId();
+		var roomId = message.roomId();
 		var lastResponse = responseTimesPerRoom.get(roomId);
 
 		if (lastResponse != null) {

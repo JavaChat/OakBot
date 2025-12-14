@@ -26,7 +26,7 @@ class AfkCommandTest {
 		{
 			//@formatter:off
 			var message = new ChatMessage.Builder()
-				.messageId(1)
+				.id(1)
 				.userId(1)
 				.username("Kyle")
 				.content("/afk away")
@@ -48,7 +48,7 @@ class AfkCommandTest {
 		{
 			//@formatter:off
 			var message = new ChatMessage.Builder()
-				.messageId(2)
+				.id(2)
 				.userId(2)
 				.username("John")
 				.content("Are you there, @Kyle?")
@@ -62,7 +62,7 @@ class AfkCommandTest {
 		{
 			//@formatter:off
 			var message = new ChatMessage.Builder()
-				.messageId(3)
+				.id(3)
 				.userId(1)
 				.username("Kyle")
 				.content("I'm back now!")
@@ -84,7 +84,7 @@ class AfkCommandTest {
 
 		//@formatter:off
 		var message = new ChatMessage.Builder()
-			.messageId(1)
+			.id(1)
 			.userId(65)
 			.username("Kyle")
 			.content("Where are you, @Frank?")
@@ -107,7 +107,7 @@ class AfkCommandTest {
 
 		//@formatter:off
 		var message = new ChatMessage.Builder()
-			.messageId(1)
+			.id(1)
 			.userId(65)
 			.username("Kyle")
 			.content("Where are you, @Fran?")
@@ -130,7 +130,7 @@ class AfkCommandTest {
 
 		//@formatter:off
 		var message = new ChatMessage.Builder()
-			.messageId(1)
+			.id(1)
 			.userId(65)
 			.username("Kyle")
 			.content("Where are you, @Fr?")
@@ -151,7 +151,7 @@ class AfkCommandTest {
 
 		//@formatter:off
 		var message = new ChatMessage.Builder()
-			.messageId(1)
+			.id(1)
 			.userId(65)
 			.username("Kyle")
 			.content("Where are you, @Frank @Frank @Fran @Franny?")
@@ -173,7 +173,7 @@ class AfkCommandTest {
 
 		//@formatter:off
 		var message = new ChatMessage.Builder()
-			.messageId(1)
+			.id(1)
 			.userId(21)
 			.username("Frank")
 			.content("I'm back.")
@@ -196,7 +196,7 @@ class AfkCommandTest {
 
 		//@formatter:off
 		var message = new ChatMessage.Builder()
-			.messageId(1)
+			.id(1)
 			.userId(21)
 			.username("Frank")
 			.content("/afk")

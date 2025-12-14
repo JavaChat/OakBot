@@ -94,7 +94,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 		String leaderboardId;
 		String joinCode;
 		if (displayDefaultLeaderboard) {
-			var roomId = chatCommand.getMessage().getRoomId();
+			var roomId = chatCommand.getMessage().roomId();
 			var leaderboard = monitoredLeaderboardByRoom.get(roomId);
 			if (leaderboard == null) {
 				return reply("Please specify a leaderboard ID (e.g. " + bot.getTrigger() + name() + " 123456).", chatCommand);

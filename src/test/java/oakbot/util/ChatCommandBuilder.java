@@ -101,7 +101,7 @@ public class ChatCommandBuilder {
 	public ChatCommand build() {
 		//@formatter:off
 		var message = new ChatMessage.Builder()
-			.messageId(messageId)
+			.id(messageId)
 			.roomId(roomId)
 			.userId(userId)
 			.username(username)

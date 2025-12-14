@@ -794,7 +794,7 @@ class BotTest {
 			.timestamp(now)
 			.message(new ChatMessage.Builder()
 				.content("<div class=\"onebox ob-wikipedia\"><img class=\"ob-wikipedia-image\" src=\"//upload.wikimedia.org/wikipedia/commons/thumb/4/43/Java_Topography.png/220px-Java_Topography.png\" /><div class=\"ob-wikipedia-title\"><img src=\"//en.wikipedia.org/static/favicon/wikipedia.ico\" width=\"24\" height=\"24\" class=\"ob-wikipedia-favicon\"/> <a rel=\"nofollow noopener noreferrer\" href=\"http://en.wikipedia.org/wiki/Java\">Java</a></div><div class=\"ob-wikipedia-text\">Java is an island of Indonesia. With a population of over 141 million (the island itself) or 145 million (the administrative region), Java is home to 56.7 percent of the Indonesian population and is the most populous island on Earth. The Indonesian capital city, Jakarta, is located on western Java. Much of Indonesian history took place on Java. It was the center of powerful Hindu-Buddhist empires, the Islamic sultanates, and the core of the colonial Dutch East Indies. Java was also the center of the Indonesian struggle for independence during the...</div></div>")
-				.messageId(100)
+				.id(100)
 				.timestamp(now)
 				.userId(1)
 				.username("BotUser")
@@ -906,7 +906,7 @@ class BotTest {
 			.timestamp(now)
 			.message(new ChatMessage.Builder()
 				.content(content)
-				.messageId(messageId++)
+				.id(messageId++)
 				.roomId(1)
 				.timestamp(now)
 				.userId(userId)
@@ -931,7 +931,7 @@ class BotTest {
 
 		public void pushEvents(MessagePostedEvent... events) {
 			for (var event : events) {
-				var roomId = event.getMessage().getRoomId();
+				var roomId = event.getMessage().roomId();
 				consumers.get(roomId).accept(event);
 			}
 		}

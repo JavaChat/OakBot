@@ -75,7 +75,7 @@ public class VideoCommand implements Command {
 		/*
 		 * Check if admin.
 		 */
-		var userId = chatCommand.getMessage().getUserId();
+		var userId = chatCommand.getMessage().userId();
 		if (!bot.isAdminUser(userId)) {
 			return reply("Only admins can invoke this command.", chatCommand);
 		}

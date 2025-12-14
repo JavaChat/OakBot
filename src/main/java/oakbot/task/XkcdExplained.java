@@ -120,7 +120,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 			explanationMd = SplitStrategy.WORD.split(explanationMd, trimLength).get(0);
 			var message = beginningMd + explanationMd;
 
-			var postMessage = new PostMessage(message).parentId(comic.messageContainingComic.getMessageId());
+			var postMessage = new PostMessage(message).parentId(comic.messageContainingComic.id());
 			bot.sendMessage(roomId, postMessage);
 		}
 
@@ -139,7 +139,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 	private boolean stillNeedToWait(Comic comic) {
 		if (comic.timesCheckedWiki == 0) {
-			var postAge = Duration.between(comic.messageContainingComic.getTimestamp(), Now.local());
+			var postAge = Duration.between(comic.messageContainingComic.timestamp(), Now.local());
 			return (postAge.compareTo(timeToWaitBeforeFirstWikiCheck) < 0);
 		} else {
 			var lastChecked = Duration.between(comic.lastCheckedWiki, Now.instant());
@@ -243,12 +243,12 @@ public class XkcdExplained implements ScheduledTask, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		var postedBySystemBot = message.getUserId() < 1;
+		var postedBySystemBot = message.userId() < 1;
 		if (postedBySystemBot) {
-			var m = regex.matcher(message.getContent().getContent());
+			var m = regex.matcher(message.content().getContent());
 			if (m.find()) {
 				var comicId = Integer.parseInt(m.group(1));
-				comicsByRoom.put(message.getRoomId(), new Comic(message, comicId));
+				comicsByRoom.put(message.roomId(), new Comic(message, comicId));
 			}
 		}
 

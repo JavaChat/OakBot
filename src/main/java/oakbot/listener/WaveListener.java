@@ -66,7 +66,7 @@ public class WaveListener implements Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		var content = message.getContent().getContent();
+		var content = message.content().getContent();
 		var mentioned = message.isUserMentioned(bot.getUserId(), bot.getUsername());
 
 		String wave;
@@ -93,7 +93,7 @@ public class WaveListener implements Listener {
 				return doNothing();
 			}
 
-			var roomId = message.getRoomId();
+			var roomId = message.roomId();
 			var lastWave = lastWaveTimeByRoom.get(roomId);
 
 			/*
@@ -102,7 +102,7 @@ public class WaveListener implements Listener {
 			 */
 			var now = Instant.now();
 			var timeSinceLastWave = (lastWave == null) ? timeBetweenWaves : Duration.between(lastWave, now);
-			if (!bot.isAdminUser(message.getUserId()) && timeSinceLastWave.compareTo(timeBetweenWaves) < 0) {
+			if (!bot.isAdminUser(message.userId()) && timeSinceLastWave.compareTo(timeBetweenWaves) < 0) {
 				return doNothing();
 			}
 

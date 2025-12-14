@@ -16,14 +16,14 @@ import oakbot.util.ChatBuilder;
 public abstract class ToggleableFilter extends ChatResponseFilter implements Command {
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		var roomId = chatCommand.getMessage().getRoomId();
+		var roomId = chatCommand.getMessage().roomId();
 		var enabled = toggle(roomId);
 
 		//@formatter:off
 		return create(
 			new PostMessage(new ChatBuilder()
 				.append("Filter ").append(enabled ? "enabled" : "disabled").append(".")
-			).bypassFilters(true).parentId(chatCommand.getMessage().getMessageId())
+			).bypassFilters(true).parentId(chatCommand.getMessage().id())
 		);
 		//@formatter:on
 	}

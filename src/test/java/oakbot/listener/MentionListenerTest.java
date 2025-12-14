@@ -31,7 +31,7 @@ class MentionListenerTest {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.content(message)
-			.messageId(1)
+			.id(1)
 		.build();
 		//@formatter:on
 
@@ -50,7 +50,7 @@ class MentionListenerTest {
 		//@formatter:off
 		var chatMessage = new ChatMessage.Builder()
 			.content(message)
-			.messageId(1)
+			.id(1)
 		.build();
 		//@formatter:on
 

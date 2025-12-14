@@ -38,7 +38,7 @@ public class TimeoutCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		var userId = chatCommand.getMessage().getUserId();
+		var userId = chatCommand.getMessage().userId();
 		if (!bot.isAdminUser(userId)) {
 			return reply("Only admins can run this command.", chatCommand);
 		}

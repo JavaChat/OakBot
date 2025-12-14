@@ -376,7 +376,7 @@ public class Bot implements IBot {
 	@Override
 	public boolean isRoomOwner(int roomId, int userId) throws IOException {
 		var userInfo = connection.getUserInfo(roomId, userId);
-		return (userInfo == null) ? false : userInfo.isOwner();
+		return (userInfo == null) ? false : userInfo.owner();
 	}
 
 	@Override
@@ -688,33 +688,33 @@ public class Bot implements IBot {
 		}
 
 		private void handleMessage(ChatMessage message) {
-			if (timeout && !isAdminUser(message.getUserId())) {
+			if (timeout && !isAdminUser(message.userId())) {
 				//bot is in timeout, ignore
 				return;
 			}
 
-			if (message.getContent() == null) {
+			if (message.isDeleted()) {
 				//user deleted their message, ignore
 				return;
 			}
 
-			if (!allowedUsers.isEmpty() && !allowedUsers.contains(message.getUserId())) {
+			if (!allowedUsers.isEmpty() && !allowedUsers.contains(message.userId())) {
 				//message was posted by a user who is not in the green list, ignore
 				return;
 			}
 
-			if (bannedUsers.contains(message.getUserId())) {
+			if (bannedUsers.contains(message.userId())) {
 				//message was posted by a banned user, ignore
 				return;
 			}
 
-			var room = connection.getRoom(message.getRoomId());
+			var room = connection.getRoom(message.roomId());
 			if (room == null) {
 				//the bot is no longer in the room
 				return;
 			}
 
-			if (message.getUserId() == userId) {
+			if (message.userId() == userId) {
 				//message was posted by this bot
 				handleBotMessage(message);
 				return;
@@ -722,7 +722,7 @@ public class Bot implements IBot {
 
 			message = convertFromBotlerRelayMessage(message);
 
-			timeOfLastMessageByRoom.put(message.getRoomId(), message.getTimestamp());
+			timeOfLastMessageByRoom.put(message.roomId(), message.timestamp());
 
 			var actions = handleListeners(message);
 			handleActions(message, actions);
@@ -731,7 +731,7 @@ public class Bot implements IBot {
 		private void handleBotMessage(ChatMessage message) {
 			PostedMessage postedMessage;
 			synchronized (postedMessages) {
-				postedMessage = postedMessages.remove(message.getMessageId());
+				postedMessage = postedMessages.remove(message.id());
 			}
 
 			/*
@@ -756,14 +756,14 @@ public class Bot implements IBot {
 			 * edit the message so that the onebox no longer displays, but
 			 * the URL is still preserved.
 			 */
-			var messageIsOnebox = message.getContent().isOnebox();
+			var messageIsOnebox = message.content().isOnebox();
 			if (postedMessage != null && hideOneboxesAfter != null && (messageIsOnebox || postedMessage.isCondensableOrEphemeral())) {
 				var postedMessageAge = Duration.between(postedMessage.getTimePosted(), Instant.now());
 				var hideIn = hideOneboxesAfter.minus(postedMessageAge);
 
 				logger.atInfo().log(() -> {
 					var action = messageIsOnebox ? "Hiding onebox" : "Condensing message";
-					return action + " in " + hideIn.toMillis() + "ms [room=" + message.getRoomId() + ", id=" + message.getMessageId() + "]: " + message.getContent();
+					return action + " in " + hideIn.toMillis() + "ms [room=" + message.roomId() + ", id=" + message.id() + "]: " + message.content();
 				});
 
 				scheduleChore(hideIn, new CondenseMessageChore(postedMessage));
@@ -787,7 +787,7 @@ public class Bot implements IBot {
 				return;
 			}
 
-			logger.atInfo().log(() -> "Responding to message [room=" + message.getRoomId() + ", user=" + message.getUsername() + ", id=" + message.getMessageId() + "]: " + message.getContent());
+			logger.atInfo().log(() -> "Responding to message [room=" + message.roomId() + ", user=" + message.username() + ", id=" + message.id() + "]: " + message.content());
 
 			if (stats != null) {
 				stats.incMessagesRespondedTo();
@@ -829,26 +829,26 @@ public class Bot implements IBot {
 		private void handlePostMessageAction(PostMessage action, ChatMessage message) {
 			try {
 				if (action.delay() != null) {
-					scheduleChore(action.delay(), new DelayedMessageChore(message.getRoomId(), action));
+					scheduleChore(action.delay(), new DelayedMessageChore(message.roomId(), action));
 				} else {
 					if (action.broadcast()) {
 						broadcastMessage(action);
 					} else {
-						sendMessage(message.getRoomId(), action);
+						sendMessage(message.roomId(), action);
 					}
 				}
 			} catch (Exception e) {
-				logger.atError().setCause(e).log(() -> "Problem posting message [room=" + message.getRoomId() + "]: " + action.message());
+				logger.atError().setCause(e).log(() -> "Problem posting message [room=" + message.roomId() + "]: " + action.message());
 			}
 		}
 
 		private ChatActions handleDeleteMessageAction(DeleteMessage action, ChatMessage message) {
 			try {
-				var room = connection.getRoom(message.getRoomId());
+				var room = connection.getRoom(message.roomId());
 				room.deleteMessage(action.messageId());
 				return action.onSuccess().get();
 			} catch (Exception e) {
-				logger.atError().setCause(e).log(() -> "Problem deleting message [room=" + message.getRoomId() + ", messageId=" + action.messageId() + "]");
+				logger.atError().setCause(e).log(() -> "Problem deleting message [room=" + message.roomId() + ", messageId=" + action.messageId() + "]");
 				return action.onError().apply(e);
 			}
 		}
@@ -1081,11 +1081,11 @@ public class Bot implements IBot {
 	 * "https://chat.stackoverflow.com/transcript/message/57337679#57337679">example</a>
 	 */
 	private ChatMessage convertFromBotlerRelayMessage(ChatMessage message) {
-		if (message.getUserId() != BOTLER_ID) {
+		if (message.userId() != BOTLER_ID) {
 			return message;
 		}
 
-		var content = message.getContent();
+		var content = message.content();
 		if (content == null) {
 			return message;
 		}

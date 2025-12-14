@@ -60,7 +60,7 @@ public class DeleteCommand implements Command, Listener {
 			return reply("Message ID or permalink is required.", chatCommand);
 		}
 
-		var messageToReplyToOnError = chatCommand.getMessage().getMessageId();
+		var messageToReplyToOnError = chatCommand.getMessage().id();
 
 		return deleteAction(messageToDelete, messageToReplyToOnError);
 	}
@@ -77,13 +77,13 @@ public class DeleteCommand implements Command, Listener {
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		//is the message a reply?
-		var messageToDelete = message.getParentMessageId();
+		var messageToDelete = message.parentMessageId();
 		if (messageToDelete == 0) {
 			return doNothing();
 		}
 
 		//is it replying to a bot message?
-		var content = message.getContent().getContent();
+		var content = message.content().getContent();
 		var mention = "@" + bot.getUsername().replace(" ", "");
 		if (!content.startsWith(mention)) {
 			return doNothing();
@@ -103,7 +103,7 @@ public class DeleteCommand implements Command, Listener {
 			catchAllListener.ignoreNextMessage();
 		}
 
-		var messageToReplyToOnError = message.getMessageId();
+		var messageToReplyToOnError = message.id();
 		return deleteAction(messageToDelete, messageToReplyToOnError);
 	}
 

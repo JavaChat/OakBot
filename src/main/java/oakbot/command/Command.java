@@ -50,7 +50,7 @@ public interface Command {
 	 * @return true if the message is invoking this command, false if not
 	 */
 	default boolean isInvokingMe(ChatMessage message, String trigger) {
-		var content = message.getContent().getContent();
+		var content = message.content().getContent();
 
 		var names = new ArrayList<String>();
 		names.add(name());

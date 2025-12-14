@@ -155,12 +155,12 @@ public class JavadocCommand implements Command, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		var waitingForChoice = conversations.containsKey(message.getRoomId());
+		var waitingForChoice = conversations.containsKey(message.roomId());
 		if (!waitingForChoice) {
 			return doNothing();
 		}
 
-		var content = message.getContent().getContent();
+		var content = message.content().getContent();
 
 		int num;
 		try {
@@ -262,7 +262,7 @@ public class JavadocCommand implements Command, Listener {
 	 * @return the chat response
 	 */
 	private ChatActions showChoice(ChatMessage message, int num) {
-		var conversation = conversations.get(message.getRoomId());
+		var conversation = conversations.get(message.roomId());
 
 		if (conversation == null) {
 			//no choices were ever printed to the chat in this room, so ignore
@@ -326,7 +326,7 @@ public class JavadocCommand implements Command, Listener {
 		//@formatter:on
 
 		if (username == null) {
-			reply.parentId(message.getMessage().getMessageId());
+			reply.parentId(message.getMessage().id());
 		}
 
 		return create(reply);
@@ -409,7 +409,7 @@ public class JavadocCommand implements Command, Listener {
 		}
 
 		var conversation = new Conversation(choices, arguments.targetUser());
-		var roomId = message.getMessage().getRoomId();
+		var roomId = message.getMessage().roomId();
 		conversations.put(roomId, conversation);
 
 		//@formatter:off
@@ -417,7 +417,7 @@ public class JavadocCommand implements Command, Listener {
 			new PostMessage(cb)
 				.splitStrategy(SplitStrategy.NEWLINE)
 				.ephemeral(true)
-				.parentId(message.getMessage().getMessageId())
+				.parentId(message.getMessage().id())
 		);
 		//@formatter:on
 	}
@@ -482,7 +482,7 @@ public class JavadocCommand implements Command, Listener {
 		}
 
 		var conversation = new Conversation(choices, arguments.targetUser());
-		var roomId = message.getMessage().getRoomId();
+		var roomId = message.getMessage().roomId();
 		conversations.put(roomId, conversation);
 
 		//@formatter:off
@@ -490,7 +490,7 @@ public class JavadocCommand implements Command, Listener {
 			new PostMessage(cb)
 				.splitStrategy(SplitStrategy.NEWLINE)
 				.ephemeral(true)
-				.parentId(message.getMessage().getMessageId())
+				.parentId(message.getMessage().id())
 		);
 		//@formatter:on
 	}
@@ -517,7 +517,7 @@ public class JavadocCommand implements Command, Listener {
 		//@formatter:on
 
 		if (username == null) {
-			reply.parentId(message.getMessage().getMessageId());
+			reply.parentId(message.getMessage().id());
 		}
 
 		return create(reply);

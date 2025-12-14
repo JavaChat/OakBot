@@ -39,7 +39,7 @@ public class QuotaCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		var userId = chatCommand.getMessage().getUserId();
+		var userId = chatCommand.getMessage().userId();
 
 		var cb = new ChatBuilder();
 		printQuota("Conversation (ChatGPT)", chatGpt.getUsageQuota(), userId, cb);

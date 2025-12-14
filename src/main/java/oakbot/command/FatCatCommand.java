@@ -149,7 +149,7 @@ public class FatCatCommand implements Command, Listener {
 			return reply("Cat already added.", chatCommand);
 		}
 
-		var conversation = new Conversation(chatCommand.getMessage().getRoomId(), chatCommand.getMessage().getUserId(), cat);
+		var conversation = new Conversation(chatCommand.getMessage().roomId(), chatCommand.getMessage().userId(), cat);
 		conversations.add(conversation);
 
 		return reply("Is cat fat? (y/n)", chatCommand);
@@ -190,17 +190,17 @@ public class FatCatCommand implements Command, Listener {
 	}
 
 	private boolean hasEditPerms(ChatCommand chatCommand, IBot bot) {
-		var authorId = chatCommand.getMessage().getUserId();
+		var authorId = chatCommand.getMessage().userId();
 		return bot.isAdminUser(authorId) || commandAdmins.contains(authorId);
 	}
 
 	private String handleResponse(ChatMessage message) {
-		var conversation = conversations.get(message.getRoomId(), message.getUserId());
+		var conversation = conversations.get(message.roomId(), message.userId());
 		if (conversation == null) {
 			return null;
 		}
 
-		var content = message.getContent().getContent();
+		var content = message.content().getContent();
 		if (content.isEmpty()) {
 			return null;
 		}

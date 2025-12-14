@@ -65,7 +65,7 @@ public class MentionListener implements CatchAllMentionListener {
 			return doNothing();
 		}
 
-		var prevResponse = timeOfLastResponseByRoom.get(message.getRoomId());
+		var prevResponse = timeOfLastResponseByRoom.get(message.roomId());
 		var now = Instant.now();
 		if (prevResponse != null) {
 			var elapsed = Duration.between(prevResponse, now);
@@ -74,9 +74,9 @@ public class MentionListener implements CatchAllMentionListener {
 			}
 		}
 
-		timeOfLastResponseByRoom.put(message.getRoomId(), now);
+		timeOfLastResponseByRoom.put(message.roomId(), now);
 
-		var response = respond(message.getContent().getContent());
+		var response = respond(message.content().getContent());
 		if (response != null) {
 			return reply(response, message);
 		}

@@ -48,11 +48,11 @@ public class RemindCommand implements Command {
 
 		var reminder = m.group(1);
 		var duration = parseDuration(m);
-		var mention = chatCommand.getMessage().getUsername().replace(" ", "");
+		var mention = chatCommand.getMessage().username().replace(" ", "");
 
 		//@formatter:off
 		return ChatActions.create(
-			new PostMessage(new ChatBuilder().append("Created.")).parentId(chatCommand.getMessage().getMessageId()),
+			new PostMessage(new ChatBuilder().append("Created.")).parentId(chatCommand.getMessage().id()),
 			new PostMessage(new ChatBuilder().mention(mention).append(" ").append(reminder)).delay(duration)
 		);
 		//@formatter:on

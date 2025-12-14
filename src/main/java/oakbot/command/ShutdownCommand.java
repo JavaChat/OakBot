@@ -30,7 +30,7 @@ public class ShutdownCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		var userId = chatCommand.getMessage().getUserId();
+		var userId = chatCommand.getMessage().userId();
 		if (!bot.isAdminUser(userId)) {
 			return reply("Only admins can shut me down. :P", chatCommand);
 		}

@@ -44,15 +44,15 @@ public class JuiceBoxCommand implements Command {
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		var content = chatCommand.getContent();
-		final var targetUser = content.isEmpty() ? chatCommand.getMessage().getUsername() : content;
+		final var targetUser = content.isEmpty() ? chatCommand.getMessage().username() : content;
 
-		var currentRoom = bot.getRoom(chatCommand.getMessage().getRoomId());
+		var currentRoom = bot.getRoom(chatCommand.getMessage().roomId());
 
 		PingableUser matchingUser;
 		try {
 			//@formatter:off
 			matchingUser = currentRoom.getPingableUsers().stream()
-				.filter(user -> user.getUsername().equalsIgnoreCase(targetUser))
+				.filter(user -> user.username().equalsIgnoreCase(targetUser))
 				.findFirst()
 			.orElse(null);
 			//@formatter:on
@@ -65,7 +65,7 @@ public class JuiceBoxCommand implements Command {
 
 		UserInfo matchingUserInfo;
 		try {
-			var list = currentRoom.getUserInfo(List.of(matchingUser.getUserId()));
+			var list = currentRoom.getUserInfo(List.of(matchingUser.userId()));
 			matchingUserInfo = list.isEmpty() ? null : list.get(0);
 		} catch (IOException e) {
 			return error("Problem getting user info: ", e, chatCommand);
@@ -76,7 +76,7 @@ public class JuiceBoxCommand implements Command {
 
 		String juicifiedPhotoUrl;
 		try {
-			juicifiedPhotoUrl = juicifyPhoto(matchingUserInfo.getProfilePicture());
+			juicifiedPhotoUrl = juicifyPhoto(matchingUserInfo.profilePicture());
 		} catch (IOException e) {
 			return error("Problem juicifying user: ", e, chatCommand);
 		}

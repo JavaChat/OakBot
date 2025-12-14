@@ -71,7 +71,7 @@ public class ChatActions implements Iterable<ChatAction> {
 	 * @return the created object
 	 */
 	public static ChatActions reply(CharSequence message, ChatMessage parent) {
-		return reply(message, parent.getMessageId());
+		return reply(message, parent.id());
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class ChatActions implements Iterable<ChatAction> {
 		//@formatter:off
 		return ChatActions.create(
 			new PostMessage(message)
-				.parentId(parent.getMessage().getMessageId())
+				.parentId(parent.getMessage().id())
 				.splitStrategy(splitStrategy)
 		);
 		//@formatter:on

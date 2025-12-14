@@ -59,12 +59,12 @@ public class WelcomeListener implements Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		var roomId = message.getRoomId();
+		var roomId = message.roomId();
 		if (!roomHasWelcomeMessage(roomId)) {
 			return doNothing();
 		}
 
-		var userId = message.getUserId();
+		var userId = message.userId();
 		var userIds = welcomedUsersByRoom.computeIfAbsent(roomId, k -> new HashSet<>());
 		if (hasSeenUserBefore(userId, userIds)) {
 			return doNothing();
@@ -96,7 +96,7 @@ public class WelcomeListener implements Listener {
 		return create(
 			new PostMessage(welcomeMessage)
 				.bypassFilters(true)
-				.parentId(message.getMessageId())
+				.parentId(message.id())
 		);
 		//@formatter:on
 	}
@@ -161,6 +161,6 @@ public class WelcomeListener implements Listener {
 	 * @return true to give the user a welcome message, false not to
 	 */
 	private boolean shouldUserBeWelcomed(UserInfo userInfo) {
-		return userInfo.getReputation() < minReputation;
+		return userInfo.reputation() < minReputation;
 	}
 }

@@ -83,7 +83,7 @@ class XkcdExplainedTest {
 			.userId(-2)
 			.roomId(1)
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/2796\"><img src=\"https://imgs.xkcd.com/comics/actual_progress.png\" title=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" alt=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" /></a></div>")
-			.messageId(123)
+			.id(123)
 		.build();
 		//@formatter:on
 
@@ -117,7 +117,7 @@ class XkcdExplainedTest {
 			.userId(-2)
 			.roomId(1)
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/3072\"><img src=\"https://imgs.xkcd.com/comics/stargazing_4.png\" title=\"We haven't actually seen a star fall in since we invented telescopes, but I have a list of ones I'm really hoping are next.\" alt=\"We haven't actually seen a star fall in since we invented telescopes, but I have a list of ones I'm really hoping are next.\"></a></div>")
-			.messageId(123)
+			.id(123)
 		.build();
 		//@formatter:on
 
@@ -151,7 +151,7 @@ class XkcdExplainedTest {
 			.userId(-2)
 			.roomId(1)
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/2796\"><img src=\"https://imgs.xkcd.com/comics/actual_progress.png\" title=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" alt=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" /></a></div>")
-			.messageId(123)
+			.id(123)
 		.build();
 		//@formatter:on
 
@@ -185,7 +185,7 @@ class XkcdExplainedTest {
 			.userId(-2)
 			.roomId(1)
 			.content("<div class=\"onebox ob-xkcd\"><a rel=\"nofollow noopener noreferrer\" href=\"https://xkcd.com/2796\"><img src=\"https://imgs.xkcd.com/comics/actual_progress.png\" title=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" alt=\"Slowly progressing from &#39;how do protons behave in relativistic collisions?&#39; to &#39;what the heck are protons even doing when they&#39;re just sitting there?&#39;\" /></a></div>")
-			.messageId(123)
+			.id(123)
 		.build();
 		//@formatter:on
 

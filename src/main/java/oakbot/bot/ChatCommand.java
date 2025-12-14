@@ -154,7 +154,7 @@ public class ChatCommand {
 	 * @return true if it's formatted in a monospace font, false if not
 	 */
 	public boolean isFixedWidthFont() {
-		return message.getContent().isFixedWidthFont();
+		return message.content().isFixedWidthFont();
 	}
 
 	/**
@@ -166,7 +166,7 @@ public class ChatCommand {
 	 * command
 	 */
 	public static ChatCommand fromMessage(ChatMessage message, String trigger) {
-		var contentObj = message.getContent();
+		var contentObj = message.content();
 		if (contentObj == null) {
 			return null;
 		}

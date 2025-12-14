@@ -66,7 +66,7 @@ public class DadJokeListener implements Listener {
 
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
-		if (message.getContent().isOnebox()) {
+		if (message.content().isOnebox()) {
 			return doNothing();
 		}
 
@@ -82,7 +82,7 @@ public class DadJokeListener implements Listener {
 			return doNothing();
 		}
 
-		var messageAsMarkdown = ChatBuilder.toMarkdown(message.getContent().getContent(), message.getContent().isFixedWidthFont());
+		var messageAsMarkdown = ChatBuilder.toMarkdown(message.content().getContent(), message.content().isFixedWidthFont());
 		var messageWithoutLinks = removeLinks(messageAsMarkdown);
 		var phrase = findPhrase(messageWithoutLinks);
 		if (phrase.isEmpty()) {
@@ -102,13 +102,13 @@ public class DadJokeListener implements Listener {
 			"Hi " + name + ", I'm " + botName + "!";
 		//@formatter:on
 
-		lastJokeByRoom.put(message.getRoomId(), Instant.now());
+		lastJokeByRoom.put(message.roomId(), Instant.now());
 
 		return reply(response, message);
 	}
 
 	private boolean respondedRecently(ChatMessage message) {
-		var lastJoke = lastJokeByRoom.get(message.getRoomId());
+		var lastJoke = lastJokeByRoom.get(message.roomId());
 		if (lastJoke == null) {
 			return false;
 		}

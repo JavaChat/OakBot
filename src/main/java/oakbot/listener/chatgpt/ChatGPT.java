@@ -152,11 +152,11 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			 * human.
 			 */
 			var latestMessage = messages.get(messages.size() - 1);
-			var latestMsgPostedBySystemBot = (latestMessage.getUserId() < 1);
+			var latestMsgPostedBySystemBot = (latestMessage.userId() < 1);
 			if (latestMsgPostedBySystemBot) {
 				continue;
 			}
-			var latestMsgPostedByThisBot = (latestMessage.getUserId() == bot.getUserId());
+			var latestMsgPostedByThisBot = (latestMessage.userId() == bot.getUserId());
 			if (latestMsgPostedByThisBot) {
 				continue;
 			}
@@ -209,7 +209,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		/**
 		 * Has the user exceeded quota?
 		 */
-		var userId = message.getUserId();
+		var userId = message.userId();
 		var timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
 		if (!timeUntilNextRequest.isZero()) {
 			var hours = timeUntilNextRequest.toHours() + 1;
@@ -217,9 +217,9 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		}
 
 		try {
-			var prevMessages = bot.getLatestMessages(message.getRoomId(), numLatestMessagesToIncludeInRequest);
+			var prevMessages = bot.getLatestMessages(message.roomId(), numLatestMessagesToIncludeInRequest);
 
-			var prompt = buildPrompt(message.getRoomId(), bot);
+			var prompt = buildPrompt(message.roomId(), bot);
 			var apiMessages = buildChatCompletionMessages(prompt, prevMessages, bot);
 			addParentMessage(message, prevMessages, apiMessages, bot);
 
@@ -227,7 +227,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			var response = sendChatCompletionRequest(request);
 
-			resetSpontaneousPostTimer(message.getRoomId());
+			resetSpontaneousPostTimer(message.roomId());
 
 			if (!bot.isAdminUser(userId)) {
 				usageQuota.logRequest(userId);
@@ -237,7 +237,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			return create(
 				new PostMessage(response)
 					.splitStrategy(SplitStrategy.WORD)
-					.parentId(message.getMessageId())
+					.parentId(message.id())
 			);
 			//@formatter:on
 		} catch (IOException e) {
@@ -258,14 +258,14 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private void addParentMessage(ChatMessage message, List<ChatMessage> prevMessages, List<ChatCompletionRequest.Message> apiMessages, IBot bot) {
-		var parentId = message.getParentMessageId();
+		var parentId = message.parentMessageId();
 		if (parentId == 0) {
 			return;
 		}
 
 		//@formatter:off
 		var parentMessageAlreadyInPrevMessages = prevMessages.stream()
-			.mapToLong(ChatMessage::getMessageId)
+			.mapToLong(ChatMessage::id)
 		.anyMatch(id -> id == parentId);
 		//@formatter:on
 
@@ -273,7 +273,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			return;
 		}
 
-		var parentMessagePostedByBot = message.getContent().getContent().startsWith("@" + bot.getUsername());
+		var parentMessagePostedByBot = message.content().getContent().startsWith("@" + bot.getUsername());
 
 		try {
 			var parentMessageContent = bot.getOriginalMessageContent(parentId);
@@ -315,7 +315,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			var room = bot.getRoom(roomId);
 			if (room != null) {
 				try {
-					roomName = room.getRoomInfo().getName();
+					roomName = room.getRoomInfo().name();
 					roomNames.put(roomId, roomName);
 				} catch (IOException ignore) {
 				}
@@ -373,13 +373,13 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		.build());
 
 		chatMessages.stream()
-			.filter(chatMessage -> chatMessage.getContent() != null) //skip deleted messages
+			.filter(not(ChatMessage::isDeleted))
 			.map(chatMessage -> {
-				var content = chatMessage.getContent();
+				var content = chatMessage.content();
 				var contentStr = content.getContent();
 				var fixedWidthFont = content.isFixedWidthFont();
 				var contentMd = ChatBuilder.toMarkdown(contentStr, fixedWidthFont);
-				var messagePostedByOak = (chatMessage.getUserId() == bot.getUserId());
+				var messagePostedByOak = (chatMessage.userId() == bot.getUserId());
 
 				/*
 				 * GPT-4o model does not allow "assistant" messages to contain image URLs.
@@ -395,7 +395,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 				return new ChatCompletionRequest.Message.Builder()
 					.role(messagePostedByOak ? "assistant" : "user")
-					.name(chatMessage.getUsername())
+					.name(chatMessage.username())
 					.text(truncatedContentMd)
 					.imageUrls(imageUrls, "low")
 				.build();

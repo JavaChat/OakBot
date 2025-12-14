@@ -55,8 +55,8 @@ public class AfkCommand implements Command, Listener {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		var username = chatCommand.getMessage().getUsername();
-		var userId = chatCommand.getMessage().getUserId();
+		var username = chatCommand.getMessage().username();
+		var userId = chatCommand.getMessage().userId();
 		var awayMessage = chatCommand.getContentMarkdown();
 
 		setAway(userId, username, awayMessage);
@@ -74,17 +74,17 @@ public class AfkCommand implements Command, Listener {
 			return doNothing();
 		}
 
-		var returned = setBack(message.getUserId());
+		var returned = setBack(message.userId());
 
-		var mentions = new HashSet<>(message.getContent().getMentions()); //remove duplicates
+		var mentions = new HashSet<>(message.content().getMentions()); //remove duplicates
 		var mentionedAfkUsers = getAfkUsers(mentions);
-		var usersNotWarnedAbout = filterUsersNotWarnedAbout(mentionedAfkUsers, message.getUserId());
+		var usersNotWarnedAbout = filterUsersNotWarnedAbout(mentionedAfkUsers, message.userId());
 		if (!usersNotWarnedAbout.isEmpty()) {
 			var cb = new ChatBuilder();
 			var first = true;
 			usersNotWarnedAbout.sort(Comparator.comparing(AfkUser::getUsername));
 			for (var afkUser : usersNotWarnedAbout) {
-				afkUser.setTimeLastWarnedUser(message.getUserId());
+				afkUser.setTimeLastWarnedUser(message.userId());
 
 				if (!first) {
 					cb.nl();
