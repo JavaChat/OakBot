@@ -150,8 +150,8 @@ class Stands4ClientTest {
 		//@formatter:on
 
 		var actual = client.explain("in the nick of time");
-		assertEquals("At the last possible moment; at the last minute.", actual.getExplanation());
-		assertEquals("He finished writing his paper and slid it under the door just in the nick of time.", actual.getExample());
+		assertEquals("At the last possible moment; at the last minute.", actual.explanation());
+		assertEquals("He finished writing his paper and slid it under the door just in the nick of time.", actual.example());
 	}
 
 	@Test
