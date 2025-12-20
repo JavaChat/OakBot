@@ -53,6 +53,7 @@ import oakbot.util.ChatBuilder;
 public class Bot implements IBot {
 	private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 	static final int BOTLER_ID = 13750349;
+	private static final Duration ROOM_JOIN_DELAY = Duration.ofSeconds(2);
 
 	private final String userName;
 	private final String trigger;
@@ -160,7 +161,7 @@ public class Bot implements IBot {
 				 * resolve an issue where the bot chooses to ignore all messages
 				 * in certain rooms.
 				 */
-				Sleeper.sleep(2000);
+				Sleeper.sleep(ROOM_JOIN_DELAY);
 			}
 
 			try {
