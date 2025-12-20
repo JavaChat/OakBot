@@ -16,6 +16,7 @@ import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
@@ -579,7 +580,7 @@ public class Bot implements IBot {
 		public boolean isEphemeral() {
 			return ephemeral;
 		}
-		
+
 		/**
 		 * Gets the ID of the message that this was a reply to.
 		 * @return the parent ID or 0 if it's not a reply
@@ -689,7 +690,10 @@ public class Bot implements IBot {
 		}
 
 		private void handleMessage(ChatMessage message) {
-			if (timeout && !isAdminUser(message.userId())) {
+			var userId = message.userId();
+			var isAdminUser = isAdminUser(userId);
+
+			if (timeout && !isAdminUser) {
 				//bot is in timeout, ignore
 				return;
 			}
@@ -699,23 +703,26 @@ public class Bot implements IBot {
 				return;
 			}
 
-			if (!allowedUsers.isEmpty() && !allowedUsers.contains(message.userId())) {
+			var hasAllowedUsersList = !allowedUsers.isEmpty();
+			var userIsAllowed = allowedUsers.contains(userId);
+			if (hasAllowedUsersList && !userIsAllowed) {
 				//message was posted by a user who is not in the green list, ignore
 				return;
 			}
 
-			if (bannedUsers.contains(message.userId())) {
+			var userIsBanned = bannedUsers.contains(userId);
+			if (userIsBanned) {
 				//message was posted by a banned user, ignore
 				return;
 			}
 
-			var room = connection.getRoom(message.roomId());
-			if (room == null) {
+			var isInRoom = connection.isInRoom(message.roomId());
+			if (!isInRoom) {
 				//the bot is no longer in the room
 				return;
 			}
 
-			if (message.userId() == userId) {
+			if (userId == Bot.this.userId) {
 				//message was posted by this bot
 				handleBotMessage(message);
 				return;
@@ -797,34 +804,39 @@ public class Bot implements IBot {
 			var queue = new LinkedList<>(actions.getActions());
 			while (!queue.isEmpty()) {
 				var action = queue.removeFirst();
-
-				if (action instanceof PostMessage pm) {
-					handlePostMessageAction(pm, message);
-					continue;
-				}
-
-				if (action instanceof DeleteMessage dm) {
-					var response = handleDeleteMessageAction(dm, message);
-					queue.addAll(response.getActions());
-					continue;
-				}
-
-				if (action instanceof JoinRoom jr) {
-					var response = handleJoinRoomAction(jr);
-					queue.addAll(response.getActions());
-					continue;
-				}
-
-				if (action instanceof LeaveRoom lr) {
-					handleLeaveRoomAction(lr);
-					continue;
-				}
-
-				if (action instanceof Shutdown) {
-					stop();
-					continue;
-				}
+				processAction(action, message, queue);
 			}
+		}
+
+		private void processAction(ChatAction action, ChatMessage message, LinkedList<ChatAction> queue) {
+			if (action instanceof PostMessage pm) {
+				handlePostMessageAction(pm, message);
+				return;
+			}
+
+			if (action instanceof DeleteMessage dm) {
+				var response = handleDeleteMessageAction(dm, message);
+				queue.addAll(response.getActions());
+				return;
+			}
+
+			if (action instanceof JoinRoom jr) {
+				var response = handleJoinRoomAction(jr);
+				queue.addAll(response.getActions());
+				return;
+			}
+
+			if (action instanceof LeaveRoom lr) {
+				handleLeaveRoomAction(lr);
+				return;
+			}
+
+			if (action instanceof Shutdown) {
+				stop();
+				return;
+			}
+
+			logger.atWarn().log(() -> "Unknown action type: " + action.getClass().getName());
 		}
 
 		private void handlePostMessageAction(PostMessage action, ChatMessage message) {
@@ -865,25 +877,30 @@ public class Bot implements IBot {
 					return action.onSuccess().get();
 				}
 
-				try {
-					leave(action.roomId());
-				} catch (Exception e) {
-					logger.atError().setCause(e).log(() -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.");
-				}
+				leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't post messages to it.");
 
 				return action.ifLackingPermissionToPost().get();
 			} catch (PrivateRoomException | RoomPermissionException e) {
-				try {
-					leave(action.roomId());
-				} catch (Exception e2) {
-					logger.atError().setCause(e2).log(() -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.");
-				}
+				leaveRoomSafely(action.roomId(), () -> "Problem leaving room " + action.roomId() + " after it was found that the bot can't join or post messages to it.");
 
 				return action.ifLackingPermissionToPost().get();
 			} catch (RoomNotFoundException e) {
 				return action.ifRoomDoesNotExist().get();
 			} catch (Exception e) {
 				return action.onError().apply(e);
+			}
+		}
+
+		/**
+		 * Attempts to leave a room and logs any errors that occur.
+		 * @param roomId the room ID to leave
+		 * @param logMessage the log message
+		 **/
+		private void leaveRoomSafely(int roomId, Supplier<String> logMessage) {
+			try {
+				leave(roomId);
+			} catch (Exception e) {
+				logger.atError().setCause(e).log(logMessage);
 			}
 		}
 
