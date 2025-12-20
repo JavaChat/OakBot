@@ -92,51 +92,89 @@ public class ChatCommand {
 		}
 
 		var md = getContentMarkdown().trim();
-		var args = new ArrayList<String>();
+		return parseArguments(md);
+	}
 
-		var inQuotes = false;
-		var escapeNext = false;
-		var sb = new StringBuilder();
-		var it = new CharIterator(md);
+	/**
+	 * Parses a markdown string into whitespace-delimited arguments. Handles
+	 * quoted strings and escape sequences.
+	 * @param text the text to parse
+	 * @return the list of arguments
+	 */
+	private List<String> parseArguments(String text) {
+		var args = new ArrayList<String>();
+		var parser = new ArgumentParser();
+		var it = new CharIterator(text);
+
 		while (it.hasNext()) {
 			var c = it.next();
+			parser.processCharacter(c, args);
+		}
 
+		parser.finalizeCurrentArgument(args);
+		return args;
+	}
+
+	/**
+	 * Helper class to parse command arguments with quote and escape handling.
+	 */
+	private static class ArgumentParser {
+		private final StringBuilder currentArg = new StringBuilder();
+		private boolean inQuotes = false;
+		private boolean escapeNext = false;
+
+		void processCharacter(char c, List<String> args) {
 			if (escapeNext) {
-				sb.append(c);
-				escapeNext = false;
-				continue;
-			}
-
-			if (Character.isWhitespace(c) && !inQuotes) {
-				if (!sb.isEmpty()) {
-					args.add(sb.toString());
-					sb.setLength(0);
-				}
-				continue;
-			}
-
-			if (c == '"') {
-				if (inQuotes) {
-					args.add(sb.toString());
-					sb.setLength(0);
-				}
-				inQuotes = !inQuotes;
-				continue;
+				handleEscapedCharacter(c);
+				return;
 			}
 
 			if (c == '\\') {
 				escapeNext = true;
-				continue;
+				return;
 			}
 
-			sb.append(c);
+			if (c == '"') {
+				handleQuote(args);
+				return;
+			}
+
+			if (Character.isWhitespace(c) && !inQuotes) {
+				handleWhitespace(args);
+				return;
+			}
+
+			currentArg.append(c);
 		}
 
-		if (!sb.isEmpty()) {
-			args.add(sb.toString());
+		private void handleEscapedCharacter(char c) {
+			currentArg.append(c);
+			escapeNext = false;
 		}
 
-		return args;
+		private void handleQuote(List<String> args) {
+			if (inQuotes) {
+				addCurrentArgument(args);
+			}
+			inQuotes = !inQuotes;
+		}
+
+		private void handleWhitespace(List<String> args) {
+			if (currentArg.length() > 0) {
+				addCurrentArgument(args);
+			}
+		}
+
+		private void addCurrentArgument(List<String> args) {
+			args.add(currentArg.toString());
+			currentArg.setLength(0);
+		}
+
+		private void finalizeCurrentArgument(List<String> args) {
+			if (currentArg.length() > 0) {
+				addCurrentArgument(args);
+			}
+		}
 	}
 
 	/**
