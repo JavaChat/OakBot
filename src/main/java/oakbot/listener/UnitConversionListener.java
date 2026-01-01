@@ -121,7 +121,7 @@ public class UnitConversionListener implements Listener {
 			}
 		},
 
-		KELVIN("(°|deg|degrees?|&#176;)?\\s*(K|kelvin)", "°K", "🌡") {
+		KELVIN("(°|deg|degrees?|&#176;)?\\s*(kelvin)", "°K", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
 				return List.of(
@@ -205,7 +205,7 @@ public class UnitConversionListener implements Listener {
 			}
 		},
 
-		STONE("(st|stone)", " st", "⚖️") {
+		STONE("(stone)", " st", "⚖️") {
 			@Override
 			Collection<UnitValue> convert(double value) {
 				return List.of(
