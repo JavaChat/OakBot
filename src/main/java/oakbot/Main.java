@@ -180,6 +180,7 @@ public final class Main {
 			.bannedUsers(botProperties.getBannedUsers())
 			.user(botProperties.getBotUserName(), botProperties.getBotUserId())
 			.trigger(botProperties.getTrigger())
+			.ignoreMessageSuffix(botProperties.getIgnoreMessageSuffix())
 			.greeting(botProperties.getGreeting())
 			.roomsHome(botProperties.getHomeRooms())
 			.roomsQuiet(botProperties.getQuietRooms())

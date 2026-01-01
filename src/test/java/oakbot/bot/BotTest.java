@@ -775,6 +775,45 @@ class BotTest {
 	}
 
 	@Test
+	void ignoreMessageSuffix() throws Exception {
+		/*
+		 * Setup the chat rooms.
+		 */
+		chatServer.createRoom(1);
+
+		/*
+		 * Define the chat room events to push.
+		 */
+		var event1 = event("Ignore this ~");
+
+		/*
+		 * Create the listener
+		 */
+		var listener = mock(Listener.class);
+
+		/*
+		 * Create the bot.
+		 */
+		//@formatter:off
+		var bot = bot()
+			.roomsHome(1)
+			.ignoreMessageSuffix("~")
+			.listeners(listener)
+		.build();
+		//@formatter:on
+
+		/*
+		 * Run the bot.
+		 */
+		runQuiet(bot, event1);
+
+		/*
+		 * Verify.
+		 */
+		verify(listener, times(0)).onMessage(same(event1.getMessage()), same(bot));
+	}
+
+	@Test
 	void onebox() throws Exception {
 		/*
 		 * Setup the chat rooms.

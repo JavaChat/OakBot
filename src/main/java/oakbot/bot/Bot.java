@@ -58,6 +58,7 @@ public class Bot implements IBot {
 
 	private final String userName;
 	private final String trigger;
+	private final String ignoreMessageSuffix;
 	private final String greeting;
 	private final Integer userId;
 	private final IChatClient connection;
@@ -107,6 +108,7 @@ public class Bot implements IBot {
 		userId = (connection.getUserId() == null) ? builder.userId : connection.getUserId();
 		hideOneboxesAfter = builder.hideOneboxesAfter;
 		trigger = Objects.requireNonNull(builder.trigger);
+		ignoreMessageSuffix = builder.ignoreMessageSuffix;
 		greeting = builder.greeting;
 		maxRooms = builder.maxRooms;
 		admins = builder.admins;
@@ -716,6 +718,11 @@ public class Bot implements IBot {
 				return;
 			}
 
+			var userWantsBotToIgnoreMessage = ignoreMessageSuffix != null && message.content().getContent().endsWith(ignoreMessageSuffix);
+			if (userWantsBotToIgnoreMessage) {
+				return;
+			}
+
 			var isInRoom = connection.isInRoom(message.roomId());
 			if (!isInRoom) {
 				//the bot is no longer in the room
@@ -1140,6 +1147,7 @@ public class Bot implements IBot {
 		private IChatClient connection;
 		private String userName;
 		private String trigger = "=";
+		private String ignoreMessageSuffix;
 		private String greeting;
 		private Integer userId;
 		private Duration hideOneboxesAfter;
@@ -1174,6 +1182,11 @@ public class Bot implements IBot {
 
 		public Builder trigger(String trigger) {
 			this.trigger = trigger;
+			return this;
+		}
+
+		public Builder ignoreMessageSuffix(String ignoreMessageSuffix) {
+			this.ignoreMessageSuffix = ignoreMessageSuffix;
 			return this;
 		}
 

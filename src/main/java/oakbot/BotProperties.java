@@ -19,6 +19,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final String password;
 	private final String botUserName;
 	private final String trigger;
+	private final String ignoreMessageSuffix;
 	private final String greeting;
 	private final String helpWebpage;
 	private final List<Integer> homeRooms;
@@ -47,6 +48,7 @@ public class BotProperties extends PropertiesWrapper {
 		botUserId = getInteger("account.userId");
 
 		trigger = get("trigger", "=");
+		ignoreMessageSuffix = get("ignoreMessageSuffix");
 		greeting = get("greeting");
 
 		hideOneboxesAfter = getDuration("hideOneboxesAfter");
@@ -120,6 +122,15 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public String getTrigger() {
 		return trigger;
+	}
+
+	/**
+	 * Gets the string sequence that users can append onto their messages if
+	 * they want the bot to ignore a message.
+	 * @return the ignore message suffix or null if not defined
+	 */
+	public String getIgnoreMessageSuffix() {
+		return ignoreMessageSuffix;
 	}
 
 	/**

@@ -54,6 +54,12 @@
 		
 		<!--
 		(optional)
+		A string sequence that users can append onto their messages if they want the bot to ignore a message.
+		-->
+		<prop key="ignoreMessageSuffix">~</prop>
+		
+		<!--
+		(optional)
 		The message to post when the bot joins a room. Chat markdown can be used here.
 		-->
 		<prop key="greeting">OakBot Online.</prop>
