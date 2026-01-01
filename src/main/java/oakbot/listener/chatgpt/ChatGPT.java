@@ -83,7 +83,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param reasoningEffort the amount of tokens to consume with reasoning
 	 * (e.g. "low"). Only supported by some models. May be null.
 	 * @param timeBetweenSpontaneousPosts the amount of time to wait before
-	 * posting a message (e.g. "PT12H")
+	 * posting a message
 	 * @param numLatestMessagesToIncludeInRequest the number of chat room
 	 * messages to include in the ChatGPT request to give the bot context of the
 	 * conversation. Each message counts against your usage quota.
@@ -93,7 +93,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param requestsPer24Hours requests allowed per user per 24 hours, or
 	 * {@literal <= 0} for no limit
 	 */
-	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String reasoningEffort, String timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours) {
+	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String reasoningEffort, Duration timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours) {
 		this.openAIClient = openAIClient;
 		this.moodCommand = moodCommand;
 		this.model = model;
@@ -101,7 +101,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		this.promptsByRoom = promptsByRoom;
 		this.completionMaxTokens = completionMaxTokens;
 		this.reasoningEffort = reasoningEffort;
-		this.timeBetweenSpontaneousPosts = Duration.parse(timeBetweenSpontaneousPosts);
+		this.timeBetweenSpontaneousPosts = timeBetweenSpontaneousPosts;
 		this.numLatestMessagesToIncludeInRequest = numLatestMessagesToIncludeInRequest;
 		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
 		usageQuota = (requestsPer24Hours > 0) ? new UsageQuota(Duration.ofDays(1), requestsPer24Hours) : UsageQuota.allowAll();

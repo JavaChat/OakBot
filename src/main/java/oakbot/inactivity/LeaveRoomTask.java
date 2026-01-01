@@ -20,8 +20,8 @@ public class LeaveRoomTask implements InactivityTask {
 
 	private final Duration inactivityTime; //e.g. 3 days
 
-	public LeaveRoomTask(String inactivityTime) {
-		this.inactivityTime = Duration.parse(inactivityTime);
+	public LeaveRoomTask(Duration inactivityTime) {
+		this.inactivityTime = inactivityTime;
 	}
 
 	@Override

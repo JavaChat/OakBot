@@ -2,6 +2,7 @@ package oakbot.bot;
 
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -99,12 +100,12 @@ public class CommandsWikiPage {
 		{
 			listeners.add(new MentionListener());
 			listeners.add(new DadJokeListener("Oak", null));
-			listeners.add(new ChatGPT(new OpenAIClient(""), null, "", "", Map.of(), 0, null, "PT0S", 10, 0, 0));
-			listeners.add(new MornListener("PT1S", null));
+			listeners.add(new ChatGPT(new OpenAIClient(""), null, "", "", Map.of(), 0, null, Duration.ZERO, 10, 0, 0));
+			listeners.add(new MornListener(Duration.ZERO, null));
 			listeners.add(new UnitConversionListener());
-			listeners.add(new WaveListener("PT1S", null));
+			listeners.add(new WaveListener(Duration.ZERO, null));
 			listeners.add(new WelcomeListener(db, 1000, Map.of()));
-			listeners.add(new XkcdExplained("PT0S"));
+			listeners.add(new XkcdExplained(Duration.ZERO));
 
 			listeners.removeIf(l -> l.name() == null);
 			listeners.sort(Comparator.comparing(Listener::name));
@@ -114,7 +115,7 @@ public class CommandsWikiPage {
 		{
 			commands.add(new AbbreviationCommand(null));
 			commands.add(new AboutCommand(null));
-			commands.add(new AdventOfCode(null, "PT0S", Map.of()));
+			commands.add(new AdventOfCode(null, Duration.ZERO, Map.of()));
 			commands.add(new AfkCommand());
 			commands.add(new CatCommand(null));
 			commands.add(new CoffeeCommand());
@@ -128,7 +129,7 @@ public class CommandsWikiPage {
 			commands.add(new ExplainCommand(null));
 			commands.add(new FacepalmCommand(""));
 			commands.add(new FatCatCommand(db));
-			commands.add(new FishCommand(db, "PT0S", "PT0S", "PT0S"));
+			commands.add(new FishCommand(db, Duration.ZERO, Duration.ZERO, Duration.ZERO));
 			commands.add(new GrammarCommand(null));
 			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
@@ -139,7 +140,7 @@ public class CommandsWikiPage {
 			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));
 			commands.add(new MoodCommand(db, null));
-			commands.add(new PhishCommand(db, "PT0S", "PT0S"));
+			commands.add(new PhishCommand(db, Duration.ZERO, Duration.ZERO));
 			commands.add(new QuotaCommand(null, null));
 			commands.add(new ReactGiphyCommand(null));
 			commands.add(new RemindCommand());

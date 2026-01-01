@@ -71,11 +71,11 @@ public class FishCommand implements Command, ScheduledTask {
 
 	private final Duration timeUserHasToCatchFish;
 
-	public FishCommand(Database db, String minTimeUntilQuiver, String maxTimeUntilQuiver, String timeUserHasToCatchFish) {
+	public FishCommand(Database db, Duration minTimeUntilQuiver, Duration maxTimeUntilQuiver, Duration timeUserHasToCatchFish) {
 		this.db = db;
-		this.minTimeUntilQuiver = Duration.parse(minTimeUntilQuiver);
-		this.maxTimeUntilQuiver = Duration.parse(maxTimeUntilQuiver);
-		this.timeUserHasToCatchFish = Duration.parse(timeUserHasToCatchFish);
+		this.minTimeUntilQuiver = minTimeUntilQuiver;
+		this.maxTimeUntilQuiver = maxTimeUntilQuiver;
+		this.timeUserHasToCatchFish = timeUserHasToCatchFish;
 		inventoryByUser = loadInventories();
 	}
 

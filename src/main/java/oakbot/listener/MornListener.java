@@ -48,20 +48,18 @@ public class MornListener implements Listener {
 	//@formatter:on
 
 	/**
-	 * @param hesitation the amount of time to wait before responding (duration
-	 * string)
+	 * @param hesitation the amount of time to wait before responding
 	 */
-	public MornListener(String hesitation) {
+	public MornListener(Duration hesitation) {
 		this(hesitation, null);
 	}
 
 	/**
-	 * @param hesitation the amount of time to wait before responding (duration
-	 * string)
+	 * @param hesitation the amount of time to wait before responding
 	 * @param mentionListener the mention listener
 	 */
-	public MornListener(String hesitation, CatchAllMentionListener catchAllListener) {
-		this.hesitation = Duration.parse(hesitation);
+	public MornListener(Duration hesitation, CatchAllMentionListener catchAllListener) {
+		this.hesitation = hesitation;
 		this.catchAllListener = catchAllListener;
 	}
 

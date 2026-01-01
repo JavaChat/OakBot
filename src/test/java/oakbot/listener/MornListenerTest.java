@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -99,7 +101,7 @@ class MornListenerTest {
 		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
-		var listener = new MornListener("PT0S", mentionListener);
+		var listener = new MornListener(Duration.ZERO, mentionListener);
 
 		var chatResponse = listener.onMessage(chatMessage, bot);
 		if (response == null) {
@@ -126,7 +128,7 @@ class MornListenerTest {
 		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
-		var listener = new MornListener("PT0S", mentionListener);
+		var listener = new MornListener(Duration.ZERO, mentionListener);
 
 		var chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("morn", chatResponse);
@@ -152,7 +154,7 @@ class MornListenerTest {
 		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
-		var listener = new MornListener("PT0S", mentionListener);
+		var listener = new MornListener(Duration.ZERO, mentionListener);
 
 		var chatResponse = listener.onMessage(chatMessage1, bot);
 		assertMessage("morn", chatResponse);

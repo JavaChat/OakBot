@@ -47,10 +47,10 @@ public class XkcdExplained implements ScheduledTask, Listener {
 	/**
 	 * @param timeToWaitBeforeFirstWikiCheck the amount time to wait after the
 	 * comic is posted to the chat room before crawling explainxkcd.com for the
-	 * explanation (duration string)
+	 * explanation
 	 */
-	public XkcdExplained(String timeToWaitBeforeFirstWikiCheck) {
-		this.timeToWaitBeforeFirstWikiCheck = Duration.parse(timeToWaitBeforeFirstWikiCheck);
+	public XkcdExplained(Duration timeToWaitBeforeFirstWikiCheck) {
+		this.timeToWaitBeforeFirstWikiCheck = timeToWaitBeforeFirstWikiCheck;
 	}
 
 	@Override

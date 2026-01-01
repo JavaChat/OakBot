@@ -35,8 +35,8 @@ public class FillTheSilenceTask implements InactivityTask {
 
 	private final Duration inactivityTime;
 
-	public FillTheSilenceTask(String inactivityTime) {
-		this.inactivityTime = Duration.parse(inactivityTime);
+	public FillTheSilenceTask(Duration inactivityTime) {
+		this.inactivityTime = inactivityTime;
 	}
 
 	@Override

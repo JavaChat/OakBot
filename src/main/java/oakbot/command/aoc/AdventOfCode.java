@@ -47,7 +47,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 	 * announcing when users complete the puzzles. AoC asks that this not be
 	 * shorter than 15 minutes.
 	 */
-	public AdventOfCode(AdventOfCodeApi api, String pollingInterval) {
+	public AdventOfCode(AdventOfCodeApi api, Duration pollingInterval) {
 		this(api, pollingInterval, new HashMap<>());
 	}
 
@@ -61,8 +61,8 @@ public class AdventOfCode implements ScheduledTask, Command {
 	 * default leaderboard that is displayed when the user does not specify a
 	 * leaderboard ID. Can be empty.
 	 */
-	public AdventOfCode(AdventOfCodeApi api, String pollingInterval, Map<Integer, AdventOfCodeLeaderboard> monitoredLeaderboardByRoom) {
-		this.pollingInterval = Duration.parse(pollingInterval);
+	public AdventOfCode(AdventOfCodeApi api, Duration pollingInterval, Map<Integer, AdventOfCodeLeaderboard> monitoredLeaderboardByRoom) {
+		this.pollingInterval = pollingInterval;
 		this.monitoredLeaderboardByRoom = monitoredLeaderboardByRoom;
 		this.api = api;
 

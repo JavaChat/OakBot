@@ -695,4 +695,7 @@
 		<constructor-arg value="P3D" />
 	</bean>
 
+	<!-- Converts duration strings to Duration objects. -->
+	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean" />
+
 </beans>

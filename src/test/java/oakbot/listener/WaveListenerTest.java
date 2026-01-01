@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -39,7 +41,7 @@ class WaveListenerTest {
 		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
-		var listener = new WaveListener("PT0S", mentionListener);
+		var listener = new WaveListener(Duration.ZERO, mentionListener);
 
 		var chatResponse = listener.onMessage(chatMessage, bot);
 		if (response == null) {
@@ -64,7 +66,7 @@ class WaveListenerTest {
 		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
-		var listener = new WaveListener("PT0S", mentionListener);
+		var listener = new WaveListener(Duration.ZERO, mentionListener);
 
 		var chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("\\o", chatResponse);
@@ -86,7 +88,7 @@ class WaveListenerTest {
 		when(bot.isAdminUser(10)).thenReturn(true);
 
 		var mentionListener = new MentionListenerMock();
-		var listener = new WaveListener("PT0S", mentionListener);
+		var listener = new WaveListener(Duration.ZERO, mentionListener);
 
 		var chatResponse = listener.onMessage(chatMessage, bot);
 		assertMessage("\\o", chatResponse);
@@ -111,7 +113,7 @@ class WaveListenerTest {
 		when(bot.getUserId()).thenReturn(1);
 
 		var mentionListener = new MentionListenerMock();
-		var listener = new WaveListener("PT0S", mentionListener);
+		var listener = new WaveListener(Duration.ZERO, mentionListener);
 
 		var chatResponse = listener.onMessage(chatMessage1, bot);
 		assertMessage("\\o", chatResponse);

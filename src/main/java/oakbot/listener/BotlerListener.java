@@ -37,13 +37,14 @@ public class BotlerListener implements Command, Listener {
 	 * @param botlerUserId Botler's user ID
 	 * @param botlerStartupMessage the Botler message to respond to
 	 * @param response the response
+	 * @param timeBetweenResponses cooldown time between responses
 	 */
-	public BotlerListener(String botlerTrigger, int botlerUserId, String botlerStartupMessage, String response, String timeBetweenResponses) {
+	public BotlerListener(String botlerTrigger, int botlerUserId, String botlerStartupMessage, String response, Duration timeBetweenResponses) {
 		this.botlerTrigger = botlerTrigger;
 		this.botlerUserId = botlerUserId;
 		this.botlerStartupMessage = botlerStartupMessage;
 		this.response = response;
-		this.timeBetweenResponses = Duration.parse(timeBetweenResponses);
+		this.timeBetweenResponses = timeBetweenResponses;
 	}
 
 	@Override

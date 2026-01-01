@@ -70,10 +70,10 @@ public class PhishCommand implements Command, ScheduledTask {
 	private final Duration minTimeUntilQuiver;
 	private final Duration maxTimeUntilQuiver;
 
-	public PhishCommand(Database db, String minTimeUntilQuiver, String maxTimeUntilQuiver) {
+	public PhishCommand(Database db, Duration minTimeUntilQuiver, Duration maxTimeUntilQuiver) {
 		this.db = db;
-		this.minTimeUntilQuiver = Duration.parse(minTimeUntilQuiver);
-		this.maxTimeUntilQuiver = Duration.parse(maxTimeUntilQuiver);
+		this.minTimeUntilQuiver = minTimeUntilQuiver;
+		this.maxTimeUntilQuiver = maxTimeUntilQuiver;
 		inboxesByUser = loadInventories();
 	}
 

@@ -36,7 +36,7 @@ class FishCommandTest {
 	@Test
 	void loadInventories_no_data() {
 		var db = mock(Database.class);
-		new FishCommand(db, "PT1S", "PT1S", "PT1S");
+		new FishCommand(db, Duration.ofSeconds(1), Duration.ofSeconds(1), Duration.ofSeconds(1));
 		verify(db).getMap("fish.caught");
 	}
 
@@ -45,7 +45,7 @@ class FishCommandTest {
 		var db = mock(Database.class);
 		when(db.getMap("fish.caught")).thenReturn(new HashMap<String, Object>());
 
-		new FishCommand(db, "PT1S", "PT1S", "PT1S");
+		new FishCommand(db, Duration.ofSeconds(1), Duration.ofSeconds(1), Duration.ofSeconds(1));
 		verify(db).getMap("fish.caught");
 	}
 
@@ -64,7 +64,7 @@ class FishCommandTest {
 
 		var bot = mock(IBot.class);
 
-		var command = new FishCommand(db, "PT1S", "PT1S", "PT1S");
+		var command = new FishCommand(db, Duration.ofSeconds(1), Duration.ofSeconds(1), Duration.ofSeconds(1));
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
@@ -95,7 +95,7 @@ class FishCommandTest {
 
 		var bot = mock(IBot.class);
 
-		var command = new FishCommand(db, "PT1S", "PT1S", "PT1S");
+		var command = new FishCommand(db, Duration.ofSeconds(1), Duration.ofSeconds(1), Duration.ofSeconds(1));
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
@@ -120,7 +120,7 @@ class FishCommandTest {
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, Duration.ofMinutes(15), Duration.ofMinutes(30), Duration.ofMinutes(15));
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
@@ -152,7 +152,7 @@ class FishCommandTest {
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, Duration.ofMinutes(15), Duration.ofMinutes(30), Duration.ofMinutes(15));
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
@@ -206,7 +206,7 @@ class FishCommandTest {
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, Duration.ofMinutes(15), Duration.ofMinutes(30), Duration.ofMinutes(15));
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
@@ -262,7 +262,7 @@ class FishCommandTest {
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, Duration.ofMinutes(15), Duration.ofMinutes(30), Duration.ofMinutes(15));
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
@@ -298,7 +298,7 @@ class FishCommandTest {
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, Duration.ofMinutes(15), Duration.ofMinutes(30), Duration.ofMinutes(15));
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
@@ -358,7 +358,7 @@ class FishCommandTest {
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, Duration.ofMinutes(15), Duration.ofMinutes(30), Duration.ofMinutes(15));
 		verify(db).getMap("fish.caught");
 
 		//@formatter:off
@@ -421,7 +421,7 @@ class FishCommandTest {
 		when(rand.nextDouble()).thenReturn(0.1234);
 		Rng.inject(rand);
 
-		var command = new FishCommand(db, "PT15M", "PT30M", "PT15M");
+		var command = new FishCommand(db, Duration.ofMinutes(15), Duration.ofMinutes(30), Duration.ofMinutes(15));
 		verify(db).getMap("fish.caught");
 
 		/*

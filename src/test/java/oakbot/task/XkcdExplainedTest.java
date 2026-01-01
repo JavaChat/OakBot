@@ -34,7 +34,7 @@ class XkcdExplainedTest {
 	 * Live test. Outputs the message to stdout.
 	 */
 	public static void main(String args[]) throws Exception {
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 		doAnswer(invocation -> {
@@ -57,7 +57,7 @@ class XkcdExplainedTest {
 	}
 
 	@AfterEach
-	 void after() {
+	void after() {
 		Now.restore();
 		HttpFactory.restore();
 	}
@@ -73,7 +73,7 @@ class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 
@@ -95,7 +95,7 @@ class XkcdExplainedTest {
 
 		assertTrue(task.comicsByRoom.isEmpty());
 	}
-	
+
 	@Test
 	void explanation_incomplete_wrapped_in_div() throws Exception {
 		var html = new Gobble(getClass(), "xkcd-explained-3072-explanation-incomplete-wrapped-in-div.html").asString();
@@ -107,7 +107,7 @@ class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 
@@ -141,7 +141,7 @@ class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 
@@ -175,7 +175,7 @@ class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 
@@ -200,7 +200,7 @@ class XkcdExplainedTest {
 
 	@Test
 	void initial_wait_time() throws Exception {
-		var task = new XkcdExplained("PT1H");
+		var task = new XkcdExplained(Duration.ofHours(1));
 
 		var bot = mock(IBot.class);
 
@@ -238,7 +238,7 @@ class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 
@@ -276,7 +276,7 @@ class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 
@@ -312,7 +312,7 @@ class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 
@@ -346,7 +346,7 @@ class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 
@@ -374,7 +374,7 @@ class XkcdExplainedTest {
 		.build());
 		//@formatter:on
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 
@@ -406,7 +406,7 @@ class XkcdExplainedTest {
 		}
 		HttpFactory.inject(mockHttp.build());
 
-		var task = new XkcdExplained("PT0S");
+		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);
 

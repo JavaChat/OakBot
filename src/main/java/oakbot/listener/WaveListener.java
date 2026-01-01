@@ -31,20 +31,18 @@ public class WaveListener implements Listener {
 	private final Map<Integer, Instant> lastWaveTimeByRoom = new HashMap<>();
 
 	/**
-	 * @param hesitation the amount of time to wait before waving back (duration
-	 * string)
+	 * @param hesitation the amount of time to wait before waving back
 	 */
-	public WaveListener(String hesitation) {
+	public WaveListener(Duration hesitation) {
 		this(hesitation, null);
 	}
 
 	/**
-	 * @param hesitation the amount of time to wait before waving back (duration
-	 * string)
+	 * @param hesitation the amount of time to wait before waving back
 	 * @param catchAllListener the catch-all listener
 	 */
-	public WaveListener(String hesitation, CatchAllMentionListener catchAllListener) {
-		this.hesitation = Duration.parse(hesitation);
+	public WaveListener(Duration hesitation, CatchAllMentionListener catchAllListener) {
+		this.hesitation = hesitation;
 		this.catchAllListener = catchAllListener;
 	}
 
