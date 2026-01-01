@@ -23,6 +23,10 @@ public class AboutCommand implements Command {
 	private final Statistics stats;
 	private final String host;
 
+	public AboutCommand(Statistics stats) {
+		this(stats, null);
+	}
+
 	public AboutCommand(Statistics stats, String host) {
 		this.stats = stats;
 		this.host = host;

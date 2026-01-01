@@ -14,7 +14,7 @@
 	    https://www.springframework.org/schema/util/spring-util.xsd">	
 
 	<!-- Spring reference documentation: https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html -->
-	
+
 	<util:properties id="settings">
 	    <!--
 	    The path to the logging configuration file.
@@ -28,36 +28,36 @@
 		(defaults to: stackoverflow.com) 
 		-->
 		<prop key="account.site">stackoverflow.com</prop>
-		
+
 		<!--
 		The Stack Overflow login credentials for the bot.
 		-->
 		<prop key="account.email">email@example.com</prop>
 		<prop key="account.password">password</prop>
-		
+
 		<!--
 		Manually set the username of the bot's account, incase it can't be parsed automatically.
 		<prop key="account.username">OakBot</prop>
 		-->
-		
+
 		<!--
 		Manually set the user ID of the bot's account, incase it can't be parsed automatically.
 		The user ID can be found in the URL of the account's profile page.
 		<prop key="account.userId">4258326</prop>
 		-->
-		
+
 		<!--
 		The string sequence that prefixes all commands (typically a single character).
 		This cannot contain any spaces and should not contain any of the special characters used in Markdown syntax, including: * _ ` - > ( ) [ ]
 		-->
 		<prop key="trigger">=</prop>
-		
+
 		<!--
 		(optional)
 		A string sequence that users can append onto their messages if they want the bot to ignore a message.
 		-->
 		<prop key="ignoreMessageSuffix">~</prop>
-		
+
 		<!--
 		(optional)
 		The message to post when the bot joins a room. Chat markdown can be used here.
@@ -69,7 +69,7 @@
 		Displays this URL when the "help" command output is condensed.
 		-->
 		<prop key="help.webpage">https://github.com/JavaChat/OakBot/wiki/Commands</prop>
-		
+
 		<!--
    		(optional)
 		Any oneboxes (including images) that the bot posts will be automatically replaced by the onebox's URL after the specified amount of time
@@ -78,7 +78,7 @@
 		Note that this value cannot exceed two minutes, which is the maximum amount of time Stack Overflow Chat gives you to edit/delete your posts.
 		-->
 		<prop key="hideOneboxesAfter">PT1M50S</prop>
-		
+
 		<!--
 		The list of rooms the bot cannot be unsummoned from.
 		At least one room must be specified.
@@ -87,7 +87,7 @@
 		A chat room's ID can be found in its URL.
 		-->
 		<prop key="rooms.home">1,139</prop>
-		
+
 		<!--
 		(optional)
 		The bot will avoid posting things like awkward silence messages (a message that the bot posts when the room is inactive) to these rooms.
@@ -96,7 +96,7 @@
 		A chat room's ID can be found in its URL.
 		-->
 		<prop key="rooms.quiet">1</prop>
-		
+
 		<!--
 		(optional)
 		The users that are allowed to run admin-level commands against the bot (notably, the "shutdown" command).
@@ -104,7 +104,7 @@
 		A user ID can be found in the URL of the user's profile page.
 		-->
 		<prop key="users.admins">13379</prop>
-		
+
 		<!--
 		(optional)
 		The users that have been banned from using the bot (red list).
@@ -113,7 +113,7 @@
 		A user ID can be found in the URL of the user's profile page.
 		-->
 		<prop key="users.banned"></prop>
-		
+
 		<!--
 		(optional)
 		The users that have been given permission to use the bot (green list).
@@ -122,12 +122,12 @@
 		A user ID can be found in the URL of the user's profile page.
 		-->
 		<prop key="users.allowed"></prop>
-		
+
 		<!--
 		Enables or disables learned commands.
 		-->
 		<prop key="enableLearnedCommands">true</prop>
-		
+
 		<!--
 		(optional)
 		How often each room's web socket connection is refreshed (a workaround to resolve random disconnects).
@@ -145,6 +145,7 @@
 	</util:properties>
 	<context:property-placeholder properties-ref="settings"/>
 
+	<!-- database =============================================== -->
 	<bean id="database" class="oakbot.JsonDatabase">
 		<constructor-arg value="db.json" />
 	</bean>
@@ -152,273 +153,387 @@
 	Use this bean if you don't want to persist anything to a file:
 	<bean id="database" class="oakbot.MemoryDatabase" />
 	-->
-	
+
+	<!-- statistics ============================================= -->
 	<bean id="statistics" class="oakbot.Statistics">
 		<constructor-arg ref="database" />
 	</bean>
 
-	<!-- /abbr -->
+	<!-- "catch all" mention listener =========================== -->
+	<alias name="chatGPT" alias="catchAllMentionListener" />
+	<!--
+	Use this if you are not using the ChatGPT listener:
+	<bean id="mentionListener" class="oakbot.listener.MentionListener" />
+	<alias name="mentionListener" alias="catchAllMentionListener" />
+	-->
+
+	<!-- API clients referenced by multiple commands ============ -->
 	<bean class="oakbot.command.stands4.Stands4Client" id="stands4Client">
-		<constructor-arg value="API_USER_ID" /> <!-- API user ID -->
-		<constructor-arg value="API_TOKEN" /> <!-- API token -->
+		<!--
+		API user ID
+		-->
+		<constructor-arg value="API_USER_ID" />
+
+		<!--
+		API token
+		-->
+		<constructor-arg value="API_TOKEN" />
 	</bean>
+
+	<bean class="oakbot.command.TheCatDogApiClient" id="theCatDogApiClient">
+		<!--
+		(optional)
+		API key for thecatapi.com
+		-->
+		<constructor-arg value="API_KEY" />
+	</bean>
+
+	<!-- /abbr ================================================== -->
 	<bean class="oakbot.command.stands4.AbbreviationCommand">
 		<constructor-arg ref="stands4Client" />
 	</bean>
 
-	<!-- /about -->
+	<!-- /about ================================================= -->
 	<bean class="oakbot.command.AboutCommand">
 		<constructor-arg ref="statistics" />
-		<constructor-arg><null /></constructor-arg> <!-- who the bot is hosted by (optional, chat markdown can be used) -->
+
+		<!--
+		(optional)
+		Who the bot is hosted by. Chat markdown allowed.
+		-->
+		<constructor-arg value="**Michael**" />
 	</bean>
 
-	<!-- /afk -->
+	<!-- /afk =================================================== -->
 	<bean class="oakbot.command.AfkCommand" />
-	
-	<!-- /aoc -->
+
+	<!-- /aoc =================================================== -->
 	<bean id="aocApi" class="oakbot.command.aoc.AdventOfCodeApi">
 		<!--
-		Session token is required in order to query the AoC leaderboards. This value can be retrieved
-		from your own Advent of Code login; just open the site and look at your
-		browser cookies. Whatever user account is associated with this session ID
-		must have access to a leaderboard in order for the bot to view it.
+		Session token is required in order to query the AoC leaderboards.
+		This value can be retrieved from your own Advent of Code login;	just open the site and look at your browser cookies.
+		Whatever user account is associated with this session ID must have access to a leaderboard in order for the bot to view it.
 		-->
 		<constructor-arg value="session token goes here" />
 	</bean>
+
 	<bean class="oakbot.command.aoc.AdventOfCodeLeaderboard" id="aocLeaderboard">
-		<constructor-arg value="123456" /> <!-- leaderboard ID -->
-		<constructor-arg value="abc-123" /> <!-- join code (leave out this argument if you want to keep it private) -->
+		<!--
+		Leaderboard ID.
+		-->
+		<constructor-arg value="123456" />
+
+		<!--
+		(optional)
+		Leaderboard join code.
+		Leave out this argument if you want to keep it private.
+		-->
+		<constructor-arg value="abc-123" /> 
 	</bean>
+
 	<bean class="oakbot.command.aoc.AdventOfCode">
-		<constructor-arg value="PT15M" /> <!-- polling interval. AoC asks that this not be less than 15 minutes. -->
+		<constructor-arg ref="aocApi" />
+
+		<!--
+		Polling interval.
+		AoC asks that this not be less than 15 minutes.
+		-->
+		<constructor-arg value="PT15M" /> 
+
+		<!--
+		(optional)
+		The leaderboard to show for each room if the user does not specify a leaderboard ID. 
+		-->
 		<constructor-arg>
-			<util:map> <!-- the leaderboard to show for each room if the user does not specify a leaderboard ID (can be empty) -->
+			<util:map> 
 				<entry key="1" value-ref="aocLeaderboard" />
 			</util:map>
 		</constructor-arg>
-		<constructor-arg ref="aocApi" />
 	</bean>
-	
-	<!-- /bird -->
-	<!--
-	<bean class="oakbot.command.shibe.ShibeOnlineClient" id="shibeOnlineClient" />
-	<bean class="oakbot.command.shibe.BirdCommand">
-		<constructor-arg ref="shibeOnlineClient" />
-	</bean>
-	-->
 
-	<!-- /botler -->
+	<!-- /botler ================================================ -->
 	<bean class="oakbot.listener.BotlerListener">
-		<constructor-arg value="Botler," /> <!-- trigger -->
-		<constructor-arg value="13750349" /> <!-- user ID -->
-		<constructor-arg value="Hello friends!" /> <!-- message to respond to -->
-		<constructor-arg value="Hi, Botler." /> <!-- response -->
-		<constructor-arg value="P1D" /> <!-- time between responses -->
+		<!--
+		Botler's trigger
+		-->
+		<constructor-arg value="Botler," /> 
+
+		<!--
+		Botler's user ID
+		-->
+		<constructor-arg value="13750349" />
+
+		<!--
+		The Botler message that the bot will respond to.
+		-->
+		<constructor-arg value="Hello friends!" />
+
+		<!--
+		The response.
+		-->
+		<constructor-arg value="Hi, Botler." />
+
+		<!--
+		Cooldown between responses.
+		-->
+		<constructor-arg value="P1D" />
 	</bean>
 
-	<!-- /cat -->
-	<bean class="oakbot.command.TheCatDogApiClient" id="theCatDogApiClient">
-		<!-- <constructor-arg value="API_KEY" /> API key for thecatapi.com (optional) -->
-	</bean>
+	<!-- /cat =================================================== -->
 	<bean class="oakbot.command.CatCommand">
 		<constructor-arg ref="theCatDogApiClient" />
 	</bean>
 
-	<!-- /coffee -->
+	<!-- /coffee ================================================ -->
 	<bean class="oakbot.command.CoffeeCommand" />
 
-	<!-- /convert -->
+	<!-- /convert =============================================== -->
 	<bean class="oakbot.command.stands4.ConvertCommand">
 		<constructor-arg ref="stands4Client" />
 	</bean>
 
-	<!-- /define -->
+	<!-- /define ================================================ -->
 	<bean class="oakbot.command.define.DefineCommand">
-		<constructor-arg value="" /> <!-- API key for dictionaryapi.com -->
+		<!--
+		API key for dictionaryapi.com
+		-->
+		<constructor-arg value="API_KEY" />
 	</bean>
-	
-	<!-- /delete -->
+
+	<!-- /delete ================================================ -->
 	<bean class="oakbot.command.DeleteCommand">
-		<constructor-arg ref="chatGPT" />
+		<constructor-arg ref="catchAllMentionListener" />
 	</bean>
-	
-	<!-- /dog -->
+
+	<!-- /dog =================================================== -->
 	<bean class="oakbot.command.DogCommand">
 		<constructor-arg ref="theCatDogApiClient" />
 	</bean>
-	
-	<!-- /echo -->
+
+	<!-- /echo ================================================== -->
 	<bean class="oakbot.command.EchoCommand" />
-	
-	<!-- /ed -->
+
+	<!-- /ed ==================================================== -->
 	<bean class="oakbot.command.effective.EffectiveDebuggingCommand" />
 
-	<!-- /ej -->
+	<!-- /ej ==================================================== -->
 	<bean class="oakbot.command.effective.EffectiveJavaCommand" />
 
-	<!-- /8ball -->
+	<!-- /8ball ================================================= -->
 	<bean class="oakbot.command.EightBallCommand" />
 
-	<!-- /explain -->
+	<!-- /explain =============================================== -->
 	<bean class="oakbot.command.stands4.ExplainCommand">
 		<constructor-arg ref="stands4Client" />
 	</bean>
 
-	<!-- /facepalm -->
+	<!-- /facepalm ============================================== -->
 	<bean class="oakbot.command.FacepalmCommand">
-		<constructor-arg value="" /> <!-- API key for tenor.com -->
+		<!--
+		API key for tenor.com
+		-->
+		<constructor-arg value="API_KEY" />
 	</bean>
-	
-	<!-- /fatcat -->
+
+	<!-- /fatcat ================================================ -->
 	<bean class="oakbot.command.FatCatCommand">
 		<constructor-arg ref="database" />
-		<constructor-arg> <!-- a list of users who have permission to add/remove pictures from this command. Bot admins already have permission to do this. -->
+
+		<!--
+		A list of users who have permission to add/remove pictures from this command.
+		Bot admins already have permission to do this.
+		-->
+		<constructor-arg>
 			<util:list>
-				<value>12345</value>				
+				<value>12345</value>
 			</util:list>
 		</constructor-arg>
 	</bean>
 
-	<!-- /fish -->
+	<!-- /fish ================================================== -->
 	<bean class="oakbot.command.FishCommand">
 		<constructor-arg ref="database" />
-		<constructor-arg value="PT15M" /> <!-- min time until quiver -->
-		<constructor-arg value="PT2H" /> <!-- max time until quiver -->
-		<constructor-arg value="PT30M" /> <!-- time able to pull up fish after quiver -->
+
+		<!--
+		Min time until quiver.
+		-->
+		<constructor-arg value="PT15M" />
+
+		<!--
+		Max time until quiver.
+		-->
+		<constructor-arg value="PT2H" />
+
+		<!--
+		Amount of time user has to pull up fish after quiver.
+		-->
+		<constructor-arg value="PT30M" />
 	</bean>
-	
-	<!-- /grammar -->
+
+	<!-- /grammar =============================================== -->
 	<bean class="oakbot.command.stands4.GrammarCommand">
 		<constructor-arg ref="stands4Client" />
 	</bean>
 
-	<!-- /groot -->
+	<!-- /groot ================================================= -->
 	<bean class="oakbot.filter.GrootFilter" />
 
-	<!-- /http -->
+	<!-- /http ================================================== -->
 	<bean class="oakbot.command.http.HttpCommand" />
 
-	<!-- /javadoc -->
+	<!-- /javadoc =============================================== -->
 	<bean class="oakbot.command.javadoc.JavadocCommand">
 		<constructor-arg ref="javadocDao" />
 	</bean>
 	<bean id="javadocDao" class="oakbot.command.javadoc.JavadocDaoUncached">
 		<constructor-arg>
 			<bean class="java.nio.file.Paths" factory-method="get">
-				<constructor-arg value="" /> <!-- path to javadoc ZIP file directory -->
+				<!--
+				Path to javadoc ZIP file directory
+				-->
+				<constructor-arg value="javadoc/zip-files" />
 				<constructor-arg><array /></constructor-arg>
 			</bean>
 		</constructor-arg>
 	</bean>
-	
-	<!-- /juicebox -->
+
+	<!-- /juicebox ============================================== -->
 	<bean class="oakbot.command.JuiceBoxCommand" />
 
-	<!-- /phish -->
+	<!-- /phish ================================================= -->
 	<bean class="oakbot.command.PhishCommand">
 		<constructor-arg ref="database" />
-		<constructor-arg value="PT15M" /> <!-- min time until ping -->
-		<constructor-arg value="PT2H" /> <!-- max time until ping -->
+
+		<!--
+		Min time until ping.
+		-->
+		<constructor-arg value="PT15M" />
+
+		<!--
+		Max time until ping.
+		-->
+		<constructor-arg value="PT2H" />
 	</bean>
 
-	<!-- /react -->
+	<!-- /react ================================================= -->
 	<bean class="oakbot.command.ReactGiphyCommand">
-		<constructor-arg value="" /> <!-- API key for giphy.com -->
+		<!--
+		API key for giphy.com.
+		-->
+		<constructor-arg value="APT_KEY" />
 	</bean>
-	
-	<!-- /remind -->
+
+	<!-- /remind ================================================ -->
 	<bean class="oakbot.command.RemindCommand" />
 
-	<!-- /rhyme -->
+	<!-- /rhyme ================================================= -->
 	<bean class="oakbot.command.stands4.RhymeCommand">
 		<constructor-arg ref="stands4Client" />
 	</bean>
 
-	<!-- /roll -->
+	<!-- /roll ================================================== -->
 	<bean class="oakbot.command.RollCommand" />
 
-	<!-- /rollover -->
+	<!-- /rollover ============================================== -->
 	<bean class="oakbot.filter.UpsidedownTextFilter" />
-	
-	<!-- /shiba -->
-	<!--
-	<bean class="oakbot.command.shibe.ShibaCommand">
-		<constructor-arg ref="shibeOnlineClient" />
-	</bean>
-	-->
 
-	<!-- /shrug -->
+	<!-- /shrug ================================================= -->
 	<bean class="oakbot.command.ShrugCommand" />
 
-	<!-- /shutdown -->
+	<!-- /shutdown ============================================== -->
 	<bean class="oakbot.command.ShutdownCommand" />
 
-	<!-- /summon and /unsummon (/join and /leave) -->
+	<!-- /summon and /unsummon (/join and /leave) =============== -->
 	<bean class="oakbot.command.SummonCommand" />
 	<bean class="oakbot.command.UnsummonCommand" />
 
-	<!-- /tag -->
+	<!-- /tag =================================================== -->
 	<bean class="oakbot.command.TagCommand" />
 
-	<!-- /timeout -->
+	<!-- /timeout =============================================== -->
 	<bean class="oakbot.command.TimeoutCommand" />
 
-	<!-- /urban -->
+	<!-- /urban ================================================= -->
 	<bean class="oakbot.command.urban.UrbanCommand" />
 
-	<!-- /wadu -->
+	<!-- /wadu ================================================== -->
 	<bean class="oakbot.filter.WaduFilter" />
-	
-	<!-- /wiki -->
+
+	<!-- /wiki ================================================== -->
 	<bean class="oakbot.command.WikiCommand" />
 
-	<!-- dadjoke listener -->
+	<!-- dadjoke listener ======================================= -->
 	<bean class="oakbot.listener.DadJokeListener">
+		<!--
+		Bot's name.
+		-->
 		<constructor-arg value="Oak" />
-		<constructor-arg ref="chatGPT" /> <!-- should be set to either mentionListener or chatGPT -->
+
+		<constructor-arg ref="catchAllMentionListener" />
 	</bean>
-	
-	<!-- mention listener -->
-	<!--
-	Enable this if you're not using the ChatGPTListener
-	<bean id="mentionListener" class="oakbot.listener.MentionListener" />
-	-->
-	
-	<!-- morn listener -->
+
+	<!-- morn listener ========================================== -->
 	<bean class="oakbot.listener.MornListener">
-		<constructor-arg value="PT1S" /> <!-- amount of time to wait before responding -->
-		<constructor-arg ref="chatGPT" /> <!-- should be set to either mentionListener or chatGPT -->
+		<!--
+		Amount of time to wait before responding.
+		-->
+		<constructor-arg value="PT1S" />
+
+		<constructor-arg ref="catchAllMentionListener" />
 	</bean>
-	
-	<!-- unitconversion listener -->
+
+	<!-- unitconversion listener ================================ -->
 	<bean class="oakbot.listener.UnitConversionListener" />
-	
-	<!-- wave listener -->
+
+	<!-- wave listener ========================================== -->
 	<bean class="oakbot.listener.WaveListener">
-		<constructor-arg value="PT1S" /> <!-- amount of time to wait before waving back -->
-		<constructor-arg ref="chatGPT" /> <!-- should be set to either mentionListener or chatGPT -->
+		<!--
+		Amount of time to wait before waving back.
+		-->
+		<constructor-arg value="PT1S" />
+
+		<constructor-arg ref="catchAllMentionListener" />
 	</bean>
-	
-	<!-- welcome listener -->
+
+	<!-- welcome listener ======================================= -->
 	<bean class="oakbot.listener.WelcomeListener">
 		<constructor-arg ref="database" />
-		<constructor-arg value="1000" /> <!-- min rep user must have to NOT be welcomed -->
-		<constructor-arg> <!-- the welcome message to post for new users that join the room (can be empty, markdown can be used) -->
+
+		<!--
+		Users with a reputation less than this will be welcomed.
+		-->
+		<constructor-arg value="1000" />
+
+		<!--
+		The welcome message to post for new users that join the room (markdown allowed)
+		-->
+		<constructor-arg>
 			<util:map>
 				<entry key="1" value="Welcome to the Sandbox! Use this room to experiment with the features of Stack Overflow Chat." />
 			</util:map>
 		</constructor-arg>
 	</bean>
 
-	<!-- XKCD explained -->
+	<!-- XKCD explained ========================================= -->
 	<bean class="oakbot.task.XkcdExplained">
-		<constructor-arg value="PT30M" /> <!-- the amount time to wait after the comic is posted to the chat room before crawling explainxkcd.com for the explanation -->
+		<!--
+		The amount time to wait after the comic is posted to the chat room before crawling explainxkcd.com for the explanation.
+		-->
+		<constructor-arg value="PT30M" />
 	</bean>
 
-	<!-- ChatGPT -->
+	<!-- AI ===================================================== -->
 	<bean class="oakbot.ai.openai.OpenAIClient" id="openAIClient">
+		<!--
+		OpenAI API key.
+		-->
 		<constructor-arg value="API_KEY" />
-		<!-- log all requests/responses for debugging (optional constructor arg)
+
+		<!--
+		(optional)
+		Log all requests/responses to a CSV file for debugging.
+		-->
+		<!--
 		<constructor-arg>
 			<bean class="oakbot.util.HttpRequestLogger">
 				<constructor-arg value="openai-requests.csv" />
@@ -427,36 +542,101 @@
 		-->
 	</bean>
 	<bean class="oakbot.ai.stabilityai.StabilityAIClient" id="stabilityAIClient">
+		<!--
+		Stability.ai API key.
+		-->
 		<constructor-arg value="API_KEY" />
 	</bean>
 	<bean class="oakbot.imgur.ImgurClient" id="imgurClient">
+		<!--
+		Imgur.com API key.
+		-->
 		<constructor-arg value="CLIENT_ID" />
 	</bean>
 	<bean class="oakbot.listener.chatgpt.MoodCommand" id="moodCommand">
 		<constructor-arg ref="database" />
-		<constructor-arg value="grumpy" /> <!-- default mood -->
+
+		<!--
+		Default mood.
+		-->
+		<constructor-arg value="grumpy" />
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ChatGPT" id="chatGPT">
 		<constructor-arg ref="openAIClient" />
 		<constructor-arg ref="moodCommand" />
+
+		<!--
+		The model.
+		-->
 		<constructor-arg value="gpt-3.5-turbo" />
-		<constructor-arg value="You are a $MOOD Java developer named 'OakBot'. You are in a room called '$ROOMNAME'." /> <!-- default prompt; one or more sentences that define the bot's personality (e.g. "You are a helpful assistant"). This counts against your usage quota. Each word costs around 1.33 tokens. -->
-		<constructor-arg> <!-- room-specific prompts -->
+
+		<!--
+		Default prompt.
+		A short description of the bot's personality (e.g. "You are a helpful assistant").
+		$MOOD = The mood defined by the /mood command.
+		$ROOMNAME = The name of the chat room.
+		-->
+		<constructor-arg value="You are a $MOOD Java developer named 'OakBot'. You are in a room called '$ROOMNAME'." />
+
+		<!--
+		Room-specific prompts.
+		$MOOD = The mood defined by the /mood command.
+		$ROOMNAME = The name of the chat room.
+		-->
+		<constructor-arg>
 			<util:map>
 				<entry key="1" value="You are a $MOOD chat bot named 'OakBot'. You are in a room called 'Sandbox', which people use for testing chat features." />
 			</util:map>
 		</constructor-arg>
-		<constructor-arg value="100" /> <!-- places a limit on the length of ChatGPT's completion (response). If this number is too short, then the completion may end abruptly (e.g. in an unfinished sentence). Each word costs around 1.33 tokens. -->
-		<constructor-arg value="low" /> <!-- reasoning effort. higher values consume more tokens. only supported by some models. may be null. -->
-		<constructor-arg value="PT12H" /> <!-- the amount of time to wait before posting a message (duration string) -->
-		<constructor-arg value="10" /> <!-- the number of chat room messages to include in the ChatGPT request to give the bot context of the conversation (each message counts against the usage quota) -->
-		<constructor-arg value="300" /> <!-- each chat message that is sent to ChatGPT will not exceed this number of characters (includes markdown syntax). Chat messages that do will be truncated (without cutting off words). 0 to disable truncation. Each message counts against the usage quota. Each word costs around 1.33 tokens. -->
-		<constructor-arg value="20" /> <!-- requests allowed per user per 24 hours, or <= 0 for no limit -->
+
+		<!--
+		Max tokens the response can be.
+		If this number is too short, then the completion may end abruptly (e.g. in an unfinished sentence).
+		-->
+		<constructor-arg value="100" /> 
+
+		<!--
+		(can be null)
+		Reasoning effort.
+		Higher values consume more tokens.
+		Only supported by some models.
+		-->
+		<constructor-arg value="low" />
+
+		<!--
+		The amount of time to wait before posting a sponaneous message.
+		-->
+		<constructor-arg value="PT12H" />
+
+		<!--
+		The number of chat room messages to include in the ChatGPT request to give the bot context of the conversation.
+		Each message counts against the usage quota. 
+		-->
+		<constructor-arg value="10" />
+
+		<!--
+		Each chat message that is sent to ChatGPT will not exceed this number of characters (including markdown syntax).
+		Chat messages that exceed this will be truncated (without cutting off words).
+		0 to disable truncation.
+		Each message counts against the usage quota.
+		-->
+		<constructor-arg value="300" />
+
+		<!--
+		Requests allowed per user per 24 hours
+		0 for no limit.
+		-->
+		<constructor-arg value="20" />
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ImagineCore" id="imagineCore">
 		<constructor-arg ref="openAIClient" />
 		<constructor-arg ref="stabilityAIClient" />
-		<constructor-arg value="5" /> <!-- requests allowed per user per 24 hours, or <= 0 for no limit -->
+
+		<!--
+		Requests allowed per user per 24 hours.
+		0 for no limit.
+		-->
+		<constructor-arg value="5" />
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ImagineCommand">
 		<constructor-arg ref="imagineCore" />
@@ -475,31 +655,44 @@
 		<constructor-arg ref="chatGPT" />
 		<constructor-arg ref="imagineCore" />
 	</bean>
-	
-	<!-- fact of the day task -->
+
+	<!-- fact of the day task =================================== -->
 	<bean class="oakbot.task.FOTD" />
-	
-	<!-- health monitor task -->
+
+	<!-- health monitor task ==================================== -->
 	<bean class="oakbot.task.LinuxHealthMonitor">
-		<constructor-arg> <!-- the rooms to post health warnings in -->
+		<!--
+		The rooms to post health warnings in.
+		-->
+		<constructor-arg>
 			<util:list>
 				<value>1</value>
 			</util:list>
 		</constructor-arg>
-		<constructor-arg value="/usr/lib/update-notifier/apt-check" /> <!-- path to "apt-check" command -->
+
+		<!--
+		Path to "apt-check" command.
+		-->
+		<constructor-arg value="/usr/lib/update-notifier/apt-check" />
 	</bean>
-	
-	<!-- quote of the day task -->
+
+	<!-- quote of the day task ================================== -->
 	<bean class="oakbot.task.QOTD" />
 
-	<!-- fill the silence task -->
+	<!-- fill the silence task ================================== -->
 	<bean class="oakbot.inactivity.FillTheSilenceTask">
-		<constructor-arg value="PT6H" /> <!-- if the room is quiet for this long, bot will post a message -->
+		<!--
+		If the room is quiet for this long, bot will post a message
+		-->
+		<constructor-arg value="PT6H" />
 	</bean>
 
-	<!-- leave inactive rooms task -->
+	<!-- leave inactive rooms task ============================== -->
 	<bean class="oakbot.inactivity.LeaveRoomTask">
-		<constructor-arg value="P3D" /> <!-- if the room is inactive for this long, bot will leave the room -->
+		<!--
+		If the room is inactive for this long, bot will leave the room.
+		-->
+		<constructor-arg value="P3D" />
 	</bean>
 
 </beans>

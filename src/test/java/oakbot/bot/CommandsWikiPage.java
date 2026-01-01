@@ -113,8 +113,8 @@ public class CommandsWikiPage {
 		var commands = new ArrayList<Command>();
 		{
 			commands.add(new AbbreviationCommand(null));
-			commands.add(new AboutCommand(null, null));
-			commands.add(new AdventOfCode("PT0S", Map.of(), null));
+			commands.add(new AboutCommand(null));
+			commands.add(new AdventOfCode(null, "PT0S", Map.of()));
 			commands.add(new AfkCommand());
 			commands.add(new CatCommand(null));
 			commands.add(new CoffeeCommand());
