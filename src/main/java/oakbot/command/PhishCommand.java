@@ -307,8 +307,8 @@ public class PhishCommand implements Command, ScheduledTask {
 	}
 
 	@Override
-	public long nextRun() {
-		return Duration.ofMinutes(1).toMillis();
+	public Duration nextRun() {
+		return Duration.ofMinutes(1);
 	}
 
 	@SuppressWarnings("unchecked")

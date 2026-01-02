@@ -177,7 +177,7 @@ class AdventOfCodeTest {
 
 		var aoc = new AdventOfCode(api, Duration.ofMinutes(15), leaderboards);
 
-		assertEquals(Duration.ofMinutes(15).toMillis(), aoc.nextRun());
+		assertEquals(Duration.ofMinutes(15), aoc.nextRun());
 	}
 
 	@Test
@@ -195,7 +195,7 @@ class AdventOfCodeTest {
 
 		var aoc = new AdventOfCode(api, Duration.ofMinutes(15), leaderboards);
 
-		assertTrue(aoc.nextRun() > Duration.ofMinutes(15).toMillis());
+		assertTrue(aoc.nextRun().compareTo(Duration.ofMinutes(15)) > 0, () -> aoc.nextRun() + " should be > 15 minutes.");
 	}
 
 	@Test

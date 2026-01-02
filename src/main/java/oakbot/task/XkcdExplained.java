@@ -69,8 +69,8 @@ public class XkcdExplained implements ScheduledTask, Listener {
 	}
 
 	@Override
-	public long nextRun() {
-		return Duration.ofMinutes(1).toMillis();
+	public Duration nextRun() {
+		return Duration.ofMinutes(1);
 	}
 
 	@Override

@@ -125,7 +125,7 @@ public class Bot implements IBot {
 
 	private void scheduleTask(ScheduledTask task) {
 		var nextRun = task.nextRun();
-		if (nextRun <= 0) {
+		if (nextRun == null) {
 			return;
 		}
 
@@ -465,6 +465,10 @@ public class Bot implements IBot {
 	}
 
 	private TimerTask scheduleChore(long delay, Chore chore) {
+		if (delay < 0) {
+			delay = 0;
+		}
+
 		var timerTask = new TimerTask() {
 			@Override
 			public void run() {

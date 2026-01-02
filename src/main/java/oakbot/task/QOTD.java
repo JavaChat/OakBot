@@ -1,6 +1,7 @@
 package oakbot.task;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 import org.jsoup.nodes.Document;
@@ -36,10 +37,10 @@ public class QOTD implements ScheduledTask {
 	}
 
 	@Override
-	public long nextRun() {
+	public Duration nextRun() {
 		var now = Now.local();
 		var tomorrow = now.truncatedTo(ChronoUnit.DAYS).plusDays(1);
-		return now.until(tomorrow, ChronoUnit.MILLIS);
+		return Duration.between(now, tomorrow);
 	}
 
 	@Override

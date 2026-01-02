@@ -8,7 +8,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -294,14 +293,14 @@ public class AdventOfCode implements ScheduledTask, Command {
 	}
 
 	@Override
-	public long nextRun() {
+	public Duration nextRun() {
 		var now = Now.local();
 		if (now.getMonth() != Month.DECEMBER) {
 			var decemberFirst = LocalDateTime.of(now.getYear(), Month.DECEMBER, 1, 0, 0, 0);
-			return now.until(decemberFirst, ChronoUnit.MILLIS);
+			return Duration.between(now, decemberFirst);
 		}
 
-		return pollingInterval.toMillis();
+		return pollingInterval;
 	}
 
 	@Override

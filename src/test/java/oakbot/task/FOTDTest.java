@@ -61,7 +61,7 @@ class FOTDTest {
 
 		var task = new FOTD();
 
-		var expected = Duration.ofHours(1).toMillis();
+		var expected = Duration.ofHours(1);
 		var actual = task.nextRun();
 		assertApprox(expected, actual);
 	}
@@ -72,7 +72,7 @@ class FOTDTest {
 
 		var task = new FOTD();
 
-		var expected = Duration.ofHours(23).toMillis();
+		var expected = Duration.ofHours(23);
 		var actual = task.nextRun();
 		assertApprox(expected, actual);
 	}
@@ -148,7 +148,7 @@ class FOTDTest {
 		verify(bot, never()).broadcastMessage(any(PostMessage.class));
 	}
 
-	private static void assertApprox(long expected, long actual) {
-		assertTrue(expected - actual < 1000, () -> "Expected " + expected + " but was " + actual + ".");
+	private static void assertApprox(Duration expected, Duration actual) {
+		assertTrue(expected.minus(actual).toMillis() < 1000, () -> "Expected " + expected + " but was " + actual + ".");
 	}
 }

@@ -1,5 +1,7 @@
 package oakbot.task;
 
+import java.time.Duration;
+
 import oakbot.bot.IBot;
 import oakbot.command.HelpDoc;
 
@@ -18,9 +20,9 @@ public interface ScheduledTask {
 
 	/**
 	 * Determines how long to wait before running the task again.
-	 * @return the wait time (in milliseconds) or zero to stop running the task
+	 * @return the wait time or null to stop running the task
 	 */
-	long nextRun();
+	Duration nextRun();
 
 	/**
 	 * Gets the task's name to display in the help documentation.

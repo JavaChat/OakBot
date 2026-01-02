@@ -90,12 +90,12 @@ class QOTDTest {
 
 		var task = new QOTD();
 
-		var expected = Duration.ofHours(13).toMillis();
+		var expected = Duration.ofHours(13);
 		var actual = task.nextRun();
 		assertApprox(expected, actual);
 	}
 
-	private static void assertApprox(long expected, long actual) {
-		assertTrue(expected - actual < 1000, () -> "Expected " + expected + " but was " + actual + ".");
+	private static void assertApprox(Duration expected, Duration actual) {
+		assertTrue(expected.minus(actual).toMillis() < 1000, () -> "Expected " + expected + " but was " + actual + ".");
 	}
 }

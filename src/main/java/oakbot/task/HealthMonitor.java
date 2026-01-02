@@ -50,7 +50,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 	}
 
 	@Override
-	public long nextRun() {
+	public Duration nextRun() {
 		if (first) {
 			first = false;
 
@@ -64,7 +64,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 				securityUpdates = getNumSecurityUpdates();
 			} catch (Exception e) {
 				logger.atInfo().setCause(e).log(() -> "Could not query system for security updates.  Health monitor disabled.");
-				return 0;
+				return null;
 			}
 
 			logger.atInfo().log(() -> "Health monitor started.  There are " + securityUpdates + " security updates available.");
@@ -75,14 +75,16 @@ public abstract class HealthMonitor implements ScheduledTask {
 		 * again tomorrow.
 		 */
 		if (securityUpdates < maxPendingUpdatesBeforeGettingSick) {
-			return Duration.ofDays(1).toMillis();
+			return Duration.ofDays(1);
 		}
 
 		var timesToPostPerDay = securityUpdates / 30.0;
 		if (timesToPostPerDay > 8) {
 			timesToPostPerDay = 8;
 		}
-		return (long) ((24 / timesToPostPerDay) * 60 * 60 * 1000);
+
+		var postEveryXMinutes = (24 / timesToPostPerDay) * 60;
+		return Duration.ofMinutes((long) postEveryXMinutes);
 	}
 
 	@Override

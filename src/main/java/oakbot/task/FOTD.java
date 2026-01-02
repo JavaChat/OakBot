@@ -1,5 +1,6 @@
 package oakbot.task;
 
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.regex.Pattern;
 
@@ -40,13 +41,13 @@ public class FOTD implements ScheduledTask {
 	}
 
 	@Override
-	public long nextRun() {
+	public Duration nextRun() {
 		var now = Now.local();
 		var next = now.truncatedTo(ChronoUnit.DAYS).withHour(12);
 		if (now.getHour() >= 12) {
 			next = next.plusDays(1);
 		}
-		return now.until(next, ChronoUnit.MILLIS);
+		return Duration.between(now, next);
 	}
 
 	@Override

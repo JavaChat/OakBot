@@ -108,26 +108,23 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	@Override
-	public long nextRun() {
+	public Duration nextRun() {
 		if (spontaneousPostTimesByRoom.isEmpty()) {
 			if (firstRun) {
 				firstRun = false;
-				return 1;
+				return Duration.ZERO;
 			}
 
-			return timeBetweenSpontaneousPosts.toMillis();
+			return timeBetweenSpontaneousPosts;
 		}
 
 		var now = Instant.now();
 
 		//@formatter:off
-		var lowest = spontaneousPostTimesByRoom.values().stream()
+		return spontaneousPostTimesByRoom.values().stream()
 			.map(runTime -> Duration.between(now, runTime))
-			.mapToLong(Duration::toMillis)
-		.min().getAsLong();
+		.min(Duration::compareTo).orElseGet(() -> timeBetweenSpontaneousPosts);
 		//@formatter:on
-
-		return (lowest < 1) ? 1 : lowest;
 	}
 
 	@Override
