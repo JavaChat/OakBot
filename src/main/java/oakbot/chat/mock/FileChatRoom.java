@@ -188,7 +188,7 @@ public class FileChatRoom implements IRoom {
 
 		//indent additional lines for readability
 		content = content.replaceAll("\r\n|\r|\n", "$0  ");
-		System.out.println(roomId + " > " + username + " > " + content);
+		outputMessage(username, content);
 
 		synchronized (messages) {
 			messages.add(message);
@@ -209,12 +209,16 @@ public class FileChatRoom implements IRoom {
 
 	@Override
 	public void deleteMessage(long messageId) throws RoomNotFoundException, RoomPermissionException, IOException {
-		System.out.println(roomId + " > " + botUsername + " > (deleted message " + messageId + ")");
+		outputMessage(botUsername, "(deleted message " + messageId + ")");
 	}
 
 	@Override
 	public void editMessage(long messageId, long parentId, String updatedMessage) throws RoomNotFoundException, RoomPermissionException, IOException {
-		System.out.println(roomId + " > " + botUsername + " > (edited message " + messageId + "): " + updatedMessage);
+		outputMessage(botUsername, "(edited message " + messageId + "): " + updatedMessage);
+	}
+
+	private void outputMessage(String username, String message) {
+		System.out.println(roomId + " > " + username + " > " + message);
 	}
 
 	@Override
