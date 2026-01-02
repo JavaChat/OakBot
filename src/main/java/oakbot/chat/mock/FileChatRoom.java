@@ -261,9 +261,10 @@ public class FileChatRoom implements IRoom {
 	@Override
 	public String toString() {
 		var sb = new StringBuilder();
+		sb.append(roomId).append(": ");
 
 		synchronized (messages) {
-			sb.append(roomId).append(": ").append(messages.size()).append(" messages\n");
+			sb.append(messages.size()).append(" messages\n");
 			for (var message : messages) {
 				sb.append("  ").append(message.content()).append("\n");
 			}
