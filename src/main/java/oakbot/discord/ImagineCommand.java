@@ -244,7 +244,7 @@ public class ImagineCommand implements DiscordSlashCommand {
 	}
 
 	private String filename(String prompt, String extension) {
-		LocalDateTime now = LocalDateTime.now();
+		var now = LocalDateTime.now();
 		var date = now.format(DateTimeFormatter.BASIC_ISO_DATE);
 
 		var words = 3;

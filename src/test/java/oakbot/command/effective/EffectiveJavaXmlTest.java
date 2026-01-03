@@ -34,7 +34,7 @@ class EffectiveJavaXmlTest {
 
 		var numbers = new HashSet<Integer>();
 		for (var itemElement : itemElements) {
-			int number = Integer.parseInt(itemElement.attribute("number"));
+			var number = Integer.parseInt(itemElement.attribute("number"));
 			if (number <= 0) {
 				fail("Invalid item number: " + number);
 			}
@@ -62,8 +62,8 @@ class EffectiveJavaXmlTest {
 
 		var pageNumbers = new HashMap<Integer, Integer>();
 		for (var itemElement : itemElements) {
-			int number = Integer.parseInt(itemElement.attribute("number"));
-			int pageNumber = Integer.parseInt(itemElement.attribute("page"));
+			var number = Integer.parseInt(itemElement.attribute("number"));
+			var pageNumber = Integer.parseInt(itemElement.attribute("page"));
 			if (pageNumber <= 0) {
 				fail("Invalid page number: " + pageNumber);
 			}

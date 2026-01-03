@@ -46,8 +46,8 @@ class OpenAIClientTest {
 		/*
 		 * Send all log output to console.
 		 */
-		Logger rootLogger = Logger.getLogger("");
-		ConsoleHandler consoleHandler = new ConsoleHandler();
+		var rootLogger = Logger.getLogger("");
+		var consoleHandler = new ConsoleHandler();
 		consoleHandler.setLevel(Level.ALL);
 		rootLogger.addHandler(consoleHandler);
 		rootLogger.setLevel(Level.ALL);
@@ -467,7 +467,7 @@ class OpenAIClientTest {
 			.request("POST", "https://api.openai.com/v1/images/variations", request -> {
 				assertAuthHeader(request, "KEY");
 				
-				String body = getBody(request);
+				var body = getBody(request);
 				assertTrue(body.matches("(?s).*?image data.*"));
 			})
 			.responseOk(ResponseSamples.createImage(resultUrl))

@@ -209,7 +209,7 @@ public class ImagineCore {
 		if (inputImageUrl == null) {
 			var lowestResolutionSupportedByModel = MODEL_DALLE_2.equals(model) ? "256x256" : "1024x1024";
 
-			String promptToSend = prompt;
+			var promptToSend = prompt;
 			if (MODEL_DALLE_3.equals(model) && useExactPrompt) {
 				promptToSend += ". " + EXACT_PROMPT_PHRASE;
 			}

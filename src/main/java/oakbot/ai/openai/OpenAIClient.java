@@ -76,7 +76,7 @@ public class OpenAIClient {
 		logRequest(request);
 
 		JsonNode responseBody = null;
-		int responseStatusCode = 0;
+		var responseStatusCode = 0;
 		try (var client = HttpFactory.connect().getClient()) {
 			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
@@ -113,7 +113,7 @@ public class OpenAIClient {
 		logRequest(request);
 
 		JsonNode responseBody = null;
-		int responseStatusCode = 0;
+		var responseStatusCode = 0;
 		try (var client = HttpFactory.connect().getClient()) {
 			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
@@ -172,7 +172,7 @@ public class OpenAIClient {
 		logRequest(request);
 
 		JsonNode responseBody = null;
-		int responseStatusCode = 0;
+		var responseStatusCode = 0;
 		try (var client = HttpFactory.connect().getClient()) {
 			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
@@ -220,7 +220,7 @@ public class OpenAIClient {
 			logRequest(request);
 
 			JsonNode responseBody = null;
-			int responseStatusCode = 0;
+			var responseStatusCode = 0;
 
 			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
@@ -268,7 +268,7 @@ public class OpenAIClient {
 		logRequest(request);
 
 		JsonNode responseBody = null;
-		int responseStatusCode = 0;
+		var responseStatusCode = 0;
 		try (var client = HttpFactory.connect().getClient()) {
 			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();
@@ -327,7 +327,7 @@ public class OpenAIClient {
 		logRequest(request);
 
 		JsonNode responseBody = null;
-		int responseStatusCode = 0;
+		var responseStatusCode = 0;
 		try (var client = HttpFactory.connect().getClient()) {
 			try (var response = client.execute(request)) {
 				responseStatusCode = response.getStatusLine().getStatusCode();

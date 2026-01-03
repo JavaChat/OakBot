@@ -77,7 +77,7 @@ public class Gobble {
 	 * @throws IOException if there was a problem reading from the stream
 	 */
 	public String asString(Charset charset) throws IOException {
-		Reader reader = buildReader(charset);
+		var reader = buildReader(charset);
 		return consumeReader(reader);
 	}
 

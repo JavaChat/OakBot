@@ -488,8 +488,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		final int maxRetries = 2;
 		final double tokenIncrement = 1.2;
 
-		int retries = 0;
-		String response = "";
+		var retries = 0;
+		var response = "";
 		while (true) {
 			ChatCompletionResponse apiResponse;
 			try {
@@ -522,7 +522,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			 * request with a higher max token value.
 			 */
 			if (response.isEmpty() && retries < maxRetries) {
-				int maxTokens = (int) (apiRequest.getMaxTokens() * tokenIncrement);
+				var maxTokens = (int) (apiRequest.getMaxTokens() * tokenIncrement);
 				apiRequest.setMaxTokens(maxTokens);
 				logger.atError().log(() -> "Chat completion response is empty. Resending request with " + maxTokens + " max tokens.");
 				retries++;

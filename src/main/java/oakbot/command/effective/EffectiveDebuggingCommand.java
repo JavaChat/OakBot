@@ -136,8 +136,8 @@ public class EffectiveDebuggingCommand implements Command {
 		 * Display a random item.
 		 */
 		if ("!random".equalsIgnoreCase(content)) {
-			int itemNumber = ThreadLocalRandom.current().nextInt(items.size());
-			Item item = items.get(itemNumber);
+			var itemNumber = ThreadLocalRandom.current().nextInt(items.size());
+			var item = items.get(itemNumber);
 			return displayItem(chatCommand, item);
 		}
 

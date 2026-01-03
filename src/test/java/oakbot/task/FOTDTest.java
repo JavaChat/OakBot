@@ -35,7 +35,7 @@ class FOTDTest {
 	public static void main(String args[]) throws Exception {
 		var bot = mock(IBot.class);
 		doAnswer(invocation -> {
-			PostMessage response = (PostMessage) invocation.getArguments()[0];
+			var response = (PostMessage) invocation.getArguments()[0];
 			System.out.println(response.message());
 			return null;
 		}).when(bot).broadcastMessage(any(PostMessage.class));

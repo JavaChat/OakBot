@@ -152,7 +152,7 @@ public class DefineCommand implements Command {
 			}
 
 			if (child instanceof Element element) {
-				String nodeName = element.getNodeName();
+				var nodeName = element.getNodeName();
 
 				if ("vi".equals(nodeName)) {
 					/*

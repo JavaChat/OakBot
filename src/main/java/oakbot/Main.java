@@ -310,7 +310,7 @@ public final class Main {
 	}
 
 	private static Site getSite(BotProperties props) {
-		String domain = props.getSite();
+		var domain = props.getSite();
 		if (domain == null || domain.trim().isEmpty()) {
 			return Site.STACKOVERFLOW;
 		}

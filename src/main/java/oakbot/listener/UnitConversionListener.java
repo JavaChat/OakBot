@@ -234,7 +234,7 @@ public class UnitConversionListener implements Listener {
 		}
 
 		public double parse(Matcher m) {
-			String s = m.group(2).replace(',', '.'); //treat comma as a decimal separator
+			var s = m.group(2).replace(',', '.'); //treat comma as a decimal separator
 			var value = Double.parseDouble(s);
 
 			if ("-".equals(m.group(1))) {

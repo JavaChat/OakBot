@@ -129,7 +129,7 @@ public class DiscordBot {
 
 	void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
 		var command = slashCommands.get(event.getName());
-		boolean unknownCommand = (command == null);
+		var unknownCommand = (command == null);
 		if (unknownCommand) {
 			return;
 		}

@@ -72,7 +72,7 @@ public class FacepalmCommand implements Command {
 			var node = response.getBodyAsJson();
 			imageUrl = node.get("results").get(0).get("media").get(0).get("tinygif").get("url").asText();
 		} catch (Exception e) {
-			String body = (response == null) ? null : response.getBody();
+			var body = (response == null) ? null : response.getBody();
 			logger.atError().setCause(e).log(() -> "Problem querying Tenor API.\nURI = " + uri + "\nResponse = " + body);
 			return reply("Sorry, an error occurred. >.>", chatCommand);
 		}

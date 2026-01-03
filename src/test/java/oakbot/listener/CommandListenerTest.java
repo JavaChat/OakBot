@@ -144,9 +144,9 @@ class CommandListenerTest {
 		var d = new SimpleCommand("three", "ONE");
 		var commands = List.<Command>of(a, b, c, d);
 
-		LearnedCommand e = new LearnedCommand.Builder().name("one").build();
-		LearnedCommand f = new LearnedCommand.Builder().name("ltwo").build();
-		LearnedCommandsDao learnedCommands = new LearnedCommandsDao();
+		var e = new LearnedCommand.Builder().name("one").build();
+		var f = new LearnedCommand.Builder().name("ltwo").build();
+		var learnedCommands = new LearnedCommandsDao();
 		learnedCommands.add(e);
 		learnedCommands.add(f);
 

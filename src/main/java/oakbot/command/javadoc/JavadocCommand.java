@@ -401,7 +401,7 @@ public class JavadocCommand implements Command, Listener {
 			var classInfo = entry.getKey();
 			var methodInfo = entry.getValue();
 
-			String signature = buildSignature(classInfo, methodInfo);
+			var signature = buildSignature(classInfo, methodInfo);
 
 			cb.nl().append(count).append(". ").append(signature);
 			choices.add(signature);

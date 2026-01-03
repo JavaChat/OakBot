@@ -153,7 +153,7 @@ public class FileChatRoom implements IRoom {
 
 	@Override
 	public List<ChatMessage> getMessages(int count) {
-		int start = (messages.size() < count) ? 0 : messages.size() - count;
+		var start = (messages.size() < count) ? 0 : messages.size() - count;
 		synchronized (messages) {
 			return new ArrayList<>(messages.subList(start, messages.size()));
 		}

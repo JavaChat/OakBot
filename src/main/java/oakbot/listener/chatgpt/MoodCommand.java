@@ -81,8 +81,8 @@ public class MoodCommand implements Command {
 		var moods = new HashMap<Integer, String>();
 
 		for (var entry : map.entrySet()) {
-			Integer roomId = Integer.valueOf(entry.getKey());
-			String mood = (String) entry.getValue();
+			var roomId = Integer.valueOf(entry.getKey());
+			var mood = (String) entry.getValue();
 			moods.put(roomId, mood);
 		}
 
@@ -93,8 +93,8 @@ public class MoodCommand implements Command {
 		var map = new HashMap<>();
 
 		for (Map.Entry<Integer, String> entry : moodsByRoom.entrySet()) {
-			String key = Integer.toString(entry.getKey());
-			Object value = entry.getValue();
+			var key = Integer.toString(entry.getKey());
+			var value = entry.getValue();
 			map.put(key, value);
 		}
 

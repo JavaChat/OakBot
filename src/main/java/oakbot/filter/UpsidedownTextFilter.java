@@ -31,8 +31,8 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 		map = new char[highestAsciiValue + 1];
 
 		for (var i = 0; i < normal.length(); i++) {
-			char n = normal.charAt(i);
-			char u = upsideDown.charAt(i);
+			var n = normal.charAt(i);
+			var u = upsideDown.charAt(i);
 			map[n] = u;
 		}
 	}

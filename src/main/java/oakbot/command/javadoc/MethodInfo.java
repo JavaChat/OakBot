@@ -43,7 +43,7 @@ public class MethodInfo {
 		sb.append(name).append('-');
 
 		sb.append(parameters.stream().map(parameter -> {
-			String fullName = parameter.type().getFullyQualifiedName();
+			var fullName = parameter.type().getFullyQualifiedName();
 			if (parameter.array()) {
 				fullName += ":A";
 			}

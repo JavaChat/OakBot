@@ -151,7 +151,7 @@ public class ClassInfoXmlParser {
 		}
 
 		//description
-		Leaf descriptionElement = element.selectFirst("description");
+		var descriptionElement = element.selectFirst("description");
 		if (descriptionElement != null) {
 			builder.description(descriptionElement.text());
 		}
@@ -193,7 +193,7 @@ public class ClassInfoXmlParser {
 		}
 
 		//description
-		Leaf descriptionElement = element.selectFirst("description");
+		var descriptionElement = element.selectFirst("description");
 		if (descriptionElement != null) {
 			builder.description(descriptionElement.text());
 		}

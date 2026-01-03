@@ -262,7 +262,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 	private int lengthOfHighestScore(List<Player> players) {
 		//@formatter:off
-		int highestScore = players.stream()
+		var highestScore = players.stream()
 			.mapToInt(Player::score)
 		.max().getAsInt();
 		//@formatter:on
@@ -345,7 +345,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 			if (justFinishedPart1 && justFinishedPart2) {
 				cb.append(" completed parts 1 and 2");
 			} else {
-				int part = justFinishedPart1 ? 1 : 2;
+				var part = justFinishedPart1 ? 1 : 2;
 				cb.append(" completed part ").append(part);
 			}
 			cb.append(" of day ").append(day).append("! \\o/");

@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -112,8 +111,8 @@ class LearnedCommandsDaoTest {
 
 	@Test
 	void load_from_database() {
-		LocalDateTime now = LocalDateTime.now();
-		List<Object> dbValue = new ArrayList<>();
+		var now = LocalDateTime.now();
+		var dbValue = new ArrayList<Object>();
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("authorUserId", 100);
@@ -143,13 +142,13 @@ class LearnedCommandsDaoTest {
 		map.put("output", "output3");
 		dbValue.add(map);
 
-		Database db = mock(Database.class);
+		var db = mock(Database.class);
 		when(db.getList("learned-commands")).thenReturn(dbValue);
 		LearnedCommandsDao dao = new LearnedCommandsDao(db);
 
 		Iterator<LearnedCommand> it = dao.iterator();
 
-		LearnedCommand command = it.next();
+		var command = it.next();
 		assertEquals(Integer.valueOf(100), command.getAuthorUserId());
 		assertEquals("Username", command.getAuthorUsername());
 		assertEquals(Integer.valueOf(1), command.getRoomId());

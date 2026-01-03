@@ -33,7 +33,7 @@ public abstract class ChatResponseFilter {
 	 * @return true if the filter is now enabled, false if not
 	 */
 	public boolean toggle(int roomId) {
-		boolean enabled = isEnabled(roomId);
+		var enabled = isEnabled(roomId);
 		setEnabled(roomId, !enabled);
 		return !enabled;
 	}

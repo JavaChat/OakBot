@@ -313,14 +313,14 @@ public class StabilityAIClient {
 	 */
 	public StableImageResponse videoSync(VideoRequest apiRequest) throws IOException, StabilityAIException, TimeoutException {
 		var pollingInterval = Duration.ofSeconds(10); //rate-limiting may occur if you poll more than once every 10 seconds
-		int maxTries = 30;
+		var maxTries = 30;
 
 		var id = videoStart(apiRequest);
 
 		var tries = 0;
 		while (true) {
 			if (tries == maxTries) {
-				long seconds = pollingInterval.multipliedBy(maxTries).getSeconds();
+				var seconds = pollingInterval.multipliedBy(maxTries).getSeconds();
 				throw new TimeoutException("Video " + id + " still not ready after " + seconds + " seconds.");
 			}
 

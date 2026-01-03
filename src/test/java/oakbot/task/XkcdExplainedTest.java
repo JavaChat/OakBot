@@ -38,7 +38,7 @@ class XkcdExplainedTest {
 
 		var bot = mock(IBot.class);
 		doAnswer(invocation -> {
-			PostMessage message = (PostMessage) invocation.getArguments()[1];
+			var message = (PostMessage) invocation.getArguments()[1];
 			System.out.println(message);
 			return null;
 		}).when(bot).sendMessage(eq(1), any(PostMessage.class));
