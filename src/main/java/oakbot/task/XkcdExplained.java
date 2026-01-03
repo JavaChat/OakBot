@@ -17,6 +17,7 @@ import org.jsoup.nodes.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.mangstadt.sochat4j.ChatClient;
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
@@ -114,8 +115,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 			.toString();
 			//@formatter:on
 
-			final var MAX_MESSAGE_LENGTH = 500;
-			var trimLength = MAX_MESSAGE_LENGTH - beginningMd.length();
+			var trimLength = ChatClient.MAX_MARKDOWN_MESSAGE_LENGTH - beginningMd.length();
 
 			explanationMd = SplitStrategy.WORD.split(explanationMd, trimLength).get(0);
 			var message = beginningMd + explanationMd;
