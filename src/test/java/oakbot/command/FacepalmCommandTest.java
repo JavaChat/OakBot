@@ -21,7 +21,7 @@ import oakbot.util.MockHttpClientBuilder;
  */
 class FacepalmCommandTest {
 	@AfterEach
-	public void after() {
+	void after() {
 		HttpFactory.restore();
 	}
 
