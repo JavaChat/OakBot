@@ -6,22 +6,17 @@ import java.util.regex.Pattern;
 
 /**
  * Parses the arguments from a javadoc chat command.
+ * @param className the class name (may or may not be fully-qualified)
+ * @param methodName the method name or null if not defined
+ * @param parameters the method parameters or null if not defined
+ * @param paragraph the paragraph number
+ * @param targetUser the user that the user who posted the command wants the
+ * bot to ping when the bot posts the javadoc info or null if not specified
+ * (by default, the bot will reply to the user who posted the command)
  * @author Michael Angstadt
  */
 record JavadocCommandArguments(String className, String methodName, List<String> parameters, int paragraph, String targetUser) {
 	private static final Pattern messageRegex = Pattern.compile("(.*?)(\\((.*?)\\))?(#(.*?)(\\((.*?)\\))?)?(\\s+(.*))?$");
-
-	/**
-	 * @param className  the class name (may or may not be fully-qualified)
-	 * @param methodName the method name or null if not defined
-	 * @param parameters the method parameters or null if not defined
-	 * @param paragraph  the paragraph number
-	 * @param targetUser the user that the user who posted the command wants the
-	 * bot to ping when the bot posts the javadoc info or null if not specified
-	 * (by default, the bot will reply to the user who posted the command)
-	 */
-	JavadocCommandArguments {
-	}
 
 	/**
 	 * Parses the arguments out of a chat message.
@@ -106,52 +101,5 @@ record JavadocCommandArguments(String className, String methodName, List<String>
 		}
 
 		return (token.charAt(0) == '@') ? token.substring(1) : token;
-	}
-
-	/**
-	 * Gets the class name.
-	 * @return the class name (may or may not be fully-qualified)
-	 */
-	@Override
-	public String className() {
-		return className;
-	}
-
-	/**
-	 * Gets the method name.
-	 * @return the method name or null if not defined
-	 */
-	@Override
-	public String methodName() {
-		return methodName;
-	}
-
-	/**
-	 * Gets the method parameters
-	 * @return the method parameters or null if not defined
-	 */
-	@Override
-	public List<String> parameters() {
-		return parameters;
-	}
-
-	/**
-	 * Gets the paragraph number.
-	 * @return the paragraph number
-	 */
-	@Override
-	public int paragraph() {
-		return paragraph;
-	}
-
-	/**
-	 * Gets the user that the user who posted the command wants the bot to ping
-	 * when the bot posts the javadoc info. By default, the bot will reply to
-	 * the user who posted the command.
-	 * @return the username or null if not specified
-	 */
-	@Override
-	public String targetUser() {
-		return targetUser;
 	}
 }
