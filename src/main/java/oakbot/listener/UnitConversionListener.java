@@ -3,7 +3,6 @@ package oakbot.listener;
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.post;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,7 +27,7 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class UnitConversionListener implements Listener {
-	private final NumberFormat nf = DecimalFormat.getNumberInstance();
+	private final NumberFormat nf = NumberFormat.getNumberInstance();
 	{
 		nf.setMaximumFractionDigits(2);
 	}
