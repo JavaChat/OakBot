@@ -12,8 +12,8 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -112,35 +112,36 @@ class LearnedCommandsDaoTest {
 	@Test
 	void load_from_database() {
 		var now = LocalDateTime.now();
-		var dbValue = new ArrayList<Object>();
 
-		Map<String, Object> map = new HashMap<>();
-		map.put("authorUserId", 100);
-		map.put("authorUsername", "Username");
-		map.put("roomId", 1);
-		map.put("messageId", 1000);
-		map.put("created", now);
-		map.put("name", "name");
-		map.put("output", "output");
-		dbValue.add(map);
-
-		map = new HashMap<>();
-		map.put("authorUserId", 101);
-		map.put("authorUsername", "Username2");
-		map.put("roomId", 2);
-		map.put("messageId", Integer.MAX_VALUE + 1L); //long value returned
-		map.put("created", now);
-		map.put("name", "name2");
-		map.put("output", "output2");
-		dbValue.add(map);
-
-		/*
-		 * Older learned commands will not have extra metadata.
-		 */
-		map = new HashMap<>();
-		map.put("name", "name3");
-		map.put("output", "output3");
-		dbValue.add(map);
+		//@formatter:off
+		List<Object> dbValue = List.of(
+			Map.of(
+				"authorUserId", 100,
+				"authorUsername", "Username",
+				"roomId", 1,
+				"messageId", 1000,
+				"created", now,
+				"name", "name",
+				"output", "output"
+			),
+			Map.of(
+				"authorUserId", 101,
+				"authorUsername", "Username2",
+				"roomId", 2,
+				"messageId", Integer.MAX_VALUE + 1L, //long value returned
+				"created", now,
+				"name", "name2",
+				"output", "output2"
+			),
+			/*
+			 * Older learned commands will not have extra metadata.
+			 */
+			Map.of(
+				"name", "name3",
+				"output", "output3"
+			)
+		);
+		//@formatter:on
 
 		var db = mock(Database.class);
 		when(db.getList("learned-commands")).thenReturn(dbValue);
