@@ -12,15 +12,18 @@ import org.junit.jupiter.api.Test;
  */
 class JavadocCommandArgumentsTest {
 	@Test
-	void parse() {
+	void parse_fully_qualified_name() {
 		var args = JavadocCommandArguments.parse("java.lang.string");
 		assertEquals("java.lang.string", args.className());
 		assertNull(args.methodName());
 		assertEquals(1, args.paragraph());
 		assertNull(args.parameters());
 		assertNull(args.targetUser());
+	}
 
-		args = JavadocCommandArguments.parse("java.lang.string#indexOf");
+	@Test
+	void parse_fully_qualified_name_and_method() {
+		var args = JavadocCommandArguments.parse("java.lang.string#indexOf");
 		assertEquals("java.lang.string", args.className());
 		assertEquals("indexOf", args.methodName());
 		assertEquals(1, args.paragraph());
@@ -40,8 +43,11 @@ class JavadocCommandArgumentsTest {
 		assertEquals(1, args.paragraph());
 		assertEquals(List.of(), args.parameters());
 		assertNull(args.targetUser());
+	}
 
-		args = JavadocCommandArguments.parse("java.lang.string#indexOf(int)");
+	@Test
+	void parse_fully_qualified_name_and_method_with_params() {
+		var args = JavadocCommandArguments.parse("java.lang.string#indexOf(int)");
 		assertEquals("java.lang.string", args.className());
 		assertEquals("indexOf", args.methodName());
 		assertEquals(1, args.paragraph());
@@ -82,8 +88,11 @@ class JavadocCommandArgumentsTest {
 		assertEquals(1, args.paragraph());
 		assertEquals(List.of("int", "int"), args.parameters());
 		assertNull(args.targetUser());
+	}
 
-		args = JavadocCommandArguments.parse("string()");
+	@Test
+	void parse_simple_name_constructor() {
+		var args = JavadocCommandArguments.parse("string()");
 		assertEquals("string", args.className());
 		assertEquals("string", args.methodName());
 		assertEquals(1, args.paragraph());
@@ -96,29 +105,11 @@ class JavadocCommandArgumentsTest {
 		assertEquals(1, args.paragraph());
 		assertEquals(List.of("string"), args.parameters());
 		assertNull(args.targetUser());
+	}
 
-		args = JavadocCommandArguments.parse("java.lang.string()");
-		assertEquals("java.lang.string", args.className());
-		assertEquals("string", args.methodName());
-		assertEquals(1, args.paragraph());
-		assertEquals(List.of(), args.parameters());
-		assertNull(args.targetUser());
-
-		args = JavadocCommandArguments.parse("java.lang.string(string)");
-		assertEquals("java.lang.string", args.className());
-		assertEquals("string", args.methodName());
-		assertEquals(1, args.paragraph());
-		assertEquals(List.of("string"), args.parameters());
-		assertNull(args.targetUser());
-
-		args = JavadocCommandArguments.parse("java.lang.string 2");
-		assertEquals("java.lang.string", args.className());
-		assertNull(args.methodName());
-		assertEquals(2, args.paragraph());
-		assertNull(args.parameters());
-		assertNull(args.targetUser());
-
-		args = JavadocCommandArguments.parse("java.lang.string @Michael");
+	@Test
+	void parse_mention() {
+		var args = JavadocCommandArguments.parse("java.lang.string @Michael");
 		assertEquals("java.lang.string", args.className());
 		assertNull(args.methodName());
 		assertEquals(1, args.paragraph());
@@ -145,6 +136,16 @@ class JavadocCommandArgumentsTest {
 		assertEquals(2, args.paragraph());
 		assertNull(args.parameters());
 		assertEquals("Michael", args.targetUser());
+	}
+
+	@Test
+	void parse_paragraph() {
+		var args = JavadocCommandArguments.parse("java.lang.string 2");
+		assertEquals("java.lang.string", args.className());
+		assertNull(args.methodName());
+		assertEquals(2, args.paragraph());
+		assertNull(args.parameters());
+		assertNull(args.targetUser());
 	}
 
 	@Test

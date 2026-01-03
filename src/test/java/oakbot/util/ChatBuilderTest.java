@@ -46,7 +46,6 @@ class ChatBuilderTest {
 
 	@Test
 	void toMarkdown() {
-		//convert HTML tags to Markdown
 		assertToMarkdown("<b>value</b>", "**value**", false);
 		assertToMarkdown("<i>value</i>", "*value*", false);
 		assertToMarkdown("<code>value</code>", "`value`", false);
@@ -62,8 +61,27 @@ class ChatBuilderTest {
 		assertToMarkdown("<a href=\"/page.html\">value</a>", "[value](http://example.com/page.html)", false, true, "http://example.com/test/index.html");
 		assertToMarkdown("<a href=\"../page.html\">value</a>", "[value](http://example.com/page.html)", false, true, "http://example.com/test/index.html");
 		assertToMarkdown("<a href=\"//google.com/page.html\">value</a>", "[value](http://google.com/page.html)", false, true, "http://example.com/test/index.html");
+	}
 
-		//multi-line text
+	@Test
+	void toMarkdown_escape_special_characters() {
+		assertToMarkdown("* _ ` ( ) [ ]", "\\* \\_ \\` \\( \\) \\[ \\]", false);
+	}
+
+	@Test
+	void toMarkdown_do_not_escape_special_characters_in_urls() {
+		assertToMarkdown("<a href=\"http://google.com/foo_bar\">one_two</a>", "[one\\_two](http://google.com/foo_bar)", false);
+	}
+
+	@Test
+	void toMarkdown_decode_html_entities() {
+		assertToMarkdown("&lt;value&gt;", "<value>", false);
+		assertToMarkdown("&lt;one&gt;\ntwo", "<one>\ntwo", false);
+		assertToMarkdown("&lt;value&gt;", "    <value>", true);
+	}
+
+	@Test
+	void toMarkdown_multi_line() {
 		assertToMarkdown("one\ntwo\rthree\r\nfour", "one\ntwo\rthree\r\nfour", false);
 		assertToMarkdown("one\ntwo\rthree\r\nfour", "    one\n    two\r    three\r\n    four", true);
 
@@ -77,19 +95,10 @@ class ChatBuilderTest {
 		assertToMarkdown("one\ntwo", "one\ntwo", false);
 		assertToMarkdown("one\rtwo", "one\rtwo", false);
 		assertToMarkdown("one\r\ntwo", "one\r\ntwo", false);
+	}
 
-		//escape Markdown special characters
-		assertToMarkdown("* _ ` ( ) [ ]", "\\* \\_ \\` \\( \\) \\[ \\]", false);
-
-		//do not escape Markdown characters in URLs
-		assertToMarkdown("<a href=\"http://google.com/foo_bar\">one_two</a>", "[one\\_two](http://google.com/foo_bar)", false);
-
-		//decode HTML entities
-		assertToMarkdown("&lt;value&gt;", "<value>", false);
-		assertToMarkdown("&lt;one&gt;\ntwo", "<one>\ntwo", false);
-		assertToMarkdown("&lt;value&gt;", "    <value>", true);
-
-		//return null when input is null
+	@Test
+	void toMarkdown_null_input() {
 		assertToMarkdown(null, null, false);
 	}
 
