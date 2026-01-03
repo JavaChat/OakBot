@@ -455,6 +455,9 @@ public class ChatBuilder implements CharSequence {
 						inTag = true;
 					}
 				}
+				default -> {
+					//ignore
+				}
 				}
 			}
 		}
@@ -470,6 +473,9 @@ public class ChatBuilder implements CharSequence {
 				case "code" -> cb.code();
 				case "strike" -> cb.strike();
 				case "a" -> processLink(element);
+				default -> {
+					//ignore
+				}
 				}
 			}
 		}

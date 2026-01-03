@@ -153,22 +153,19 @@ public class JavadocZipFile {
 		var sb = new StringBuilder();
 		while (m.find()) {
 			var field = m.group(1);
-			String replacement;
-			switch (field) {
-			case "baseUrl":
-				replacement = baseUrl;
-				break;
-			case "full":
-				replacement = info.getName().getFullyQualifiedName();
+
+			var replacement = switch (field) {
+			case "baseUrl" -> baseUrl;
+			case "full" -> {
+				var r = info.getName().getFullyQualifiedName();
 				var delimitor = m.group(3);
 				if (delimitor != null) {
-					replacement = replacement.replace(".", delimitor);
+					r = r.replace(".", delimitor);
 				}
-				break;
-			default:
-				replacement = "";
-				break;
+				yield r;
 			}
+			default -> "";
+			};
 
 			m.appendReplacement(sb, replacement);
 		}

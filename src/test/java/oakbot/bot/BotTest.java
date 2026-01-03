@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -440,6 +441,7 @@ class BotTest {
 		var expectedEnabled = false;
 		switch (num) {
 		case 0 -> {
+			//do nothing
 		}
 		case 1 -> filter.setEnabled(2, true);
 		case 2 -> {
@@ -449,6 +451,9 @@ class BotTest {
 		case 3 -> {
 			filter.setGloballyEnabled(true);
 			expectedEnabled = true;
+		}
+		default -> {
+			fail("Undefined test case number.");
 		}
 		}
 
