@@ -167,7 +167,8 @@ public class MornListener implements Listener {
 	}
 
 	private static class StringMatch implements Match {
-		protected final String greeting, response;
+		protected final String greeting;
+		protected final String response;
 
 		public StringMatch(String greeting, String response) {
 			this.greeting = greeting;
