@@ -65,7 +65,7 @@ public class ReactGiphyCommand implements Command {
 				.append(" (powered by ").link("GIPHY", "https://giphy.com").append(")");
 
 			return ChatActions.create(
-				new PostMessage(new ChatBuilder().image(imageUrl))
+				new PostMessage(ChatBuilder.image(imageUrl))
 					.bypassFilters(true)
 					.condensedMessage(condensedMessage)
 			);

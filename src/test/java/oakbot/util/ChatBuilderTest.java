@@ -40,6 +40,11 @@ class ChatBuilderTest {
 	}
 
 	@Test
+	void image() {
+		assertEquals("!https://foo.org/image", ChatBuilder.image("https://foo.org/image"));
+	}
+
+	@Test
 	void toMarkdown() {
 		//convert HTML tags to Markdown
 		assertToMarkdown("<b>value</b>", "**value**", false);

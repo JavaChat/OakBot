@@ -28,6 +28,22 @@ public class ChatBuilder implements CharSequence {
 	private boolean fixedWidth = false;
 
 	/**
+	 * <p>
+	 * Creates a chat message that explicitly contains a single image.
+	 * </p>
+	 * <p>
+	 * This method must be used if the image URL string does not end with the
+	 * file extension of a supported image format (e.g. ".jpg", ".gif"). URLs
+	 * that do not end with such an extension will not be rendered as an image.
+	 * </p>
+	 * @param url the image URL
+	 * @return the chat message
+	 */
+	public static String image(CharSequence url) {
+		return "!" + url;
+	}
+
+	/**
 	 * Creates a new chat builder.
 	 */
 	public ChatBuilder() {
@@ -55,23 +71,6 @@ public class ChatBuilder implements CharSequence {
 	public ChatBuilder fixedWidth() {
 		fixedWidth = true;
 		return this;
-	}
-
-	/**
-	 * <p>
-	 * Inserts an image into the message using explicit syntax. Note that images
-	 * and text cannot be mixed.
-	 * </p>
-	 * <p>
-	 * This method must be used if the image URL does not end with the file
-	 * extension of a supported image format (e.g. ".jpg", ".gif"). If the URL
-	 * ends with such as extension, then this syntax is not necessary.
-	 * </p>
-	 * @param url the image URL
-	 * @return this
-	 */
-	public ChatBuilder image(CharSequence url) {
-		return append('!').append(url);
 	}
 
 	/**
