@@ -91,7 +91,8 @@ class BotTest {
 	@Test
 	void builder_no_connection() {
 		runAfter = false;
-		assertThrows(IllegalStateException.class, () -> new Bot.Builder().build());
+		var builder = new Bot.Builder();
+		assertThrows(IllegalStateException.class, builder::build);
 	}
 
 	@Test
