@@ -32,7 +32,7 @@ class FOTDTest {
 	/**
 	 * Live test. Outputs current FOTD to stdout.
 	 */
-	public static void main(String args[]) throws Exception {
+	public static void main(String[] args) throws Exception {
 		var bot = mock(IBot.class);
 		doAnswer(invocation -> {
 			var response = (PostMessage) invocation.getArguments()[0];

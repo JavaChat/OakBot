@@ -42,7 +42,7 @@ class OpenAIClientTest {
 	 * Program for testing API calls.
 	 * @param args the OpenAI API key
 	 */
-	public static void main(String args[]) throws Exception {
+	public static void main(String[] args) throws Exception {
 		/*
 		 * Send all log output to console.
 		 */

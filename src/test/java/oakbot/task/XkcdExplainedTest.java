@@ -33,7 +33,7 @@ class XkcdExplainedTest {
 	/**
 	 * Live test. Outputs the message to stdout.
 	 */
-	public static void main(String args[]) throws Exception {
+	public static void main(String[] args) throws Exception {
 		var task = new XkcdExplained(Duration.ZERO);
 
 		var bot = mock(IBot.class);

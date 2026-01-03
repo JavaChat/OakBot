@@ -19,7 +19,7 @@ class QOTDTest {
 	/**
 	 * Live test. Outputs current QOTD to stdout.
 	 */
-	public static void main(String args[]) throws Exception {
+	public static void main(String[] args) throws Exception {
 		var qotd = new QOTD();
 		System.out.println(qotd.fromSlashdot());
 	}

@@ -81,7 +81,7 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class CommandsWikiPage {
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 		var db = mock(Database.class);
 		var trigger = "/";
 		var learnedCommands = new LearnedCommandsDao();
