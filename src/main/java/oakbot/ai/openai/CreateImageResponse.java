@@ -9,7 +9,7 @@ import java.time.Instant;
 public class CreateImageResponse {
 	private final Instant created;
 	private final String url;
-	private final byte data[];
+	private final byte[] data;
 	private final String revisedPrompt;
 
 	/**
