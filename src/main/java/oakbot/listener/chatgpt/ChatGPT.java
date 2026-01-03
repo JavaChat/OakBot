@@ -314,7 +314,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 				try {
 					roomName = room.getRoomInfo().name();
 					roomNames.put(roomId, roomName);
-				} catch (IOException ignore) {
+				} catch (IOException e) {
+					logger.atError().setCause(e).log(() -> "Problem getting room name for ChatGPT prompt.");
 				}
 			}
 		}

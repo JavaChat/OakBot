@@ -414,7 +414,8 @@ public class OpenAIClient {
 
 		try {
 			requestLogger.log(requestMethod, requestUrl, requestBody, responseStatusCode, responseBody);
-		} catch (IOException ignore) {
+		} catch (IOException e) {
+			logger.atError().setCause(e).log(() -> "Problem logging OpenAI request.");
 		}
 	}
 
