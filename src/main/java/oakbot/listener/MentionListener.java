@@ -20,9 +20,9 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class MentionListener implements CatchAllMentionListener {
-	private final Duration cooldownTimeBetweenResponses = Duration.ofMinutes(1);
-	private final Map<Integer, Instant> timeOfLastResponseByRoom = new HashMap<>();
+	private static final Duration TIME_BETWEEN_RESPONSES = Duration.ofMinutes(1);
 
+	private final Map<Integer, Instant> timeOfLastResponseByRoom = new HashMap<>();
 	private final Map<String, String> responses;
 	{
 		var response = "You're welcome.";
@@ -69,7 +69,7 @@ public class MentionListener implements CatchAllMentionListener {
 		var now = Instant.now();
 		if (prevResponse != null) {
 			var elapsed = Duration.between(prevResponse, now);
-			if (elapsed.compareTo(cooldownTimeBetweenResponses) < 0) {
+			if (elapsed.compareTo(TIME_BETWEEN_RESPONSES) < 0) {
 				return doNothing();
 			}
 		}

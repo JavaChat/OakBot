@@ -78,13 +78,13 @@ public final class Main {
 		BUILT = built;
 	}
 
-	private static final String defaultContextPath = "bot-context.xml";
+	private static final String DEFAULT_CONTEXT_PATH = "bot-context.xml";
 
 	public static void main(String[] args) throws Exception {
 		var arguments = new CliArguments(args);
 
 		if (arguments.help()) {
-			var help = arguments.printHelp(defaultContextPath);
+			var help = arguments.printHelp(DEFAULT_CONTEXT_PATH);
 			System.out.println(help);
 			return;
 		}
@@ -95,7 +95,7 @@ public final class Main {
 		}
 
 		var mock = arguments.mock();
-		var contextPath = (arguments.context() == null) ? defaultContextPath : arguments.context();
+		var contextPath = (arguments.context() == null) ? DEFAULT_CONTEXT_PATH : arguments.context();
 
 		BotProperties botProperties;
 		Database database;

@@ -37,11 +37,11 @@ import oakbot.util.Now;
  */
 public class XkcdExplained implements ScheduledTask, Listener {
 	private static final Logger logger = LoggerFactory.getLogger(XkcdExplained.class);
-	private static final Pattern regex = Pattern.compile("https://xkcd.com/(\\d+)");
-	private static final int maxTimesToCheckWikiBeforeGivingUp = 8;
+	private static final Pattern REGEX = Pattern.compile("https://xkcd.com/(\\d+)");
+	private static final int TIMES_TO_CHECK_WIKI_BEFORE_GIVING_UP = 8;
+	private static final Duration TIME_BETWEEN_WIKI_CHECKS = Duration.ofMinutes(15);
 
 	private final Duration timeToWaitBeforeFirstWikiCheck;
-	private final Duration timeToWaitBetweenWikiChecks = Duration.ofMinutes(15);
 
 	final Map<Integer, Comic> comicsByRoom = new HashMap<>();
 
@@ -91,7 +91,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 				explanationHtml = scrapeExplanationHtml(url);
 			} catch (Exception e) {
 				comic.checkedWiki();
-				if (comic.timesCheckedWiki >= maxTimesToCheckWikiBeforeGivingUp) {
+				if (comic.timesCheckedWiki >= TIMES_TO_CHECK_WIKI_BEFORE_GIVING_UP) {
 					stopChecking.add(roomId);
 					logger.atError().log(() -> "Still no explanation posted for comic #" + comic.comicId + " after checking wiki " + comic.timesCheckedWiki + " times. Giving up.");
 				}
@@ -143,7 +143,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 			return (postAge.compareTo(timeToWaitBeforeFirstWikiCheck) < 0);
 		} else {
 			var lastChecked = Duration.between(comic.lastCheckedWiki, Now.instant());
-			return (lastChecked.compareTo(timeToWaitBetweenWikiChecks) < 0);
+			return (lastChecked.compareTo(TIME_BETWEEN_WIKI_CHECKS) < 0);
 		}
 	}
 
@@ -245,7 +245,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		var postedBySystemBot = message.userId() < 1;
 		if (postedBySystemBot) {
-			var m = regex.matcher(message.content().getContent());
+			var m = REGEX.matcher(message.content().getContent());
 			if (m.find()) {
 				var comicId = Integer.parseInt(m.group(1));
 				comicsByRoom.put(message.roomId(), new Comic(message, comicId));

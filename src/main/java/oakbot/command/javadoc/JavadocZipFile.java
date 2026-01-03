@@ -25,8 +25,8 @@ import com.github.mangstadt.sochat4j.util.Leaf;
  * @author Michael Angstadt
  */
 public class JavadocZipFile {
-	private static final String extension = ".xml";
-	private static final String infoFileName = "info" + extension;
+	private static final String EXTENSION = ".xml";
+	private static final String INFO_FILE_NAME = "info" + EXTENSION;
 
 	/**
 	 * Matches placeholders in the javadocUrlPattern field.
@@ -75,7 +75,7 @@ public class JavadocZipFile {
 
 		Leaf document;
 		try (var fs = open()) {
-			var info = fs.getPath("/" + infoFileName);
+			var info = fs.getPath("/" + INFO_FILE_NAME);
 			if (!Files.exists(info)) {
 				baseUrl = name = version = projectUrl = javadocUrlPattern = null;
 				return;
@@ -193,11 +193,11 @@ public class JavadocZipFile {
 
 				private boolean isJavadocFile(Path file) {
 					var fullPath = file.toString();
-					if (!fullPath.endsWith(extension)) {
+					if (!fullPath.endsWith(EXTENSION)) {
 						return false;
 					}
 
-					return !fullPath.equals('/' + infoFileName);
+					return !fullPath.equals('/' + INFO_FILE_NAME);
 				}
 
 				private ClassName toClassName(Path file) {
@@ -267,7 +267,7 @@ public class JavadocZipFile {
 			for (var j = i; j < split.length; j++) {
 				sb.append('.').append(split[j]);
 			}
-			sb.append(extension);
+			sb.append(EXTENSION);
 
 			var path = fs.getPath(sb.toString());
 			if (Files.exists(path)) {

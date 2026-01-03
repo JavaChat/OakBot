@@ -28,8 +28,9 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class AfkCommand implements Command, Listener {
+	private static final Duration TIME_BETWEEN_WARNINGS = Duration.ofMinutes(15);
+
 	private final Map<Integer, AfkUser> afkUsersById = new HashMap<>();
-	private final Duration timeBetweenWarnings = Duration.ofMinutes(15);
 
 	@Override
 	public String name() {
@@ -174,7 +175,7 @@ public class AfkCommand implements Command, Listener {
 				usersNotWarnedAbout.add(afkUser);
 			} else {
 				var sinceLastWarning = Duration.between(lastWarnedUser, Instant.now());
-				if (sinceLastWarning.compareTo(timeBetweenWarnings) > 0) {
+				if (sinceLastWarning.compareTo(TIME_BETWEEN_WARNINGS) > 0) {
 					usersNotWarnedAbout.add(afkUser);
 				}
 			}

@@ -19,10 +19,10 @@ import oakbot.util.Rng;
  */
 public abstract class HealthMonitor implements ScheduledTask {
 	private static final Logger logger = LoggerFactory.getLogger(HealthMonitor.class);
+	private static final int MAX_PENDING_UPDATES_BEFORE_GETTING_SICK = 10;
 
 	private final String[] responses = { "coughs", "sneezes", "clears throat", "expectorates", "sniffles", "wheezes", "groans", "moans" };
 	private final List<Integer> roomIds;
-	private final int maxPendingUpdatesBeforeGettingSick = 10;
 
 	private boolean first = true;
 	private int securityUpdates;
@@ -37,7 +37,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Makes the bot \"cough\" when the server has pending security updates.")
-			.detail("The bot will start coughing when there are " + maxPendingUpdatesBeforeGettingSick + " or more pending updates. It will cough more frequently the more updates there are.")
+			.detail("The bot will start coughing when there are " + MAX_PENDING_UPDATES_BEFORE_GETTING_SICK + " or more pending updates. It will cough more frequently the more updates there are.")
 		.build();
 		//@formatter:on
 	}
@@ -74,7 +74,7 @@ public abstract class HealthMonitor implements ScheduledTask {
 		 * Don't post anything if there are less than 10 updates. But check
 		 * again tomorrow.
 		 */
-		if (securityUpdates < maxPendingUpdatesBeforeGettingSick) {
+		if (securityUpdates < MAX_PENDING_UPDATES_BEFORE_GETTING_SICK) {
 			return Duration.ofDays(1);
 		}
 

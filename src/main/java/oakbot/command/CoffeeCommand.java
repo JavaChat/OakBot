@@ -21,8 +21,7 @@ import oakbot.util.HttpFactory;
  */
 public class CoffeeCommand implements Command {
 	private static final Logger logger = LoggerFactory.getLogger(CoffeeCommand.class);
-
-	private final String apiUrl = "https://coffee.alexflipnote.dev/random.json";
+	private static final String API_URL = "https://coffee.alexflipnote.dev/random.json";
 
 	@Override
 	public String name() {
@@ -63,7 +62,7 @@ public class CoffeeCommand implements Command {
 
 	private String getCoffee() throws IOException {
 		try (var http = HttpFactory.connect()) {
-			var node = http.get(apiUrl).getBodyAsJson().get("file");
+			var node = http.get(API_URL).getBodyAsJson().get("file");
 			if (node == null) {
 				throw new IOException("Unexpected JSON structure.");
 			}

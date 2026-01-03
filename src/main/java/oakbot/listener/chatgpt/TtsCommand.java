@@ -24,8 +24,8 @@ import oakbot.util.ChatBuilder;
  * @see "https://platform.openai.com/docs/api-reference/audio/createSpeech"
  */
 public class TtsCommand implements Command {
-	private static final String defaultVoice = "alloy";
-	private static final List<String> voices = List.of(defaultVoice, "echo", "fable", "onyx", "nova", "shimmer");
+	private static final String DEFAULT_VOICE = "alloy";
+	private static final List<String> voices = List.of(DEFAULT_VOICE, "echo", "fable", "onyx", "nova", "shimmer");
 
 	private final OpenAIClient openAIClient;
 	private final int requestsPer24Hours;
@@ -55,7 +55,7 @@ public class TtsCommand implements Command {
 		return new HelpDoc.Builder(this)
 			.summary("Generates text to speech using OpenAI.")
 			.detail(requestLimit + "Voices: " + voices)
-			.example("Four score and seven years ago.", "Generates audio using the \"" + defaultVoice + "\" voice.")
+			.example("Four score and seven years ago.", "Generates audio using the \"" + DEFAULT_VOICE + "\" voice.")
 			.example("onyx Four score and seven years ago.", "Generates audio using the \"onyx\" voice.")
 		.build();
 		//@formatter:on
@@ -69,7 +69,7 @@ public class TtsCommand implements Command {
 			return reply("What should I say?", chatCommand);
 		}
 
-		var voice = (parameters.voice() == null) ? defaultVoice : parameters.voice();
+		var voice = (parameters.voice() == null) ? DEFAULT_VOICE : parameters.voice();
 
 		/*
 		 * Check usage quota.

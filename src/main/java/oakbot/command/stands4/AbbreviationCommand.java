@@ -19,8 +19,9 @@ import oakbot.util.ChatBuilder;
  * @see "https://www.abbreviations.com/abbr_api.php"
  */
 public class AbbreviationCommand implements Command {
+	private static final int MAX_RESULTS_TO_DISPLAY = 10;
+
 	private final Stands4Client client;
-	private final int maxResultsToDisplay = 10;
 
 	/**
 	 * @param client the STANDS4 API client
@@ -39,7 +40,7 @@ public class AbbreviationCommand implements Command {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Retrieves abbreviation definitions from abbreviations.com.")
-			.example("asap", "Displays the " + maxResultsToDisplay + " most popular definitions for \"asap\".")
+			.example("asap", "Displays the " + MAX_RESULTS_TO_DISPLAY + " most popular definitions for \"asap\".")
 		.build();
 		//@formatter:on
 	}
@@ -53,7 +54,7 @@ public class AbbreviationCommand implements Command {
 
 		List<String> results;
 		try {
-			results = client.getAbbreviations(abbr, maxResultsToDisplay);
+			results = client.getAbbreviations(abbr, MAX_RESULTS_TO_DISPLAY);
 		} catch (IOException e) {
 			return error("Sorry, an unexpected error occurred: ", e, chatCommand);
 		}

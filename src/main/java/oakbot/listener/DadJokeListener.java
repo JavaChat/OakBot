@@ -24,10 +24,11 @@ import oakbot.util.StringUtils;
  * @author Michael Angstadt
  */
 public class DadJokeListener implements Listener {
+	private static final Duration HESITATION = Duration.ofSeconds(3);
+	private static final Duration TIME_BETWEEN_JOKES = Duration.ofMinutes(30);
+
 	private final String botName;
 	private final CatchAllMentionListener catchAllListener;
-	private final Duration hesitation = Duration.ofSeconds(3);
-	private final Duration timeBetweenJokes = Duration.ofMinutes(30);
 	private final Map<Integer, Instant> lastJokeByRoom = new HashMap<>();
 
 	//@formatter:off
@@ -59,7 +60,7 @@ public class DadJokeListener implements Listener {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Responds to sentences that start with \"I am [blank]\".")
-			.detail("Responds once every " + timeBetweenJokes.toMinutes() + " minutes per room at most.")
+			.detail("Responds once every " + TIME_BETWEEN_JOKES.toMinutes() + " minutes per room at most.")
 		.build();
 		//@formatter:on
 	}
@@ -114,7 +115,7 @@ public class DadJokeListener implements Listener {
 		}
 
 		var timeSinceLastJoke = Duration.between(lastJoke, Instant.now());
-		return (timeSinceLastJoke.compareTo(timeBetweenJokes) < 0);
+		return (timeSinceLastJoke.compareTo(TIME_BETWEEN_JOKES) < 0);
 	}
 
 	private Optional<String> findPhrase(String content) {
@@ -136,6 +137,6 @@ public class DadJokeListener implements Listener {
 	}
 
 	private void hesitate() {
-		Sleeper.sleep(hesitation);
+		Sleeper.sleep(HESITATION);
 	}
 }
