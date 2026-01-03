@@ -252,12 +252,7 @@ public class ChatCommand {
 		var startOfContent = -1;
 		String curTagName = null;
 
-		/*
-		 * Index 0: The tag name.
-		 * Index 1: The entire opening tag, including the <> characters and
-		 * attributes.
-		 */
-		var openTags = new LinkedList<String[]>();
+		var openTags = new LinkedList<OpenTag>();
 
 		var it = new CharIterator(content);
 		while (it.hasNext()) {
@@ -278,7 +273,7 @@ public class ChatCommand {
 					 */
 					if (inTagName) {
 						curTagName = content.substring(tagNameStart, it.index());
-						openTags.add(new String[] { curTagName, null });
+						openTags.add(new OpenTag(curTagName));
 						inTagName = false;
 					}
 					continue;
@@ -306,7 +301,7 @@ public class ChatCommand {
 				if (curTagName == null) {
 					curTagName = content.substring(tagNameStart, it.index());
 					if (!inClosingTag) {
-						openTags.add(new String[] { curTagName, null });
+						openTags.add(new OpenTag(curTagName));
 					}
 				}
 
@@ -317,7 +312,7 @@ public class ChatCommand {
 					 */
 					while (!openTags.isEmpty()) {
 						var tag = openTags.removeLast();
-						if (tag[0].equals(curTagName)) {
+						if (tag.name.equals(curTagName)) {
 							break;
 						}
 					}
@@ -327,8 +322,7 @@ public class ChatCommand {
 					 * and attributes.
 					 */
 					var tag = openTags.getLast();
-					var entireOpenTag = content.substring(tagNameStart - 1, it.index() + 1);
-					tag[1] = entireOpenTag;
+					tag.entireOpenTag = content.substring(tagNameStart - 1, it.index() + 1);
 				}
 
 				inTag = inTagName = inClosingTag = false;
@@ -349,13 +343,30 @@ public class ChatCommand {
 
 		//@formatter:off
 		var openTagsBeforeFirstWord = openTags.stream()
-			.map(tag -> tag[1])
+			.map(tag -> tag.entireOpenTag)
 		.toList();
 		//@formatter:on
 
 		var firstWord = firstWordBuffer.toString();
 
 		return new CommandStringParts(openTagsBeforeFirstWord, firstWord, startOfContent);
+	}
+
+	private static class OpenTag {
+		/**
+		 * The tag name (e.g. "p").
+		 */
+		private final String name;
+
+		/**
+		 * The entire opening tag, including the &lt;&gt; characters and
+		 * attributes (e.g. <code>&lt;p align="center"&gt;</code>)
+		 */
+		private String entireOpenTag;
+
+		public OpenTag(String name) {
+			this.name = name;
+		}
 	}
 
 	private record CommandStringParts(List<String> openTagsBeforeFirstWord, String firstWord, int startOfContent) {
