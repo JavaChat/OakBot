@@ -509,7 +509,7 @@ class BotTest {
 		var joinCommand = mock(Command.class);
 		when(joinCommand.name()).thenReturn("join");
 		when(joinCommand.aliases()).thenReturn(List.of());
-		when(joinCommand.onMessage(any(ChatCommand.class), any(IBot.class))).then((invocation) -> {
+		when(joinCommand.onMessage(any(ChatCommand.class), any(IBot.class))).then(invocation -> {
 			var chatCommand = (ChatCommand) invocation.getArguments()[0];
 			var roomId = Integer.parseInt(chatCommand.getContent());
 
@@ -519,7 +519,7 @@ class BotTest {
 				.onSuccess(() -> ChatActions.post("success"))
 				.ifRoomDoesNotExist(() -> ChatActions.post("ifRoomDoesNotExist"))
 				.ifLackingPermissionToPost(() -> ChatActions.post("ifLackingPermissionToPost"))
-				.onError((e) -> ChatActions.post("onError"))
+				.onError(e -> ChatActions.post("onError"))
 			);
 			//@formatter:on
 		});
@@ -867,7 +867,7 @@ class BotTest {
 		/*
 		 * Stop the bot when the bot sends the edit request.
 		 */
-		doAnswer((invocation) -> {
+		doAnswer(invocation -> {
 			bot.stop();
 			return null;
 		}).when(room1).editMessage(100, 0, "> http://en.wikipedia.org/wiki/Java");
@@ -991,12 +991,12 @@ class BotTest {
 			when(room.getFkey()).thenReturn("0123456789abcdef0123456789abcdef");
 			when(room.canPost()).thenReturn(canPost);
 			when(room.sendMessage(anyString(), anyLong(), any(SplitStrategy.class))).thenReturn(List.of(messageId++));
-			doAnswer((invocation) -> {
+			doAnswer(invocation -> {
 				chatClient.joined.remove(roomId);
 				return null;
 			}).when(room).leave();
 
-			doAnswer((invocations) -> {
+			doAnswer(invocations -> {
 				Consumer<MessagePostedEvent> consumer = (Consumer<MessagePostedEvent>) invocations.getArguments()[1];
 				consumers.put(roomId, consumer);
 				return null;
