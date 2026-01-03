@@ -217,8 +217,10 @@ public class ChatBuilder implements CharSequence {
 	 * Formats the message as a reply.
 	 * @param id the ID of the parent message
 	 * @return this
+	 * @deprecated the preferred way of specifying the parent message ID is to
+	 * include it as a field in the POST request
 	 */
-	@Deprecated
+	@Deprecated(forRemoval = false)
 	public ChatBuilder reply(long id) {
 		replyId = id;
 		return this;
@@ -228,8 +230,10 @@ public class ChatBuilder implements CharSequence {
 	 * Formats the message as a reply.
 	 * @param message the parent message
 	 * @return this
+	 * @deprecated the preferred way of specifying the parent message ID is to
+	 * include it as a field in the POST request
 	 */
-	@Deprecated
+	@Deprecated(forRemoval = false)
 	public ChatBuilder reply(ChatMessage message) {
 		return reply(message.id());
 	}
@@ -238,8 +242,10 @@ public class ChatBuilder implements CharSequence {
 	 * Formats the message as a reply.
 	 * @param command the parent message
 	 * @return this
+	 * @deprecated the preferred way of specifying the parent message ID is to
+	 * include it as a field in the POST request
 	 */
-	@Deprecated
+	@Deprecated(forRemoval = false)
 	public ChatBuilder reply(ChatCommand command) {
 		return reply(command.getMessage());
 	}
