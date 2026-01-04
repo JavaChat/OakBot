@@ -87,7 +87,7 @@ public class ChatCommand {
 	 * name
 	 */
 	public List<String> getContentAsArgs() {
-		if (getContent().trim().isEmpty()) {
+		if (getContent().isBlank()) {
 			return List.of();
 		}
 

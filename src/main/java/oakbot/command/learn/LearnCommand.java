@@ -61,7 +61,7 @@ public class LearnCommand implements Command {
 		if (subCommand == null) {
 			return reply("You haven't specified the command name or its output.", chatCommand);
 		}
-		if (subCommand.getContent().trim().isEmpty()) {
+		if (subCommand.getContent().isBlank()) {
 			return reply("You haven't specified the command output.", chatCommand);
 		}
 

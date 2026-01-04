@@ -311,7 +311,7 @@ public final class Main {
 
 	private static Site getSite(BotProperties props) {
 		var domain = props.getSite();
-		if (domain == null || domain.trim().isEmpty()) {
+		if (domain == null || domain.isBlank()) {
 			return Site.STACKOVERFLOW;
 		}
 

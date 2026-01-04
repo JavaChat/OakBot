@@ -236,7 +236,7 @@ public class XkcdExplained implements ScheduledTask, Listener {
 	private Node nextSiblingThatsNotJustWhitespace(Node node) {
 		do {
 			node = node.nextSibling();
-		} while (node.outerHtml().trim().isEmpty());
+		} while (node.outerHtml().isBlank());
 
 		return node;
 	}

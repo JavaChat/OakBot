@@ -71,7 +71,7 @@ public class GrootFilter extends ToggleableFilter {
 	}
 
 	private int calculateHowManyGrootSentencesToGenerate(String line) {
-		if (line.trim().isEmpty()) {
+		if (line.isBlank()) {
 			return 0;
 		}
 

@@ -52,7 +52,7 @@ public class WaduFilter extends ToggleableFilter {
 		var lines = message.split("\r\n|\r|\n");
 		var applyFormatting = !fixed && lines.length == 1;
 		for (var line : lines) {
-			var waduWordsToGenerate = line.trim().isEmpty() ? 0 : StringUtils.countWords(line) / 5 + 1;
+			var waduWordsToGenerate = line.isBlank() ? 0 : StringUtils.countWords(line) / 5 + 1;
 			appendWaduLine(waduWordsToGenerate, applyFormatting, rng, cb);
 			cb.nl();
 		}
