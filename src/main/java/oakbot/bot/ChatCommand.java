@@ -210,7 +210,7 @@ public class ChatCommand {
 		}
 
 		var content = contentObj.getContent();
-		var parts = extractParts(content);
+		var parts = new CommandStringParser(content).parse();
 
 		var name = StringEscapeUtils.unescapeHtml4(parts.firstWord);
 		if (trigger != null) {
@@ -242,114 +242,143 @@ public class ChatCommand {
 		return new ChatCommand(message, name, commandContent);
 	}
 
-	private static CommandStringParts extractParts(String content) {
-		var firstWordBuffer = new StringBuilder();
-		var inTag = false;
-		var inTagName = false;
-		var inClosingTag = false;
-		var firstNonWhitespaceCharEncountered = false;
-		var tagNameStart = -1;
-		var startOfContent = -1;
-		String curTagName = null;
+	private static class CommandStringParser {
+		private final String content;
+		private final CharIterator it;
+		private final StringBuilder firstWordBuffer = new StringBuilder();
+		private final LinkedList<OpenTag> openTags = new LinkedList<>();
 
-		var openTags = new LinkedList<OpenTag>();
+		private boolean inTag = false;
+		private boolean inTagName = false;
+		private boolean inClosingTag = false;
+		private boolean firstNonWhitespaceCharEncountered = false;
+		private int tagNameStart = -1;
+		private int startOfContent = -1;
+		private String curTagName = null;
+		private boolean done = false;
 
-		var it = new CharIterator(content);
-		while (it.hasNext()) {
-			var c = it.next();
+		public CommandStringParser(String content) {
+			this.content = content;
+			it = new CharIterator(content);
+		}
 
+		public CommandStringParts parse() {
+			while (!done && it.hasNext()) {
+				var c = it.next();
+				processCharacter(c);
+			}
+
+			//@formatter:off
+			var openTagsBeforeFirstWord = openTags.stream()
+				.map(tag -> tag.entireOpenTag)
+			.toList();
+			//@formatter:on
+
+			var firstWord = firstWordBuffer.toString();
+
+			return new CommandStringParts(openTagsBeforeFirstWord, firstWord, startOfContent);
+		}
+
+		private void processCharacter(char c) {
 			if (Character.isWhitespace(c)) {
-				if (!firstNonWhitespaceCharEncountered) {
-					/*
-					 * Ignore all whitespace at the beginning of the message.
-					 */
-					continue;
-				}
-
-				if (inTag) {
-					/*
-					 * If we're inside of a tag name, this marks the end of the
-					 * tag name and the start of the tag's attributes.
-					 */
-					if (inTagName) {
-						curTagName = content.substring(tagNameStart, it.index());
-						openTags.add(new OpenTag(curTagName));
-						inTagName = false;
-					}
-					continue;
-				}
-
-				/*
-				 * The first whitespace character signals the end of the command
-				 * name.
-				 */
-				startOfContent = it.index() + 1;
-				break;
+				handleWhitespace();
+				return;
 			}
 
 			firstNonWhitespaceCharEncountered = true;
 
 			if (c == '<') {
-				inTag = inTagName = true;
-				inClosingTag = false;
-				tagNameStart = it.index() + 1;
-				curTagName = null;
-				continue;
+				handleOpenBracket();
+				return;
 			}
 
 			if (c == '>') {
-				if (curTagName == null) {
-					curTagName = content.substring(tagNameStart, it.index());
-					if (!inClosingTag) {
-						openTags.add(new OpenTag(curTagName));
-					}
-				}
-
-				if (inClosingTag) {
-					/*
-					 * Remove any tags from the list that start and end before
-					 * the command name is reached.
-					 */
-					while (!openTags.isEmpty()) {
-						var tag = openTags.removeLast();
-						if (tag.name.equals(curTagName)) {
-							break;
-						}
-					}
-				} else {
-					/*
-					 * Save the entire opening tag, including the <> characters
-					 * and attributes.
-					 */
-					var tag = openTags.getLast();
-					tag.entireOpenTag = content.substring(tagNameStart - 1, it.index() + 1);
-				}
-
-				inTag = inTagName = inClosingTag = false;
-				continue;
+				handleCloseBracket();
+				return;
 			}
 
 			if (c == '/' && it.prev() == '<') {
-				inClosingTag = true;
-				tagNameStart = it.index() + 1;
-				continue;
+				handleStartOfCloseTag();
+				return;
 			}
 
 			if (!inTag) {
 				firstWordBuffer.append(c);
-				continue;
+				return;
 			}
 		}
 
-		//@formatter:off
-		var openTagsBeforeFirstWord = openTags.stream()
-			.map(tag -> tag.entireOpenTag)
-		.toList();
-		//@formatter:on
+		private void handleWhitespace() {
+			if (!firstNonWhitespaceCharEncountered) {
+				/*
+				 * Ignore all whitespace at the beginning of the message.
+				 */
+				return;
+			}
 
-		var firstWord = firstWordBuffer.toString();
+			if (inTag) {
+				/*
+				 * If we're inside of a tag name, this marks the end of the tag
+				 * name and the start of the tag's attributes.
+				 */
+				if (inTagName) {
+					curTagName = content.substring(tagNameStart, it.index());
+					openTags.add(new OpenTag(curTagName));
+					inTagName = false;
+				}
+				return;
+			}
 
-		return new CommandStringParts(openTagsBeforeFirstWord, firstWord, startOfContent);
+			/*
+			 * The first whitespace character signals the end of the command
+			 * name.
+			 */
+			startOfContent = it.index() + 1;
+			done = true;
+		}
+
+		private void handleOpenBracket() {
+			inTag = inTagName = true;
+			inClosingTag = false;
+			tagNameStart = it.index() + 1;
+			curTagName = null;
+		}
+
+		private void handleCloseBracket() {
+			if (curTagName == null) {
+				curTagName = content.substring(tagNameStart, it.index());
+				if (!inClosingTag) {
+					openTags.add(new OpenTag(curTagName));
+				}
+			}
+
+			if (inClosingTag) {
+				/*
+				 * Remove any tags from the list that start and end before the
+				 * command name is reached.
+				 */
+				while (!openTags.isEmpty()) {
+					var tag = openTags.removeLast();
+					if (tag.name.equals(curTagName)) {
+						break;
+					}
+				}
+			} else {
+				/*
+				 * Save the entire opening tag, including the <> characters and
+				 * attributes.
+				 */
+				var tag = openTags.getLast();
+				tag.entireOpenTag = content.substring(tagNameStart - 1, it.index() + 1);
+			}
+
+			inTag = inTagName = inClosingTag = false;
+		}
+
+		void handleStartOfCloseTag() {
+			inClosingTag = true;
+			tagNameStart = it.index() + 1;
+		}
 	}
 
 	private static class OpenTag {

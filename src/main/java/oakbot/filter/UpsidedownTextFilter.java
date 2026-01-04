@@ -55,57 +55,74 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 
 	@Override
 	public String filter(String message) {
-		var sb = new StringBuilder(message.length());
+		return new TextFlipper(message).flip();
+	}
 
-		var flip = true;
-		var inReplySyntax = false;
-		var it = new CharIterator(message);
-		while (it.hasNext()) {
-			var n = it.next();
+	private class TextFlipper {
+		private final CharIterator it;
+		private final StringBuilder sb;
 
-			if (it.index() == 0 && n == ':') {
+		private boolean flip = true;
+		private boolean inReplySyntax = false;
+
+		public TextFlipper(String message) {
+			it = new CharIterator(message);
+			sb = new StringBuilder(message.length());
+		}
+
+		public String flip() {
+			while (it.hasNext()) {
+				var c = it.next();
+				processCharacter(c);
+			}
+
+			return sb.toString();
+		}
+
+		private void processCharacter(char c) {
+			var startOfReplySyntax = (it.index() == 0 && c == ':');
+			if (startOfReplySyntax) {
 				//preserve reply syntax
 				inReplySyntax = true;
-				sb.append(n);
-				continue;
+				sb.append(c);
+				return;
 			}
 
-			if (inReplySyntax) {
-				if (Character.isDigit(n)) {
-					sb.append(n);
-					continue;
-				}
-				inReplySyntax = false;
+			var stillInReplySyntax = (inReplySyntax && Character.isDigit(c));
+			if (stillInReplySyntax) {
+				sb.append(c);
+				return;
 			}
 
-			if (it.prev() == ']' && n == '(') {
+			inReplySyntax = false;
+
+			var startOfUrl = (it.prev() == ']' && c == '(');
+			if (startOfUrl) {
 				//preserve the URL that links are linked to
 				flip = false;
-				sb.append(n);
-				continue;
+				sb.append(c);
+				return;
 			}
 
 			if (!flip) {
-				if (n == ')') {
-					//end of link URL
+				var endOfUrl = (c == ')');
+				if (endOfUrl) {
 					flip = true;
 				}
-				sb.append(n);
-				continue;
+				sb.append(c);
+				return;
 			}
 
-			sb.append(flipIfPossible(n));
+			sb.append(flipIfPossible(c));
 		}
 
-		return sb.toString();
-	}
+		private char flipIfPossible(char c) {
+			if (c >= map.length) {
+				return c;
+			}
 
-	private char flipIfPossible(char c) {
-		if (c >= map.length) {
-			return c;
+			var flipped = map[c];
+			return (flipped == 0) ? c : flipped;
 		}
-
-		var flipped = map[c];
-		return (flipped == 0) ? c : flipped;
 	}
 }

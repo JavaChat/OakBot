@@ -105,10 +105,12 @@ public class ImagineCore {
 			return reply("Bad human! You are over quota and can't make any more requests right now. Try again in " + hours + " " + plural("hour", hours) + ".", chatCommand);
 		}
 
-		var parameters = parseContent(chatCommand.getContent());
-		if (parameters == null) {
+		var content = chatCommand.getContent();
+		if (content.isBlank()) {
 			return reply("Imagine what?", chatCommand);
 		}
+
+		var parameters = new ImagineParameterParser(content).parse();
 
 		var inputImage = parameters.inputImage();
 		var prompt = parameters.prompt();
@@ -343,50 +345,69 @@ public class ImagineCore {
 		return image;
 	}
 
-	static ImagineCommandParameters parseContent(String content) {
-		content = content.trim();
-		if (content.isEmpty()) {
-			return null;
+	static class ImagineParameterParser {
+		private final String content;
+		private final String token1;
+		private final String token2;
+		private final String rest;
+
+		public ImagineParameterParser(String content) {
+			this.content = content.trim();
+
+			var split = this.content.split("\\s+", 3);
+			token1 = split[0];
+			token2 = (split.length > 1) ? split[1] : null;
+			rest = (split.length > 2) ? split[2] : null;
 		}
 
-		var split = content.split("\\s+", 3);
-		var token1 = split[0];
-		var token2 = (split.length > 1) ? split[1] : null;
-		var rest = (split.length > 2) ? split[2] : null;
+		public ImagineCommandParameters parse() {
+			if (supportedModels.contains(token1.toLowerCase())) {
+				return token1IsModel();
+			}
 
-		String model = null;
-		String inputImage = null;
-		String prompt = null;
-		if (supportedModels.contains(token1.toLowerCase())) {
-			model = token1.toLowerCase();
+			if (isUrl(token1)) {
+				return token1IsUrl();
+			}
+
+			return new ImagineCommandParameters(null, null, content);
+		}
+
+		private ImagineCommandParameters token1IsModel() {
+			var model = token1.toLowerCase();
+			String inputImage = null;
+			String prompt = null;
+
 			if (token2 != null) {
 				if (isUrl(token2)) {
 					inputImage = token2;
 					prompt = rest;
 				} else {
-					prompt = token2;
-					if (rest != null) {
-						prompt += " " + rest;
-					}
+					prompt = promptIsAfterToken1(token2, rest);
 				}
 			}
-		} else if (isUrl(token1)) {
-			inputImage = token1;
-			if (token2 != null) {
-				prompt = token2;
-				if (rest != null) {
-					prompt += " " + rest;
-				}
-			}
-		} else {
-			prompt = content;
+
+			return new ImagineCommandParameters(model, inputImage, prompt);
 		}
 
-		return new ImagineCommandParameters(model, inputImage, prompt);
-	}
+		private ImagineCommandParameters token1IsUrl() {
+			var inputImage = token1;
+			String model = null;
+			String prompt = null;
 
-	private static boolean isUrl(String url) {
-		return url.matches("^https?://.*");
+			if (token2 != null) {
+				prompt = promptIsAfterToken1(token2, rest);
+			}
+
+			return new ImagineCommandParameters(model, inputImage, prompt);
+		}
+
+		private String promptIsAfterToken1(String token2, String rest) {
+			return token2 + ((rest == null) ? "" : " " + rest);
+		}
+
+		private boolean isUrl(String url) {
+			return url.toLowerCase().matches("^https?://.*");
+		}
 	}
 
 	record ImagineCommandParameters(String model, String inputImage, String prompt) {

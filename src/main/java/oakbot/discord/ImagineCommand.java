@@ -71,35 +71,24 @@ public class ImagineCommand implements DiscordSlashCommand {
 	public void onMessage(SlashCommandInteractionEvent event, BotContext context) {
 		var userId = event.getUser().getIdLong();
 
-		Duration timeUntilNextRequest;
-		synchronized (usageQuota) {
-			timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
-		}
-
-		if (!timeUntilNextRequest.isZero()) {
-			var hours = timeUntilNextRequest.toHours() + 1;
+		var hours = hoursUntilUserCanMakeAnotherRequest(userId);
+		if (hours > 0) {
 			event.reply("Bad human! You are over quota. Try again in " + hours + " " + plural("hour", hours) + ".").queue();
 			return;
 		}
 
 		var prompt = event.getOption(OPT_PROMPT, OptionMapping::getAsString);
-
 		var inputImage = event.getOption(OPT_INPUT_IMAGE, OptionMapping::getAsAttachment);
 
 		var modelOption = event.getOption(OPT_MODEL);
-		Model model;
-		if (modelOption == null) {
-			model = DEFAULT_MODEL;
-		} else {
-			var id = modelOption.getAsString();
-			model = Model.getById(id);
-			if (model == null) {
-				event.reply("Unknown model: " + id).queue();
-				return;
-			}
+		var model = determineModel(modelOption);
+		if (model == null) {
+			event.reply("Unknown model: " + modelOption.getAsString()).queue();
+			return;
 		}
 
-		if (inputImage != null && (model == Model.DALLE_3 || model == Model.SI_CORE)) {
+		var modelDoesNotSupportInputImages = (inputImage != null && !model.supportsInputImages());
+		if (modelDoesNotSupportInputImages) {
 			event.reply(new ChatBuilder().bold(model.display).append(" model does not support input images.").toString()).setEphemeral(true).queue();
 			return;
 		}
@@ -114,17 +103,7 @@ public class ImagineCommand implements DiscordSlashCommand {
 			}
 		}
 
-		var reply = new ChatBuilder();
-		reply.append("🎨 Submitted ").bold(model.display).append(" request");
-		if (model == Model.DALLE_2 && inputImage != null) {
-			reply.append(" with an ").bold("input image");
-			reply.append(". The prompt will be ignored because the model does not support requests that contain both a prompt and an input image.");
-		} else {
-			if (inputImage != null) {
-				reply.append(" with an ").bold("input image").append(", and");
-			}
-			reply.append(" with the following prompt: ").bold(prompt);
-		}
+		var reply = buildRequestReceivedReply(model, inputImage, prompt);
 
 		/*
 		 * If the bot does not respond within 3 seconds, the slash command times
@@ -133,23 +112,61 @@ public class ImagineCommand implements DiscordSlashCommand {
 		 * As a work around, you can chain additional actions using "flatMap",
 		 * or call "deferReply".
 		 */
-		event.reply(reply.toString()).flatMap(m -> {
-			try {
-				return switch (model) {
-				case DALLE_2, DALLE_3 -> handleDallE(event, model, inputImage, prompt);
-				case SI_CORE -> handleStableImageCore(event, prompt);
-				case SD_3, SD_3_TURBO -> handleStableDiffusion(event, model, inputImage, prompt);
-				default -> throw new IllegalArgumentException("Unsupported model: " + model.display);
-				};
-			} catch (Exception e) {
-				if (!context.authorIsAdmin()) {
-					synchronized (usageQuota) {
-						usageQuota.removeLast(userId);
-					}
-				}
-				return event.getChannel().sendMessage(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code());
+		event.reply(reply).flatMap(m -> sendImageGenerationRequest(event, context, userId, model, inputImage, prompt)).queue();
+	}
+
+	private long hoursUntilUserCanMakeAnotherRequest(long userId) {
+		Duration timeUntilNextRequest;
+		synchronized (usageQuota) {
+			timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
+		}
+
+		return timeUntilNextRequest.isZero() ? 0 : timeUntilNextRequest.toHours() + 1;
+	}
+
+	private Model determineModel(OptionMapping modelOption) {
+		if (modelOption == null) {
+			return DEFAULT_MODEL;
+		}
+
+		var id = modelOption.getAsString();
+		return Model.getById(id);
+	}
+
+	private String buildRequestReceivedReply(Model model, Attachment inputImage, String prompt) {
+		var reply = new ChatBuilder();
+		var inputImageProvided = (inputImage != null);
+
+		reply.append("🎨 Submitted ").bold(model.display).append(" request");
+		if (model == Model.DALLE_2 && inputImageProvided) {
+			reply.append(" with an ").bold("input image");
+			reply.append(". The prompt will be ignored because the model does not support requests that contain both a prompt and an input image.");
+		} else {
+			if (inputImageProvided) {
+				reply.append(" with an ").bold("input image").append(", and");
 			}
-		}).queue();
+			reply.append(" with the following prompt: ").bold(prompt);
+		}
+
+		return reply.toString();
+	}
+
+	private RestAction<Message> sendImageGenerationRequest(SlashCommandInteractionEvent event, BotContext context, long userId, Model model, Attachment inputImage, String prompt) {
+		try {
+			return switch (model) {
+			case DALLE_2, DALLE_3 -> handleDallE(event, model, inputImage, prompt);
+			case SI_CORE -> handleStableImageCore(event, prompt);
+			case SD_3, SD_3_TURBO -> handleStableDiffusion(event, model, inputImage, prompt);
+			default -> throw new IllegalArgumentException("Unsupported model: " + model.display);
+			};
+		} catch (Exception e) {
+			if (!context.authorIsAdmin()) {
+				synchronized (usageQuota) {
+					usageQuota.removeLast(userId);
+				}
+			}
+			return event.getChannel().sendMessage(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code());
+		}
 	}
 
 	private RestAction<Message> handleDallE(SlashCommandInteractionEvent event, Model model, Attachment inputImage, String prompt) throws OpenAIException, IOException {
@@ -277,6 +294,13 @@ public class ImagineCommand implements DiscordSlashCommand {
 		private Model(String display, String id) {
 			this.display = display;
 			this.id = id;
+		}
+
+		public boolean supportsInputImages() {
+			return switch (this) {
+			case DALLE_2, SD_3, SD_3_TURBO -> true;
+			default -> false;
+			};
 		}
 
 		public static Model getById(String id) {

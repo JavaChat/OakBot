@@ -38,36 +38,33 @@ class ImagineCommandTest {
 	}
 
 	@Test
-	void parseContent() {
-		var actual = ImagineCore.parseContent("");
-		assertNull(actual);
-
-		actual = ImagineCore.parseContent("dall-e-3 https://www.example.com/image.png prompt goes here");
+	void ImagineParameterParser() {
+		var actual = new ImagineCore.ImagineParameterParser("dall-e-3 https://www.example.com/image.png prompt goes here").parse();
 		assertEquals("dall-e-3", actual.model());
 		assertEquals("https://www.example.com/image.png", actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
-		actual = ImagineCore.parseContent("https://www.example.com/image.png prompt goes here");
+		actual = new ImagineCore.ImagineParameterParser("https://www.example.com/image.png prompt goes here").parse();
 		assertNull(actual.model());
 		assertEquals("https://www.example.com/image.png", actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
-		actual = ImagineCore.parseContent("dall-e-3 prompt goes here");
+		actual = new ImagineCore.ImagineParameterParser("dall-e-3 prompt goes here").parse();
 		assertEquals("dall-e-3", actual.model());
 		assertNull(actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
-		actual = ImagineCore.parseContent("prompt goes here");
+		actual = new ImagineCore.ImagineParameterParser("prompt goes here").parse();
 		assertNull(actual.model());
 		assertNull(actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
-		actual = ImagineCore.parseContent("one two");
+		actual = new ImagineCore.ImagineParameterParser("one two").parse();
 		assertNull(actual.model());
 		assertNull(actual.inputImage());
 		assertEquals("one two", actual.prompt());
 
-		actual = ImagineCore.parseContent("one");
+		actual = new ImagineCore.ImagineParameterParser("one").parse();
 		assertNull(actual.model());
 		assertNull(actual.inputImage());
 		assertEquals("one", actual.prompt());
