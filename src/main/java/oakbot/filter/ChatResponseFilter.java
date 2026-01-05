@@ -62,8 +62,8 @@ public abstract class ChatResponseFilter {
 	/**
 	 * Performs the filter operation. This method is not responsible for
 	 * checking if the filter is enabled or not.
-	 * @param message the message to filter
+	 * @param messageParts the message to filter
 	 * @return the filtered message
 	 */
-	public abstract String filter(String message);
+	public abstract String filter(MessageParts messageParts);
 }

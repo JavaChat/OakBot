@@ -49,6 +49,7 @@ import oakbot.command.Command;
 import oakbot.command.learn.LearnedCommand;
 import oakbot.command.learn.LearnedCommandsDao;
 import oakbot.filter.ChatResponseFilter;
+import oakbot.filter.MessageParts;
 import oakbot.listener.CommandListener;
 import oakbot.listener.Listener;
 
@@ -434,8 +435,8 @@ class BotTest {
 		 */
 		var filter = new ChatResponseFilter() {
 			@Override
-			public String filter(String message) {
-				return message.toUpperCase();
+			public String filter(MessageParts messageParts) {
+				return messageParts.rawMessage().toUpperCase();
 			}
 		};
 

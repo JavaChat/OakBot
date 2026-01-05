@@ -42,6 +42,7 @@ import oakbot.MemoryDatabase;
 import oakbot.Rooms;
 import oakbot.Statistics;
 import oakbot.filter.ChatResponseFilter;
+import oakbot.filter.MessageParts;
 import oakbot.inactivity.InactivityTask;
 import oakbot.listener.Listener;
 import oakbot.task.ScheduledTask;
@@ -263,13 +264,13 @@ public class Bot implements IBot {
 		if (message.bypassFilters()) {
 			filteredMessage = message.message();
 		} else {
-			var messageText = message.message();
+			var messageParts = MessageParts.parse(message.message());
 			for (var filter : responseFilters) {
 				if (filter.isEnabled(room.getRoomId())) {
-					messageText = filter.filter(messageText);
+					messageParts = MessageParts.parse(filter.filter(messageParts));
 				}
 			}
-			filteredMessage = messageText;
+			filteredMessage = messageParts.rawMessage();
 		}
 
 		logger.atInfo().log(() -> "Sending message [room=" + room.getRoomId() + "]: " + filteredMessage);

@@ -2,7 +2,6 @@ package oakbot.filter;
 
 import java.util.Arrays;
 import java.util.Random;
-import java.util.regex.Pattern;
 
 import oakbot.command.HelpDoc;
 import oakbot.util.ChatBuilder;
@@ -13,8 +12,6 @@ import oakbot.util.StringUtils;
  * @author Michael Angstadt
  */
 public class WaduFilter extends ToggleableFilter {
-	private final Pattern replyRegex = Pattern.compile("^:\\d+\\s");
-
 	@Override
 	public String name() {
 		return "wadu";
@@ -32,10 +29,10 @@ public class WaduFilter extends ToggleableFilter {
 	}
 
 	@Override
-	public String filter(String message) {
-		var fixed = message.startsWith(ChatBuilder.FIXED_WIDTH_PREFIX);
-
+	public String filter(MessageParts messageParts) {
 		var cb = new ChatBuilder();
+
+		var fixed = messageParts.fixedWidth();
 		if (fixed) {
 			cb.fixedWidth();
 		}
@@ -43,12 +40,12 @@ public class WaduFilter extends ToggleableFilter {
 		/*
 		 * Preserve the reply message ID, if present.
 		 */
-		var m = replyRegex.matcher(message);
-		if (m.find()) {
-			message = message.substring(m.end());
-			cb.append(m.group());
+		var replyPrefix = messageParts.replyPrefix();
+		if (replyPrefix != null) {
+			cb.append(replyPrefix);
 		}
 
+		var message = messageParts.messageContent();
 		var rng = new WaduRng(message.hashCode());
 		var lines = message.split("\r\n|\r|\n");
 		var applyFormatting = !fixed && lines.length == 1;

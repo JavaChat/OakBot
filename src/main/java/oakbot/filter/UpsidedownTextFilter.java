@@ -54,8 +54,15 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 	}
 
 	@Override
-	public String filter(String message) {
-		return new TextFlipper(message).flip();
+	public String filter(MessageParts messageParts) {
+		var replyPrefix = messageParts.replyPrefix();
+		if (replyPrefix == null) {
+			replyPrefix = "";
+		}
+
+		var message = messageParts.messageContent();
+
+		return replyPrefix + new TextFlipper(message).flip();
 	}
 
 	private class TextFlipper {
@@ -63,7 +70,6 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 		private final StringBuilder sb;
 
 		private boolean flip = true;
-		private boolean inReplySyntax = false;
 
 		public TextFlipper(String message) {
 			it = new CharIterator(message);
@@ -80,22 +86,6 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 		}
 
 		private void processCharacter(char c) {
-			var startOfReplySyntax = (it.index() == 0 && c == ':');
-			if (startOfReplySyntax) {
-				//preserve reply syntax
-				inReplySyntax = true;
-				sb.append(c);
-				return;
-			}
-
-			var stillInReplySyntax = (inReplySyntax && Character.isDigit(c));
-			if (stillInReplySyntax) {
-				sb.append(c);
-				return;
-			}
-
-			inReplySyntax = false;
-
 			var startOfUrl = (it.prev() == ']' && c == '(');
 			if (startOfUrl) {
 				//preserve the URL that links are linked to
