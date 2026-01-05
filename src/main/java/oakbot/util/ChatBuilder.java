@@ -21,7 +21,7 @@ import oakbot.bot.ChatCommand;
  * FAQ</a>
  */
 public class ChatBuilder implements CharSequence {
-	public static final String FIXED_WIDTH_PREFIX = "    ";
+	public static final String FIXED_WIDTH_PREFIX = " ".repeat(4);
 
 	private final StringBuilder sb;
 	private long replyId = -1;
@@ -384,7 +384,7 @@ public class ChatBuilder implements CharSequence {
 			 * treated as plain-text, so there is no need to escape those
 			 * special characters.
 			 */
-			markdown = "    " + content.replaceAll("(\r\n|\r|\n)", "$1    ");
+			markdown = FIXED_WIDTH_PREFIX + content.replaceAll("(\r\n|\r|\n)", "$1" + FIXED_WIDTH_PREFIX);
 		} else {
 			var multiline = content.indexOf('\n') >= 0 || content.indexOf('\r') >= 0;
 			if (multiline) {
