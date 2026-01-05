@@ -1,5 +1,6 @@
 package oakbot.filter;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -51,102 +52,117 @@ public class WaduFilter extends ToggleableFilter {
 		var rng = new WaduRng(message.hashCode());
 		var lines = message.split("\r\n|\r|\n");
 		var applyFormatting = !fixed && lines.length == 1;
-		for (var line : lines) {
-			var waduWordsToGenerate = line.isBlank() ? 0 : StringUtils.countWords(line) / 5 + 1;
-			appendWaduLine(waduWordsToGenerate, applyFormatting, rng, cb);
-			cb.nl();
-		}
+		var generator = new WaduWordGenerator(rng, applyFormatting);
+
+		//@formatter:off
+		Arrays.stream(lines)
+			.map(line -> translate(line, generator))
+		.forEach(waduLine -> cb.append(waduLine).nl());
+		//@formatter:on
 
 		return cb.toString().stripTrailing();
 	}
 
-	private void appendWaduLine(int waduWordsToGenerate, boolean applyFormatting, WaduRng rng, ChatBuilder cb) {
-		var previousWordWasWadu = false;
-		var startOfNewSentence = true;
-		for (var i = 0; i < waduWordsToGenerate || previousWordWasWadu; i++) {
-			boolean sayWadu;
-			if (i == 0) {
-				sayWadu = true;
-			} else if (previousWordWasWadu) {
-				sayWadu = rng.sayWaduAgain();
-			} else {
-				sayWadu = true;
-			}
+	private String translate(String original, WaduWordGenerator generator) {
+		var num = calculateHowManyWaduWordsToGenerate(original);
+		return generator.generateWords(num);
+	}
 
-			if (sayWadu) {
-				appendWadu(applyFormatting, startOfNewSentence, rng, cb);
+	private int calculateHowManyWaduWordsToGenerate(String line) {
+		if (line.isBlank()) {
+			return 0;
+		}
 
-				startOfNewSentence = false;
-			} else {
-				appendHek(applyFormatting, rng, cb);
+		var wordCount = StringUtils.countWords(line);
+		return wordCount / 5 + 1;
+	}
 
-				var lastWord = (i >= waduWordsToGenerate - 1);
-				var endSentence = lastWord || rng.endSentence();
-				if (endSentence) {
-					cb.append(rng.ending());
+	private class WaduWordGenerator {
+		private final WaduRng rng;
+		private final boolean applyFormatting;
+		private ChatBuilder cb;
+
+		public WaduWordGenerator(WaduRng rng, boolean applyFormatting) {
+			this.rng = rng;
+			this.applyFormatting = applyFormatting;
+		}
+
+		public String generateWords(int wordsToGenerate) {
+			cb = new ChatBuilder();
+			var previousWordWasWadu = false; //every sequence of one or more "wadu"s must end with a single "hek"
+			var startOfNewSentence = true;
+
+			for (var i = 0; i < wordsToGenerate || previousWordWasWadu; i++) {
+				boolean sayWadu = shouldWaduBeTheNextWord(i, previousWordWasWadu);
+
+				if (sayWadu) {
+					appendWadu(startOfNewSentence);
+
+					startOfNewSentence = false;
+				} else {
+					appendHek();
+
+					var lastWord = (i >= wordsToGenerate - 1);
+					var endSentence = lastWord || rng.endSentence();
+					if (endSentence) {
+						cb.append(rng.ending());
+					}
+
+					startOfNewSentence = endSentence;
 				}
 
-				startOfNewSentence = endSentence;
+				previousWordWasWadu = sayWadu;
+				cb.append(' ');
 			}
 
-			previousWordWasWadu = sayWadu;
-			cb.append(' ');
-		}
-	}
-
-	private void appendWadu(boolean applyFormatting, boolean startOfNewSentence, WaduRng rng, ChatBuilder cb) {
-		var letterACount = rng.letterACount();
-		var letterUCount = rng.letterUCount();
-		var italics = rng.formatItalic();
-		var bold = rng.formatBold();
-		var allCaps = rng.caps();
-
-		if (applyFormatting) {
-			if (italics) {
-				cb.italic();
-			}
-			if (bold) {
-				cb.bold();
-			}
+			return cb.toString();
 		}
 
-		cb.append((allCaps || startOfNewSentence) ? 'W' : 'w');
-		cb.repeat(allCaps ? 'A' : 'a', letterACount);
-		cb.append(allCaps ? 'D' : 'd');
-		cb.repeat(allCaps ? 'U' : 'u', letterUCount);
+		private boolean shouldWaduBeTheNextWord(int i, boolean previousWordWasWadu) {
+			if (i == 0) {
+				return true;
+			}
 
-		if (applyFormatting) {
-			if (bold) {
-				cb.bold();
-			}
-			if (italics) {
-				cb.italic();
-			}
-		}
-	}
-
-	private void appendHek(boolean applyFormatting, WaduRng rng, ChatBuilder cb) {
-		var italics = rng.formatItalic();
-		var bold = rng.formatBold();
-		var allCaps = rng.caps();
-
-		if (applyFormatting) {
-			if (italics) {
-				cb.italic();
-			}
-			if (bold) {
-				cb.bold();
-			}
+			return previousWordWasWadu ? rng.sayWaduAgain() : true;
 		}
 
-		cb.append(allCaps ? "HEK" : "hek");
+		private void appendWadu(boolean startOfNewSentence) {
+			var letterACount = rng.letterACount();
+			var letterUCount = rng.letterUCount();
+			var italics = rng.formatItalic();
+			var bold = rng.formatBold();
+			var allCaps = rng.caps();
 
-		if (applyFormatting) {
-			if (bold) {
-				cb.bold();
-			}
-			if (italics) {
-				cb.italic();
+			applyFormatting(bold, italics);
+
+			cb.append((allCaps || startOfNewSentence) ? 'W' : 'w');
+			cb.repeat(allCaps ? 'A' : 'a', letterACount);
+			cb.append(allCaps ? 'D' : 'd');
+			cb.repeat(allCaps ? 'U' : 'u', letterUCount);
+
+			applyFormatting(bold, italics);
+		}
+
+		private void appendHek() {
+			var italics = rng.formatItalic();
+			var bold = rng.formatBold();
+			var allCaps = rng.caps();
+
+			applyFormatting(bold, italics);
+
+			cb.append(allCaps ? "HEK" : "hek");
+
+			applyFormatting(bold, italics);
+		}
+
+		private void applyFormatting(boolean bold, boolean italics) {
+			if (applyFormatting) {
+				if (bold) {
+					cb.bold();
+				}
+				if (italics) {
+					cb.italic();
+				}
 			}
 		}
 	}
