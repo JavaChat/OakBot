@@ -38,6 +38,13 @@ class UnitConversionListenerTest {
 	}
 
 	@Test
+	void onMessage_temperature_zero() {
+		assertResponse("0f", "🌡 0°F = -17.78°C = 255.37°K");
+		assertResponse("0c", "🌡 0°C = 32°F = 273.15°K");
+		assertResponse("0 kelvin", "🌡 0°K = -273.15°C = -459.67°F");
+	}
+
+	@Test
 	void onMessage_length() {
 		assertResponse("i ran 2 miles", "📏 2 miles = 3.22 km");
 		assertResponse("i ran 2 mile", "📏 2 miles = 3.22 km");
@@ -51,10 +58,27 @@ class UnitConversionListenerTest {
 	}
 
 	@Test
+	void onMessage_length_zero() {
+		assertNoResponse("0 miles");
+		assertNoResponse("0 km");
+		assertNoResponse("0 ft");
+		assertNoResponse("0 m");
+		assertNoResponse("0 in");
+		assertNoResponse("0 cm");
+	}
+
+	@Test
 	void onMessage_weight() {
 		assertResponse("i weigh 160 lbs", "⚖️ 160 lbs = 72.73 kg = 11.43 st");
 		assertResponse("i weigh 72 kg", "⚖️ 72 kg = 158.4 lbs = 11.34 st");
 		assertResponse("i weigh 11 stone", "⚖️ 11 st = 69.85 kg = 154 lbs");
+	}
+
+	@Test
+	void onMessage_weight_zero() {
+		assertNoResponse("0 lbs");
+		assertNoResponse("0 kg");
+		assertNoResponse("0 stone");
 	}
 
 	@Test

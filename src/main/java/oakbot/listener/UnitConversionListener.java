@@ -65,6 +65,11 @@ public class UnitConversionListener implements Listener {
 			var m = unit.regex.matcher(content);
 			while (m.find()) {
 				var origValue = unit.parse(m);
+
+				if (origValue == 0 && unit.ignoreZeroValues()) {
+					continue;
+				}
+
 				if (processedValues.contains(origValue)) {
 					continue;
 				}
@@ -108,6 +113,11 @@ public class UnitConversionListener implements Listener {
 					new UnitValue(value + 273.15, Unit.KELVIN)
 				);
 			}
+
+			@Override
+			boolean ignoreZeroValues() {
+				return false;
+			}
 		},
 
 		FAHRENHEIT("(°|deg|degrees?|&#176;)?\\s*(F|fahrenheit)", "°F", "🌡") {
@@ -118,6 +128,11 @@ public class UnitConversionListener implements Listener {
 					new UnitValue((value + 459.67) * 5 / 9, Unit.KELVIN)
 				);
 			}
+
+			@Override
+			boolean ignoreZeroValues() {
+				return false;
+			}
 		},
 
 		KELVIN("(°|deg|degrees?|&#176;)?\\s*(kelvin)", "°K", "🌡") {
@@ -127,6 +142,11 @@ public class UnitConversionListener implements Listener {
 					new UnitValue(value - 273.15, Unit.CELCIUS),
 					new UnitValue((value - 273.15) * 9 / 5 + 32, Unit.FAHRENHEIT)
 				);
+			}
+
+			@Override
+			boolean ignoreZeroValues() {
+				return false;
 			}
 		},
 
@@ -241,6 +261,10 @@ public class UnitConversionListener implements Listener {
 			}
 
 			return value;
+		}
+
+		boolean ignoreZeroValues() {
+			return true;
 		}
 
 		abstract Collection<UnitValue> convert(double d);
