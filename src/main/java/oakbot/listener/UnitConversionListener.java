@@ -27,11 +27,6 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class UnitConversionListener implements Listener {
-	private final NumberFormat nf = NumberFormat.getNumberInstance();
-	{
-		nf.setMaximumFractionDigits(2);
-	}
-
 	@Override
 	public String name() {
 		return "unitconversion";
@@ -57,36 +52,8 @@ public class UnitConversionListener implements Listener {
 			return doNothing();
 		}
 
-		var conversions = new ArrayList<Conversion>();
 		var content = message.content().getContent();
-		for (var unit : Unit.values()) {
-			var processedValues = new HashSet<Double>();
-
-			var m = unit.regex.matcher(content);
-			while (m.find()) {
-				var origValue = unit.parse(m);
-
-				if (origValue == 0 && unit.ignoreZeroValues()) {
-					continue;
-				}
-
-				if (processedValues.contains(origValue)) {
-					continue;
-				}
-
-				var convertedValues = unit.convert(origValue);
-				var line = new StringBuilder();
-				line.append(unit.emoticon).append(" ");
-				line.append(nf.format(origValue)).append(unit.suffix);
-				for (var convertedValue : convertedValues) {
-					line.append(" = ").append(nf.format(convertedValue.value)).append(convertedValue.unit.suffix);
-				}
-				var conversion = new Conversion(m.start(), line.toString());
-				conversions.add(conversion);
-				processedValues.add(origValue);
-			}
-		}
-
+		var conversions = new ConversionsParser(content).parse();
 		if (conversions.isEmpty()) {
 			return doNothing();
 		}
@@ -101,6 +68,66 @@ public class UnitConversionListener implements Listener {
 		//@formatter:on
 
 		return post(cb);
+	}
+
+	private class ConversionsParser {
+		private final NumberFormat nf = NumberFormat.getNumberInstance();
+		private final String content;
+
+		public ConversionsParser(String content) {
+			this.content = content;
+			nf.setMaximumFractionDigits(2);
+		}
+
+		public List<Conversion> parse() {
+			List<Conversion> conversions = new ArrayList<>();
+
+			for (var unit : Unit.values()) {
+				searchForConversions(unit, conversions);
+			}
+
+			return conversions;
+		}
+
+		private void searchForConversions(Unit unit, List<Conversion> conversions) {
+			var processedValues = new HashSet<Double>();
+			var m = unit.regex.matcher(content);
+			while (m.find()) {
+				var origValue = unit.parse(m);
+
+				if (origValue == 0 && unit.ignoreZeroValues()) {
+					continue;
+				}
+
+				if (processedValues.contains(origValue)) {
+					continue;
+				}
+
+				var line = buildLine(unit, origValue);
+				var conversion = new Conversion(m.start(), line);
+				conversions.add(conversion);
+				processedValues.add(origValue);
+			}
+		}
+
+		private String buildLine(Unit unit, double origValue) {
+			var convertedValues = unit.convert(origValue);
+
+			//@formatter:off
+			return unit.emoticon + " " + outputValue(unit, origValue) + " = " +
+			convertedValues.stream()
+				.map(this::outputValue)
+			.collect(Collectors.joining(" = "));
+			//@formatter:on
+		}
+
+		private String outputValue(Unit unit, double value) {
+			return nf.format(value) + unit.suffix;
+		}
+
+		private String outputValue(UnitValue value) {
+			return outputValue(value.unit, value.value);
+		}
 	}
 
 	private enum Unit {
