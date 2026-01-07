@@ -137,7 +137,8 @@ public class UnitConversionListener implements Listener {
 			Collection<UnitValue> convert(double value) {
 				return List.of(
 					new UnitValue(value * 9 / 5 + 32, Unit.FAHRENHEIT),
-					new UnitValue(value + 273.15, Unit.KELVIN)
+					new UnitValue(value + 273.15, Unit.KELVIN),
+					new UnitValue((value + 273.15) * 9 / 5, Unit.RANKINE)
 				);
 			}
 
@@ -152,7 +153,8 @@ public class UnitConversionListener implements Listener {
 			Collection<UnitValue> convert(double value) {
 				return List.of(
 					new UnitValue((value - 32) * 5 / 9, Unit.CELCIUS),
-					new UnitValue((value + 459.67) * 5 / 9, Unit.KELVIN)
+					new UnitValue((value + 459.67) * 5 / 9, Unit.KELVIN),
+					new UnitValue(value + 459.67, Unit.RANKINE)
 				);
 			}
 
@@ -167,7 +169,24 @@ public class UnitConversionListener implements Listener {
 			Collection<UnitValue> convert(double value) {
 				return List.of(
 					new UnitValue(value - 273.15, Unit.CELCIUS),
-					new UnitValue((value - 273.15) * 9 / 5 + 32, Unit.FAHRENHEIT)
+					new UnitValue((value - 273.15) * 9 / 5 + 32, Unit.FAHRENHEIT),
+					new UnitValue(value * 9 / 5, Unit.RANKINE)
+				);
+			}
+
+			@Override
+			boolean ignoreZeroValues() {
+				return false;
+			}
+		},
+		
+		RANKINE("(°|deg|degrees?|&#176;)?\\s*(rankine)", "°R", "🌡") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue((value - 491.67) * 5 / 9, Unit.CELCIUS),
+					new UnitValue(value - 459.67, Unit.FAHRENHEIT),
+					new UnitValue(value * 5 / 9, Unit.KELVIN)
 				);
 			}
 
