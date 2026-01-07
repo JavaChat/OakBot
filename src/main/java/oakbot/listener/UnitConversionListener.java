@@ -162,7 +162,7 @@ public class UnitConversionListener implements Listener {
 			}
 		},
 
-		KELVIN("(°|deg|degrees?|&#176;)?\\s*(kelvin)", "°K", "🌡") {
+		KELVIN("(°|deg|degrees?|&#176;)?\\s*(kelvin)", "K", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
 				return List.of(
