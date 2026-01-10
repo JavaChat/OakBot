@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 
@@ -23,20 +24,7 @@ public class MentionListener implements CatchAllMentionListener {
 	private static final Duration TIME_BETWEEN_RESPONSES = Duration.ofMinutes(1);
 
 	private final Map<Integer, Instant> timeOfLastResponseByRoom = new HashMap<>();
-	private final Map<String, String> responses;
-	{
-		var response = "You're welcome.";
-
-		//@formatter:off
-		responses = Map.of(
-			"thank you", response,
-			"thank u", response,
-			"thanks", response,
-			"thx", response,
-			"ty", response
-		);
-		//@formatter:on
-	}
+	private final Set<String> thankYous = Set.of("thank you", "thank u", "thanks", "thx", "ty");
 
 	private boolean ignore = false;
 
@@ -75,10 +63,9 @@ public class MentionListener implements CatchAllMentionListener {
 		}
 
 		timeOfLastResponseByRoom.put(message.roomId(), now);
-
-		var response = respond(message.content().getContent());
-		if (response != null) {
-			return reply(response, message);
+		
+		if (userSaidThankYou(message.content().getContent())) {
+			return reply("You're welcome.", message);
 		}
 
 		//@formatter:off
@@ -93,7 +80,7 @@ public class MentionListener implements CatchAllMentionListener {
 		ignore = true;
 	}
 
-	private String respond(String content) {
+	private boolean userSaidThankYou(String content) {
 		//@formatter:off
 		var strippedContent = content
 			.replaceAll("@\\w+", "") //remove mentions
@@ -103,6 +90,6 @@ public class MentionListener implements CatchAllMentionListener {
 			.toLowerCase();
 		//@formatter:on
 
-		return responses.get(strippedContent);
+		return thankYous.contains(strippedContent);
 	}
 }

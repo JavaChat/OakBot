@@ -9,33 +9,7 @@ import oakbot.util.CharIterator;
  * @see http://stackoverflow.com/q/24371977/13379
  */
 public class UpsidedownTextFilter extends ToggleableFilter {
-	private final char[] map;
-	{
-		String normal, upsideDown;
-
-		//@formatter:off
-		normal =      "abcdefghijklmnopqrstuvwxyz";
-		upsideDown =  "ɐqɔpǝɟƃɥıɾʞlɯuodbɹsʇnʌʍxʎz";
-		
-		normal +=     "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		upsideDown += "∀qϽᗡƎℲƃHIſʞ˥WNOԀὉᴚS⊥∩ΛMXʎZ";
-
-		normal +=     "0123456789";
-		upsideDown += "0ƖᄅƐㄣϛ9ㄥ86";
-		
-		normal +=     "<>&,;.?!'\"";
-		upsideDown += "><⅋'؛˙¿¡,„";
-		//@formatter:on
-
-		var highestAsciiValue = normal.chars().max().getAsInt();
-		map = new char[highestAsciiValue + 1];
-
-		for (var i = 0; i < normal.length(); i++) {
-			var n = normal.charAt(i);
-			var u = upsideDown.charAt(i);
-			map[n] = u;
-		}
-	}
+	private static final char[] MAP = buildUpsideDownMap();
 
 	@Override
 	public String name() {
@@ -107,12 +81,42 @@ public class UpsidedownTextFilter extends ToggleableFilter {
 		}
 
 		private char flipIfPossible(char c) {
-			if (c >= map.length) {
+			if (c >= MAP.length) {
 				return c;
 			}
 
-			var flipped = map[c];
+			var flipped = MAP[c];
 			return (flipped == 0) ? c : flipped;
 		}
+	}
+
+	private static char[] buildUpsideDownMap() {
+		String normal;
+		String upsideDown;
+
+		//@formatter:off
+		normal =      "abcdefghijklmnopqrstuvwxyz";
+		upsideDown =  "ɐqɔpǝɟƃɥıɾʞlɯuodbɹsʇnʌʍxʎz";
+		
+		normal +=     "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		upsideDown += "∀qϽᗡƎℲƃHIſʞ˥WNOԀὉᴚS⊥∩ΛMXʎZ";
+
+		normal +=     "0123456789";
+		upsideDown += "0ƖᄅƐㄣϛ9ㄥ86";
+		
+		normal +=     "<>&,;.?!'\"";
+		upsideDown += "><⅋'؛˙¿¡,„";
+		//@formatter:on
+
+		var highestAsciiValue = normal.chars().max().getAsInt();
+		var map = new char[highestAsciiValue + 1];
+
+		for (var i = 0; i < normal.length(); i++) {
+			var n = normal.charAt(i);
+			var u = upsideDown.charAt(i);
+			map[n] = u;
+		}
+
+		return map;
 	}
 }
