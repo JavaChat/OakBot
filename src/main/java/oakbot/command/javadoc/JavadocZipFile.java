@@ -90,25 +90,25 @@ public class JavadocZipFile {
 			return;
 		}
 
-		var name = infoElement.attribute("name");
-		this.name = name.isEmpty() ? null : name;
+		var value = infoElement.attribute("name");
+		name = value.isEmpty() ? null : value;
 
-		var baseUrl = infoElement.attribute("baseUrl");
-		if (baseUrl.isEmpty()) {
-			this.baseUrl = null;
+		value = infoElement.attribute("baseUrl");
+		if (value.isEmpty()) {
+			baseUrl = null;
 		} else {
 			//make sure the base URL ends with a "/"
-			this.baseUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/");
+			baseUrl = value + (value.endsWith("/") ? "" : "/");
 		}
 
-		var projectUrl = infoElement.attribute("projectUrl");
-		this.projectUrl = projectUrl.isEmpty() ? null : projectUrl;
+		value = infoElement.attribute("projectUrl");
+		projectUrl = value.isEmpty() ? null : value;
 
-		var version = infoElement.attribute("version");
-		this.version = version.isEmpty() ? null : version;
+		value = infoElement.attribute("version");
+		version = value.isEmpty() ? null : value;
 
-		var javadocUrlPattern = infoElement.attribute("javadocUrlPattern");
-		this.javadocUrlPattern = javadocUrlPattern.isEmpty() ? null : javadocUrlPattern;
+		value = infoElement.attribute("javadocUrlPattern");
+		javadocUrlPattern = value.isEmpty() ? null : value;
 	}
 
 	/**

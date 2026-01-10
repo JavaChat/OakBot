@@ -671,15 +671,15 @@ public class Bot implements IBot {
 
 			if (event instanceof InvitationEvent ie) {
 				var roomId = ie.getRoomId();
-				var userId = ie.getUserId();
-				var inviterIsAdmin = isAdminUser(userId);
+				var inviterId = ie.getUserId();
+				var inviterIsAdmin = isAdminUser(inviterId);
 
 				boolean acceptInvitation;
 				if (inviterIsAdmin) {
 					acceptInvitation = true;
 				} else {
 					try {
-						acceptInvitation = isRoomOwner(roomId, userId);
+						acceptInvitation = isRoomOwner(roomId, inviterId);
 					} catch (IOException e) {
 						logger.atError().setCause(e).log(() -> "Unable to handle room invite. Error determining whether user is room owner.");
 						acceptInvitation = false;
@@ -697,8 +697,8 @@ public class Bot implements IBot {
 		}
 
 		private void handleMessage(ChatMessage message) {
-			var userId = message.userId();
-			var isAdminUser = isAdminUser(userId);
+			var authorId = message.userId();
+			var isAdminUser = isAdminUser(authorId);
 
 			if (timeout && !isAdminUser) {
 				//bot is in timeout, ignore
@@ -711,13 +711,13 @@ public class Bot implements IBot {
 			}
 
 			var hasAllowedUsersList = !allowedUsers.isEmpty();
-			var userIsAllowed = allowedUsers.contains(userId);
+			var userIsAllowed = allowedUsers.contains(authorId);
 			if (hasAllowedUsersList && !userIsAllowed) {
 				//message was posted by a user who is not in the green list, ignore
 				return;
 			}
 
-			var userIsBanned = bannedUsers.contains(userId);
+			var userIsBanned = bannedUsers.contains(authorId);
 			if (userIsBanned) {
 				//message was posted by a banned user, ignore
 				return;
@@ -734,7 +734,7 @@ public class Bot implements IBot {
 				return;
 			}
 
-			if (userId == Bot.this.userId) {
+			if (authorId == userId) {
 				//message was posted by this bot
 				handleBotMessage(message);
 				return;
