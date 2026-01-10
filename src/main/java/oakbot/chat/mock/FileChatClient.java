@@ -103,15 +103,15 @@ public class FileChatClient implements IChatClient {
 
 	@Override
 	public String getMessageContent(long messageId) throws IOException {
-		return _getMessageContent(messageId);
+		return getMessageContentFromId(messageId);
 	}
 
 	@Override
 	public String getOriginalMessageContent(long messageId) throws IOException {
-		return _getMessageContent(messageId);
+		return getMessageContentFromId(messageId);
 	}
 
-	private String _getMessageContent(long messageId) throws IOException {
+	private String getMessageContentFromId(long messageId) throws IOException {
 		for (var room : rooms) {
 			for (var message : room.getAllMessages()) {
 				if (message.id() == messageId) {

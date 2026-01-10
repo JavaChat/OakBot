@@ -192,11 +192,6 @@ public class ClassInfo {
 			return this;
 		}
 
-		public Builder interface_(ClassName interface_) {
-			interfaces.add(interface_);
-			return this;
-		}
-
 		public Builder interfaces(List<ClassName> interfaces) {
 			this.interfaces.addAll(interfaces);
 			return this;
