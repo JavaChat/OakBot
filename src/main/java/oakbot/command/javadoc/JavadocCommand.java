@@ -733,20 +733,20 @@ public class JavadocCommand implements Command, Listener {
 	}
 
 	private static class Paragraphs {
-		private final String[] paragraphs;
+		private final String[] paragraphText;
 		private final String since;
 
 		public Paragraphs(String text, String since) {
-			paragraphs = text.split("\n\n");
+			paragraphText = text.split("\n\n");
 			this.since = since;
 		}
 
 		public int count() {
-			return paragraphs.length;
+			return paragraphText.length;
 		}
 
 		public String get(int num) {
-			return paragraphs[num - 1];
+			return paragraphText[num - 1];
 		}
 
 		/**

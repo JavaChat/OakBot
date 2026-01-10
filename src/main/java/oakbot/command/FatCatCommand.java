@@ -224,11 +224,11 @@ public class FatCatCommand implements Command, Listener {
 	}
 
 	private static class Conversations {
-		private final List<Conversation> conversations = new ArrayList<>();
+		private final List<Conversation> list = new ArrayList<>();
 
 		public Conversation get(int roomId, int userId) {
 			//@formatter:off
-			return conversations.stream()
+			return list.stream()
 				.filter(conversation -> conversation.roomId == roomId)
 				.filter(conversation -> conversation.userId == userId)
 			.findFirst().orElse(null);
@@ -241,11 +241,11 @@ public class FatCatCommand implements Command, Listener {
 				remove(existing);
 			}
 
-			conversations.add(conversation);
+			list.add(conversation);
 		}
 
 		public void remove(Conversation conversation) {
-			conversations.remove(conversation);
+			list.remove(conversation);
 		}
 	}
 

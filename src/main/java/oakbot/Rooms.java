@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class Rooms {
 	private final Database db;
-	private final List<Integer> rooms = new ArrayList<>();
+	private final List<Integer> roomIds = new ArrayList<>();
 	private final List<Integer> homeRooms;
 	private final List<Integer> quietRooms;
 
@@ -28,7 +28,7 @@ public class Rooms {
 		@SuppressWarnings("unchecked")
 		var rooms = (List<Integer>) db.get("rooms");
 		if (rooms != null) {
-			this.rooms.addAll(rooms);
+			roomIds.addAll(rooms);
 		}
 
 		/*
@@ -36,8 +36,8 @@ public class Rooms {
 		 */
 		var modified = false;
 		for (Integer homeRoom : homeRooms) {
-			if (!this.rooms.contains(homeRoom)) {
-				this.rooms.add(homeRoom);
+			if (!roomIds.contains(homeRoom)) {
+				roomIds.add(homeRoom);
 				modified = true;
 			}
 		}
@@ -51,7 +51,7 @@ public class Rooms {
 	 * @return the room IDs
 	 */
 	public List<Integer> getRooms() {
-		return Collections.unmodifiableList(rooms);
+		return Collections.unmodifiableList(roomIds);
 	}
 
 	/**
@@ -94,11 +94,11 @@ public class Rooms {
 	 * @param roomId the room ID
 	 */
 	public void add(int roomId) {
-		if (rooms.contains(roomId)) {
+		if (roomIds.contains(roomId)) {
 			return;
 		}
 
-		rooms.add(roomId);
+		roomIds.add(roomId);
 		save();
 	}
 
@@ -108,7 +108,7 @@ public class Rooms {
 	 * @return true if it was removed, false if no room was found
 	 */
 	public boolean remove(int roomId) {
-		var removed = rooms.remove((Integer) roomId);
+		var removed = roomIds.remove((Integer) roomId);
 		if (removed) {
 			save();
 		}
@@ -121,7 +121,7 @@ public class Rooms {
 	 * @return true if it's in the list, false if not
 	 */
 	public boolean contains(int roomId) {
-		return rooms.contains(roomId);
+		return roomIds.contains(roomId);
 	}
 
 	private void save() {
@@ -129,6 +129,6 @@ public class Rooms {
 			return;
 		}
 
-		db.set("rooms", rooms);
+		db.set("rooms", roomIds);
 	}
 }
