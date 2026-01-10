@@ -2,17 +2,12 @@ package oakbot.ai.openai;
 
 import static oakbot.util.JsonUtils.putIfNotNull;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.imageio.ImageIO;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -32,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import oakbot.util.HttpFactory;
 import oakbot.util.HttpRequestLogger;
+import oakbot.util.ImageUtils;
 import oakbot.util.JsonUtils;
 
 /**
@@ -291,7 +287,7 @@ public class OpenAIClient {
 
 		lookForError(apiRequest.getInput(), responseBody);
 
-		return null;
+		return new byte[0];
 	}
 
 	/**
@@ -452,11 +448,11 @@ public class OpenAIClient {
 			var origData = EntityUtils.toByteArray(entity);
 
 			if (isJpegOrGif(entity)) {
-				var pngData = convertToPng(origData);
-				if (pngData != null) {
-					return pngData;
+				try {
+					return ImageUtils.convertToPng(origData);
+				} catch (IllegalArgumentException e) {
+					logger.atWarn().setCause(e).log(() -> "Unable to convert non-PNG image to PNG: " + url);
 				}
-				logger.atWarn().log(() -> "Unable to convert non-PNG image to PNG: " + url);
 			}
 
 			return origData;
@@ -479,21 +475,6 @@ public class OpenAIClient {
 		 * the end (e.g. "image/gif;encoding=utf-8")
 		 */
 		return contentType.startsWith("image/jpeg") || contentType.startsWith("image/gif");
-	}
-
-	private byte[] convertToPng(byte[] data) throws IOException {
-		BufferedImage image;
-		try (var in = new ByteArrayInputStream(data)) {
-			image = ImageIO.read(in);
-		}
-		if (image == null) {
-			return null;
-		}
-
-		try (var out = new ByteArrayOutputStream()) {
-			ImageIO.write(image, "PNG", out);
-			return out.toByteArray();
-		}
 	}
 
 	/**

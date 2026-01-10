@@ -16,6 +16,8 @@ public class ImageUtils {
 	 * @param data the image data
 	 * @return the PNG image
 	 * @throws IOException if there is a problem converting the image
+	 * @throws IllegalArgumentException if the input data is not a recognized
+	 * image format
 	 */
 	public static byte[] convertToPng(byte[] data) throws IOException {
 		BufferedImage image;
@@ -23,7 +25,7 @@ public class ImageUtils {
 			image = ImageIO.read(in);
 		}
 		if (image == null) {
-			return null;
+			throw new IllegalArgumentException("Input data is not a recognized image format.");
 		}
 
 		try (var out = new ByteArrayOutputStream()) {

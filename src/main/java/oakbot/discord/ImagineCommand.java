@@ -219,9 +219,6 @@ public class ImagineCommand implements DiscordSlashCommand {
 			String contentType;
 			if (image.contentType.type().equals("image") && image.contentType.subtype().equals("gif")) {
 				data = ImageUtils.convertToPng(image.data());
-				if (data == null) {
-					throw new IllegalArgumentException("The provided GIF input image could not be converted to PNG.");
-				}
 				contentType = "image/png";
 			} else {
 				data = image.data();

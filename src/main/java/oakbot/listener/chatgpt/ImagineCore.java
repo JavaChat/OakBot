@@ -285,9 +285,6 @@ public class ImagineCore {
 					 */
 					if (contentType.startsWith("image/gif")) {
 						image = ImageUtils.convertToPng(image);
-						if (image == null) {
-							throw new IllegalArgumentException("GIF image couldn't be converted to PNG.");
-						}
 					}
 				}
 			}
