@@ -149,10 +149,10 @@ public class EffectiveJavaCommand implements Command {
 		var contentToLower = content.toLowerCase();
 
 		//@formatter:off
-		var searchResults = items.stream().filter(item -> {
-			return item.title.toLowerCase().contains(contentToLower) ||
-				   item.summary.toLowerCase().contains(contentToLower);
-		}).toList();
+		var searchResults = items.stream().filter(item -> 
+			item.title.toLowerCase().contains(contentToLower) ||
+			item.summary.toLowerCase().contains(contentToLower)
+		).toList();
 		//@formatter:on
 
 		/*

@@ -243,9 +243,7 @@ public final class Main {
 	}
 
 	private static void createDefaultExceptionHandler() {
-		Thread.setDefaultUncaughtExceptionHandler((thread, thrown) -> {
-			logger.atError().setCause(thrown).log(() -> "Uncaught exception thrown.");
-		});
+		Thread.setDefaultUncaughtExceptionHandler((thread, thrown) -> logger.atError().setCause(thrown).log(() -> "Uncaught exception thrown."));
 	}
 
 	private static void createShutdownHook(Bot bot) {
