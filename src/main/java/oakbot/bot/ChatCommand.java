@@ -160,7 +160,7 @@ public class ChatCommand {
 		}
 
 		private void handleWhitespace(List<String> args) {
-			if (currentArg.length() > 0) {
+			if (!currentArg.isEmpty()) {
 				addCurrentArgument(args);
 			}
 		}
@@ -171,7 +171,7 @@ public class ChatCommand {
 		}
 
 		private void finalizeCurrentArgument(List<String> args) {
-			if (currentArg.length() > 0) {
+			if (!currentArg.isEmpty()) {
 				addCurrentArgument(args);
 			}
 		}
