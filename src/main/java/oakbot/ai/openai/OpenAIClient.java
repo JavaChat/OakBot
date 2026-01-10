@@ -23,6 +23,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import oakbot.util.HttpFactory;
@@ -353,7 +354,7 @@ public class OpenAIClient {
 
 			if (request instanceof HttpEntityEnclosingRequest entityRequest) {
 				if (entityRequest.getEntity() instanceof JsonEntity entity) {
-					sb.append("\nBody: ").append(JsonUtils.prettyPrint(entity.node));
+					sb.append("\nBody: ").append(JsonUtils.prettyPrintForLogging(entity.node));
 				}
 			}
 
@@ -362,7 +363,7 @@ public class OpenAIClient {
 	}
 
 	private void logResponse(int statusCode, JsonNode body) {
-		logger.atDebug().log(() -> "Response from OpenAI: HTTP " + statusCode + ": " + JsonUtils.prettyPrint(body));
+		logger.atDebug().log(() -> "Response from OpenAI: HTTP " + statusCode + ": " + JsonUtils.prettyPrintForLogging(body));
 	}
 
 	private void logIOException(HttpUriRequest request, int responseStatusCode, JsonNode responseBody, IOException e) {
@@ -373,12 +374,12 @@ public class OpenAIClient {
 
 			if (request instanceof HttpEntityEnclosingRequest entityRequest) {
 				if (entityRequest.getEntity() instanceof JsonEntity entity) {
-					sb.append(": ").append(JsonUtils.prettyPrint(entity.node));
+					sb.append(": ").append(JsonUtils.prettyPrintForLogging(entity.node));
 				}
 			}
 
 			if (responseBody != null) {
-				var responseBodyStr = JsonUtils.prettyPrint(responseBody);
+				var responseBodyStr = JsonUtils.prettyPrintForLogging(responseBody);
 				sb.append("\nResponse (HTTP ").append(responseStatusCode).append("): ").append(responseBodyStr);
 			}
 
@@ -396,7 +397,7 @@ public class OpenAIClient {
 
 		String requestBody;
 		if (request instanceof HttpEntityEnclosingRequest entityRequest && entityRequest.getEntity() instanceof JsonEntity entity) {
-			requestBody = JsonUtils.prettyPrint(entity.node);
+			requestBody = JsonUtils.prettyPrintForLogging(entity.node);
 		} else {
 			requestBody = "";
 		}
@@ -405,7 +406,7 @@ public class OpenAIClient {
 		if (responseStatusCode == 0) {
 			responseBody = "error sending request";
 		} else {
-			responseBody = (responseBodyJson == null) ? "could not parse response body as JSON" : JsonUtils.prettyPrint(responseBodyJson);
+			responseBody = (responseBodyJson == null) ? "could not parse response body as JSON" : JsonUtils.prettyPrintForLogging(responseBodyJson);
 		}
 
 		try {
@@ -665,7 +666,7 @@ public class OpenAIClient {
 	private static class JsonEntity extends StringEntity {
 		private final JsonNode node;
 
-		public JsonEntity(JsonNode node) {
+		public JsonEntity(JsonNode node) throws JsonProcessingException {
 			super(JsonUtils.toString(node), ContentType.APPLICATION_JSON);
 
 			this.node = node;

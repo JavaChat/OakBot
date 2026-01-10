@@ -58,27 +58,40 @@ public final class JsonUtils {
 	 * Pretty prints the given JSON node.
 	 * @param node the JSON node
 	 * @return the pretty-printed JSON
+	 * @throws JsonProcessingException if the node couldn't be written to a
+	 * string (unlikely)
 	 */
-	public static String prettyPrint(JsonNode node) {
+	public static String prettyPrint(JsonNode node) throws JsonProcessingException {
 		return toString(node, new DefaultPrettyPrinter());
+	}
+
+	/**
+	 * Pretty prints the given JSON node.
+	 * @param node the JSON node
+	 * @return the pretty-printed JSON or an error message if the node couldn't
+	 * be written to a string (unlikely)
+	 */
+	public static String prettyPrintForLogging(JsonNode node) {
+		try {
+			return prettyPrint(node);
+		} catch (JsonProcessingException e) {
+			return "Unable to write JSON node to string: " + e.getMessage();
+		}
 	}
 
 	/**
 	 * Converts the given JSON node to a string.
 	 * @param node the JSON node
 	 * @return the JSON string
+	 * @throws JsonProcessingException if the node couldn't be written to a
+	 * string (unlikely)
 	 */
-	public static String toString(JsonNode node) {
+	public static String toString(JsonNode node) throws JsonProcessingException {
 		return toString(node, null);
 	}
 
-	private static String toString(JsonNode node, PrettyPrinter pp) {
-		var writer = mapper.writer(pp);
-		try {
-			return writer.writeValueAsString(node);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
+	private static String toString(JsonNode node, PrettyPrinter pp) throws JsonProcessingException {
+		return mapper.writer(pp).writeValueAsString(node);
 	}
 
 	/**

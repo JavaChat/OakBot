@@ -300,7 +300,7 @@ public class Stands4Client {
 	}
 
 	private void logBadStructure(JsonNode response, NullPointerException e) {
-		logger.atError().setCause(e).log(() -> "JSON response was not structured as expected: " + JsonUtils.prettyPrint(response));
+		logger.atError().setCause(e).log(() -> "JSON response was not structured as expected: " + JsonUtils.prettyPrintForLogging(response));
 	}
 
 	private IOException badStructure(NullPointerException e) {
