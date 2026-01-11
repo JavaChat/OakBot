@@ -52,7 +52,7 @@ class GobbleTest {
 		var reader = new StringReader(data);
 		var stream = new Gobble(reader);
 		assertEquals(data, stream.asString());
-		
-		assertThrows(IllegalStateException.class, () -> stream.asByteArray());
+
+		assertThrows(IllegalStateException.class, stream::asByteArray);
 	}
 }
