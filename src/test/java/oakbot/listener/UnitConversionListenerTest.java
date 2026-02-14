@@ -132,6 +132,11 @@ class UnitConversionListenerTest {
 		assertResponse("i ran 3 miles on a 70f day", "📏 3 miles = 4.83 km\n🌡 70°F = 21.11°C = 294.26K = 529.67°R");
 		assertResponse("on a 70f day, i ran 3 miles", "🌡 70°F = 21.11°C = 294.26K = 529.67°R\n📏 3 miles = 4.83 km");
 	}
+	
+	@Test
+	void onMessage_range() {
+		assertResponse("we got 6-8 inches of snow", "📏 6 in = 15.24 cm\n📏 8 in = 20.32 cm");
+	}
 
 	private static void assertNoResponse(String message) {
 		assertResponse(message, null);

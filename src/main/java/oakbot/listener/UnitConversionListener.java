@@ -75,8 +75,12 @@ public class UnitConversionListener implements Listener {
 		private final String content;
 
 		public ConversionsParser(String content) {
-			this.content = content;
+			this.content = replaceRanges(content);
 			nf.setMaximumFractionDigits(2);
+		}
+
+		private String replaceRanges(String content) {
+			return content.replaceAll("(\\d+)\\s*-\\s*(\\d+)(\\s*\\w+)", "$1$3 to $2$3");
 		}
 
 		public List<Conversion> parse() {
