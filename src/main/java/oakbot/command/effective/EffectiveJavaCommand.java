@@ -1,11 +1,12 @@
 package oakbot.command.effective;
 
+import static java.util.function.Function.identity;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.xml.sax.SAXException;
@@ -42,31 +43,21 @@ public class EffectiveJavaCommand implements Command {
 			throw new RuntimeException(ignored);
 		}
 
-		var itemsByNumber = new HashMap<Integer, Item>();
-		var itemElements = document.select("/items/item");
-		for (var itemElement : itemElements) {
-			var number = Integer.parseInt(itemElement.attribute("number"));
-			var page = Integer.parseInt(itemElement.attribute("page"));
-			var title = itemElement.selectFirst("title").text().trim();
+		var itemsByNumber = document.stream("/items/item").map(element -> {
+			var number = Integer.parseInt(element.attribute("number"));
+			var page = Integer.parseInt(element.attribute("page"));
+			var title = element.selectFirst("title").text().trim();
 
-			//@formatter:off
-			var summary = itemElement.selectFirst("summary").text().trim()
-				/*
-				 * Remove any XML indentation whitespace at the beginning of
-				 * each line.
-				 */
-				.replaceAll("(\r\n|\r|\n)\\s+", "$1");
+			var summary = element.selectFirst("summary").text().trim();
 
-			var item = new Item.Builder()
-				.number(number)
-				.page(page)
-				.title(title)
-				.summary(summary)
-			.build();
-			//@formatter:on
+			/*
+			 * Remove any XML indentation whitespace at the beginning of
+			 * each line.
+			 */
+			summary = summary.replaceAll("(\r\n|\r|\n)\\s+", "$1");
 
-			itemsByNumber.put(item.number, item);
-		}
+			return new Item.Builder().number(number).page(page).title(title).summary(summary).build();
+		}).collect(Collectors.toMap(item -> item.number, identity()));
 
 		//@formatter:off
 		items = IntStream.rangeClosed(1, itemsByNumber.size())
@@ -185,12 +176,19 @@ public class EffectiveJavaCommand implements Command {
 	}
 
 	private ChatActions displayItems(ChatCommand chatCommand, List<Item> items) {
-		var cb = new ChatBuilder();
-		for (var item : items) {
-			cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title)).nl();
-		}
+		var nl = new ChatBuilder().nl();
 
-		return reply(cb, chatCommand, SplitStrategy.NEWLINE);
+		//@formatter:off
+		var reply = items.stream()
+			.map(this::toString)
+		.collect(Collectors.joining(nl));
+		//@formatter:on
+
+		return reply(reply, chatCommand, SplitStrategy.NEWLINE);
+	}
+
+	private String toString(Item item) {
+		return "Item " + item.number + ": " + removeMarkdown(item.title);
 	}
 
 	private static String removeMarkdown(String s) {

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.IRoom;
@@ -264,9 +265,17 @@ public class FileChatRoom implements IRoom {
 		sb.append(roomId).append(": ");
 
 		synchronized (messages) {
-			sb.append(messages.size()).append(" messages\n");
-			for (var message : messages) {
-				sb.append("  ").append(message.content()).append("\n");
+			sb.append(messages.size()).append(" messages");
+			if (!messages.isEmpty()) {
+				var delimiter = "\n  ";
+				sb.append(delimiter);
+
+				//@formatter:off
+				sb.append(messages.stream()
+					.map(ChatMessage::content)
+					.map(Object::toString)
+				.collect(Collectors.joining(delimiter)));
+				//@formatter:on
 			}
 		}
 

@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.github.mangstadt.sochat4j.ChatMessage;
+import com.github.mangstadt.sochat4j.Content;
 import com.github.mangstadt.sochat4j.IChatClient;
 import com.github.mangstadt.sochat4j.IRoom;
 import com.github.mangstadt.sochat4j.Site;
@@ -112,14 +114,15 @@ public class FileChatClient implements IChatClient {
 	}
 
 	private String getMessageContentFromId(long messageId) throws IOException {
-		for (var room : rooms) {
-			for (var message : room.getAllMessages()) {
-				if (message.id() == messageId) {
-					return message.content().getContent();
-				}
-			}
-		}
-		throw new IOException("Message " + messageId + " not found.");
+		//@formatter:off
+		return rooms.stream()
+			.map(FileChatRoom::getAllMessages)
+			.flatMap(List::stream)
+			.filter(message -> message.id() == messageId)
+			.map(ChatMessage::content)
+			.map(Content::getContent)
+		.findFirst().orElseThrow(() -> new IOException("Message " + messageId + " not found."));
+		//@formatter:on
 	}
 
 	@Override

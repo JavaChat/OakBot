@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
 
@@ -84,16 +85,16 @@ public class UnitConversionListener implements Listener {
 		}
 
 		public List<Conversion> parse() {
-			List<Conversion> conversions = new ArrayList<>();
-
-			for (var unit : Unit.values()) {
-				searchForConversions(unit, conversions);
-			}
-
-			return conversions;
+			//@formatter:off
+			return Stream.of(Unit.values())
+				.map(this::searchForConversions)
+				.flatMap(List::stream)
+			.toList();
+			//@formatter:on
 		}
 
-		private void searchForConversions(Unit unit, List<Conversion> conversions) {
+		private List<Conversion> searchForConversions(Unit unit) {
+			var conversions = new ArrayList<Conversion>();
 			var processedValues = new HashSet<Double>();
 			var m = unit.regex.matcher(content);
 			while (m.find()) {
@@ -112,6 +113,8 @@ public class UnitConversionListener implements Listener {
 				conversions.add(conversion);
 				processedValues.add(origValue);
 			}
+
+			return conversions;
 		}
 
 		private String buildLine(Unit unit, double origValue) {

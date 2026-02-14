@@ -1,5 +1,6 @@
 package oakbot.command.define;
 
+import static java.util.function.Predicate.not;
 import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
@@ -7,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -86,22 +86,29 @@ public class DefineCommand implements Command {
 			}
 		}
 
-		var cb = new ChatBuilder();
-		for (var definition : definitions) {
-			cb.append(word).append(" (").append(definition.wordType()).append("):").nl();
-			cb.append(definition.definition());
-			var example = definition.example();
-			if (example != null) {
-				cb.append(" (").append(definition.example()).append(")");
-			}
-			cb.nl().nl();
-		}
-
 		//@formatter:off
+		var reply = definitions.stream()
+			.map(definition -> toString(word, definition))
+		.collect(Collectors.joining(new ChatBuilder().nl().nl()));
+
 		return ChatActions.create(
-			new PostMessage(cb.toString().trim()).splitStrategy(SplitStrategy.NEWLINE)
+			new PostMessage(reply).splitStrategy(SplitStrategy.NEWLINE)
 		);
 		//@formatter:on
+	}
+
+	private CharSequence toString(String word, Definition definition) {
+		ChatBuilder cb = new ChatBuilder();
+
+		cb.append(word).append(" (").append(definition.wordType()).append("):").nl();
+		cb.append(definition.definition());
+
+		var example = definition.example();
+		if (example != null) {
+			cb.append(" (").append(definition.example()).append(")");
+		}
+
+		return cb;
 	}
 
 	private String url(String word) {
@@ -143,9 +150,7 @@ public class DefineCommand implements Command {
 
 	private String getDefinition(Node dtNode) {
 		var sb = new StringBuilder();
-		var children = dtNode.getChildNodes();
-		for (var i = 0; i < children.getLength(); i++) {
-			var child = children.item(i);
+		for (var child : Leaf.iterable(dtNode.getChildNodes())) {
 			if (child instanceof Text) {
 				sb.append(child.getTextContent());
 				continue;
@@ -176,7 +181,7 @@ public class DefineCommand implements Command {
 		//@formatter:off
 		return Arrays.stream(split)
 			.map(String::trim)
-			.filter(Predicate.not(String::isEmpty))
+			.filter(not(String::isEmpty))
 		.collect(Collectors.joining("; "));
 		//@formatter:on
 	}

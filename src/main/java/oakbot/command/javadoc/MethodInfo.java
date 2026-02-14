@@ -1,6 +1,5 @@
 package oakbot.command.javadoc;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -144,11 +143,11 @@ public class MethodInfo {
 	 * fully-qualified names of the parameters, e.g. "substring(int, int)")
 	 */
 	public String getSignature() {
-		var params = new ArrayList<String>();
-		for (var parameter : parameters) {
-			params.add(parameter.type().getFullyQualifiedName() + (parameter.array() ? "[]" : ""));
-		}
-		return name + "(" + String.join(", ", params) + ")";
+		//@formatter:off
+		return name + "(" + parameters.stream()
+			.map(parameter -> parameter.type().getFullyQualifiedName() + (parameter.array() ? "[]" : ""))
+		.collect(Collectors.joining(", ")) + ")";
+		//@formatter:on
 	}
 
 	/**

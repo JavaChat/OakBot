@@ -4,6 +4,7 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
@@ -20,7 +21,8 @@ import oakbot.util.ChatBuilder;
  * @author Michael Angstadt
  */
 public class EffectiveDebuggingCommand implements Command {
-	final List<Item> items = List.of( //@formatter:off
+	//@formatter:off
+	final List<Item> items = List.of(
 		new Item.Builder().number(1).title("Handle All Problems through an Issue-Tracking System").page(1).build(),
         new Item.Builder().number(2).title("Use Focused Queries to Search the Web for Insights into Your Problem").page(3).build(),
         new Item.Builder().number(3).title("Confirm That Preconditions and Postconditions Are Satisfied").page(5).build(),
@@ -194,13 +196,19 @@ public class EffectiveDebuggingCommand implements Command {
 	}
 
 	private ChatActions displayItems(ChatCommand chatCommand, List<Item> items) {
-		var cb = new ChatBuilder();
-		for (var item : items) {
-			cb.append("Item ").append(item.number).append(": ").append(removeMarkdown(item.title)).append(" (p. ").append(item.page).append(")").nl();
-		}
-		cb.append("(source: Effective Debugging, 66 Specific Ways to Debug Software and Systems by Diomidis Spinellis)");
+		var nl = new ChatBuilder().nl();
 
-		return reply(cb, chatCommand, SplitStrategy.NEWLINE);
+		//@formatter:off
+		var reply = items.stream()
+			.map(this::toString)
+		.collect(Collectors.joining(nl)) + nl + "(source: Effective Debugging, 66 Specific Ways to Debug Software and Systems by Diomidis Spinellis)";
+		//@formatter:on
+
+		return reply(reply, chatCommand, SplitStrategy.NEWLINE);
+	}
+
+	private String toString(Item item) {
+		return "Item " + item.number + ": " + removeMarkdown(item.title) + " (p. " + item.page + ")";
 	}
 
 	private static String removeMarkdown(String s) {
