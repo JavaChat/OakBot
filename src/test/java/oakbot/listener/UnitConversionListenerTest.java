@@ -72,10 +72,16 @@ class UnitConversionListenerTest {
 
 		assertResponse("i ran 2 km today", "📏 2 km = 1.24 miles");
 		assertResponse("i ran 2 kilometers today", "📏 2 km = 1.24 miles");
+		assertResponse("i ran 2 kilometres today", "📏 2 km = 1.24 miles");
 		assertResponse("i ran 2 kilometer today", "📏 2 km = 1.24 miles");
 
+		assertResponse("it's 4 ft long", "📏 4 ft = 1.22 m");
 		assertResponse("it's 4 feet long", "📏 4 ft = 1.22 m");
 		assertResponse("it's 4 foot long", "📏 4 ft = 1.22 m");
+		
+		assertResponse("it's 4 m long", "📏 4 m = 13.12 ft");
+		assertResponse("it's 4 meters long", "📏 4 m = 13.12 ft");
+		assertResponse("it's 4 metres long", "📏 4 m = 13.12 ft");
 	}
 
 	@Test

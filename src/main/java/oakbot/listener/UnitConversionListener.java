@@ -196,7 +196,7 @@ public class UnitConversionListener implements Listener {
 			}
 		},
 
-		KILOMETERS("(km|kilometers?)", " km", "📏") {
+		KILOMETERS("(km|kilometers?|kilometres?)", " km", "📏") {
 			@Override
 			Collection<UnitValue> convert(double value) {
 				return List.of(
@@ -214,7 +214,7 @@ public class UnitConversionListener implements Listener {
 			}
 		},
 
-		METERS("(m|meters?)", " m", "📏") {
+		METERS("(m|meters?|metres?)", " m", "📏") {
 			@Override
 			Collection<UnitValue> convert(double value) {
 				return List.of(
