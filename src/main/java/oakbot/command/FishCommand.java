@@ -359,10 +359,7 @@ public class FishCommand implements Command, ScheduledTask {
 			var userId = entry.getKey();
 			var inv = entry.getValue();
 
-			var fishes = new HashMap<String, Integer>();
-			for (var fish : inv.map.entrySet()) {
-				fishes.put(fish.getKey().name, fish.getValue().toInteger());
-			}
+			var fishes = inv.map.entrySet().stream().collect(Collectors.toMap(fish -> fish.getKey().name, fish -> fish.getValue().toInteger()));
 
 			fishesByUser.put(userId + "", fishes);
 		}

@@ -76,14 +76,11 @@ public class HelpCommand implements Command {
 		cb.fixedWidth();
 		if (!commandSummaries.isEmpty()) {
 			cb.append("Commands=====================").nl();
-			for (var entry : commandSummaries.entries()) {
-				var name = entry.getKey();
-				var description = entry.getValue();
-
+			commandSummaries.forEach((name, description) -> {
 				cb.append(bot.getTrigger()).append(name);
 				cb.repeat(' ', longestNameLength - (bot.getTrigger().length() + name.length()) + bufferSpace);
 				cb.append(description).nl();
-			}
+			});
 			cb.nl();
 		}
 
@@ -102,27 +99,21 @@ public class HelpCommand implements Command {
 
 		if (!listenerDescriptions.isEmpty()) {
 			cb.append("Listeners====================").nl();
-			for (var entry : listenerDescriptions.entries()) {
-				var name = entry.getKey();
-				var description = entry.getValue();
-
+			listenerDescriptions.forEach((name, description) -> {
 				cb.append(name);
 				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
-			}
+			});
 			cb.nl();
 		}
 
 		if (!taskDescriptions.isEmpty()) {
 			cb.append("Tasks========================").nl();
-			for (var entry : taskDescriptions.entries()) {
-				var name = entry.getKey();
-				var description = entry.getValue();
-
+			taskDescriptions.forEach((name, description) -> {
 				cb.append(name);
 				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
-			}
+			});
 		}
 
 		String condensedMessage;
@@ -161,14 +152,13 @@ public class HelpCommand implements Command {
 
 	private Multimap<String, String> getCommandSummaries() {
 		Multimap<String, String> summaries = TreeMultimap.create();
-		for (var command : commands) {
-			var name = command.name();
-			if (name == null) {
-				continue;
-			}
 
-			summaries.put(name, command.help().getSummary());
-		}
+		//@formatter:off
+		commands.stream()
+			.filter(command -> command.name() != null)
+		.forEach(command -> summaries.put(command.name(), command.help().getSummary()));
+		//@formatter:on
+
 		return summaries;
 	}
 
@@ -184,44 +174,35 @@ public class HelpCommand implements Command {
 	private Multimap<String, String> getListenerSummaries() {
 		Multimap<String, String> summaries = TreeMultimap.create();
 
-		for (var listener : listeners) {
-			var name = listener.name();
-			if (name == null) {
-				continue;
-			}
-
+		//@formatter:off
+		listeners.stream()
+			.filter(listener -> listener.name() != null)
 			/*
 			 * If a command exists with the same name, do not include this
 			 * listener in the help output.
 			 */
-			if (commands.stream().anyMatch(c -> c.name().equals(name))) {
-				continue;
-			}
+			.filter(listener -> commands.stream().map(Command::name).noneMatch(name -> name.equals(listener.name())))
+		.forEach(listener -> summaries.put(listener.name(), listener.help().getSummary()));
+		//@formatter:on
 
-			summaries.put(name, listener.help().getSummary());
-		}
 		return summaries;
 	}
 
 	private Multimap<String, String> getTaskSummaries() {
 		Multimap<String, String> summaries = TreeMultimap.create();
 
-		for (var task : tasks) {
-			var name = task.name();
-			if (name == null) {
-				continue;
-			}
-
+		//@formatter:off
+		tasks.stream()
+			.filter(task -> task.name() != null)
 			/*
 			 * If a command or listener exists with the same name, do not
 			 * include this task in the help output.
 			 */
-			if (commands.stream().anyMatch(c -> c.name().equals(name)) || listeners.stream().filter(l -> l.name() != null).anyMatch(l -> l.name().equals(name))) {
-				continue;
-			}
+			.filter(task -> commands.stream().map(Command::name).noneMatch(name -> name.equals(task.name())))
+			.filter(task -> listeners.stream().map(Listener::name).noneMatch(name -> name.equals(task.name())))
+		.forEach(task -> summaries.put(task.name(), task.help().getSummary()));
+		//@formatter:on
 
-			summaries.put(name, task.help().getSummary());
-		}
 		return summaries;
 	}
 

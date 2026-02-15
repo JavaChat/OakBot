@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.LogManager;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -228,10 +229,7 @@ public final class Main {
 		}
 
 		System.out.println("Warning: Commands that share the same names/aliases have been found.");
-		for (var entry : duplicateNames.asMap().entrySet()) {
-			var name = entry.getKey();
-			var commandsWithSameName = entry.getValue();
-
+		duplicateNames.asMap().forEach((name, commandsWithSameName) -> {
 			//@formatter:off
 			var list = commandsWithSameName.stream()
 				.map(c -> c.getClass().getName())
@@ -239,7 +237,7 @@ public final class Main {
             //@formatter:on
 
 			System.out.println("  " + trigger + name + ": " + list);
-		}
+		});
 	}
 
 	private static void createDefaultExceptionHandler() {
@@ -313,13 +311,11 @@ public final class Main {
 			return Site.STACKOVERFLOW;
 		}
 
-		for (Site site : Site.values()) {
-			if (site.getDomain().equalsIgnoreCase(domain)) {
-				return site;
-			}
-		}
-
-		throw new IllegalArgumentException("Unrecognized site: " + domain);
+		//@formatter:off
+		return Stream.of(Site.values())
+			.filter(site -> site.getDomain().equalsIgnoreCase(domain))
+		.findFirst().orElseThrow(() -> new IllegalArgumentException("Unrecognized site: " + domain));
+		//@formatter:on
 	}
 
 	private Main() {

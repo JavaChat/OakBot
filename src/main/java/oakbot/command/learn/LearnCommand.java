@@ -3,9 +3,11 @@ package oakbot.command.learn;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,18 +122,12 @@ public class LearnCommand implements Command {
 	 * not
 	 */
 	private boolean commandExists(String commandName) {
-		for (var command : hardcodedCommands) {
-			if (commandName.equalsIgnoreCase(command.name())) {
-				return true;
-			}
-			for (var alias : command.aliases()) {
-				if (commandName.equalsIgnoreCase(alias)) {
-					return true;
-				}
-			}
-		}
-
-		return learnedCommands.contains(commandName);
+		//@formatter:off
+		return Stream.concat(
+			hardcodedCommands.stream().map(Command::name),
+			hardcodedCommands.stream().map(Command::aliases).flatMap(Collection::stream)
+		).anyMatch(commandName::equalsIgnoreCase) || learnedCommands.contains(commandName);
+		//@formatter:on
 	}
 
 	/**

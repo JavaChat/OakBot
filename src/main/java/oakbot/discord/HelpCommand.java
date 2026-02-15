@@ -67,42 +67,33 @@ public class HelpCommand implements DiscordCommand {
 			var slash = "/";
 			cb.bold("Slash commands").nl();
 			cb.codeBlock();
-			for (var entry : slashCommandSummaries.entries()) {
-				var name = entry.getKey();
-				var description = entry.getValue();
-
+			slashCommandSummaries.forEach((name, description) -> {
 				cb.append(slash).append(name);
 				cb.repeat(' ', longestNameLength - (slash.length() + name.length()) + bufferSpace);
 				cb.append(description).nl();
-			}
+			});
 			cb.codeBlock();
 		}
 
 		if (!commandSummaries.isEmpty()) {
 			cb.bold("Commands").nl();
 			cb.codeBlock();
-			for (var entry : commandSummaries.entries()) {
-				var name = entry.getKey();
-				var description = entry.getValue();
-
+			commandSummaries.forEach((name, description) -> {
 				cb.append(context.trigger()).append(name);
 				cb.repeat(' ', longestNameLength - (context.trigger().length() + name.length()) + bufferSpace);
 				cb.append(description).nl();
-			}
+			});
 			cb.codeBlock();
 		}
 
 		if (!listenerDescriptions.isEmpty()) {
 			cb.bold("Listeners").nl();
 			cb.codeBlock();
-			for (var entry : listenerDescriptions.entries()) {
-				var name = entry.getKey();
-				var description = entry.getValue();
-
+			listenerDescriptions.forEach((name, description) -> {
 				cb.append(name);
 				cb.repeat(' ', longestNameLength - name.length() + bufferSpace);
 				cb.append(description).nl();
-			}
+			});
 			cb.codeBlock();
 		}
 

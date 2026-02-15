@@ -341,10 +341,7 @@ public class PhishCommand implements Command, ScheduledTask {
 			var userId = entry.getKey();
 			var inbox = entry.getValue();
 
-			var phishes = new HashMap<String, Integer>();
-			for (var phish : inbox.map.entrySet()) {
-				phishes.put(phish.getKey().name, phish.getValue().toInteger());
-			}
+			var phishes = inbox.map.entrySet().stream().collect(Collectors.toMap(phish -> phish.getKey().name, phish -> phish.getValue().toInteger()));
 
 			phishesByUser.put(userId + "", phishes);
 		}

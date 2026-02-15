@@ -2,7 +2,9 @@ package oakbot.command.learn;
 
 import static oakbot.bot.ChatActions.reply;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -63,16 +65,11 @@ public class UnlearnCommand implements Command {
 	}
 
 	private boolean hardcodedCommandExists(String commandName) {
-		for (var command : hardcodedCommands) {
-			if (commandName.equalsIgnoreCase(command.name())) {
-				return true;
-			}
-			for (var alias : command.aliases()) {
-				if (commandName.equalsIgnoreCase(alias)) {
-					return true;
-				}
-			}
-		}
-		return false;
+		//@formatter:off
+		return Stream.concat(
+			hardcodedCommands.stream().map(Command::name),
+			hardcodedCommands.stream().map(Command::aliases).flatMap(Collection::stream)
+		).anyMatch(commandName::equalsIgnoreCase);
+		//@formatter:on
 	}
 }

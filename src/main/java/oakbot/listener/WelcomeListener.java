@@ -126,12 +126,9 @@ public class WelcomeListener implements Listener {
 	private void saveData() {
 		var data = new HashMap<String, Object>();
 
-		for (var entry : welcomedUsersByRoom.entrySet()) {
-			var roomId = entry.getKey();
-			var userIds = entry.getValue();
-
+		welcomedUsersByRoom.forEach((roomId, userIds) -> {
 			data.put(Integer.toString(roomId), Map.of("users", userIds));
-		}
+		});
 
 		db.set("welcome", data);
 	}

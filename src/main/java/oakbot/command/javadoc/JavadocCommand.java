@@ -246,9 +246,7 @@ public class JavadocCommand implements Command, Listener {
 		Multimap<ClassInfo, MethodInfo> methodsToPrint;
 		if (exactMatches.size() > 1) {
 			methodsToPrint = ArrayListMultimap.create();
-			for (var entry : exactMatches.entrySet()) {
-				methodsToPrint.put(entry.getKey(), entry.getValue());
-			}
+			exactMatches.forEach(methodsToPrint::put);
 		} else {
 			methodsToPrint = matchingNames;
 		}

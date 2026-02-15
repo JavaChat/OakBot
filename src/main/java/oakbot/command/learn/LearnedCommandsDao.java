@@ -79,42 +79,44 @@ public class LearnedCommandsDao implements Iterable<LearnedCommand> {
 		return found;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void load() {
 		var list = db.getList("learned-commands");
 		if (list == null) {
 			return;
 		}
 
-		for (Object item : list) {
-			@SuppressWarnings("unchecked")
-			var map = (Map<String, Object>) item;
+		//@formatter:off
+		list.stream()
+			.map(obj -> (Map<String, Object>) obj)
+			.map(map -> {
+				var builder = new LearnedCommand.Builder();
 
-			var builder = new LearnedCommand.Builder();
+				/*
+				 * When this value is written to the database, the fact that it is a
+				 * "long" will be lost if the value is small enough to fit into an
+				 * "int". Therefore, check to see if an "int" was returned from the
+				 * database and if so, cast it to a "long".
+				 */
+				Long messageId;
+				var value = map.get("messageId");
+				if (value instanceof Integer id) {
+					messageId = id.longValue();
+				} else {
+					messageId = (Long) value;
+				}
+				builder.messageId(messageId);
 
-			/*
-			 * When this value is written to the database, the fact that it is a
-			 * "long" will be lost if the value is small enough to fit into an
-			 * "int". Therefore, check to see if an "int" was returned from the
-			 * database and if so, cast it to a "long".
-			 */
-			Long messageId;
-			var value = map.get("messageId");
-			if (value instanceof Integer id) {
-				messageId = id.longValue();
-			} else {
-				messageId = (Long) value;
-			}
-			builder.messageId(messageId);
-
-			builder.authorUserId((Integer) map.get("authorUserId"));
-			builder.authorUsername((String) map.get("authorUsername"));
-			builder.roomId((Integer) map.get("roomId"));
-			builder.created((LocalDateTime) map.get("created"));
-			builder.name((String) map.get("name"));
-			builder.output((String) map.get("output"));
-
-			commands.add(builder.build());
-		}
+				builder.authorUserId((Integer) map.get("authorUserId"));
+				builder.authorUsername((String) map.get("authorUsername"));
+				builder.roomId((Integer) map.get("roomId"));
+				builder.created((LocalDateTime) map.get("created"));
+				builder.name((String) map.get("name"));
+				builder.output((String) map.get("output"));
+				return builder.build();
+			})
+		.forEach(commands::add);
+		//@formatter:on
 	}
 
 	/**

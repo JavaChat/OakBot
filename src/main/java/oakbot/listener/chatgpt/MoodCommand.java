@@ -4,6 +4,7 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import oakbot.Database;
 import oakbot.bot.ChatActions;
@@ -78,26 +79,11 @@ public class MoodCommand implements Command {
 			return new HashMap<>();
 		}
 
-		var moods = new HashMap<Integer, String>();
-
-		for (var entry : map.entrySet()) {
-			var roomId = Integer.valueOf(entry.getKey());
-			var mood = (String) entry.getValue();
-			moods.put(roomId, mood);
-		}
-
-		return moods;
+		return map.entrySet().stream().collect(Collectors.toMap(entry -> Integer.valueOf(entry.getKey()), entry -> (String) entry.getValue()));
 	}
 
 	private void saveMoods() {
-		var map = new HashMap<>();
-
-		for (Map.Entry<Integer, String> entry : moodsByRoom.entrySet()) {
-			var key = Integer.toString(entry.getKey());
-			var value = entry.getValue();
-			map.put(key, value);
-		}
-
+		var map = moodsByRoom.entrySet().stream().collect(Collectors.toMap(entry -> Integer.toString(entry.getKey()), Map.Entry::getValue));
 		db.set(MOODS_KEY, map);
 	}
 }
