@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -393,18 +394,13 @@ public class JavadocCommand implements Command, Listener {
 		var methodParams = arguments.parameters();
 		cb.append(buildChoicesQuestion(matchingMethods, methodParams));
 
-		var count = 1;
-		List<String> choices = new ArrayList<>();
-		for (var entry : matchingMethods.entries()) {
-			var classInfo = entry.getKey();
-			var methodInfo = entry.getValue();
+		//@formatter:off
+		var choices = matchingMethods.entries().stream()
+			.map(entry -> buildSignature(entry.getKey(), entry.getValue()))
+		.toList();
+		//@formatter:on
 
-			var signature = buildSignature(classInfo, methodInfo);
-
-			cb.nl().append(count).append(". ").append(signature);
-			choices.add(signature);
-			count++;
-		}
+		appendChoicesList(choices, cb);
 
 		var conversation = new Conversation(choices, arguments.targetUser());
 		var roomId = message.getMessage().roomId();
@@ -473,11 +469,7 @@ public class JavadocCommand implements Command, Listener {
 		var cb = new ChatBuilder();
 		cb.append("Which one do you mean? (type the number)");
 
-		var count = 1;
-		for (var name : choices) {
-			cb.nl().append(count).append(". ").append(name);
-			count++;
-		}
+		appendChoicesList(choices, cb);
 
 		var conversation = new Conversation(choices, arguments.targetUser());
 		var roomId = message.getMessage().roomId();
@@ -491,6 +483,13 @@ public class JavadocCommand implements Command, Listener {
 				.parentId(message.getMessage().id())
 		);
 		//@formatter:on
+	}
+
+	private void appendChoicesList(List<String> choices, ChatBuilder cb) {
+		IntStream.rangeClosed(1, choices.size()).forEach(num -> {
+			var signature = choices.get(num - 1);
+			cb.nl().append(num).append(". ").append(signature);
+		});
 	}
 
 	private ChatActions printClass(ClassInfo info, JavadocCommandArguments arguments, ChatCommand message) {
@@ -703,19 +702,15 @@ public class JavadocCommand implements Command, Listener {
 		}
 
 		//check the parameters
-		var exactMatch = true;
-		for (var i = 0; i < curParameters.size(); i++) {
+		var exactMatch = IntStream.range(0, curParameters.size()).allMatch(i -> {
 			var curParameter = curParameters.get(i);
 			var curParameterName = curParameter.type().getSimpleName() + (curParameter.array() ? "[]" : "");
 
 			var methodParameter = searchMethodParameters.get(i);
 
-			if (!curParameterName.equalsIgnoreCase(methodParameter)) {
-				//parameter types don't match
-				exactMatch = false;
-				break;
-			}
-		}
+			return curParameterName.equalsIgnoreCase(methodParameter);
+		});
+
 		if (exactMatch) {
 			searchResult.exactSignature = info;
 		}

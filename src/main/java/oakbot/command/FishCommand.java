@@ -331,38 +331,46 @@ public class FishCommand implements Command, ScheduledTask {
 
 	@SuppressWarnings("unchecked")
 	private Map<Integer, Inventory> loadInventories() {
-		var inventories = new HashMap<Integer, Inventory>();
-
 		var fishesByUser = db.getMap("fish.caught");
-		if (fishesByUser != null) {
-			for (var userFishes : fishesByUser.entrySet()) {
-				var userId = Integer.parseInt(userFishes.getKey());
-				var fishes = (Map<String, Integer>) userFishes.getValue();
-
-				var inv = new Inventory();
-				for (var fishesEntry : fishes.entrySet()) {
-					var fish = Fish.find(fishesEntry.getKey());
-					var count = fishesEntry.getValue();
-					inv.set(fish, count);
-				}
-
-				inventories.put(userId, inv);
-			}
+		if (fishesByUser == null) {
+			return new HashMap<>();
 		}
 
-		return inventories;
+		//@formatter:off
+		return fishesByUser.entrySet().stream().collect(Collectors.toMap(
+			entry -> {
+				var userId = entry.getKey();
+				return Integer.valueOf(userId);
+			},
+			entry -> {
+				var fishes = (Map<String, Integer>) entry.getValue();
+
+				var inv = new Inventory();
+				fishes.forEach((fishName, count) -> {
+					var fish = Fish.find(fishName);
+					inv.set(fish, count);
+				});
+				return inv;
+		}));
+		//@formatter:on
 	}
 
 	private void saveInventories() {
-		var fishesByUser = new HashMap<String, Object>();
-		for (var entry : inventoryByUser.entrySet()) {
-			var userId = entry.getKey();
-			var inv = entry.getValue();
-
-			var fishes = inv.map.entrySet().stream().collect(Collectors.toMap(fish -> fish.getKey().name, fish -> fish.getValue().toInteger()));
-
-			fishesByUser.put(userId + "", fishes);
-		}
+		//@formatter:off
+		var fishesByUser = inventoryByUser.entrySet().stream().collect(Collectors.toMap(
+			entry -> {
+				var userId = entry.getKey();
+				return Integer.toString(userId);
+			},
+			entry -> {
+				var inv = entry.getValue();
+				return inv.map.entrySet().stream().collect(Collectors.toMap(
+					fish -> fish.getKey().name,
+					fish -> fish.getValue().toInteger()
+				));
+			}
+		));
+		//@formatter:on
 
 		db.set("fish.caught", fishesByUser);
 	}

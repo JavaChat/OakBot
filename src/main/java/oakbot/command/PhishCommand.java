@@ -313,38 +313,46 @@ public class PhishCommand implements Command, ScheduledTask {
 
 	@SuppressWarnings("unchecked")
 	private Map<Integer, Inbox> loadInventories() {
-		var inboxes = new HashMap<Integer, Inbox>();
-
 		var phishesByUser = db.getMap("phish.caught");
-		if (phishesByUser != null) {
-			for (var userPhishes : phishesByUser.entrySet()) {
-				var userId = Integer.parseInt(userPhishes.getKey());
-				var phishes = (Map<String, Integer>) userPhishes.getValue();
-
-				var inv = new Inbox();
-				for (var phishEntry : phishes.entrySet()) {
-					var phish = Phish.find(phishEntry.getKey());
-					var count = phishEntry.getValue();
-					inv.set(phish, count);
-				}
-
-				inboxes.put(userId, inv);
-			}
+		if (phishesByUser == null) {
+			return new HashMap<>();
 		}
 
-		return inboxes;
+		//@formatter:off
+		return phishesByUser.entrySet().stream().collect(Collectors.toMap(
+			entry -> {
+				var userId = entry.getKey();
+				return Integer.valueOf(userId);
+			},
+			entry -> {
+				var phishes = (Map<String, Integer>) entry.getValue();
+
+				var inv = new Inbox();
+				phishes.forEach((phishName, count) -> {
+					var phish = Phish.find(phishName);
+					inv.set(phish, count);
+				});
+				return inv;
+		}));
+		//@formatter:on
 	}
 
 	private void saveInboxes() {
-		var phishesByUser = new HashMap<String, Object>();
-		for (var entry : inboxesByUser.entrySet()) {
-			var userId = entry.getKey();
-			var inbox = entry.getValue();
-
-			var phishes = inbox.map.entrySet().stream().collect(Collectors.toMap(phish -> phish.getKey().name, phish -> phish.getValue().toInteger()));
-
-			phishesByUser.put(userId + "", phishes);
-		}
+		//@formatter:off
+		var phishesByUser = inboxesByUser.entrySet().stream().collect(Collectors.toMap(
+			entry -> {
+				var userId = entry.getKey();
+				return Integer.toString(userId);
+			},
+			entry -> {
+				var inbox = entry.getValue();
+				return inbox.map.entrySet().stream().collect(Collectors.toMap(
+					phish -> phish.getKey().name,
+					phish -> phish.getValue().toInteger()
+				));
+			}
+		));
+		//@formatter:on
 
 		db.set("phish.caught", phishesByUser);
 	}

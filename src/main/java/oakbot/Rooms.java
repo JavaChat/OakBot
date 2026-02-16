@@ -1,5 +1,7 @@
 package oakbot;
 
+import static java.util.function.Predicate.not;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,13 +36,11 @@ public class Rooms {
 		/*
 		 * Make sure all the home rooms are in the list.
 		 */
-		var modified = false;
-		for (Integer homeRoom : homeRooms) {
-			if (!roomIds.contains(homeRoom)) {
-				roomIds.add(homeRoom);
-				modified = true;
-			}
-		}
+		var sizeBefore = roomIds.size();
+		homeRooms.stream().filter(not(roomIds::contains)).forEach(roomIds::add);
+		var sizeAfter = roomIds.size();
+
+		var modified = sizeBefore != sizeAfter;
 		if (modified) {
 			save();
 		}

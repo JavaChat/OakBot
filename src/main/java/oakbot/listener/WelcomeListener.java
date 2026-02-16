@@ -111,13 +111,13 @@ public class WelcomeListener implements Listener {
 			return;
 		}
 
-		for (var entry : map.entrySet()) {
-			var roomId = Integer.parseInt(entry.getKey());
-			var roomData = (Map<String, Object>) entry.getValue();
+		map.forEach((key, value) -> {
+			var roomId = Integer.parseInt(key);
+			var roomData = (Map<String, Object>) value;
 			var userIds = (List<Integer>) roomData.get("users");
 
 			welcomedUsersByRoom.put(roomId, new HashSet<>(userIds));
-		}
+		});
 	}
 
 	/**
