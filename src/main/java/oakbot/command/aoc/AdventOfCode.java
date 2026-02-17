@@ -39,15 +39,17 @@ public class AdventOfCode implements ScheduledTask, Command {
 	private final AdventOfCodeApi api;
 	private final Map<Integer, AdventOfCodeLeaderboard> monitoredLeaderboardByRoom;
 	private final Map<Integer, Instant> lastChecked = new HashMap<>();
+	private final int totalDays;
 
 	/**
 	 * @param api for retrieving data from AoC
 	 * @param pollingInterval polling interval checking the leaderboard and
 	 * announcing when users complete the puzzles. AoC asks that this not be
 	 * shorter than 15 minutes.
+	 * @param totalDays how many days of puzzles there are this year
 	 */
-	public AdventOfCode(AdventOfCodeApi api, Duration pollingInterval) {
-		this(api, pollingInterval, new HashMap<>());
+	public AdventOfCode(AdventOfCodeApi api, Duration pollingInterval, int totalDays) {
+		this(api, pollingInterval, totalDays, new HashMap<>());
 	}
 
 	/**
@@ -55,15 +57,17 @@ public class AdventOfCode implements ScheduledTask, Command {
 	 * @param pollingInterval polling interval checking the leaderboard and
 	 * announcing when users complete the puzzles. AoC asks that this not be
 	 * shorter than 15 minutes.
+	 * @param totalDays how many days of puzzles there are this year
 	 * @param monitoredLeaderboardByRoom the leaderboard to monitor in each room
 	 * for announcing when users complete the puzzles. Also, this will be the
 	 * default leaderboard that is displayed when the user does not specify a
 	 * leaderboard ID. Can be empty.
 	 */
-	public AdventOfCode(AdventOfCodeApi api, Duration pollingInterval, Map<Integer, AdventOfCodeLeaderboard> monitoredLeaderboardByRoom) {
-		this.pollingInterval = pollingInterval;
-		this.monitoredLeaderboardByRoom = monitoredLeaderboardByRoom;
+	public AdventOfCode(AdventOfCodeApi api, Duration pollingInterval, int totalDays, Map<Integer, AdventOfCodeLeaderboard> monitoredLeaderboardByRoom) {
 		this.api = api;
+		this.pollingInterval = pollingInterval;
+		this.totalDays = totalDays;
+		this.monitoredLeaderboardByRoom = monitoredLeaderboardByRoom;
 
 		var now = Now.instant();
 		monitoredLeaderboardByRoom.keySet().forEach(roomId -> lastChecked.put(roomId, now));
@@ -202,7 +206,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 	private void appendStars(Player player, ChatBuilder cb) {
 		var days = player.completionTimes();
-		IntStream.rangeClosed(1, 25).forEach(day -> {
+		IntStream.rangeClosed(1, totalDays).forEach(day -> {
 			var parts = days.get(day);
 			if (parts == null) {
 				//did not finish anything
@@ -215,7 +219,7 @@ public class AdventOfCode implements ScheduledTask, Command {
 				cb.append('*');
 			}
 
-			if (day != 25 && day % 5 == 0) {
+			if (day != totalDays && day % 5 == 0) {
 				cb.append('|');
 			}
 		});

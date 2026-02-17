@@ -239,6 +239,12 @@
 		AoC asks that this not be less than 15 minutes.
 		-->
 		<constructor-arg value="PT15M" /> 
+		
+		<!--
+		How many days of puzzles there are this year.
+		In ths past, this has always been 25, but he reduced it to 12 starting in 2025.
+		-->
+		<constructor-arg value="12" /> 
 
 		<!--
 		(optional)

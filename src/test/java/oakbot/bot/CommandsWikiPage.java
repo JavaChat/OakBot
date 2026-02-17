@@ -115,7 +115,7 @@ public class CommandsWikiPage {
 		{
 			commands.add(new AbbreviationCommand(null));
 			commands.add(new AboutCommand(null));
-			commands.add(new AdventOfCode(null, Duration.ZERO, Map.of()));
+			commands.add(new AdventOfCode(null, Duration.ZERO, 12, Map.of()));
 			commands.add(new AfkCommand());
 			commands.add(new CatCommand(null));
 			commands.add(new CoffeeCommand());

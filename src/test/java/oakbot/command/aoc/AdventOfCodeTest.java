@@ -57,7 +57,7 @@ class AdventOfCodeTest {
 
 		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456", "join-code"));
 
-		var aoc = new AdventOfCode(api, Duration.ZERO, leaderboards);
+		var aoc = new AdventOfCode(api, Duration.ZERO, 25, leaderboards);
 
 		//@formatter:off
 		var message = new ChatCommandBuilder(aoc)
@@ -85,7 +85,7 @@ class AdventOfCodeTest {
 
 		Map<Integer, AdventOfCodeLeaderboard> leaderboards = Map.of();
 
-		var command = new AdventOfCode(api, Duration.ZERO, leaderboards);
+		var command = new AdventOfCode(api, Duration.ZERO, 25, leaderboards);
 
 		//@formatter:off
 		var message = new ChatCommandBuilder(command)
@@ -118,7 +118,7 @@ class AdventOfCodeTest {
 
 		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456"));
 
-		var aoc = new AdventOfCode(api, Duration.ZERO, leaderboards);
+		var aoc = new AdventOfCode(api, Duration.ZERO, 25, leaderboards);
 
 		//@formatter:off
 		var message = new ChatCommandBuilder(aoc)
@@ -147,7 +147,7 @@ class AdventOfCodeTest {
 
 		Map<Integer, AdventOfCodeLeaderboard> leaderboards = Map.of();
 
-		var aoc = new AdventOfCode(api, Duration.ZERO, leaderboards);
+		var aoc = new AdventOfCode(api, Duration.ZERO, 25, leaderboards);
 
 		//@formatter:off
 		var message = new ChatCommandBuilder(aoc)
@@ -175,7 +175,7 @@ class AdventOfCodeTest {
 
 		Map<Integer, AdventOfCodeLeaderboard> leaderboards = Map.of();
 
-		var aoc = new AdventOfCode(api, Duration.ofMinutes(15), leaderboards);
+		var aoc = new AdventOfCode(api, Duration.ofMinutes(15), 25, leaderboards);
 
 		assertEquals(Duration.ofMinutes(15), aoc.nextRun());
 	}
@@ -193,7 +193,7 @@ class AdventOfCodeTest {
 
 		Map<Integer, AdventOfCodeLeaderboard> leaderboards = Map.of();
 
-		var aoc = new AdventOfCode(api, Duration.ofMinutes(15), leaderboards);
+		var aoc = new AdventOfCode(api, Duration.ofMinutes(15), 25, leaderboards);
 
 		assertTrue(aoc.nextRun().compareTo(Duration.ofMinutes(15)) > 0, () -> aoc.nextRun() + " should be > 15 minutes.");
 	}
@@ -262,7 +262,7 @@ class AdventOfCodeTest {
 
 		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456"));
 
-		var aoc = new AdventOfCode(api, Duration.ZERO, leaderboards);
+		var aoc = new AdventOfCode(api, Duration.ZERO, 25, leaderboards);
 
 		var bot = mock(IBot.class);
 
@@ -326,7 +326,7 @@ class AdventOfCodeTest {
 
 		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456"));
 
-		var aoc = new AdventOfCode(api, Duration.ZERO, leaderboards);
+		var aoc = new AdventOfCode(api, Duration.ZERO, 25, leaderboards);
 
 		var bot = mock(IBot.class);
 
@@ -378,7 +378,7 @@ class AdventOfCodeTest {
 
 		var leaderboards = Map.of(1, new AdventOfCodeLeaderboard("123456"));
 
-		var aoc = new AdventOfCode(api, Duration.ZERO, leaderboards);
+		var aoc = new AdventOfCode(api, Duration.ZERO, 25, leaderboards);
 
 		var bot = mock(IBot.class);
 
