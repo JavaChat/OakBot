@@ -4,11 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.time.Instant;
-import java.util.Map;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.PrettyPrinter;
@@ -168,24 +163,6 @@ public final class JsonUtils {
 		if (value != null) {
 			node.put(fieldName, value);
 		}
-	}
-
-	/**
-	 * Streams the elements of an array.
-	 * @param array the array
-	 * @return the stream
-	 */
-	public static Stream<JsonNode> streamArray(JsonNode array) {
-		return StreamSupport.stream(array.spliterator(), false);
-	}
-
-	/**
-	 * Streams the fields in an object.
-	 * @param obj the object
-	 * @return the stream
-	 */
-	public static Stream<Map.Entry<String, JsonNode>> streamObject(JsonNode obj) {
-		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(obj.fields(), Spliterator.ORDERED), false);
 	}
 
 	/**

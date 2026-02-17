@@ -67,17 +67,16 @@ public class JsonDatabase implements Database {
 			root = JsonUtils.parse(reader);
 		}
 
-		root.fields().forEachRemaining(field -> { //@formatter:off
-			var name = field.getKey();
-			var value = parseNode(field.getValue());
-			fields.put(name, value);
-		}); //@formatter:on
+		root.forEachEntry((name, value) -> {
+			var parsedValue = parseNode(value);
+			fields.put(name, parsedValue);
+		});
 	}
 
 	private Object parseNode(JsonNode node) {
 		if (node.isArray()) {
 			//@formatter:off
-			return JsonUtils.streamArray(node)
+			return node.valueStream()
 				.map(this::parseNode)
 			.toList();
 			//@formatter:on
@@ -88,11 +87,10 @@ public class JsonDatabase implements Database {
 			 * Note: Collectors.toMap() cannot be used here because it throws a
 			 * NPE if any values in the map are null.
 			 */
-			Map<String, Object> map = new HashMap<>();
-			node.fields().forEachRemaining(field -> {
-				var name = field.getKey();
-				var value = parseNode(field.getValue());
-				map.put(name, value);
+			var map = new HashMap<String, Object>();
+			node.forEachEntry((name, value) -> {
+				var parsedValue = parseNode(value);
+				map.put(name, parsedValue);
 			});
 			return map;
 		}

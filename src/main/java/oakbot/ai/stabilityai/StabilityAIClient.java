@@ -422,7 +422,7 @@ public class StabilityAIClient {
 		var name = body.path("name").asText();
 
 		//@formatter:off
-		var errors = JsonUtils.streamArray(body.path("errors"))
+		var errors = body.path("errors").valueStream()
 			.map(JsonNode::asText)
 		.toList();
 		//@formatter:on

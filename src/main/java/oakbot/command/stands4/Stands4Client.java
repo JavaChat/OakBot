@@ -116,7 +116,7 @@ public class Stands4Client {
 			var matches = response.path("matches");
 
 			//@formatter:off
-			return JsonUtils.streamArray(matches)
+			return matches.valueStream()
 				.map(result -> result.get("message").asText())
 			.toList();
 			//@formatter:on

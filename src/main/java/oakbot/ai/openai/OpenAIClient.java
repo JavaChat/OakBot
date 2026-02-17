@@ -609,7 +609,7 @@ public class OpenAIClient {
 			.systemFingerprint(node.path("system_fingerprint").asText())
 			.promptTokens(node.path("usage").path("prompt_tokens").asInt())
 			.completionTokens(node.path("usage").path("completion_tokens").asInt())
-			.choices(JsonUtils.streamArray(node.path("choices"))
+			.choices(node.path("choices").valueStream()
 				.map(choiceNode -> {
 					var content = choiceNode.path("message").path("content").asText();
 					var finishReason = choiceNode.path("finish_reason").asText();
@@ -627,11 +627,11 @@ public class OpenAIClient {
 		return new ModerationResponse.Builder()
 			.id(node.path("id").asText())
 			.model(node.path("model").asText())
-			.flaggedCategories(JsonUtils.streamObject(results.path("categories"))
+			.flaggedCategories(results.path("categories").propertyStream()
 				.filter(entry -> entry.getValue().asBoolean())
 				.map(Map.Entry::getKey)
 				.collect(Collectors.toSet()))
-			.categoryScores(JsonUtils.streamObject(results.path("category_scores"))
+			.categoryScores(results.path("category_scores").propertyStream()
 				.collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().asDouble())))
 		.build();
 		//@formatter:on
@@ -655,7 +655,7 @@ public class OpenAIClient {
 	}
 
 	private List<OpenAIModel> parseListModelsResponse(JsonNode node) {
-		return JsonUtils.streamArray(node.path("data")).map(n -> {
+		return node.path("data").valueStream().map(n -> {
 			var id = n.path("id").asText();
 			var created = JsonUtils.asEpochSecond(n.path("created"));
 			var owner = n.path("owned_by").asText();
