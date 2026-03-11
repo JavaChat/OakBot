@@ -5,6 +5,7 @@ import static oakbot.bot.ChatActions.reply;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
@@ -181,7 +182,7 @@ public class HelpCommand implements Command {
 			 * If a command exists with the same name, do not include this
 			 * listener in the help output.
 			 */
-			.filter(listener -> commands.stream().map(Command::name).noneMatch(name -> name.equals(listener.name())))
+			.filter(listener -> commands.stream().map(Command::name).filter(Objects::nonNull).noneMatch(name -> name.equals(listener.name())))
 		.forEach(listener -> summaries.put(listener.name(), listener.help().getSummary()));
 		//@formatter:on
 
@@ -198,8 +199,8 @@ public class HelpCommand implements Command {
 			 * If a command or listener exists with the same name, do not
 			 * include this task in the help output.
 			 */
-			.filter(task -> commands.stream().map(Command::name).noneMatch(name -> name.equals(task.name())))
-			.filter(task -> listeners.stream().map(Listener::name).noneMatch(name -> name.equals(task.name())))
+			.filter(task -> commands.stream().map(Command::name).filter(Objects::nonNull).noneMatch(name -> name.equals(task.name())))
+			.filter(task -> listeners.stream().map(Listener::name).filter(Objects::nonNull).noneMatch(name -> name.equals(task.name())))
 		.forEach(task -> summaries.put(task.name(), task.help().getSummary()));
 		//@formatter:on
 
