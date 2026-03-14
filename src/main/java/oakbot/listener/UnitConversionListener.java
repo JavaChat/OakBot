@@ -277,6 +277,17 @@ public class UnitConversionListener implements Listener {
 			}
 		},
 
+		TONS("(t|tons?)", " US short tons", "⚖️") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				return List.of(
+					new UnitValue(value * 2000, Unit.POUNDS),
+					new UnitValue(value * 907.185, Unit.KILOGRAMS),
+					new UnitValue(value * 2000 / 14, Unit.STONE)
+				);
+			}
+		},
+
 		STONE("(stone)", " st", "⚖️") {
 			@Override
 			Collection<UnitValue> convert(double value) {
