@@ -17,17 +17,20 @@ import oakbot.bot.IBot;
  */
 class AfkCommandTest {
 	@Test
-	void afk() {
+	void afk_mention_string() {
 		var afk = new AfkCommand();
 
 		var bot = mock(IBot.class);
 		when(bot.getTrigger()).thenReturn("/");
 
+		final var KYLE_ID = 1;
+		final var JOHN_ID = 2;
+
 		{
 			//@formatter:off
 			var message = new ChatMessage.Builder()
 				.id(1)
-				.userId(1)
+				.userId(KYLE_ID)
 				.username("Kyle")
 				.content("/afk away")
 			.build();
@@ -49,7 +52,7 @@ class AfkCommandTest {
 			//@formatter:off
 			var message = new ChatMessage.Builder()
 				.id(2)
-				.userId(2)
+				.userId(JOHN_ID)
 				.username("John")
 				.content("Are you there, @Kyle?")
 			.build();
@@ -63,7 +66,69 @@ class AfkCommandTest {
 			//@formatter:off
 			var message = new ChatMessage.Builder()
 				.id(3)
-				.userId(1)
+				.userId(KYLE_ID)
+				.username("Kyle")
+				.content("I'm back now!")
+			.build();
+			//@formatter:on
+
+			var actions = afk.onMessage(message, bot);
+			assertMessage("Welcome back!", 3, actions);
+		}
+	}
+
+	@Test
+	void afk_mentionedUserId() {
+		var afk = new AfkCommand();
+
+		var bot = mock(IBot.class);
+		when(bot.getTrigger()).thenReturn("/");
+
+		final var KYLE_ID = 1;
+		final var JOHN_ID = 2;
+
+		{
+			//@formatter:off
+			var message = new ChatMessage.Builder()
+				.id(1)
+				.userId(KYLE_ID)
+				.username("Kyle")
+				.content("/afk away")
+			.build();
+			//@formatter:on
+
+			/*
+			 * Message that invoke the afk command are ignored when passed into
+			 * Listener.onMessage().
+			 */
+			var actions = afk.onMessage(message, bot);
+			assertTrue(actions.isEmpty());
+
+			var cmd = ChatCommand.fromMessage(message, "/");
+			actions = afk.onMessage(cmd, bot);
+			assertMessage("Cya later", 1, actions);
+		}
+
+		{
+			//@formatter:off
+			var message = new ChatMessage.Builder()
+				.id(2)
+				.userId(JOHN_ID)
+				.username("John")
+				.mentionedUserId(KYLE_ID)
+				.content("Are you there?")
+			.build();
+			//@formatter:on
+
+			var actions = afk.onMessage(message, bot);
+			assertMessage("Kyle is away: away", 2, actions);
+		}
+
+		{
+			//@formatter:off
+			var message = new ChatMessage.Builder()
+				.id(3)
+				.userId(KYLE_ID)
 				.username("Kyle")
 				.content("I'm back now!")
 			.build();

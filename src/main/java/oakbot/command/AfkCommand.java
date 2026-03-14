@@ -76,9 +76,8 @@ public class AfkCommand implements Command, Listener {
 		}
 
 		var returned = setBack(message.userId());
+		var mentionedAfkUsers = getMentionedAfkUsers(message);
 
-		var mentions = new HashSet<>(message.content().getMentions()); //remove duplicates
-		var mentionedAfkUsers = getAfkUsers(mentions);
 		var usersNotWarnedAbout = filterUsersNotWarnedAbout(mentionedAfkUsers, message.userId());
 		if (!usersNotWarnedAbout.isEmpty()) {
 			var cb = new ChatBuilder();
@@ -184,17 +183,33 @@ public class AfkCommand implements Command, Listener {
 	}
 
 	/**
-	 * Gets the users that are currently AFK.
-	 * @param mentions the mentions that were in the chat message
+	 * Out of all the users that are mentioned in the given message, return the
+	 * ones that are AFK.
+	 * @param message the chat message
 	 * @return the mentioned users that are AFK
 	 */
-	private Collection<AfkUser> getAfkUsers(Collection<String> mentions) {
+	private Collection<AfkUser> getMentionedAfkUsers(ChatMessage message) {
+		var mentions = new HashSet<>(message.content().getMentions()); //remove duplicates
+
 		//@formatter:off
-		return mentions.stream()
+		var mentionedAfkUsers = mentions.stream()
 			.map(this::getAfkUsers)
 			.flatMap(List::stream)
-		.collect(Collectors.toSet());
+		.collect(Collectors.toCollection(HashSet::new)); //mutable, remove duplicates
 		//@formatter:on
+
+		/*
+		 * If the user is replying to an AFK user's message using the reply
+		 * button, the AFK user ID will appear in the message metadata.
+		 */
+		if (message.mentionedUserId() != 0) {
+			var user = afkUsersById.get(message.mentionedUserId());
+			if (user != null) {
+				mentionedAfkUsers.add(user);
+			}
+		}
+
+		return mentionedAfkUsers;
 	}
 
 	/**
