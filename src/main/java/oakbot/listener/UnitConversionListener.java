@@ -94,6 +94,10 @@ public class UnitConversionListener implements Listener {
 		}
 
 		private List<Conversion> searchForConversions(Unit unit) {
+			if (unit.regex == null) {
+				return List.of();
+			}
+
 			var conversions = new ArrayList<Conversion>();
 			var processedValues = new HashSet<Double>();
 			var m = unit.regex.matcher(content);
@@ -129,11 +133,40 @@ public class UnitConversionListener implements Listener {
 		}
 
 		private String outputValue(Unit unit, double value) {
+			if (unit == Unit.HUMAN) {
+				return fahrenheitToHuman(value);
+			}
+
 			return nf.format(value) + unit.suffix;
 		}
 
 		private String outputValue(UnitValue value) {
 			return outputValue(value.unit, value.value);
+		}
+
+		private String fahrenheitToHuman(double f) {
+			if (f < 20) {
+				return "cold af";
+			}
+			if (f < 50) {
+				return "cold";
+			}
+			if (f < 60) {
+				return "chilly";
+			}
+			if (f < 70) {
+				return "tepid";
+			}
+			if (f < 75) {
+				return "comfy";
+			}
+			if (f < 80) {
+				return "warm";
+			}
+			if (f < 100) {
+				return "hot";
+			}
+			return "hot af";
 		}
 	}
 
@@ -142,10 +175,13 @@ public class UnitConversionListener implements Listener {
 		CELCIUS("(°|deg|degrees?|&#176;)?\\s*(C|celsius|centigrade)", "°C", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
+				var f = new UnitValue(value * 9 / 5 + 32, Unit.FAHRENHEIT);
+			
 				return List.of(
-					new UnitValue(value * 9 / 5 + 32, Unit.FAHRENHEIT),
+					f,
 					new UnitValue(value + 273.15, Unit.KELVIN),
-					new UnitValue((value + 273.15) * 9 / 5, Unit.RANKINE)
+					new UnitValue((value + 273.15) * 9 / 5, Unit.RANKINE),
+					new UnitValue(f.value(), Unit.HUMAN)
 				);
 			}
 
@@ -161,7 +197,8 @@ public class UnitConversionListener implements Listener {
 				return List.of(
 					new UnitValue((value - 32) * 5 / 9, Unit.CELCIUS),
 					new UnitValue((value + 459.67) * 5 / 9, Unit.KELVIN),
-					new UnitValue(value + 459.67, Unit.RANKINE)
+					new UnitValue(value + 459.67, Unit.RANKINE),
+					new UnitValue(value, Unit.HUMAN)
 				);
 			}
 
@@ -174,10 +211,13 @@ public class UnitConversionListener implements Listener {
 		KELVIN("(°|deg|degrees?|&#176;)?\\s*(kelvin)", "K", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
+				var f = new UnitValue((value - 273.15) * 9 / 5 + 32, Unit.FAHRENHEIT);
+				
 				return List.of(
 					new UnitValue(value - 273.15, Unit.CELCIUS),
-					new UnitValue((value - 273.15) * 9 / 5 + 32, Unit.FAHRENHEIT),
-					new UnitValue(value * 9 / 5, Unit.RANKINE)
+					f,
+					new UnitValue(value * 9 / 5, Unit.RANKINE),
+					new UnitValue(f.value(), Unit.HUMAN)
 				);
 			}
 
@@ -190,11 +230,26 @@ public class UnitConversionListener implements Listener {
 		RANKINE("(°|deg|degrees?|&#176;)?\\s*(rankine)", "°R", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
+				var f = new UnitValue(value - 459.67, Unit.FAHRENHEIT);
+				
 				return List.of(
 					new UnitValue((value - 491.67) * 5 / 9, Unit.CELCIUS),
-					new UnitValue(value - 459.67, Unit.FAHRENHEIT),
-					new UnitValue(value * 5 / 9, Unit.KELVIN)
+					f,
+					new UnitValue(value * 5 / 9, Unit.KELVIN),
+					new UnitValue(f.value(), Unit.HUMAN)
 				);
+			}
+
+			@Override
+			boolean ignoreZeroValues() {
+				return false;
+			}
+		},
+		
+		HUMAN("", "🌡") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				throw new UnsupportedOperationException();
 			}
 
 			@Override
@@ -303,15 +358,20 @@ public class UnitConversionListener implements Listener {
 		private final String suffix;
 		private final String emoticon;
 
+		private Unit(String suffix, String emoticon) {
+			this(null, suffix, emoticon);
+		}
+
 		private Unit(String suffixRegex, String suffix, String emoticon) {
 			//@formatter:off
-			this.regex = Pattern.compile(
+			this.regex = (suffixRegex == null) ? null : Pattern.compile(
 				"(?i)" +
 				"(-|\\b)" +
 				"(\\d+([\\.,]\\d+)?)\\s*" + //treat comma as a decimal separator
 				suffixRegex + 
 				"\\b");
 			//@formatter:on
+
 			this.suffix = suffix;
 			this.emoticon = emoticon;
 		}
