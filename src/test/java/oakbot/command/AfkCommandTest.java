@@ -115,7 +115,7 @@ class AfkCommandTest {
 				.id(2)
 				.userId(JOHN_ID)
 				.username("John")
-				.mentionedUserId(KYLE_ID)
+				.parentUsername("Kyle")
 				.content("Are you there?")
 			.build();
 			//@formatter:on

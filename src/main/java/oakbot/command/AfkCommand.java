@@ -190,26 +190,16 @@ public class AfkCommand implements Command, Listener {
 	 */
 	private Collection<AfkUser> getMentionedAfkUsers(ChatMessage message) {
 		var mentions = new HashSet<>(message.content().getMentions()); //remove duplicates
-
-		//@formatter:off
-		var mentionedAfkUsers = mentions.stream()
-			.map(this::getAfkUsers)
-			.flatMap(List::stream)
-		.collect(Collectors.toCollection(HashSet::new)); //mutable, remove duplicates
-		//@formatter:on
-
-		/*
-		 * If the user is replying to an AFK user's message using the reply
-		 * button, the AFK user ID will appear in the message metadata.
-		 */
-		if (message.mentionedUserId() != 0) {
-			var user = afkUsersById.get(message.mentionedUserId());
-			if (user != null) {
-				mentionedAfkUsers.add(user);
-			}
+		if (message.parentUsername() != null) {
+			mentions.add(message.parentUsername());
 		}
 
-		return mentionedAfkUsers;
+		//@formatter:off
+		return mentions.stream()
+			.map(this::getAfkUsers)
+			.flatMap(List::stream)
+		.collect(Collectors.toSet()); //remove duplicates
+		//@formatter:on
 	}
 
 	/**
