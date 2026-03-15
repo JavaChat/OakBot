@@ -82,6 +82,9 @@ class UnitConversionListenerTest {
 		assertResponse("it's 4 m long", "📏 4 m = 13.12 ft");
 		assertResponse("it's 4 meters long", "📏 4 m = 13.12 ft");
 		assertResponse("it's 4 metres long", "📏 4 m = 13.12 ft");
+
+		assertResponse("i'm 5'11\" tall", "📏 5'11\" = 1.8 m");
+		assertResponse("i'm 5' 11\" tall", "📏 5'11\" = 1.8 m");
 	}
 
 	@Test

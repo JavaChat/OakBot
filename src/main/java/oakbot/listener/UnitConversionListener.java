@@ -94,11 +94,35 @@ public class UnitConversionListener implements Listener {
 		}
 
 		private List<Conversion> searchForConversions(Unit unit) {
-			if (unit.regex == null) {
-				return List.of();
+			var conversions = new ArrayList<Conversion>();
+
+			if (unit == Unit.FEET_AND_INCHES) {
+				var processedValues = new HashSet<Integer>();
+				var m = Pattern.compile("(\\d+)'\\s*(\\d+)\"").matcher(content);
+				while (m.find()) {
+					var feet = Integer.parseInt(m.group(1));
+					var inches = Integer.parseInt(m.group(2));
+					var totalInches = feet * 12 + inches;
+
+					if (processedValues.contains(totalInches)) {
+						continue;
+					}
+
+					var meters = totalInches * 0.0254;
+					var line = unit.emoticon + " " + feet + "'" + inches + "\" = " + outputValue(Unit.METERS, meters);
+					var conversion = new Conversion(m.start(), line);
+
+					conversions.add(conversion);
+					processedValues.add(totalInches);
+				}
+
+				return conversions;
 			}
 
-			var conversions = new ArrayList<Conversion>();
+			if (unit.regex == null) {
+				return conversions;
+			}
+
 			var processedValues = new HashSet<Double>();
 			var m = unit.regex.matcher(content);
 			while (m.find()) {
@@ -309,6 +333,13 @@ public class UnitConversionListener implements Listener {
 				return List.of(
 					new UnitValue(value * 2.54, Unit.CENTIMETERS)
 				);
+			}
+		},
+
+		FEET_AND_INCHES("", "📏") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				throw new UnsupportedOperationException();
 			}
 		},
 
