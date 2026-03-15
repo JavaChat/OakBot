@@ -98,7 +98,7 @@ public class UnitConversionListener implements Listener {
 
 			if (unit == Unit.FEET_AND_INCHES) {
 				var processedValues = new HashSet<Integer>();
-				var m = Pattern.compile("(\\d+)'\\s*(\\d+)\"").matcher(content);
+				var m = Pattern.compile("(\\d+)(?:'|&#39;)\\s*(\\d+)(?:\"|&quot;)").matcher(content);
 				while (m.find()) {
 					var feet = Integer.parseInt(m.group(1));
 					var inches = Integer.parseInt(m.group(2));
