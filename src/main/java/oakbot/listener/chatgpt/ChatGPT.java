@@ -255,7 +255,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private void addParentMessage(ChatMessage message, List<ChatMessage> prevMessages, List<ChatCompletionRequest.Message> apiMessages, IBot bot) {
-		var parentId = message.parentMessageId();
+		var parentId = message.parentId();
 		if (parentId == 0) {
 			return;
 		}

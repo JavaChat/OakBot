@@ -77,7 +77,7 @@ public class DeleteCommand implements Command, Listener {
 	@Override
 	public ChatActions onMessage(ChatMessage message, IBot bot) {
 		//is the message a reply?
-		var messageToDelete = message.parentMessageId();
+		var messageToDelete = message.parentId();
 		if (messageToDelete == 0) {
 			return doNothing();
 		}
