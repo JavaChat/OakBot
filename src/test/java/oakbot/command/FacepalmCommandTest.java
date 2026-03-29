@@ -56,7 +56,7 @@ class FacepalmCommandTest {
 		//@formatter:off
 		HttpFactory.inject(new MockHttpClientBuilder()
 			.requestGet("https://api.tenor.com/v1/random?key=key&q=facepalm&media_filter=minimal&safesearch=moderate&limit=1")
-			.response(new IOException())
+			.response(new IOException("msg"))
 		.build());
 		//@formatter:on
 
@@ -65,7 +65,7 @@ class FacepalmCommandTest {
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 		var response = command.onMessage(message, mock(IBot.class));
 
-		assertMessage("Sorry, an error occurred. >.>", 1, response);
+		assertMessage("Problem querying API: `msg`", 1, response);
 	}
 
 	@Test
@@ -82,7 +82,7 @@ class FacepalmCommandTest {
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 		var response = command.onMessage(message, mock(IBot.class));
 
-		assertMessage("Sorry, an error occurred. >.>", 1, response);
+		assertMessage("Unexpected JSON structure in response.", 1, response);
 	}
 
 	@Test
@@ -99,6 +99,6 @@ class FacepalmCommandTest {
 		var message = new ChatCommandBuilder(command).messageId(1).build();
 		var response = command.onMessage(message, mock(IBot.class));
 
-		assertMessage("Sorry, an error occurred. >.>", 1, response);
+		assertMessage("API response not valid JSON.", 1, response);
 	}
 }

@@ -8,11 +8,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.mangstadt.sochat4j.util.Http;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.HttpFactory;
+import oakbot.util.JsonUtils;
 
 /**
  * Displays a coffee-related picture.
@@ -61,12 +64,16 @@ public class CoffeeCommand implements Command {
 	}
 
 	private String getCoffee() throws IOException {
+		Http.Response response;
 		try (var http = HttpFactory.connect()) {
-			var node = http.get(API_URL).getBodyAsJson().get("file");
-			if (node == null) {
-				throw new IOException("Unexpected JSON structure.");
-			}
-			return node.asText();
+			response = http.get(API_URL);
 		}
+
+		var node = response.getBodyAsJson();
+
+		//@formatter:off
+		return JsonUtils.extractField(node, "file")
+		.orElseThrow(() -> new IOException("Unexpected JSON structure."));
+		//@formatter:on
 	}
 }

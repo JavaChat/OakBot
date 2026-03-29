@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
@@ -52,12 +53,12 @@ public class FOTD implements ScheduledTask {
 
 	@Override
 	public void run(IBot bot) throws Exception {
-		String response;
+		Http.Response response;
 		try (var http = HttpFactory.connect()) {
-			response = http.get(URL).getBody();
+			response = http.get(URL);
 		}
 
-		var fact = parseFact(response);
+		var fact = parseFact(response.getBody());
 		if (fact == null) {
 			logger.atWarn().log(() -> "Unable to parse FOTD from " + URL + ".");
 			return;

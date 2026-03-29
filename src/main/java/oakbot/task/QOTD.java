@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-import org.jsoup.nodes.Document;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
@@ -50,31 +48,35 @@ public class QOTD implements ScheduledTask {
 	}
 
 	ChatBuilder fromSlashdot() throws IOException {
-		Document document;
+		Http.Response response;
 		try (var http = HttpFactory.connect()) {
-			document = http.get("https://slashdot.org").getBodyAsHtml();
+			response = http.get("https://slashdot.org");
 		}
 
-		var element = document.selectFirst("blockquote[cite='https://slashdot.org'] p");
+		var element = response.getBodyAsHtml().selectFirst("blockquote[cite='https://slashdot.org'] p");
 
-		return new ChatBuilder() //@formatter:off
+		//@formatter:off
+		return new ChatBuilder()
 			.append(element.text())
-			.append(" (").link("source", "https://slashdot.org").append(")"); //@formatter:on
+			.append(" (").link("source", "https://slashdot.org").append(")");
+		//@formatter:on
 	}
 
 	ChatBuilder fromTheySaidSo() throws IOException {
-		JsonNode json;
+		Http.Response response;
 		try (var http = HttpFactory.connect()) {
-			json = http.get("http://quotes.rest/qod.json").getBodyAsJson();
+			response = http.get("http://quotes.rest/qod.json");
 		}
 
-		var quoteNode = json.get("contents").get("quotes").get(0);
+		var json = response.getBodyAsJson();
 
-		var quote = quoteNode.get("quote").asText();
-		var author = quoteNode.get("author").asText();
+		var quoteNode = json.path("contents").path("quotes").path(0);
 
-		var node = quoteNode.get("permalink");
-		var permalink = (node == null) ? "https://theysaidso.com" : node.asText();
+		var quote = quoteNode.path("quote").asText();
+		var author = quoteNode.path("author").asText();
+
+		var permalinkNode = quoteNode.path("permalink");
+		var permalink = permalinkNode.isMissingNode() ? "https://theysaidso.com" : permalinkNode.asText();
 
 		var cb = new ChatBuilder();
 		var quoteHasNewlines = (quote.indexOf('\n') >= 0);

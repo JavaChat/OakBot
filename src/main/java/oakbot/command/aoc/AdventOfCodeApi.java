@@ -13,6 +13,7 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.util.HttpFactory;
 import oakbot.util.JsonUtils;
@@ -48,10 +49,12 @@ public class AdventOfCodeApi {
 	public List<Player> getLeaderboard(String leaderboardId) throws IOException {
 		var jsonUrl = jsonUrl(leaderboardId);
 
-		JsonNode root;
+		Http.Response response;
 		try (var http = HttpFactory.connect(cookieStore)) {
-			root = http.get(jsonUrl).getBodyAsJson();
+			response = http.get(jsonUrl);
 		}
+		
+		var root = response.getBodyAsJson();
 
 		var ownerId = root.get("owner_id").asInt();
 

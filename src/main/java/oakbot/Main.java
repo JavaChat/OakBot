@@ -218,8 +218,9 @@ public final class Main {
 			return;
 		}
 
+		var logManager = LogManager.getLogManager();
 		try (var in = Files.newInputStream(config)) {
-			LogManager.getLogManager().readConfiguration(in);
+			logManager.readConfiguration(in);
 		}
 	}
 

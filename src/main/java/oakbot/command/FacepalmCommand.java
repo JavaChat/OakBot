@@ -1,13 +1,17 @@
 package oakbot.command;
 
+import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
+import java.io.IOException;
 import java.util.Objects;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
@@ -66,17 +70,29 @@ public class FacepalmCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		String imageUrl;
-		Http.Response response = null;
+		Http.Response response;
 		try (var http = HttpFactory.connect()) {
 			response = http.get(uri);
-			var node = response.getBodyAsJson();
-			imageUrl = JsonUtils.extractField(node, "results", 0, "media", 0, "tinygif", "url").get();
-		} catch (Exception e) {
-			var body = (response == null) ? null : response.getBody();
-			logger.atError().setCause(e).log(() -> "Problem querying Tenor API.\nURI = " + uri + "\nResponse = " + body);
-			return reply("Sorry, an error occurred. >.>", chatCommand);
+		} catch (IOException e) {
+			logger.atError().setCause(e).log(() -> "Problem querying API.\nURI = " + uri);
+			return error("Problem querying API: ", e, chatCommand);
 		}
+
+		JsonNode node;
+		try {
+			node = response.getBodyAsJson();
+		} catch (JsonProcessingException e) {
+			logger.atError().setCause(e).log(() -> "Cannot parse response as JSON.\nURI = " + uri + "\nResponse = " + response.getBody());
+			return reply("API response not valid JSON.", chatCommand);
+		}
+
+		var imageUrlOpt = JsonUtils.extractField(node, "results", 0, "media", 0, "tinygif", "url");
+		if (imageUrlOpt.isEmpty()) {
+			logger.atError().log(() -> "Unexpected JSON structure.\nURI = " + uri + "\nResponse = " + response.getBody());
+			return reply("Unexpected JSON structure in response.", chatCommand);
+		}
+
+		var imageUrl = imageUrlOpt.get();
 
 		/*
 		 * "All content retrieved from Tenor must be properly attributed."

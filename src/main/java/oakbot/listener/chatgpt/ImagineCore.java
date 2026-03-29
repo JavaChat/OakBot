@@ -279,15 +279,17 @@ public class ImagineCore {
 						throw new IllegalArgumentException("The provided input image URL is not an image.");
 					}
 					image = EntityUtils.toByteArray(response.getEntity());
-
-					/*
-					 * Stable Diffusion doesn't support GIF.
-					 */
-					if (contentType.startsWith("image/gif")) {
-						image = ImageUtils.convertToPng(image);
-					}
 				}
 			}
+
+			/*
+			 * Stable Diffusion doesn't support GIF.
+			 */
+			if (contentType.startsWith("image/gif")) {
+				image = ImageUtils.convertToPng(image);
+				contentType = "image/png";
+			}
+
 			builder.image(image, contentType, 0.5);
 		}
 

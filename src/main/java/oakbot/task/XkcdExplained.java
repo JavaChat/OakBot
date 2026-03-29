@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.utils.URIBuilder;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.github.mangstadt.sochat4j.ChatClient;
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.SplitStrategy;
+import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
@@ -148,21 +148,20 @@ public class XkcdExplained implements ScheduledTask, Listener {
 	}
 
 	private String scrapeExplanationHtml(String url) throws IOException {
-		Document dom;
+		Http.Response response;
 		try (var http = HttpFactory.connect()) {
-			var response = http.get(url);
-
-			/*
-			 * If a wiki page for the comic has not been created
-			 * yet, the response status code will be 404.
-			 */
-			if (response.getStatusCode() != 200) {
-				throw new IOException();
-			}
-
-			dom = response.getBodyAsHtml();
+			response = http.get(url);
 		}
 
+		/*
+		 * If a wiki page for the comic has not been created yet, the response
+		 * status code will be 404.
+		 */
+		if (response.getStatusCode() != 200) {
+			throw new IOException();
+		}
+
+		var dom = response.getBodyAsHtml();
 		var next = nextSiblingThatsNotJustWhitespace(dom.getElementById("Explanation").parentNode());
 
 		/*
