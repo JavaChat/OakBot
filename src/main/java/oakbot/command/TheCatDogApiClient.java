@@ -69,12 +69,10 @@ public class TheCatDogApiClient {
 			body = JsonUtils.parse(reader);
 		}
 
-		var gifUrl = body.path(0).path("url").asText();
-		if (gifUrl.isEmpty()) {
-			throw new IOException("Unexpected JSON structure.");
-		}
-
-		return gifUrl;
+		//@formatter:off
+		return JsonUtils.extractField(body, 0, "url")
+		.orElseThrow(() -> new IOException("Unexpected JSON structure."));
+		//@formatter:on
 	}
 
 	private HttpUrl.Builder baseUrl(String animal) {

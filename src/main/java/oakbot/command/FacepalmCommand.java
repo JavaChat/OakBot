@@ -16,6 +16,7 @@ import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
 import oakbot.util.ChatBuilder;
 import oakbot.util.HttpFactory;
+import oakbot.util.JsonUtils;
 
 /**
  * Displays facepalm GIFs using the Tenor API.
@@ -70,7 +71,7 @@ public class FacepalmCommand implements Command {
 		try (var http = HttpFactory.connect()) {
 			response = http.get(uri);
 			var node = response.getBodyAsJson();
-			imageUrl = node.get("results").get(0).get("media").get(0).get("tinygif").get("url").asText();
+			imageUrl = JsonUtils.extractField(node, "results", 0, "media", 0, "tinygif", "url").get();
 		} catch (Exception e) {
 			var body = (response == null) ? null : response.getBody();
 			logger.atError().setCause(e).log(() -> "Problem querying Tenor API.\nURI = " + uri + "\nResponse = " + body);

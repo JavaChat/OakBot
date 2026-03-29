@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.util.HttpFactory;
+import oakbot.util.JsonUtils;
 
 /**
  * Interfaces with the GIPHY API.
@@ -54,12 +55,10 @@ public class GiphyClient {
 			return null;
 		}
 
-		var node = data.path("images").path("original").path("url");
-		if (node.isMissingNode()) {
-			throw new IOException("Unexpected JSON structure in response.");
-		}
-
-		return node.asText();
+		//@formatter:off
+		return JsonUtils.extractField(data, "images", "original", "url")
+		.orElseThrow(() -> new IOException("Unexpected JSON structure in response."));
+		//@formatter:on
 	}
 
 	private JsonNode send(String url) throws IOException {

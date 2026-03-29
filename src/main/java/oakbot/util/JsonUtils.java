@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.time.Instant;
+import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.PrettyPrinter;
@@ -91,30 +92,30 @@ public final class JsonUtils {
 
 	/**
 	 * Extracts a single value from a JSON node using a path expression.
-	 * @param path the path to the value (e.g. "data/0/url" translates to
-	 * {@code node.get("data").get(0).get("url").asText()})
 	 * @param node the JSON node
+	 * @param path the path to the value (strings and integers only, e.g.
+	 * {@code ["data", 0, "url"]} translates to
+	 * {@code node.path("data").path(0).path("url").asText()})
 	 * @return the value
-	 * @throws IllegalArgumentException if the path wasn't valid
 	 */
-	public static String extractField(String path, JsonNode node) {
+	public static Optional<String> extractField(JsonNode node, Object... path) {
 		var n = node;
-		var fields = path.split("/");
 
-		for (var field : fields) {
-			try {
-				var index = Integer.parseInt(field);
-				n = n.path(index);
-			} catch (NumberFormatException e) {
-				n = n.path(field);
+		for (var field : path) {
+			if (field instanceof String fieldStr) {
+				n = n.path(fieldStr);
+			} else if (field instanceof Integer fieldInt) {
+				n = n.path(fieldInt);
+			} else {
+				throw new IllegalArgumentException("Only strings and ints allowed in field path.");
 			}
 
 			if (n.isMissingNode()) {
-				throw new IllegalArgumentException("JSON path not found: " + path);
+				return Optional.empty();
 			}
 		}
 
-		return n.asText();
+		return Optional.of(n.asText());
 	}
 
 	/**
