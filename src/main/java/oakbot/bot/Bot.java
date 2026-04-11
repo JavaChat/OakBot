@@ -670,26 +670,7 @@ public class Bot implements IBot {
 			}
 
 			if (event instanceof InvitationEvent ie) {
-				var roomId = ie.getRoomId();
-				var inviterId = ie.getUserId();
-				var inviterIsAdmin = isAdminUser(inviterId);
-
-				boolean acceptInvitation;
-				if (inviterIsAdmin) {
-					acceptInvitation = true;
-				} else {
-					try {
-						acceptInvitation = isRoomOwner(roomId, inviterId);
-					} catch (IOException e) {
-						logger.atError().setCause(e).log(() -> "Unable to handle room invite. Error determining whether user is room owner.");
-						acceptInvitation = false;
-					}
-				}
-
-				if (acceptInvitation) {
-					handleInvitation(ie);
-				}
-
+				handleInvitation(ie);
 				return;
 			}
 
@@ -932,7 +913,8 @@ public class Bot implements IBot {
 			 * joined the room it was invited to.
 			 */
 			var roomId = event.getRoomId();
-			if (connection.isInRoom(roomId)) {
+			var alreadyInRoom = connection.isInRoom(roomId);
+			if (alreadyInRoom) {
 				return;
 			}
 
@@ -945,6 +927,22 @@ public class Bot implements IBot {
 			var maxRoomsExceeded = (maxRooms != null && connection.getRooms().size() >= maxRooms);
 			if (maxRoomsExceeded) {
 				return;
+			}
+
+			/*
+			 * Only accept invitations from bot admins and room owners.
+			 */
+			var inviterId = event.getUserId();
+			var inviterIsBotAdmin = isAdminUser(inviterId);
+			if (!inviterIsBotAdmin) {
+				try {
+					if (!isRoomOwner(roomId, inviterId)) {
+						return;
+					}
+				} catch (IOException e) {
+					logger.atError().setCause(e).log(() -> "Unable to handle room invite. Error determining whether user is room owner.");
+					return;
+				}
 			}
 
 			try {
