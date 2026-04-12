@@ -25,6 +25,7 @@ import oakbot.util.ChatBuilder;
 /**
  * Automatically detects metric/imperial units in chat messages and performs
  * unit conversions.
+ * @see "https://en.wikipedia.org/wiki/Scale_of_temperature#Conversion_table_between_different_temperature_scales"
  * @author Michael Angstadt
  */
 public class UnitConversionListener implements Listener {
@@ -37,6 +38,7 @@ public class UnitConversionListener implements Listener {
 	public HelpDoc help() {
 		//@formatter:off
 		var units = Arrays.stream(Unit.values())
+			.filter(unit -> unit.regex != null)
 			.map(Unit::name)
 			.map(String::toLowerCase)
 		.collect(Collectors.joining(", "));
@@ -199,13 +201,17 @@ public class UnitConversionListener implements Listener {
 		CELCIUS("(°|deg|degrees?|&#176;)?\\s*(C|celsius|centigrade)", "°C", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
-				var f = new UnitValue(value * 9 / 5 + 32, Unit.FAHRENHEIT);
+				var f = value * 9 / 5 + 32;
 			
 				return List.of(
-					f,
+					new UnitValue(f, Unit.FAHRENHEIT),
 					new UnitValue(value + 273.15, Unit.KELVIN),
 					new UnitValue((value + 273.15) * 9 / 5, Unit.RANKINE),
-					new UnitValue(f.value(), Unit.HUMAN)
+					new UnitValue((value * 21 / 40) + 7.5, Unit.RØMER),
+					new UnitValue(value * 0.33, Unit.NEWTON),
+					new UnitValue((100 - value) * 3 / 2, Unit.DELISLE),
+					new UnitValue(value * 0.8, Unit.RÉAUMUR),
+					new UnitValue(f, Unit.HUMAN)
 				);
 			}
 
@@ -218,10 +224,16 @@ public class UnitConversionListener implements Listener {
 		FAHRENHEIT("(°|deg|degrees?|&#176;)?\\s*(F|fahrenheit)", "°F", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
+				var c = (value - 32) * 5 / 9;
+
 				return List.of(
-					new UnitValue((value - 32) * 5 / 9, Unit.CELCIUS),
+					new UnitValue(c, Unit.CELCIUS),
 					new UnitValue((value + 459.67) * 5 / 9, Unit.KELVIN),
 					new UnitValue(value + 459.67, Unit.RANKINE),
+					new UnitValue((c * 21 / 40) + 7.5, Unit.RØMER),
+					new UnitValue(c * 0.33, Unit.NEWTON),
+					new UnitValue((100 - c) * 3 / 2, Unit.DELISLE),
+					new UnitValue(c * 0.8, Unit.RÉAUMUR),
 					new UnitValue(value, Unit.HUMAN)
 				);
 			}
@@ -235,13 +247,18 @@ public class UnitConversionListener implements Listener {
 		KELVIN("(°|deg|degrees?|&#176;)?\\s*(kelvin)", "K", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
-				var f = new UnitValue((value - 273.15) * 9 / 5 + 32, Unit.FAHRENHEIT);
-				
+				var c = value - 273.15;
+				var f = c * 9 / 5 + 32;
+
 				return List.of(
-					new UnitValue(value - 273.15, Unit.CELCIUS),
-					f,
+					new UnitValue(c, Unit.CELCIUS),
+					new UnitValue(f, Unit.FAHRENHEIT),
 					new UnitValue(value * 9 / 5, Unit.RANKINE),
-					new UnitValue(f.value(), Unit.HUMAN)
+					new UnitValue((c * 21 / 40) + 7.5, Unit.RØMER),
+					new UnitValue(c * 0.33, Unit.NEWTON),
+					new UnitValue((100 - c) * 3 / 2, Unit.DELISLE),
+					new UnitValue(c * 0.8, Unit.RÉAUMUR),
+					new UnitValue(f, Unit.HUMAN)
 				);
 			}
 
@@ -251,16 +268,21 @@ public class UnitConversionListener implements Listener {
 			}
 		},
 		
-		RANKINE("(°|deg|degrees?|&#176;)?\\s*(rankine)", "°R", "🌡") {
+		RANKINE("(°|deg|degrees?|&#176;)?\\s*(rankine)", "°Ra", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
-				var f = new UnitValue(value - 459.67, Unit.FAHRENHEIT);
-				
+				var f = value - 459.67;
+				var c = f * 5 / 9;
+
 				return List.of(
-					new UnitValue((value - 491.67) * 5 / 9, Unit.CELCIUS),
-					f,
+					new UnitValue(c, Unit.CELCIUS),
+					new UnitValue(f, Unit.FAHRENHEIT),
 					new UnitValue(value * 5 / 9, Unit.KELVIN),
-					new UnitValue(f.value(), Unit.HUMAN)
+					new UnitValue((c * 21 / 40) + 7.5, Unit.RØMER),
+					new UnitValue(c * 0.33, Unit.NEWTON),
+					new UnitValue((100 - c) * 3 / 2, Unit.DELISLE),
+					new UnitValue(c * 0.8, Unit.RÉAUMUR),
+					new UnitValue(f, Unit.HUMAN)
 				);
 			}
 
@@ -269,7 +291,55 @@ public class UnitConversionListener implements Listener {
 				return false;
 			}
 		},
-		
+
+		RØMER("°Rø", "🌡") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			boolean ignoreZeroValues() {
+				return false;
+			}
+		},
+
+		NEWTON("°N", "🌡") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			boolean ignoreZeroValues() {
+				return false;
+			}
+		},
+
+		DELISLE("°D", "🌡") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			boolean ignoreZeroValues() {
+				return false;
+			}
+		},
+
+		RÉAUMUR("°Ré", "🌡") {
+			@Override
+			Collection<UnitValue> convert(double value) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			boolean ignoreZeroValues() {
+				return false;
+			}
+		},
+
 		HUMAN("", "🌡") {
 			@Override
 			Collection<UnitValue> convert(double value) {
