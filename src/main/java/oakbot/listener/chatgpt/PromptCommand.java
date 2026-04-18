@@ -2,6 +2,8 @@ package oakbot.listener.chatgpt;
 
 import static oakbot.bot.ChatActions.reply;
 
+import com.github.mangstadt.sochat4j.SplitStrategy;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
@@ -37,6 +39,6 @@ public class PromptCommand implements Command {
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
 		var roomId = chatCommand.getMessage().roomId();
 		var prompt = chatGpt.buildPrompt(roomId, bot);
-		return reply(prompt, chatCommand);
+		return reply(prompt, chatCommand, SplitStrategy.WORD);
 	}
 }
