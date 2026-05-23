@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
+import oakbot.ai.openai.CreateGptImageRequest;
 import oakbot.ai.openai.CreateImageResponse;
 import oakbot.ai.openai.OpenAIClient;
 import oakbot.ai.openai.OpenAIException;
@@ -49,17 +52,17 @@ public class ImagineCore {
 
 	static final String MODEL_DALLE_2 = "dall-e-2";
 	static final String MODEL_DALLE_3 = "dall-e-3";
-	/*
-	 * "Your organization must be verified to use the model `gpt-image-1`.
-	 * Please go to: https://platform.openai.com/settings/organization/general
-	 * and click on Verify Organization."
-	 */
 	static final String MODEL_GPT_IMAGE_1 = "gpt-image-1";
-
+	static final String MODEL_GPT_IMAGE_1_MINI = "gpt-image-1-mini";
+	static final String MODEL_GPT_IMAGE_15 = "gpt-image-1.5";
+	static final String MODEL_GPT_IMAGE_2 = "gpt-image-2";
 	static final String MODEL_STABLE_IMAGE_CORE = "si-core";
 	static final String MODEL_STABLE_DIFFUSION = "sd3";
 	static final String MODEL_STABLE_DIFFUSION_TURBO = "sd3-turbo";
-	static final List<String> supportedModels = List.of(MODEL_DALLE_2, MODEL_DALLE_3, MODEL_STABLE_IMAGE_CORE, MODEL_STABLE_DIFFUSION, MODEL_STABLE_DIFFUSION_TURBO);
+
+	static final List<String> supportedModels = List.of(MODEL_GPT_IMAGE_1, MODEL_GPT_IMAGE_1_MINI, MODEL_GPT_IMAGE_15, MODEL_GPT_IMAGE_2, MODEL_STABLE_IMAGE_CORE, MODEL_STABLE_DIFFUSION, MODEL_STABLE_DIFFUSION_TURBO);
+
+	private static final Collection<String> revisedPromptModels = Set.of(MODEL_DALLE_3);
 
 	private static final String EXACT_PROMPT_PHRASE = "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS.";
 
@@ -123,8 +126,8 @@ public class ImagineCore {
 
 		try {
 			List<String> messagesToPost;
-			if (MODEL_DALLE_2.equals(model) || MODEL_DALLE_3.equals(model) || MODEL_GPT_IMAGE_1.equals(model)) {
-				messagesToPost = handleDallE(model, inputImage, prompt, useExactPrompt, bot);
+			if (MODEL_DALLE_2.equals(model) || MODEL_DALLE_3.equals(model) || MODEL_GPT_IMAGE_1.equals(model) || MODEL_GPT_IMAGE_1_MINI.equals(model) || MODEL_GPT_IMAGE_15.equals(model) || MODEL_GPT_IMAGE_2.equals(model)) {
+				messagesToPost = handleOpenAi(model, inputImage, prompt, useExactPrompt, bot);
 			} else if (MODEL_STABLE_IMAGE_CORE.equals(model)) {
 				messagesToPost = List.of(handleStableImageCore(prompt, bot));
 			} else if (MODEL_STABLE_DIFFUSION.equals(model) || MODEL_STABLE_DIFFUSION_TURBO.equals(model)) {
@@ -171,9 +174,9 @@ public class ImagineCore {
 		}
 
 		/*
-		 * Default to dall-e-3 if no model was specified
+		 * Default to gpt-image-1-mini if no model was specified
 		 */
-		return (model == null) ? MODEL_DALLE_3 : model;
+		return (model == null) ? MODEL_GPT_IMAGE_1_MINI : model;
 	}
 
 	static String validateParameters(String model, String inputImage, String prompt) {
@@ -190,8 +193,8 @@ public class ImagineCore {
 		}
 
 		if (inputImage != null) {
-			if (MODEL_DALLE_3.equals(model)) {
-				return "Dall·E 3 does not support image variations.";
+			if (MODEL_DALLE_3.equals(model) || MODEL_GPT_IMAGE_1.equals(model) || MODEL_GPT_IMAGE_1_MINI.equals(model) || MODEL_GPT_IMAGE_15.equals(model) || MODEL_GPT_IMAGE_2.equals(model)) {
+				return "Model does not support image variations.";
 			}
 
 			if (MODEL_DALLE_2.equals(model) && prompt != null) {
@@ -206,17 +209,27 @@ public class ImagineCore {
 		return null;
 	}
 
-	private List<String> handleDallE(String model, String inputImageUrl, String prompt, boolean useExactPrompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
+	private List<String> handleOpenAi(String model, String inputImageUrl, String prompt, boolean useExactPrompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
 		CreateImageResponse response;
 		if (inputImageUrl == null) {
 			var lowestResolutionSupportedByModel = MODEL_DALLE_2.equals(model) ? "256x256" : "1024x1024";
 
 			var promptToSend = prompt;
-			if (MODEL_DALLE_3.equals(model) && useExactPrompt) {
+			if (revisedPromptModels.contains(model) && useExactPrompt) {
 				promptToSend += ". " + EXACT_PROMPT_PHRASE;
 			}
 
-			response = openAIClient.createImage(model, lowestResolutionSupportedByModel, null, null, promptToSend);
+			//@formatter:off
+			CreateGptImageRequest apiRequest = new CreateGptImageRequest.Builder()
+				.model(model)
+				.prompt(promptToSend)
+				.size(lowestResolutionSupportedByModel)
+				.outputCompression(90)
+				.outputFormat("jpeg")
+			.build();
+			//@formatter:on
+
+			response = openAIClient.createImage(apiRequest);
 		} else {
 			response = openAIClient.createImageVariation(inputImageUrl, "256x256");
 		}
@@ -230,19 +243,19 @@ public class ImagineCore {
 			 * that Stack Overflow's old image system (imgur) converted the PNGs
 			 * to JPEGs automatically).
 			 */
-			var jpegImage = convertToJpeg(response.getUrl());
+			var jpegImage = convertToJpeg(response.url());
 			imageUrl = uploadImage(bot, jpegImage);
 		} else {
-			if (response.getUrl() != null) {
-				imageUrl = uploadImageFromUrl(bot, response.getUrl());
+			if (response.url() != null) {
+				imageUrl = uploadImageFromUrl(bot, response.url());
 			} else {
-				imageUrl = uploadImage(bot, response.getData());
+				imageUrl = uploadImage(bot, response.data());
 			}
 		}
 
 		var messagesToPost = new ArrayList<String>();
-		if (response.getRevisedPrompt() != null && !response.getRevisedPrompt().equals(prompt)) {
-			messagesToPost.add("I'm going to use this prompt instead: " + response.getRevisedPrompt());
+		if (response.revisedPrompt() != null && !response.revisedPrompt().equals(prompt)) {
+			messagesToPost.add("I'm going to use this prompt instead: " + response.revisedPrompt());
 		}
 		messagesToPost.add(imageUrl);
 

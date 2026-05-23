@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.FileUpload;
+import oakbot.ai.openai.CreateGptImageRequest;
 import oakbot.ai.openai.CreateImageResponse;
 import oakbot.ai.openai.OpenAIClient;
 import oakbot.ai.openai.OpenAIException;
@@ -173,17 +174,29 @@ public class ImagineCommand implements DiscordSlashCommand {
 		CreateImageResponse response;
 		if (inputImage == null) {
 			var lowestResolutionSupportedByModel = (Model.DALLE_2 == model) ? "256x256" : "1024x1024";
-			response = openAIClient.createImage(model.id, lowestResolutionSupportedByModel, null, null, prompt);
+
+			//@formatter:off
+			CreateGptImageRequest apiRequest = new CreateGptImageRequest.Builder()
+				.model(model.id)
+				.prompt(prompt)
+				.size(lowestResolutionSupportedByModel)
+				.outputFormat("jpeg")
+				.outputCompression(90)
+				.quality("low")
+			.build();
+			//@formatter:on
+
+			response = openAIClient.createImage(apiRequest);
 		} else {
 			response = openAIClient.createImageVariation(inputImage.getUrl(), "256x256");
 		}
 
-		var revisedPrompt = response.getRevisedPrompt();
+		var revisedPrompt = response.revisedPrompt();
 		if (revisedPrompt != null) {
-			return event.getChannel().sendMessage(new ChatBuilder().bold("Revised prompt: ").append(revisedPrompt)).flatMap(m2 -> sendFile(event, response.getUrl(), prompt));
+			return event.getChannel().sendMessage(new ChatBuilder().bold("Revised prompt: ").append(revisedPrompt)).flatMap(m2 -> sendFile(event, response.url(), prompt));
 		}
 
-		return sendFile(event, response.getUrl(), prompt);
+		return sendFile(event, response.url(), prompt);
 	}
 
 	private RestAction<Message> handleStableImageCore(SlashCommandInteractionEvent event, String prompt) throws StabilityAIException, IOException {

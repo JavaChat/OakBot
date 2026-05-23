@@ -133,35 +133,89 @@ public class OpenAIClient {
 	}
 
 	/**
-	 * Creates an image.
-	 * @param model the model to use (e.g. "dall-e-2")
-	 * @param size the image size (e.g. "256x256")
-	 * @param outputFormat the image format of the generated image. Only
-	 * supported by certain models. Can be null.
-	 * @param outputCompression the compression level of the generated image.
-	 * Only supported by certain models and output formats. Can be null.
-	 * @param prompt a description of what the image should look like
+	 * Sends a request to the Responses API (text chat).
+	 * @param apiRequest the request
 	 * @return the response
 	 * @throws OpenAIException if OpenAI returns an error response
 	 * @throws IOException if there's a network problem
-	 * @see "https://platform.openai.com/docs/api-reference/images/create"
+	 * @see "https://developers.openai.com/api/reference/resources/responses/methods/create"
 	 */
-	public CreateImageResponse createImage(String model, String size, String outputFormat, Integer outputCompression, String prompt) throws IOException, OpenAIException {
-		var request = postRequestWithApiKey("/v1/images/generations");
+	public ResponsesApiResponse responsesApi(ResponsesApiRequest apiRequest) throws IOException, OpenAIException {
+		var request = postRequestWithApiKey("/v1/responses");
+		request.setEntity(new JsonEntity(toJson(apiRequest)));
 
-		//@formatter:off
-		var jsonObject = JsonUtils.newObject()
-			.put("model", model)
-			.put("prompt", prompt)
-			.put("size", size);
-		//@formatter:on
+		logRequest(request);
 
-		if (outputFormat != null) {
-			jsonObject.put("output_format", outputFormat);
+		JsonNode responseBody = null;
+		var responseStatusCode = 0;
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				responseStatusCode = response.getStatusLine().getStatusCode();
+				try (var in = response.getEntity().getContent()) {
+					responseBody = JsonUtils.parse(in);
+				}
+			}
+		} catch (IOException e) {
+			logIOException(request, responseStatusCode, responseBody, e);
+			throw e;
+		} finally {
+			logHttpCall(request, responseStatusCode, responseBody);
 		}
 
-		if (outputCompression != null) {
-			jsonObject.put("output_compression", outputCompression);
+		logResponse(responseStatusCode, responseBody);
+
+		lookForError(apiRequest.getInstructions(), responseBody);
+
+		return parseResponsesAPIResponse(responseBody);
+	}
+
+	/**
+	 * Creates an image.
+	 * @param apiRequest the request
+	 * @return the response
+	 * @throws OpenAIException if OpenAI returns an error response
+	 * @throws IOException if there's a network problem
+	 * @see "https://developers.openai.com/api/reference/resources/images/methods/generate"
+	 */
+	public CreateImageResponse createImage(CreateGptImageRequest apiRequest) throws IOException, OpenAIException {
+		var request = postRequestWithApiKey("/v1/images/generations");
+
+		var jsonObject = JsonUtils.newObject().put("prompt", apiRequest.getPrompt());
+
+		if (apiRequest.getBackgroundTransparency() != null) {
+			jsonObject.put("background", apiRequest.getBackgroundTransparency());
+		}
+
+		if (apiRequest.getModel() != null) {
+			jsonObject.put("model", apiRequest.getModel());
+		}
+
+		if (apiRequest.getModeration() != null) {
+			jsonObject.put("moderation", apiRequest.getModeration());
+		}
+
+		if (apiRequest.getNumberOfImagesToGenerate() != null) {
+			jsonObject.put("n", apiRequest.getNumberOfImagesToGenerate());
+		}
+
+		if (apiRequest.getOutputCompression() != null) {
+			jsonObject.put("output_compression", apiRequest.getOutputCompression());
+		}
+
+		if (apiRequest.getOutputFormat() != null) {
+			jsonObject.put("output_format", apiRequest.getOutputFormat());
+		}
+
+		if (apiRequest.getQuality() != null) {
+			jsonObject.put("quality", apiRequest.getQuality());
+		}
+
+		if (apiRequest.getSize() != null) {
+			jsonObject.put("size", apiRequest.getSize());
+		}
+
+		if (apiRequest.getUser() != null) {
+			jsonObject.put("user", apiRequest.getUser());
 		}
 
 		request.setEntity(new JsonEntity(jsonObject));
@@ -186,7 +240,7 @@ public class OpenAIClient {
 
 		logResponse(responseStatusCode, responseBody);
 
-		lookForError(prompt, responseBody);
+		lookForError(apiRequest.getPrompt(), responseBody);
 
 		return parseCreateImageResponse(responseBody);
 	}
@@ -405,8 +459,10 @@ public class OpenAIClient {
 		String responseBody;
 		if (responseStatusCode == 0) {
 			responseBody = "error sending request";
+		} else if (responseBodyJson == null) {
+			responseBody = "could not parse response body as JSON";
 		} else {
-			responseBody = (responseBodyJson == null) ? "could not parse response body as JSON" : JsonUtils.prettyPrintForLogging(responseBodyJson);
+			responseBody = removeBinaryData(JsonUtils.prettyPrintForLogging(responseBodyJson));
 		}
 
 		try {
@@ -414,6 +470,10 @@ public class OpenAIClient {
 		} catch (IOException e) {
 			logger.atError().setCause(e).log(() -> "Problem logging OpenAI request.");
 		}
+	}
+
+	private String removeBinaryData(String json) {
+		return json.replaceAll("(\"b64_json\"\\s*:\\s*)\"[^\\\"]*+\"", "$1\"removed\"");
 	}
 
 	private HttpGet getRequestWithApiKey(String uriPath) {
@@ -488,31 +548,38 @@ public class OpenAIClient {
 	 */
 	private void lookForError(String prompt, JsonNode response) throws OpenAIException {
 		var error = response.get("error");
-		if (error == null) {
-			return;
-		}
+		if (error != null && !error.isNull()) {
+			var message = error.path("message").asText();
+			var type = error.path("type").asText();
+			var param = error.path("param").asText();
+			var code = error.path("code").asText();
 
-		var message = error.path("message").asText();
-		var type = error.path("type").asText();
-		var param = error.path("param").asText();
-		var code = error.path("code").asText();
+			/*
+			 * If rejected by the moderation system, get the reason(s) why.
+			 */
+			if (prompt != null && message.contains("Your request was rejected as a result of our safety system.")) {
+				Set<String> flaggedCategories;
+				try {
+					flaggedCategories = moderate(prompt).getFlaggedCategories();
+				} catch (Exception e) {
+					logger.atWarn().setCause(e).log(() -> "Ignoring failed call to moderation endpoint.");
+					flaggedCategories = Set.of();
+				}
 
-		/*
-		 * If rejected by the moderation system, get the reason(s) why.
-		 */
-		if (prompt != null && message.contains("Your request was rejected as a result of our safety system.")) {
-			Set<String> flaggedCategories;
-			try {
-				flaggedCategories = moderate(prompt).getFlaggedCategories();
-			} catch (Exception e) {
-				logger.atWarn().setCause(e).log(() -> "Ignoring failed call to moderation endpoint.");
-				flaggedCategories = Set.of();
+				throw new OpenAIModerationException(message, type, param, code, flaggedCategories);
 			}
 
-			throw new OpenAIModerationException(message, type, param, code, flaggedCategories);
+			throw new OpenAIException(message, type, param, code);
 		}
 
-		throw new OpenAIException(message, type, param, code);
+		/*
+		 * The Responses API can return output that contains a "refusal"
+		 * message.
+		 */
+		var refusalExplanation = response.path("output").path(0).path("content").path(0).get("refusal");
+		if (refusalExplanation != null) {
+			throw new OpenAIException(refusalExplanation.asText(), "refusal", null, null);
+		}
 	}
 
 	private JsonNode toJson(ChatCompletionRequest apiRequest) {
@@ -569,6 +636,54 @@ public class OpenAIClient {
 		return node;
 	}
 
+	private JsonNode toJson(ResponsesApiRequest apiRequest) {
+		var node = JsonUtils.newObject();
+
+		putIfNotNull(node, "instructions", apiRequest.getInstructions()); //aka prompt
+		putIfNotNull(node, "model", apiRequest.getModel());
+		putIfNotNull(node, "max_output_tokens", apiRequest.getMaxOutputTokens());
+
+		if (apiRequest.getReasoningEffort() != null) {
+			node.set("reasoning", node.objectNode().put("effort", apiRequest.getReasoningEffort()));
+		}
+
+		if (apiRequest.getVerbosity() != null) {
+			node.set("text", node.objectNode().put("verbosity", apiRequest.getVerbosity()));
+		}
+
+		var inputNodes = node.putArray("input");
+		for (var input : apiRequest.getInputs()) {
+			var inputNode = inputNodes.addObject();
+			inputNode.put("role", input.getRole());
+
+			var assistantInput = "assistant".equals(input.getRole());
+
+			//Responses API doesn't seem to support this
+			//putIfNotNull(inputNode, "name", sanitizeMessageName(input.getName()));
+
+			var contentNode = inputNode.putArray("content");
+
+			if (input.getText() != null) {
+				//@formatter:off
+				contentNode.addObject()
+					.put("type", assistantInput ? "output_text" : "input_text")
+					.put("text", input.getText());
+				//@formatter:on
+			}
+
+			if (input.getImageUrl() != null) {
+				//@formatter:off
+				var imageContentNode = contentNode.addObject()
+					.put("type", "input_image")
+					.put("image_url", input.getImageUrl());
+				//@formatter:on
+				putIfNotNull(imageContentNode, "detail", input.getImageDetail());
+			}
+		}
+
+		return node;
+	}
+
 	/**
 	 * <p>
 	 * Sanitize name field.
@@ -614,6 +729,24 @@ public class OpenAIClient {
 					var content = choiceNode.path("message").path("content").asText();
 					var finishReason = choiceNode.path("finish_reason").asText();
 					return new ChatCompletionResponse.Choice(content, finishReason);
+				})
+				.toList())
+		.build();
+		//@formatter:on
+	}
+
+	private ResponsesApiResponse parseResponsesAPIResponse(JsonNode node) {
+		//@formatter:off
+		return new ResponsesApiResponse.Builder()
+			.created(JsonUtils.asEpochSecond(node.path("created_at")))
+			.status(node.path("status").asText())
+			.inputTokens(node.path("usage").path("input_tokens").asInt())
+			.outputTokens(node.path("usage").path("output_tokens").asInt())
+			.output(node.path("output").valueStream()
+				.map(outputNode -> {
+					var status = outputNode.path("status").asText();
+					var content = outputNode.path("content").path(0).path("text").asText();
+					return new ResponsesApiResponse.Output(status, content);
 				})
 				.toList())
 		.build();

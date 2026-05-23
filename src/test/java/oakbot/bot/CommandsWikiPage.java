@@ -100,7 +100,7 @@ public class CommandsWikiPage {
 		{
 			listeners.add(new MentionListener());
 			listeners.add(new DadJokeListener("Oak", null));
-			listeners.add(new ChatGPT(new OpenAIClient(""), null, "", "", Map.of(), 0, null, Duration.ZERO, 10, 0, 0));
+			listeners.add(new ChatGPT(new OpenAIClient(""), null, "", "", Map.of(), 0, null, null, Duration.ZERO, 10, 0, 0));
 			listeners.add(new MornListener(Duration.ZERO, null));
 			listeners.add(new UnitConversionListener());
 			listeners.add(new WaveListener(Duration.ZERO, null));

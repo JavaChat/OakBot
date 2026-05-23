@@ -17,6 +17,8 @@ class ChatGPTTest {
 		assertRemoveMentionsFromBeginningOfMessage("@Foo @Bar Hello world", "Hello world");
 		assertRemoveMentionsFromBeginningOfMessage("Hello @Bob world", "Hello @Bob world");
 		assertRemoveMentionsFromBeginningOfMessage("Hello world", "Hello world");
+		assertRemoveMentionsFromBeginningOfMessage("1", "1");
+		assertRemoveMentionsFromBeginningOfMessage("@", "");
 	}
 
 	private static void assertRemoveMentionsFromBeginningOfMessage(String input, String expected) {

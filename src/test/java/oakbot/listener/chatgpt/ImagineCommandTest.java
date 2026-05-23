@@ -39,8 +39,8 @@ class ImagineCommandTest {
 
 	@Test
 	void ImagineParameterParser() {
-		var actual = new ImagineCore.ImagineParameterParser("dall-e-3 https://www.example.com/image.png prompt goes here").parse();
-		assertEquals("dall-e-3", actual.model());
+		var actual = new ImagineCore.ImagineParameterParser("gpt-image-1 https://www.example.com/image.png prompt goes here").parse();
+		assertEquals("gpt-image-1", actual.model());
 		assertEquals("https://www.example.com/image.png", actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
@@ -49,8 +49,8 @@ class ImagineCommandTest {
 		assertEquals("https://www.example.com/image.png", actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
-		actual = new ImagineCore.ImagineParameterParser("dall-e-3 prompt goes here").parse();
-		assertEquals("dall-e-3", actual.model());
+		actual = new ImagineCore.ImagineParameterParser("gpt-image-1 prompt goes here").parse();
+		assertEquals("gpt-image-1", actual.model());
 		assertNull(actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
@@ -116,7 +116,7 @@ class ImagineCommandTest {
 	@Test
 	void chooseWhichModelToUse() {
 		//no model provided
-		assertEquals(ImagineCore.MODEL_DALLE_3, ImagineCore.chooseWhichModelToUse(null, null, "prompt"));
+		assertEquals(ImagineCore.MODEL_GPT_IMAGE_1_MINI, ImagineCore.chooseWhichModelToUse(null, null, "prompt"));
 
 		//no model provided with input images
 		assertEquals(ImagineCore.MODEL_DALLE_2, ImagineCore.chooseWhichModelToUse(null, "image", null));

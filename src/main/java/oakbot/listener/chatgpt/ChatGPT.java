@@ -33,6 +33,8 @@ import oakbot.ai.openai.ChatCompletionRequest;
 import oakbot.ai.openai.ChatCompletionResponse;
 import oakbot.ai.openai.OpenAIClient;
 import oakbot.ai.openai.OpenAIException;
+import oakbot.ai.openai.ResponsesApiRequest;
+import oakbot.ai.openai.ResponsesApiResponse;
 import oakbot.bot.ChatActions;
 import oakbot.bot.IBot;
 import oakbot.bot.PostMessage;
@@ -51,7 +53,6 @@ import oakbot.util.HttpFactory;
 public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private static final Logger logger = LoggerFactory.getLogger(ChatGPT.class);
 	private static final Collection<String> imageTypesSupportedByVisionModel = Set.of("image/png", "image/jpeg", "image/gif", "image/webp");
-	private static final Collection<String> visionModels = Set.of("gpt-4-vision-preview", "gpt-4o");
 
 	private final OpenAIClient openAIClient;
 	private final MoodCommand moodCommand;
@@ -60,6 +61,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private final Duration timeBetweenSpontaneousPosts;
 	private final int completionMaxTokens;
 	private final String reasoningEffort;
+	private final String verbosity;
 	private final int numLatestMessagesToIncludeInRequest;
 	private final int latestMessageCharacterLimit;
 	private final Map<Integer, String> promptsByRoom;
@@ -82,6 +84,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * may end abruptly (e.g. in an unfinished sentence).
 	 * @param reasoningEffort the amount of tokens to consume with reasoning
 	 * (e.g. "low"). Only supported by some models. May be null.
+	 * @param verbosity how long the responses should be (e.g. "low"). Only
+	 * supported by some models. May be null.
 	 * @param timeBetweenSpontaneousPosts the amount of time to wait before
 	 * posting a message
 	 * @param numLatestMessagesToIncludeInRequest the number of chat room
@@ -93,7 +97,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * @param requestsPer24Hours requests allowed per user per 24 hours, or
 	 * {@literal <= 0} for no limit
 	 */
-	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String reasoningEffort, Duration timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours) {
+	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String reasoningEffort, String verbosity, Duration timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours) {
 		this.openAIClient = openAIClient;
 		this.moodCommand = moodCommand;
 		this.model = model;
@@ -101,6 +105,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		this.promptsByRoom = promptsByRoom;
 		this.completionMaxTokens = completionMaxTokens;
 		this.reasoningEffort = reasoningEffort;
+		this.verbosity = verbosity;
 		this.timeBetweenSpontaneousPosts = timeBetweenSpontaneousPosts;
 		this.numLatestMessagesToIncludeInRequest = numLatestMessagesToIncludeInRequest;
 		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
@@ -160,11 +165,11 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			var prompt = buildPromptForSpontaneousPost(roomId, bot);
 
-			var apiMessages = buildChatCompletionMessages(prompt, messages, bot);
+			var apiMessages = buildResponsesAPIInput(messages, bot);
 
-			var request = buildChatCompletionRequest(apiMessages);
+			var request = buildResponsesApiRequest(prompt, apiMessages);
 
-			var response = sendChatCompletionRequest(request);
+			var response = sendResponsesApiRequest(request);
 
 			var postMessage = new PostMessage(response).splitStrategy(SplitStrategy.WORD);
 			bot.sendMessage(roomId, postMessage);
@@ -217,12 +222,12 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			var prevMessages = bot.getLatestMessages(message.roomId(), numLatestMessagesToIncludeInRequest);
 
 			var prompt = buildPrompt(message.roomId(), bot);
-			var apiMessages = buildChatCompletionMessages(prompt, prevMessages, bot);
-			addParentMessage(message, prevMessages, apiMessages, bot);
+			var apiMessages = buildResponsesAPIInput(prevMessages, bot);
+			addParentMessageResponsesAPI(message, prevMessages, apiMessages, bot);
 
-			var request = buildChatCompletionRequest(apiMessages);
+			var request = buildResponsesApiRequest(prompt, apiMessages);
 
-			var response = sendChatCompletionRequest(request);
+			var response = sendResponsesApiRequest(request);
 
 			resetSpontaneousPostTimer(message.roomId());
 
@@ -254,6 +259,19 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		//@formatter:on
 	}
 
+	private ResponsesApiRequest buildResponsesApiRequest(String prompt, List<ResponsesApiRequest.Input> apiMessages) {
+		//@formatter:off
+		return new ResponsesApiRequest.Builder()
+			.instructions(prompt)
+			.inputs(apiMessages)
+			.model(model)
+			.maxOutputTokens(completionMaxTokens)
+			.reasoningEffort(reasoningEffort)
+			.verbosity(verbosity)
+		.build();
+		//@formatter:on
+	}
+
 	private void addParentMessage(ChatMessage message, List<ChatMessage> prevMessages, List<ChatCompletionRequest.Message> apiMessages, IBot bot) {
 		var parentId = message.parentId();
 		if (parentId == 0) {
@@ -275,7 +293,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		try {
 			var parentMessageContent = bot.getOriginalMessageContent(parentId);
 
-			var imageUrls = parentMessagePostedByBot ? List.<String> of() : extractImageUrlsIfModelSupportsVision(parentMessageContent);
+			var imageUrls = parentMessagePostedByBot ? List.<String> of() : extractImageUrls(parentMessageContent);
 
 			/*
 			 * Insert the parent message right before the child message.
@@ -286,7 +304,56 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			apiMessages.add(insertPos, new ChatCompletionRequest.Message.Builder()
 				.role(parentMessagePostedByBot ? "assistant" : "user")
 				.text(parentMessageContent)
+				.name(message.username())
 				.imageUrls(imageUrls, "low")
+			.build());
+			//@formatter:on
+		} catch (IOException e) {
+			logger.atError().setCause(e).log(() -> "Problem getting content of parent message.");
+		}
+	}
+
+	private void addParentMessageResponsesAPI(ChatMessage message, List<ChatMessage> prevMessages, List<ResponsesApiRequest.Input> apiMessages, IBot bot) {
+		var parentId = message.parentId();
+		if (parentId == 0) {
+			return;
+		}
+
+		//@formatter:off
+		var parentMessageAlreadyInPrevMessages = prevMessages.stream()
+			.mapToLong(ChatMessage::id)
+		.anyMatch(id -> id == parentId);
+		//@formatter:on
+
+		if (parentMessageAlreadyInPrevMessages) {
+			return;
+		}
+
+		var parentMessagePostedByBot = message.content().getContent().startsWith("@" + bot.getUsername());
+
+		try {
+			var parentMessageContent = bot.getOriginalMessageContent(parentId);
+
+			var imageUrls = parentMessagePostedByBot ? List.<String> of() : extractImageUrls(parentMessageContent);
+
+			/*
+			 * Insert the parent message right before the child message.
+			 */
+			var insertPos = apiMessages.size() - 1;
+
+			//@formatter:off
+			var imageInputBuilder = new ResponsesApiRequest.Input.Builder()
+				.role(parentMessagePostedByBot ? "assistant" : "user")
+				.name(message.username());
+
+			imageUrls.stream()
+				.map(url -> imageInputBuilder.image(url, "low").build())
+			.forEach(apiMessages::add);
+
+			apiMessages.add(insertPos, new ResponsesApiRequest.Input.Builder()
+				.role(parentMessagePostedByBot ? "assistant" : "user")
+				.text(parentMessageContent)
+				.name(message.username())
 			.build());
 			//@formatter:on
 		} catch (IOException e) {
@@ -382,7 +449,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 				/*
 				 * GPT-4o model does not allow "assistant" messages to contain image URLs.
 				 */
-				var imageUrls = messagePostedByOak ? List.<String>of() : extractImageUrlsIfModelSupportsVision(contentStr);
+				var imageUrls = messagePostedByOak ? List.<String>of() : extractImageUrls(contentStr);
 
 				String truncatedContentMd;
 				if (latestMessageCharacterLimit > 0) {
@@ -404,11 +471,53 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		return apiMessages;
 	}
 
-	private List<String> extractImageUrlsIfModelSupportsVision(String content) {
-		if (!visionModels.contains(model)) {
-			return List.of();
-		}
+	private List<ResponsesApiRequest.Input> buildResponsesAPIInput(List<ChatMessage> chatMessages, IBot bot) {
+		var apiMessages = new ArrayList<ResponsesApiRequest.Input>();
 
+		chatMessages.stream().filter(not(ChatMessage::isDeleted)).forEach(chatMessage -> {
+			var content = chatMessage.content();
+			var contentStr = content.getContent();
+			var fixedWidthFont = content.isFixedWidthFont();
+			var contentMd = ChatBuilder.toMarkdown(contentStr, fixedWidthFont);
+			var messagePostedByOak = (chatMessage.userId() == bot.getUserId());
+
+			String truncatedContentMd;
+			if (latestMessageCharacterLimit > 0) {
+				truncatedContentMd = SplitStrategy.WORD.split(contentMd, latestMessageCharacterLimit).get(0);
+			} else {
+				truncatedContentMd = contentMd;
+			}
+
+			//@formatter:off
+			apiMessages.add(new ResponsesApiRequest.Input.Builder()
+				.role(messagePostedByOak ? "assistant" : "user")
+				.name(chatMessage.username())
+				.text(truncatedContentMd)
+			.build());
+			//@formatter:on
+
+			/*
+			 * GPT-4o model does not allow "assistant" messages to contain image
+			 * URLs.
+			 */
+			var imageUrls = messagePostedByOak ? List.<String> of() : extractImageUrls(contentStr);
+			if (!imageUrls.isEmpty()) {
+				//@formatter:off
+				var builder = new ResponsesApiRequest.Input.Builder()
+					.role(messagePostedByOak ? "assistant" : "user")
+					.name(chatMessage.username());
+	
+				imageUrls.stream()
+					.map(url -> builder.image(url, "low").build())
+				.forEach(apiMessages::add);
+				//@formatter:on
+			}
+		});
+
+		return apiMessages;
+	}
+
+	private List<String> extractImageUrls(String content) {
 		var allUrls = extractUrls(content);
 		if (allUrls.isEmpty()) {
 			return List.of();
@@ -418,7 +527,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		 * Create an HTTP client with a short request timeout, to avoid long bot
 		 * response times.
 		 */
-		var requestConfig = RequestConfig.custom().setConnectTimeout(5 * 1000).build();
+		var timeout = (int) Duration.ofSeconds(5).toMillis();
+		var requestConfig = RequestConfig.custom().setConnectTimeout(timeout).build();
 		var builder = HttpClients.custom().setDefaultRequestConfig(requestConfig);
 
 		try (var client = HttpFactory.connect(builder).getClient()) {
@@ -546,6 +656,44 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		return formatMessagesWithCodeBlocks(response);
 	}
 
+	private String sendResponsesApiRequest(ResponsesApiRequest apiRequest) throws IOException {
+		ResponsesApiResponse apiResponse;
+		try {
+			apiResponse = openAIClient.responsesApi(apiRequest);
+		} catch (OpenAIException e) {
+			//@formatter:off
+			return new ChatBuilder()
+				.code()
+				.append("ERROR BEEP BOOP: ")
+				.append(e.getMessage())
+				.code()
+			.toString();
+			//@formatter:on
+		}
+
+		if (apiResponse.getOutput().isEmpty()) {
+			//@formatter:off
+			return new ChatBuilder()
+				.code("ERROR BEEP BOOP: Output array in response is empty.")
+			.toString();
+			//@formatter:on
+		}
+
+		var status = apiResponse.getOutput().get(0).status();
+		var response = apiResponse.getOutput().get(0).content();
+		if (response.isEmpty() && !"completed".equals(status)) {
+			//@formatter:off
+			return new ChatBuilder()
+				.code("ERROR BEEP BOOP: Status = " + status)
+			.toString();
+			//@formatter:on
+		}
+
+		response = removeMentionsFromBeginningOfMessage(response);
+		response = removeReplySyntaxFromBeginningOfMessage(response);
+		return formatMessagesWithCodeBlocks(response);
+	}
+
 	/**
 	 * <p>
 	 * Remove all mentions from the beginning of the message.
@@ -582,6 +730,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	}
 
 	private static String removeFromBeginningOfMessage(char startingChar, String message) {
+		if (message.length() == 1 && message.charAt(0) != startingChar) {
+			return message;
+		}
+
 		var it = new CharIterator(message);
 		var inString = false;
 		while (it.hasNext()) {

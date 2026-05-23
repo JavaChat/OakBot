@@ -55,6 +55,7 @@ class OpenAIClientTest {
 		var apiKey = args[0];
 		var client = new OpenAIClient(apiKey);
 
+		//chat completion API
 		{
 			//@formatter:off
 			var request = new ChatCompletionRequest.Builder().maxTokens(300).model("gpt-5").messages(List.of(
@@ -67,11 +68,39 @@ class OpenAIClientTest {
 			System.out.println(response.getChoices().get(0).getContent());
 		}
 
+		//responses API
 		{
-			var response = client.createImage("gpt-image-1", "1024x1024", "jpeg", null, "A cute Java programmer");
+			//@formatter:off
+			var request = new ResponsesApiRequest.Builder().maxOutputTokens(300).model("gpt-5.5").reasoningEffort("none").verbosity("low").instructions("Talk like a pirate.").inputs(List.of(
+				new ResponsesApiRequest.Input.Builder().role("assistant").text("One two").name("Michael").build(),
+				new ResponsesApiRequest.Input.Builder().role("user").text("How are you?").name("Michael").build()
+			)).build();
+			//@formatter:on
+
+			var response = client.responsesApi(request);
+			System.out.println(response.getOutput().get(0).content());
+		}
+
+		//responses API image recognition
+		{
+			//@formatter:off
+			var request = new ResponsesApiRequest.Builder().maxOutputTokens(300).model("gpt-5.4-mini").reasoningEffort("none").verbosity("low").instructions("Talk like a pirate.").inputs(List.of(
+				new ResponsesApiRequest.Input.Builder().role("user").text("Describe this photo.").build(),
+				new ResponsesApiRequest.Input.Builder().role("user").image("https://images-assets.nasa.gov/image/art002e009302/art002e009302~large.jpg?w=1920&h=1440&fit=clip&crop=faces%2Cfocalpoint", "low").build()
+			)).build();
+			//@formatter:on
+
+			var response = client.responsesApi(request);
+			System.out.println(response.getOutput().get(0).content());
+		}
+
+		//image generation
+		{
+			var request = new CreateGptImageRequest.Builder().model("gpt-image-1-mini").size("1024x1024").outputFormat("jpeg").outputCompression(90).quality("low").prompt("A cute Java programmer").build();
+			var response = client.createImage(request);
 			var fileName = "image." + DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()).replaceAll("[-:]", "") + ".jpg";
-			Files.write(Paths.get(fileName), response.getData());
-			System.out.println("Revised prompt: " + response.getRevisedPrompt());
+			Files.write(Paths.get(fileName), response.data());
+			System.out.println("Revised prompt: " + response.revisedPrompt());
 		}
 	}
 
@@ -272,10 +301,11 @@ class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		var actual = client.createImage("model", "256x256", null, null, "Prompt.");
-		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
-		assertEquals(url, actual.getUrl());
-		assertNull(actual.getRevisedPrompt());
+		CreateGptImageRequest apiRequest = new CreateGptImageRequest.Builder().model("model").prompt("Prompt.").size("256x256").build();
+		var actual = client.createImage(apiRequest);
+		assertEquals(Instant.ofEpochSecond(1696771460L), actual.created());
+		assertEquals(url, actual.url());
+		assertNull(actual.revisedPrompt());
 	}
 
 	@Test
@@ -296,7 +326,8 @@ class OpenAIClientTest {
 		.build());
 		//@formatter:on
 
-		var e = assertThrows(OpenAIException.class, () -> client.createImage("model", "256x256", null, null, "Prompt."));
+		CreateGptImageRequest apiRequest = new CreateGptImageRequest.Builder().model("model").prompt("Prompt.").size("256x256").build();
+		var e = assertThrows(OpenAIException.class, () -> client.createImage(apiRequest));
 		assertEquals("Error.", e.getMessage());
 	}
 
@@ -341,9 +372,9 @@ class OpenAIClientTest {
 		//@formatter:on
 
 		var actual = client.createImageVariation(url, "256x256");
-		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
-		assertEquals(resultUrl, actual.getUrl());
-		assertNull(actual.getRevisedPrompt());
+		assertEquals(Instant.ofEpochSecond(1696771460L), actual.created());
+		assertEquals(resultUrl, actual.url());
+		assertNull(actual.revisedPrompt());
 	}
 
 	@Test
@@ -394,9 +425,9 @@ class OpenAIClientTest {
 		//@formatter:on
 
 		var actual = client.createImageVariation(url, "256x256");
-		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
-		assertEquals(resultUrl, actual.getUrl());
-		assertNull(actual.getRevisedPrompt());
+		assertEquals(Instant.ofEpochSecond(1696771460L), actual.created());
+		assertEquals(resultUrl, actual.url());
+		assertNull(actual.revisedPrompt());
 	}
 
 	/**
@@ -475,9 +506,9 @@ class OpenAIClientTest {
 		//@formatter:on
 
 		var actual = client.createImageVariation(url, "256x256");
-		assertEquals(Instant.ofEpochSecond(1696771460L), actual.getCreated());
-		assertEquals(resultUrl, actual.getUrl());
-		assertNull(actual.getRevisedPrompt());
+		assertEquals(Instant.ofEpochSecond(1696771460L), actual.created());
+		assertEquals(resultUrl, actual.url());
+		assertNull(actual.revisedPrompt());
 	}
 
 	private static void assertAuthHeader(HttpRequest request, String key) {

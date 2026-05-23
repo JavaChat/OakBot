@@ -574,7 +574,7 @@
 		<!--
 		The model.
 		-->
-		<constructor-arg value="gpt-3.5-turbo" />
+		<constructor-arg value="gpt-5.4-mini" />
 
 		<!--
 		Default prompt.
@@ -604,6 +604,14 @@
 		<!--
 		(can be null)
 		Reasoning effort.
+		Higher values consume more tokens.
+		Only supported by some models.
+		-->
+		<constructor-arg value="none" />
+		
+		<!--
+		(can be null)
+		Verbosity.
 		Higher values consume more tokens.
 		Only supported by some models.
 		-->
