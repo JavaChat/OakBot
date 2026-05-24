@@ -641,6 +641,12 @@
 		0 for no limit.
 		-->
 		<constructor-arg value="20" />
+		
+		<!--
+		Which chat API to use.
+		responses-api or chat-completions
+		-->
+		<constructor-arg value="responses-api" />
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ImagineCore" id="imagineCore">
 		<constructor-arg ref="openAIClient" />

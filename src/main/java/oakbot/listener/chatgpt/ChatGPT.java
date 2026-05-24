@@ -64,6 +64,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private final String verbosity;
 	private final int numLatestMessagesToIncludeInRequest;
 	private final int latestMessageCharacterLimit;
+	private final boolean useResponsesApi;
 	private final Map<Integer, String> promptsByRoom;
 	private final Map<Integer, Instant> spontaneousPostTimesByRoom = new HashMap<>();
 	private boolean ignoreNextMessage;
@@ -96,8 +97,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	 * truncation). Each message counts against your usage quota.
 	 * @param requestsPer24Hours requests allowed per user per 24 hours, or
 	 * {@literal <= 0} for no limit
+	 * @param api the chat API to use ("responses-api" for the Responses API,
+	 * "chat-completions" for Chat Completions)
 	 */
-	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String reasoningEffort, String verbosity, Duration timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours) {
+	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String reasoningEffort, String verbosity, Duration timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours, String api) {
 		this.openAIClient = openAIClient;
 		this.moodCommand = moodCommand;
 		this.model = model;
@@ -109,6 +112,13 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		this.timeBetweenSpontaneousPosts = timeBetweenSpontaneousPosts;
 		this.numLatestMessagesToIncludeInRequest = numLatestMessagesToIncludeInRequest;
 		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
+
+		this.useResponsesApi = switch (api) {
+		case "responses-api" -> true;
+		case "chat-completions" -> false;
+		default -> throw new IllegalArgumentException();
+		};
+
 		usageQuota = (requestsPer24Hours > 0) ? new UsageQuota(Duration.ofDays(1), requestsPer24Hours) : UsageQuota.allowAll();
 	}
 
@@ -165,11 +175,16 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			var prompt = buildPromptForSpontaneousPost(roomId, bot);
 
-			var apiMessages = buildResponsesAPIInput(messages, bot);
-
-			var request = buildResponsesApiRequest(prompt, apiMessages);
-
-			var response = sendResponsesApiRequest(request);
+			String response;
+			if (useResponsesApi) {
+				var apiMessages = buildResponsesAPIInput(messages, bot);
+				var request = buildResponsesApiRequest(prompt, apiMessages);
+				response = sendResponsesApiRequest(request);
+			} else {
+				var apiMessages = buildChatCompletionMessages(prompt, messages, bot);
+				var request = buildChatCompletionRequest(apiMessages);
+				response = sendChatCompletionRequest(request);
+			}
 
 			var postMessage = new PostMessage(response).splitStrategy(SplitStrategy.WORD);
 			bot.sendMessage(roomId, postMessage);
@@ -222,12 +237,21 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			var prevMessages = bot.getLatestMessages(message.roomId(), numLatestMessagesToIncludeInRequest);
 
 			var prompt = buildPrompt(message.roomId(), bot);
-			var apiMessages = buildResponsesAPIInput(prevMessages, bot);
-			addParentMessageResponsesAPI(message, prevMessages, apiMessages, bot);
 
-			var request = buildResponsesApiRequest(prompt, apiMessages);
+			String response;
+			if (useResponsesApi) {
+				var apiMessages = buildResponsesAPIInput(prevMessages, bot);
+				addParentMessageResponsesAPI(message, prevMessages, apiMessages, bot);
 
-			var response = sendResponsesApiRequest(request);
+				var request = buildResponsesApiRequest(prompt, apiMessages);
+				response = sendResponsesApiRequest(request);
+			} else {
+				var apiMessages = buildChatCompletionMessages(prompt, prevMessages, bot);
+				addParentMessage(message, prevMessages, apiMessages, bot);
+
+				var request = buildChatCompletionRequest(apiMessages);
+				response = sendChatCompletionRequest(request);
+			}
 
 			resetSpontaneousPostTimer(message.roomId());
 
