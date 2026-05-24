@@ -1,5 +1,7 @@
 package oakbot.listener.chatgpt;
 
+import static oakbot.bot.ChatActions.reply;
+
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
 import oakbot.bot.IBot;
@@ -28,15 +30,15 @@ public class ImagineExactCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Creates images using OpenAI's DALL·E and Stability.ai, but tells the AI not to revise the prompt.")
+			.summary("Creates images using OpenAI and Stability.ai, but tells the AI not to revise the prompt.")
 			.detail("DALL·E 3 uses AI to embellish the prompt. When using this model, this command instructs the AI not to revise the prompt. May not work consistently. " + core.helpDetail())
-			.example("a cute Java programmer", "Generates an image using DALL·E 3 using that exact prompt.")
+			.example("dall-e-3 a cute Java programmer", "Generates an image using DALL·E 3 using that exact prompt.")
 		.build();
 		//@formatter:on
 	}
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		return core.onMessageExact(chatCommand, bot);
+		return reply("Command disabled. The dall-e-3 model was the only model that rewrote the prompt, and it has been retired.", chatCommand);
 	}
 }

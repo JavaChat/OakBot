@@ -26,9 +26,9 @@ public class ImagineCommand implements Command {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
-			.summary("Creates images using OpenAI's DALL·E and Stability.ai.")
+			.summary("Creates images using OpenAI and Stability.ai.")
 			.detail(core.helpDetail())
-			.example("a cute Java programmer", "Generates an image using DALL·E 3.")
+			.example("a cute Java programmer", "Generates an image using gpt-image-1-mini.")
 			.example("https://example.com/image.png", "Generates a variation of the given image using DALL·E 2. Image must be a PNG, JPEG, or GIF.")
 			.example("https://example.com/sheep.png A sheep wearing sunglasses", "Modifies an image using Stable Diffusion 3.0.")
 			.example("si-core A funny cat", "Include the model ID at the beginning of the message to define which model to use.")
