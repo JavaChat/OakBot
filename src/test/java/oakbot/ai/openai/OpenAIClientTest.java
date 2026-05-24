@@ -72,8 +72,8 @@ class OpenAIClientTest {
 		{
 			//@formatter:off
 			var request = new ResponsesApiRequest.Builder().maxOutputTokens(300).model("gpt-5.5").reasoningEffort("none").verbosity("low").instructions("Talk like a pirate.").inputs(List.of(
-				new ResponsesApiRequest.Input.Builder().role("assistant").text("One two").name("Michael").build(),
-				new ResponsesApiRequest.Input.Builder().role("user").text("How are you?").name("Michael").build()
+				new ResponsesApiRequest.Input.Builder().role("assistant").text("One two").build(),
+				new ResponsesApiRequest.Input.Builder().role("user").text("How are you?").build()
 			)).build();
 			//@formatter:on
 

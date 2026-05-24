@@ -102,7 +102,6 @@ public class ResponsesApiRequest {
 		private final String text;
 		private final String imageUrl;
 		private final String imageDetail;
-		private final String name;
 
 		public Input(Builder builder) {
 			role = Objects.requireNonNull(builder.role);
@@ -112,7 +111,6 @@ public class ResponsesApiRequest {
 				throw new IllegalStateException("No message content provided.");
 			}
 			imageDetail = builder.imageDetail;
-			name = builder.name;
 		}
 
 		public String getRole() {
@@ -131,16 +129,11 @@ public class ResponsesApiRequest {
 			return imageDetail;
 		}
 
-		public String getName() {
-			return name;
-		}
-
 		public static class Builder {
 			private String role;
 			private String text;
 			private String imageUrl;
 			private String imageDetail;
-			private String name;
 
 			/**
 			 * <p>
@@ -183,18 +176,6 @@ public class ResponsesApiRequest {
 			public Builder image(String url, String detail) {
 				this.imageUrl = url;
 				this.imageDetail = detail;
-				return this;
-			}
-
-			/**
-			 * Sets the name of the participant that created the message.
-			 * Provides the model information to differentiate between
-			 * participants of the same role.
-			 * @param name the name
-			 * @return this
-			 */
-			public Builder name(String name) {
-				this.name = name;
 				return this;
 			}
 

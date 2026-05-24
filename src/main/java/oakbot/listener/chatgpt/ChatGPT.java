@@ -367,8 +367,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 			//@formatter:off
 			var imageInputBuilder = new ResponsesApiRequest.Input.Builder()
-				.role(parentMessagePostedByBot ? "assistant" : "user")
-				.name(message.username());
+				.role(parentMessagePostedByBot ? "assistant" : "user");
 
 			imageUrls.stream()
 				.map(url -> imageInputBuilder.image(url, "low").build())
@@ -377,7 +376,6 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			apiMessages.add(insertPos, new ResponsesApiRequest.Input.Builder()
 				.role(parentMessagePostedByBot ? "assistant" : "user")
 				.text(parentMessageContent)
-				.name(message.username())
 			.build());
 			//@formatter:on
 		} catch (IOException e) {
@@ -515,7 +513,6 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			//@formatter:off
 			apiMessages.add(new ResponsesApiRequest.Input.Builder()
 				.role(messagePostedByOak ? "assistant" : "user")
-				.name(chatMessage.username())
 				.text(truncatedContentMd)
 			.build());
 			//@formatter:on
@@ -528,8 +525,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			if (!imageUrls.isEmpty()) {
 				//@formatter:off
 				var builder = new ResponsesApiRequest.Input.Builder()
-					.role(messagePostedByOak ? "assistant" : "user")
-					.name(chatMessage.username());
+					.role(messagePostedByOak ? "assistant" : "user");
 	
 				imageUrls.stream()
 					.map(url -> builder.image(url, "low").build())

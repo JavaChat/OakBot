@@ -656,17 +656,14 @@ public class OpenAIClient {
 			var inputNode = inputNodes.addObject();
 			inputNode.put("role", input.getRole());
 
-			var assistantInput = "assistant".equals(input.getRole());
-
-			//Responses API doesn't seem to support this
-			//putIfNotNull(inputNode, "name", sanitizeMessageName(input.getName()));
-
 			var contentNode = inputNode.putArray("content");
 
 			if (input.getText() != null) {
+				var assistantRole = "assistant".equals(input.getRole());
+
 				//@formatter:off
 				contentNode.addObject()
-					.put("type", assistantInput ? "output_text" : "input_text")
+					.put("type", assistantRole ? "output_text" : "input_text")
 					.put("text", input.getText());
 				//@formatter:on
 			}
@@ -677,6 +674,7 @@ public class OpenAIClient {
 					.put("type", "input_image")
 					.put("image_url", input.getImageUrl());
 				//@formatter:on
+
 				putIfNotNull(imageContentNode, "detail", input.getImageDetail());
 			}
 		}
