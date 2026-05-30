@@ -64,6 +64,7 @@ import oakbot.listener.chatgpt.ChatGPT;
 import oakbot.listener.chatgpt.ImagineCommand;
 import oakbot.listener.chatgpt.ImagineCore;
 import oakbot.listener.chatgpt.ImagineExactCommand;
+import oakbot.listener.chatgpt.ImagineVagueCommand;
 import oakbot.listener.chatgpt.MoodCommand;
 import oakbot.listener.chatgpt.QuotaCommand;
 import oakbot.task.FOTD;
@@ -96,11 +97,12 @@ public class CommandsWikiPage {
 			tasks.sort(Comparator.comparing(ScheduledTask::name));
 		}
 
+		var chatGPT = new ChatGPT(new OpenAIClient(""), null, "", "", Map.of(), 0, null, null, Duration.ZERO, 10, 0, 0, "chat-completions");
 		var listeners = new ArrayList<Listener>();
 		{
 			listeners.add(new MentionListener());
 			listeners.add(new DadJokeListener("Oak", null));
-			listeners.add(new ChatGPT(new OpenAIClient(""), null, "", "", Map.of(), 0, null, null, Duration.ZERO, 10, 0, 0, "chat-completions"));
+			listeners.add(chatGPT);
 			listeners.add(new MornListener(Duration.ZERO, null));
 			listeners.add(new UnitConversionListener());
 			listeners.add(new WaveListener(Duration.ZERO, null));
@@ -113,6 +115,7 @@ public class CommandsWikiPage {
 
 		var commands = new ArrayList<Command>();
 		{
+			var imagineCore = new ImagineCore(new OpenAIClient(""), new StabilityAIClient(""), chatGPT, 1);
 			commands.add(new AbbreviationCommand(null));
 			commands.add(new AboutCommand(null));
 			commands.add(new AdventOfCode(null, Duration.ZERO, 12, Map.of()));
@@ -134,8 +137,9 @@ public class CommandsWikiPage {
 			commands.add(new GrootFilter());
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
 			commands.add(new HttpCommand());
-			commands.add(new ImagineCommand(new ImagineCore(new OpenAIClient(""), new StabilityAIClient(""), 1)));
-			commands.add(new ImagineExactCommand(new ImagineCore(new OpenAIClient(""), new StabilityAIClient(""), 1)));
+			commands.add(new ImagineCommand(imagineCore));
+			commands.add(new ImagineExactCommand(imagineCore));
+			commands.add(new ImagineVagueCommand(imagineCore));
 			commands.add(new JavadocCommand(null));
 			commands.add(new JuiceBoxCommand());
 			commands.add(new LearnCommand(commands, learnedCommands));

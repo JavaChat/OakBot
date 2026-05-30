@@ -30,6 +30,7 @@ import oakbot.ai.openai.CreateGptImageRequest;
 import oakbot.ai.openai.CreateImageResponse;
 import oakbot.ai.openai.OpenAIClient;
 import oakbot.ai.openai.OpenAIException;
+import oakbot.ai.openai.ResponsesApiRequest;
 import oakbot.ai.stabilityai.StabilityAIClient;
 import oakbot.ai.stabilityai.StabilityAIException;
 import oakbot.ai.stabilityai.StableImageCoreRequest;
@@ -68,18 +69,21 @@ public class ImagineCore {
 
 	private final OpenAIClient openAIClient;
 	private final StabilityAIClient stabilityAIClient;
+	private final ChatGPT chatGPT;
 	private final int requestsPer24Hours;
 	private final UsageQuota usageQuota;
 
 	/**
 	 * @param openAIClient the OpenAI client
 	 * @param stabilityAIClient the Stability AI client
+	 * @param chatGPT the ChatGPT listener
 	 * @param requestsPer24Hours requests allowed per user per 24 hours, or
 	 * {@literal <= 0} for no limit
 	 */
-	public ImagineCore(OpenAIClient openAIClient, StabilityAIClient stabilityAIClient, int requestsPer24Hours) {
+	public ImagineCore(OpenAIClient openAIClient, StabilityAIClient stabilityAIClient, ChatGPT chatGPT, int requestsPer24Hours) {
 		this.openAIClient = openAIClient;
 		this.stabilityAIClient = stabilityAIClient;
+		this.chatGPT = chatGPT;
 		this.requestsPer24Hours = requestsPer24Hours;
 		usageQuota = (requestsPer24Hours > 0) ? new UsageQuota(Duration.ofDays(1), requestsPer24Hours) : UsageQuota.allowAll();
 	}
@@ -90,14 +94,18 @@ public class ImagineCore {
 	}
 
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		return onMessage(chatCommand, bot, false);
+		return onMessage(chatCommand, bot, false, false);
 	}
 
 	public ChatActions onMessageExact(ChatCommand chatCommand, IBot bot) {
-		return onMessage(chatCommand, bot, true);
+		return onMessage(chatCommand, bot, true, false);
 	}
 
-	private ChatActions onMessage(ChatCommand chatCommand, IBot bot, boolean useExactPrompt) {
+	public ChatActions onMessageEmbellish(ChatCommand chatCommand, IBot bot) {
+		return onMessage(chatCommand, bot, false, true);
+	}
+
+	private ChatActions onMessage(ChatCommand chatCommand, IBot bot, boolean useExactPrompt, boolean embellish) {
 		/*
 		 * Check usage quota.
 		 */
@@ -125,14 +133,20 @@ public class ImagineCore {
 		}
 
 		try {
-			List<String> messagesToPost;
+			var promptToSend = embellish ? embellish(prompt) : prompt;
+
+			var messagesToPost = new ArrayList<String>();
+			if (embellish) {
+				messagesToPost.add("Embellished prompt: " + promptToSend);
+			}
+			
 			if (MODEL_DALLE_2.equals(model) || MODEL_DALLE_3.equals(model) || MODEL_GPT_IMAGE_1.equals(model) || MODEL_GPT_IMAGE_1_MINI.equals(model) || MODEL_GPT_IMAGE_15.equals(model) || MODEL_GPT_IMAGE_2.equals(model)) {
-				messagesToPost = handleOpenAi(model, inputImage, prompt, useExactPrompt, bot);
+				messagesToPost.addAll(handleOpenAi(model, inputImage, promptToSend, useExactPrompt, bot));
 			} else if (MODEL_STABLE_IMAGE_CORE.equals(model)) {
-				messagesToPost = List.of(handleStableImageCore(prompt, bot));
+				messagesToPost.add(handleStableImageCore(promptToSend, bot));
 			} else if (MODEL_STABLE_DIFFUSION.equals(model) || MODEL_STABLE_DIFFUSION_TURBO.equals(model)) {
 				try {
-					messagesToPost = List.of(handleStableDiffusion(model, inputImage, prompt, bot));
+					messagesToPost.add(handleStableDiffusion(model, inputImage, promptToSend, bot));
 				} catch (IllegalArgumentException e) {
 					return reply(e.getMessage(), chatCommand);
 				}
@@ -162,6 +176,27 @@ public class ImagineCore {
 			logger.atError().setCause(e).log(() -> "Network error.");
 			return error("Network error: ", e, chatCommand);
 		}
+	}
+
+	private String embellish(String prompt) throws OpenAIException, IOException {
+		String model = (chatGPT == null) ? null : chatGPT.getModel();
+		
+		//@formatter:off
+		var apiRequest = new ResponsesApiRequest.Builder()
+			.model(model)
+			.reasoningEffort("none")
+			.verbosity("low")
+			.inputs(List.of(
+				new ResponsesApiRequest.Input.Builder()
+					.role("user")
+					.text("Compose a single image generation prompt based off of the following: " + prompt)
+				.build()
+			))
+		.build();
+		//@formatter:on
+
+		var apiResponse = openAIClient.responsesApi(apiRequest);
+		return apiResponse.getOutput().get(0).content();
 	}
 
 	static String chooseWhichModelToUse(String model, String inputImage, String prompt) {
@@ -451,5 +486,9 @@ public class ImagineCore {
 
 	public UsageQuota getUsageQuota() {
 		return usageQuota;
+	}
+
+	public OpenAIClient getOpenAIClient() {
+		return openAIClient;
 	}
 }

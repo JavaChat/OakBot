@@ -21,7 +21,7 @@ class ImagineCommandTest {
 	void no_content() {
 		var openAIClient = new OpenAIClient("KEY");
 		var stabilityAIClient = new StabilityAIClient("KEY");
-		var core = new ImagineCore(openAIClient, stabilityAIClient, 1);
+		var core = new ImagineCore(openAIClient, stabilityAIClient, null, 1);
 		var command = new ImagineCommand(core);
 
 		//@formatter:off

@@ -812,6 +812,10 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 		spontaneousPostTimesByRoom.put(roomId, nextRunTime);
 	}
 
+	public String getModel() {
+		return model;
+	}
+
 	public UsageQuota getUsageQuota() {
 		return usageQuota;
 	}
