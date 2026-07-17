@@ -82,6 +82,7 @@ public class Bot implements IBot {
 	private final Timer timer = new Timer();
 	private TimerTask timeoutTask;
 	private volatile boolean timeout = false;
+	private final UserRepCache userRepCache;
 
 	/**
 	 * <p>
@@ -122,6 +123,11 @@ public class Bot implements IBot {
 		scheduledTasks = builder.tasks;
 		inactivityTasks = builder.inactivityTasks;
 		responseFilters = builder.responseFilters;
+		if (builder.minRepForBotInteraction == null) {
+			userRepCache = new UserRepCache(0, Duration.ZERO);
+		} else {
+			userRepCache = new UserRepCache(builder.minRepForBotInteraction, Duration.ofHours(1));
+		}
 	}
 
 	private void scheduleTask(ScheduledTask task) {
@@ -227,6 +233,7 @@ public class Bot implements IBot {
 
 		//@formatter:off
 		return room.getMessages(count).stream()
+			.filter(message -> !userRepCache.hasLowRep(message.roomId(), message.userId()))
 			.map(this::convertFromBotlerRelayMessage)
 		.toList();
 		//@formatter:on
@@ -691,6 +698,11 @@ public class Bot implements IBot {
 				return;
 			}
 
+			if (userRepCache.hasLowRep(message.roomId(), authorId)) {
+				//user does not meet min rep requirement for bot interaction, ignore
+				return;
+			}
+
 			var hasAllowedUsersList = !allowedUsers.isEmpty();
 			var userIsAllowed = allowedUsers.contains(authorId);
 			if (hasAllowedUsersList && !userIsAllowed) {
@@ -945,6 +957,14 @@ public class Bot implements IBot {
 				}
 			}
 
+			/*
+			 * Ignore invitations from users that don't meet the min rep
+			 * requirement.
+			 */
+			if (userRepCache.hasLowRep(roomId, inviterId)) {
+				return;
+			}
+
 			try {
 				joinRoom(roomId);
 			} catch (Exception e) {
@@ -1142,6 +1162,60 @@ public class Bot implements IBot {
 		//@formatter:on
 	}
 
+	private class UserRepCache {
+		private final int minRep;
+		private final Duration refreshInterval;
+		private final Map<Integer, UserRepCacheEntry> cache = new HashMap<>();
+
+		public UserRepCache(int minRep, Duration refreshInterval) {
+			this.minRep = minRep;
+			this.refreshInterval = refreshInterval;
+		}
+
+		public boolean hasLowRep(int roomId, int userId) {
+			if (minRep == 0) {
+				return false;
+			}
+
+			var entry = cache.get(userId);
+
+			if (isCachedRepOutOfDate(entry)) {
+				int rep;
+				try {
+					var user = connection.getUserInfo(roomId, userId);
+					rep = (user == null) ? 0 : user.reputation();
+				} catch (IOException e) {
+					logger.atError().setCause(e).log(() -> "Problem getting user rep.");
+					rep = 0;
+				}
+
+				var now = Instant.now();
+				entry = new UserRepCacheEntry(userId, rep, now);
+				cache.put(userId, entry);
+			}
+
+			return entry.rep < minRep;
+		}
+
+		private boolean isCachedRepOutOfDate(UserRepCacheEntry entry) {
+			if (entry == null) {
+				return true;
+			}
+
+			if (entry.rep < minRep) {
+				var now = Instant.now();
+				var diff = Duration.between(entry.lastUpdated, now);
+				return diff.compareTo(refreshInterval) > 0;
+			}
+
+			//once a user reaches min rep, stop refreshing the cache
+			return false;
+		}
+
+		private record UserRepCacheEntry(int userId, int rep, Instant lastUpdated) {
+		}
+	}
+
 	/**
 	 * Builds {@link Bot} instances.
 	 * @author Michael Angstadt
@@ -1155,6 +1229,7 @@ public class Bot implements IBot {
 		private Integer userId;
 		private Duration hideOneboxesAfter;
 		private Integer maxRooms;
+		private Integer minRepForBotInteraction;
 		private List<Integer> roomsHome = List.of(1);
 		private List<Integer> roomsQuiet = List.of();
 		private List<Integer> admins = List.of();
@@ -1220,6 +1295,11 @@ public class Bot implements IBot {
 
 		public Builder maxRooms(Integer maxRooms) {
 			this.maxRooms = maxRooms;
+			return this;
+		}
+
+		public Builder minRepForBotInteraction(Integer minRepForBotInteraction) {
+			this.minRepForBotInteraction = minRepForBotInteraction;
 			return this;
 		}
 

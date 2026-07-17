@@ -32,6 +32,7 @@ public class BotProperties extends PropertiesWrapper {
 	private final Duration hideOneboxesAfter;
 	private final Duration webSocketRefreshInterval;
 	private final boolean enableLearnedCommands;
+	private final Integer minRepForBotInteraction;
 
 	/**
 	 * @param properties the properties to parse
@@ -50,6 +51,7 @@ public class BotProperties extends PropertiesWrapper {
 		trigger = get("trigger", "=");
 		ignoreMessageSuffix = get("ignoreMessageSuffix");
 		greeting = get("greeting");
+		minRepForBotInteraction = getInteger("minRepForBotInteraction");
 
 		hideOneboxesAfter = getDuration("hideOneboxesAfter");
 		webSocketRefreshInterval = getDuration("webSocket.refreshInterval");
@@ -131,6 +133,15 @@ public class BotProperties extends PropertiesWrapper {
 	 */
 	public String getIgnoreMessageSuffix() {
 		return ignoreMessageSuffix;
+	}
+
+	/**
+	 * Gets the minimum reputation score a user must have in order to interact
+	 * with the bot.
+	 * @return the min rep or null if not set
+	 */
+	public Integer getMinRepForBotInteraction() {
+		return minRepForBotInteraction;
 	}
 
 	/**

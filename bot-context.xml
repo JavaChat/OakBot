@@ -124,6 +124,13 @@
 		<prop key="users.allowed"></prop>
 
 		<!--
+		(optional)
+		The minimum reputation score a user must have to interact with the bot.
+		The bot will ignore all messages from users that don't meet this requirement.
+		-->
+		<prop key="minRepForBotInteraction">50</prop>
+
+		<!--
 		Enables or disables learned commands.
 		-->
 		<prop key="enableLearnedCommands">true</prop>

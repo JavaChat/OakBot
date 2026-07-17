@@ -188,6 +188,7 @@ public final class Main {
 			.stats(stats)
 			.database(database)
 			.hideOneboxesAfter(botProperties.getHideOneboxesAfter()) //TODO more generic name for this property
+			.minRepForBotInteraction(botProperties.getMinRepForBotInteraction())
 		.build();
 		//@formatter:on
 
