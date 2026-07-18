@@ -1176,6 +1176,11 @@ public class Bot implements IBot {
 			if (minRep == 0) {
 				return false;
 			}
+			
+			//never ignore system users (such as "Feeds")
+			if (userId < 0) {
+				return false;
+			}
 
 			var entry = cache.get(userId);
 
