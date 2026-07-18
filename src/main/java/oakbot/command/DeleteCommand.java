@@ -44,7 +44,7 @@ public class DeleteCommand implements Command, Listener {
 	public HelpDoc help() {
 		//@formatter:off
 		return new HelpDoc.Builder((Command)this)
-			.summary("Deletes a message the has bot posted.")
+			.summary("Deletes a message the bot has posted.")
 			.detail("Only messages posted within the last 2 minutes can be deleted. Messages can also be deleted by replying to the message you want to delete with this command's name or one of its aliases as the message content.")
 			.example("123456", "Deletes the message with ID 123456.")
 			.example("https://chat.stackexchange.com/transcript/message/123456#123456", "Message permalinks can also be passed into this command, making it easier to delete a message quickly.")
