@@ -31,6 +31,7 @@ import oakbot.command.RollCommand;
 import oakbot.command.ShrugCommand;
 import oakbot.command.ShutdownCommand;
 import oakbot.command.SummonCommand;
+import oakbot.command.SupportCommand;
 import oakbot.command.TagCommand;
 import oakbot.command.TimeoutCommand;
 import oakbot.command.UnsummonCommand;
@@ -153,6 +154,7 @@ public class CommandsWikiPage {
 			commands.add(new ShrugCommand());
 			commands.add(new ShutdownCommand());
 			commands.add(new SummonCommand());
+			commands.add(new SupportCommand(List.of(), null, null, null));
 			commands.add(new TagCommand());
 			commands.add(new TimeoutCommand());
 			commands.add(new UnlearnCommand(commands, learnedCommands));
