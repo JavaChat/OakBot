@@ -819,4 +819,8 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	public UsageQuota getUsageQuota() {
 		return usageQuota;
 	}
+
+	public int getNumLatestMessagesToIncludeInRequest() {
+		return numLatestMessagesToIncludeInRequest;
+	}
 }

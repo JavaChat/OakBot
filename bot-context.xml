@@ -459,6 +459,38 @@
 	<!-- /summon and /unsummon (/join and /leave) =============== -->
 	<bean class="oakbot.command.SummonCommand" />
 	<bean class="oakbot.command.UnsummonCommand" />
+	
+	<!-- /support =============================================== -->
+	<bean class="oakbot.command.SupportCommand">
+		<!--
+		The costs associated with running the bot.
+		"$AI_RATE_LIMITS" variable is replaced with chat and image rate limit information.
+		-->
+		<constructor-arg>
+			<list>
+				<value>Cloud hosting: $9.99/mo</value>
+				<value>OpenAI tokens: $3/mo $AI_RATE_LIMITS</value>
+			</list>
+		</constructor-arg>
+
+		<!--
+		(can be null)
+		Donation link.
+		-->
+		<constructor-arg value="https://paypal.com" />
+		
+		<!--
+		(can be null)
+		ChatGPT instance for displaying rate limits.
+		-->
+		<constructor-arg ref="chatGPT" />
+		
+		<!--
+		(can be null)
+		Imagine instance of displaying rate limits.
+		-->
+		<constructor-arg ref="imagineCore" />
+	</bean>
 
 	<!-- /tag =================================================== -->
 	<bean class="oakbot.command.TagCommand" />
