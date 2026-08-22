@@ -98,7 +98,7 @@ public class CommandsWikiPage {
 			tasks.sort(Comparator.comparing(ScheduledTask::name));
 		}
 
-		var chatGPT = new ChatGPT(new OpenAIClient(""), null, "", "", Map.of(), 0, null, null, Duration.ZERO, 10, 0, 0, "chat-completions");
+		var chatGPT = new ChatGPT.Builder().openAIClient(new OpenAIClient("")).model("").defaultPrompt("").numLatestMessagesToIncludeInRequest(10).build();
 		var listeners = new ArrayList<Listener>();
 		{
 			listeners.add(new MentionListener());

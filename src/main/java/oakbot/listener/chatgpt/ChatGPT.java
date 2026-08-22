@@ -1,7 +1,6 @@
 package oakbot.listener.chatgpt;
 
 import static java.util.function.Predicate.not;
-import static oakbot.bot.ChatActions.create;
 import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.StringUtils.plural;
@@ -72,54 +71,50 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 	private final UsageQuota usageQuota;
 	private final Map<Integer, String> roomNames = new HashMap<>();
 
-	/**
-	 * @param openAIClient the OpenAI client
-	 * @param moodCommand the mood command object or null if not set
-	 * @param model the model (e.g. "gpt-3.5-turbo")
-	 * @param defaultPrompt one or more sentences that define the bot's
-	 * personality (e.g. "You are a helpful assistant"). Counts against your
-	 * usage quota.
-	 * @param promptsByRoom room-specific prompts
-	 * @param completionMaxTokens places a limit on the length of ChatGPT's
-	 * completion (response). If this number is too short, then the completion
-	 * may end abruptly (e.g. in an unfinished sentence).
-	 * @param reasoningEffort the amount of tokens to consume with reasoning
-	 * (e.g. "low"). Only supported by some models. May be null.
-	 * @param verbosity how long the responses should be (e.g. "low"). Only
-	 * supported by some models. May be null.
-	 * @param timeBetweenSpontaneousPosts the amount of time to wait before
-	 * posting a message
-	 * @param numLatestMessagesToIncludeInRequest the number of chat room
-	 * messages to include in the ChatGPT request to give the bot context of the
-	 * conversation. Each message counts against your usage quota.
-	 * @param latestMessageCharacterLimit each chat message that is sent to
-	 * ChatGPT will be truncated to this number characters (0 to disable
-	 * truncation). Each message counts against your usage quota.
-	 * @param requestsPer24Hours requests allowed per user per 24 hours, or
-	 * {@literal <= 0} for no limit
-	 * @param api the chat API to use ("responses-api" for the Responses API,
-	 * "chat-completions" for Chat Completions)
-	 */
-	public ChatGPT(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String reasoningEffort, String verbosity, Duration timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours, String api) {
-		this.openAIClient = openAIClient;
-		this.moodCommand = moodCommand;
-		this.model = model;
-		this.defaultPrompt = defaultPrompt;
-		this.promptsByRoom = promptsByRoom;
-		this.completionMaxTokens = completionMaxTokens;
-		this.reasoningEffort = reasoningEffort;
-		this.verbosity = verbosity;
-		this.timeBetweenSpontaneousPosts = timeBetweenSpontaneousPosts;
-		this.numLatestMessagesToIncludeInRequest = numLatestMessagesToIncludeInRequest;
-		this.latestMessageCharacterLimit = latestMessageCharacterLimit;
+	private ChatGPT(Builder builder) {
+		this.openAIClient = builder.openAIClient;
+		this.moodCommand = builder.moodCommand;
+		this.model = builder.model;
+		this.defaultPrompt = builder.defaultPrompt;
+		this.promptsByRoom = builder.promptsByRoom;
+		this.completionMaxTokens = builder.completionMaxTokens;
+		this.reasoningEffort = builder.reasoningEffort;
+		this.verbosity = builder.verbosity;
+		this.timeBetweenSpontaneousPosts = builder.timeBetweenSpontaneousPosts;
+		this.numLatestMessagesToIncludeInRequest = builder.numLatestMessagesToIncludeInRequest;
+		this.latestMessageCharacterLimit = builder.latestMessageCharacterLimit;
+		this.useResponsesApi = builder.useResponsesApi;
 
-		this.useResponsesApi = switch (api) {
+		usageQuota = (builder.requestsPer24Hours > 0) ? new UsageQuota(Duration.ofDays(1), builder.requestsPer24Hours) : UsageQuota.allowAll();
+	}
+
+	/**
+	 * Factory method for Spring.
+	 */
+	public static ChatGPT create(OpenAIClient openAIClient, MoodCommand moodCommand, String model, String defaultPrompt, Map<Integer, String> promptsByRoom, int completionMaxTokens, String reasoningEffort, String verbosity, Duration timeBetweenSpontaneousPosts, int numLatestMessagesToIncludeInRequest, int latestMessageCharacterLimit, int requestsPer24Hours, String api) {
+		var useResponsesApi = switch (api) {
 		case "responses-api" -> true;
 		case "chat-completions" -> false;
 		default -> throw new IllegalArgumentException();
 		};
 
-		usageQuota = (requestsPer24Hours > 0) ? new UsageQuota(Duration.ofDays(1), requestsPer24Hours) : UsageQuota.allowAll();
+		//@formatter:off
+		return new Builder()
+			.openAIClient(openAIClient)
+			.moodCommand(moodCommand)
+			.model(model)
+			.defaultPrompt(defaultPrompt)
+			.promptsByRoom(promptsByRoom)
+			.completionMaxTokens(completionMaxTokens)
+			.reasoningEffort(reasoningEffort)
+			.verbosity(verbosity)
+			.timeBetweenSpontaneousPosts(timeBetweenSpontaneousPosts)
+			.numLatestMessagesToIncludeInRequest(numLatestMessagesToIncludeInRequest)
+			.latestMessageCharacterLimit(latestMessageCharacterLimit)
+			.requestsPer24Hours(requestsPer24Hours)
+			.useResponsesApi(useResponsesApi)
+		.build();
+		//@formatter:on
 	}
 
 	@Override
@@ -260,7 +255,7 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 			}
 
 			//@formatter:off
-			return create(
+			return ChatActions.create(
 				new PostMessage(response)
 					.splitStrategy(SplitStrategy.WORD)
 					.parentId(message.id())
@@ -822,5 +817,179 @@ public class ChatGPT implements ScheduledTask, CatchAllMentionListener {
 
 	public int getNumLatestMessagesToIncludeInRequest() {
 		return numLatestMessagesToIncludeInRequest;
+	}
+
+	public static class Builder {
+		private OpenAIClient openAIClient;
+		private MoodCommand moodCommand;
+		private String model;
+		private String defaultPrompt;
+		private Duration timeBetweenSpontaneousPosts;
+		private int completionMaxTokens = 100;
+		private String reasoningEffort;
+		private String verbosity;
+		private int numLatestMessagesToIncludeInRequest = 5;
+		private int latestMessageCharacterLimit;
+		private int requestsPer24Hours;
+		private boolean useResponsesApi = true;
+		private Map<Integer, String> promptsByRoom = new HashMap<>();
+
+		/**
+		 * The OpenAI client (required).
+		 * @param openAIClient
+		 * @return this
+		 */
+		public Builder openAIClient(OpenAIClient openAIClient) {
+			this.openAIClient = openAIClient;
+			return this;
+		}
+
+		/**
+		 * The mood command object, used for inserting the mood into the prompt.
+		 * @param moodCommand the mood command object
+		 * @return this
+		 */
+		public Builder moodCommand(MoodCommand moodCommand) {
+			this.moodCommand = moodCommand;
+			return this;
+		}
+
+		/**
+		 * The chat model (required).
+		 * @param model the chat model (e.g. "gpt-3.5-turbo")
+		 * @return this
+		 */
+		public Builder model(String model) {
+			this.model = model;
+			return this;
+		}
+
+		/**
+		 * One or more sentences that define the bot's personality (required).
+		 * Used in all rooms unless a room-specific prompt is defined.
+		 * @param defaultPrompt the default prompt (e.g. "You are a helpful
+		 * assistant")
+		 * @return this
+		 */
+		public Builder defaultPrompt(String defaultPrompt) {
+			this.defaultPrompt = defaultPrompt;
+			return this;
+		}
+
+		/**
+		 * Sets the prompt to use for a specific room.
+		 * @param roomId the room ID
+		 * @param prompt the prompt
+		 */
+		public Builder prompt(int roomId, String prompt) {
+			promptsByRoom.put(roomId, prompt);
+			return this;
+		}
+
+		/**
+		 * Sets the prompts to use for specific rooms. If a room does not have a
+		 * prompt assigned to it, the default prompt will be used in that room.
+		 * @param promptsByRoom the room-specific prompts
+		 * @return this
+		 */
+		public Builder promptsByRoom(Map<Integer, String> promptsByRoom) {
+			this.promptsByRoom = promptsByRoom;
+			return this;
+		}
+
+		/**
+		 * Sets the amount of time to wait before the bot will post a message on
+		 * its own. If this is not set, the bot will not post such messages.
+		 * @param timeBetweenSpontaneousPosts the time between spontaneous posts
+		 * @return this
+		 */
+		public Builder timeBetweenSpontaneousPosts(Duration timeBetweenSpontaneousPosts) {
+			this.timeBetweenSpontaneousPosts = timeBetweenSpontaneousPosts;
+			return this;
+		}
+
+		/**
+		 * Places a limit on the length of ChatGPT's completion (response). If
+		 * this number is too short, then the completion may end abruptly (e.g.
+		 * in an unfinished sentence).
+		 * @param completionMaxTokens the completion max tokens
+		 * @return this
+		 */
+		public Builder completionMaxTokens(int completionMaxTokens) {
+			this.completionMaxTokens = completionMaxTokens;
+			return this;
+		}
+
+		/**
+		 * Sets how much reasoning to do. Reasoning consumes extra tokens. Only
+		 * supported by some models.
+		 * @param reasoningEffort the reasoning effort (e.g. "low")
+		 * @return this
+		 */
+		public Builder reasoningEffort(String reasoningEffort) {
+			this.reasoningEffort = reasoningEffort;
+			return this;
+		}
+
+		/**
+		 * Sets how long the responses should be. Only supported by some models.
+		 * @param verbosity the verbosity (e.g. "low")
+		 * @return this
+		 */
+		public Builder verbosity(String verbosity) {
+			this.verbosity = verbosity;
+			return this;
+		}
+
+		/**
+		 * Sets the number of chat room messages to include in the ChatGPT
+		 * request to give the bot context of the conversation.
+		 * @param numLatestMessagesToIncludeInRequest the number of messages
+		 * @return this
+		 */
+		public Builder numLatestMessagesToIncludeInRequest(int numLatestMessagesToIncludeInRequest) {
+			this.numLatestMessagesToIncludeInRequest = numLatestMessagesToIncludeInRequest;
+			return this;
+		}
+
+		/**
+		 * Each chat message that is sent to ChatGPT for context will be
+		 * truncated to this number characters.
+		 * @param latestMessageCharacterLimit the length limit
+		 * @return this
+		 */
+		public Builder latestMessageCharacterLimit(int latestMessageCharacterLimit) {
+			this.latestMessageCharacterLimit = latestMessageCharacterLimit;
+			return this;
+		}
+
+		/**
+		 * Sets the number of requests allowed per user per day.
+		 * @param requestsPer24Hours the number of requests per day
+		 * @return this
+		 */
+		public Builder requestsPer24Hours(int requestsPer24Hours) {
+			this.requestsPer24Hours = requestsPer24Hours;
+			return this;
+		}
+
+		/**
+		 * Sets whether to use the newer Responses API or the older Chat
+		 * Completions API
+		 * @param useResponsesApi true to use the Responses API, false to use
+		 * Chat Completions
+		 * @return this
+		 */
+		public Builder useResponsesApi(boolean useResponsesApi) {
+			this.useResponsesApi = useResponsesApi;
+			return this;
+		}
+
+		public ChatGPT build() {
+			if (openAIClient == null || model == null || defaultPrompt == null) {
+				throw new IllegalStateException("Required field missing.");
+			}
+			return new ChatGPT(this);
+		}
 	}
 }
