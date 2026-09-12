@@ -42,7 +42,7 @@ public class ImagineCommand implements DiscordSlashCommand {
 	private static final String OPT_INPUT_IMAGE = "input_image";
 	private static final String OPT_MODEL = "model";
 
-	private static final Model DEFAULT_MODEL = Model.DALLE_3;
+	private static final Model DEFAULT_MODEL = Model.GPT_IMAGE_1_MINI;
 
 	private final OpenAIClient openAIClient;
 	private final StabilityAIClient stabilityAIClient;
@@ -139,15 +139,10 @@ public class ImagineCommand implements DiscordSlashCommand {
 		var inputImageProvided = (inputImage != null);
 
 		reply.append("🎨 Submitted ").bold(model.display).append(" request");
-		if (model == Model.DALLE_2 && inputImageProvided) {
-			reply.append(" with an ").bold("input image");
-			reply.append(". The prompt will be ignored because the model does not support requests that contain both a prompt and an input image.");
-		} else {
-			if (inputImageProvided) {
-				reply.append(" with an ").bold("input image").append(", and");
-			}
-			reply.append(" with the following prompt: ").bold(prompt);
+		if (inputImageProvided) {
+			reply.append(" with an ").bold("input image").append(", and");
 		}
+		reply.append(" with the following prompt: ").bold(prompt);
 
 		return reply.toString();
 	}
@@ -155,7 +150,7 @@ public class ImagineCommand implements DiscordSlashCommand {
 	private RestAction<Message> sendImageGenerationRequest(SlashCommandInteractionEvent event, BotContext context, long userId, Model model, Attachment inputImage, String prompt) {
 		try {
 			return switch (model) {
-			case DALLE_2, DALLE_3 -> handleDallE(event, model, inputImage, prompt);
+			case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2 -> handleOpenAi(event, model, inputImage, prompt);
 			case SI_CORE -> handleStableImageCore(event, prompt);
 			case SD_3, SD_3_TURBO -> handleStableDiffusion(event, model, inputImage, prompt);
 			default -> throw new IllegalArgumentException("Unsupported model: " + model.display);
@@ -170,10 +165,10 @@ public class ImagineCommand implements DiscordSlashCommand {
 		}
 	}
 
-	private RestAction<Message> handleDallE(SlashCommandInteractionEvent event, Model model, Attachment inputImage, String prompt) throws OpenAIException, IOException {
+	private RestAction<Message> handleOpenAi(SlashCommandInteractionEvent event, Model model, Attachment inputImage, String prompt) throws OpenAIException, IOException {
 		CreateImageResponse response;
 		if (inputImage == null) {
-			var lowestResolutionSupportedByModel = (Model.DALLE_2 == model) ? "256x256" : "1024x1024";
+			var lowestResolutionSupportedByModel = "1024x1024";
 
 			//@formatter:off
 			CreateGptImageRequest apiRequest = new CreateGptImageRequest.Builder()
@@ -291,8 +286,10 @@ public class ImagineCommand implements DiscordSlashCommand {
 
 	private enum Model {
 		//@formatter:off
-		DALLE_2("OpenAI DALL·E 2", "dall-e-2"),
-		DALLE_3("OpenAI DALL·E 3", "dall-e-3"),
+		GPT_IMAGE_1("OpenAI GPT-Image-1", "gpt-image-1"),
+		GPT_IMAGE_1_MINI("OpenAI GPT-Image-1 Mini", "gpt-image-1-mini"),
+		GPT_IMAGE_15("OpenAI GPT-Image-1.5", "gpt-image-1.5"),
+		GPT_IMAGE_2("OpenAI GPT-Image-2", "gpt-image-2"),
 		SI_CORE("Stability Image Core", "si-core"),
 		SD_3("Stable Diffusion 3", "sd3"),
 		SD_3_TURBO("Stable Diffusion 3 Turbo", "sd3-turbo");
@@ -308,7 +305,7 @@ public class ImagineCommand implements DiscordSlashCommand {
 
 		public boolean supportsInputImages() {
 			return switch (this) {
-			case DALLE_2, SD_3, SD_3_TURBO -> true;
+			case SD_3, SD_3_TURBO -> true;
 			default -> false;
 			};
 		}
