@@ -187,11 +187,20 @@ public class ImagineCommand implements DiscordSlashCommand {
 		}
 
 		var revisedPrompt = response.revisedPrompt();
-		if (revisedPrompt != null) {
-			return event.getChannel().sendMessage(new ChatBuilder().bold("Revised prompt: ").append(revisedPrompt)).flatMap(m2 -> sendFile(event, response.url(), prompt));
-		}
 
-		return sendFile(event, response.url(), prompt);
+		if (response.url() != null) {
+			if (revisedPrompt != null) {
+				return event.getChannel().sendMessage(new ChatBuilder().bold("Revised prompt: ").append(revisedPrompt)).flatMap(m2 -> sendFile(event, response.url(), prompt));
+			}
+
+			return sendFile(event, response.url(), prompt);
+		} else {
+			if (revisedPrompt != null) {
+				return event.getChannel().sendMessage(new ChatBuilder().bold("Revised prompt: ").append(revisedPrompt)).flatMap(m2 -> sendFile(event, response.data(), "jpg", prompt));
+			}
+
+			return sendFile(event, response.data(), "jpg", prompt);
+		}
 	}
 
 	private RestAction<Message> handleStableImageCore(SlashCommandInteractionEvent event, String prompt) throws StabilityAIException, IOException {
