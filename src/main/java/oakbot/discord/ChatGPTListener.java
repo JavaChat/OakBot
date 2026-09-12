@@ -5,11 +5,12 @@ import static oakbot.util.StringUtils.plural;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.NoSuchElementException;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import oakbot.ai.openai.ChatCompletionRequest;
 import oakbot.ai.openai.OpenAIClient;
+import oakbot.ai.openai.ResponsesApiRequest;
 import oakbot.command.HelpDoc;
 import oakbot.listener.chatgpt.UsageQuota;
 
@@ -69,35 +70,33 @@ public class ChatGPTListener implements DiscordListener {
 
 		var history = event.getChannel().getHistoryBefore(event.getMessage(), messageHistoryCount - 1).complete();
 
-		var openAIMessages = new ArrayList<ChatCompletionRequest.Message>();
+		var openAIMessages = new ArrayList<ResponsesApiRequest.Input>();
 
-		openAIMessages.add(toChatCompletionMessage(event.getMessage()));
+		openAIMessages.add(toResponsesApiInput(event.getMessage()));
 
 		//@formatter:off
 		history.getRetrievedHistory().stream()
-			.map(ChatGPTListener::toChatCompletionMessage)
+			.map(ChatGPTListener::toResponsesApiInput)
 		.forEach(openAIMessages::add);
-
-		openAIMessages.add(new ChatCompletionRequest.Message.Builder()
-			.role("system")
-			.text(prompt)
-		.build());
 		//@formatter:on
 
 		Collections.reverse(openAIMessages);
 
 		//@formatter:off
-		var chatCompletionRequest = new ChatCompletionRequest.Builder()
+		var responsesApiRequest = new ResponsesApiRequest.Builder()
 			.model(model)
-			.maxTokens(maxTokens)
-			.messages(openAIMessages)
+			.instructions(prompt)
+			.inputs(openAIMessages)
+			.maxOutputTokens(maxTokens)
 			.reasoningEffort("low")
+			.verbosity("low")
 		.build();
 		//@formatter:on
 
 		try {
-			var apiResponse = client.chatCompletion(chatCompletionRequest);
-			var reply = apiResponse.getChoices().get(0).getContent();
+			var apiResponse = client.responsesApi(responsesApiRequest);
+			var completedOutput = apiResponse.getOutput().stream().filter(o -> "completed".equals(o.status())).findFirst();
+			var reply = completedOutput.orElseThrow(() -> new NoSuchElementException("No completed response returned.")).content();
 			var action = event.getMessage().reply(reply);
 
 			if (context.authorIsAdmin()) {
@@ -114,16 +113,10 @@ public class ChatGPTListener implements DiscordListener {
 		}
 	}
 
-	private static ChatCompletionRequest.Message toChatCompletionMessage(Message message) {
+	private static ResponsesApiRequest.Input toResponsesApiInput(Message message) {
 		var role = message.getAuthor().equals(message.getJDA().getSelfUser()) ? "assistant" : "user";
-
-		/*
-		 * Give ChatGPT the Discord mention string so that the user is properly
-		 * mentioned in Discord if ChatGPT decides to mention the user in its response.
-		 */
-		var name = message.getAuthor().getAsMention();
-
 		var text = message.getContentDisplay();
-		return new ChatCompletionRequest.Message.Builder().name(name).role(role).text(text).build();
+
+		return new ResponsesApiRequest.Input.Builder().role(role).text(text).build();
 	}
 }
