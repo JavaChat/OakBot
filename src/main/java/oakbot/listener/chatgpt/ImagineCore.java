@@ -106,14 +106,9 @@ public class ImagineCore {
 	}
 
 	private ChatActions onMessage(ChatCommand chatCommand, IBot bot, boolean useExactPrompt, boolean embellish) {
-		/*
-		 * Check usage quota.
-		 */
-		var userId = chatCommand.getMessage().userId();
-		var timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
-		if (!timeUntilNextRequest.isZero()) {
-			var hours = timeUntilNextRequest.toHours() + 1;
-			return reply("Bad human! You are over quota and can't make any more requests right now. Try again in " + hours + " " + plural("hour", hours) + ".", chatCommand);
+		var quotaReached = checkQuota(chatCommand);
+		if (quotaReached != null) {
+			return quotaReached;
 		}
 
 		var content = chatCommand.getContent();
@@ -139,27 +134,10 @@ public class ImagineCore {
 			if (embellish) {
 				messagesToPost.add("Embellished prompt: " + promptToSend);
 			}
-			
-			if (MODEL_DALLE_2.equals(model) || MODEL_DALLE_3.equals(model) || MODEL_GPT_IMAGE_1.equals(model) || MODEL_GPT_IMAGE_1_MINI.equals(model) || MODEL_GPT_IMAGE_15.equals(model) || MODEL_GPT_IMAGE_2.equals(model)) {
-				messagesToPost.addAll(handleOpenAi(model, inputImage, promptToSend, useExactPrompt, bot));
-			} else if (MODEL_STABLE_IMAGE_CORE.equals(model)) {
-				messagesToPost.add(handleStableImageCore(promptToSend, bot));
-			} else if (MODEL_STABLE_DIFFUSION.equals(model) || MODEL_STABLE_DIFFUSION_TURBO.equals(model)) {
-				try {
-					messagesToPost.add(handleStableDiffusion(model, inputImage, promptToSend, bot));
-				} catch (IllegalArgumentException e) {
-					return reply(e.getMessage(), chatCommand);
-				}
-			} else {
-				return reply("Unsupported model: " + model, chatCommand);
-			}
 
-			/*
-			 * Log quota.
-			 */
-			if (!bot.isAdminUser(userId)) {
-				usageQuota.logRequest(userId);
-			}
+			messagesToPost.addAll(generateImage(model, inputImage, promptToSend, useExactPrompt, bot));
+
+			logQuota(chatCommand, bot);
 
 			var actions = new ChatActions();
 
@@ -178,9 +156,64 @@ public class ImagineCore {
 		}
 	}
 
+	/**
+	 * Checks if the user's quota has been reached.
+	 * @param chatCommand
+	 * @return the message to post if the user's quota has been reached, or null
+	 * if the quota has not been reached
+	 */
+	public ChatActions checkQuota(ChatCommand chatCommand) {
+		var userId = chatCommand.getMessage().userId();
+		var timeUntilNextRequest = usageQuota.getTimeUntilUserCanMakeRequest(userId);
+		if (!timeUntilNextRequest.isZero()) {
+			var hours = timeUntilNextRequest.toHours() + 1;
+			return reply("Bad human! You are over quota and can't make any more requests right now. Try again in " + hours + " " + plural("hour", hours) + ".", chatCommand);
+		}
+
+		return null;
+	}
+
+	public void logQuota(ChatCommand chatCommand, IBot bot) {
+		var userId = chatCommand.getMessage().userId();
+		if (!bot.isAdminUser(userId)) {
+			usageQuota.logRequest(userId);
+		}
+	}
+
+	/**
+	 * Sends the image generation request, downloads the generated image, and
+	 * uploads it to SO Chat.
+	 * @param model the model
+	 * @param inputImage the input image or null if there is no input iamge
+	 * @param prompt the prompt
+	 * @param useExactPrompt true to use the exact prompt, false to allow the AI
+	 * to embellish it
+	 * @param bot
+	 * @return the response(s) to post to the chat. Includes the image URL if an
+	 * image was generated.
+	 * @throws OpenAIException
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	public List<String> generateImage(String model, String inputImage, String prompt, boolean useExactPrompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
+		if (MODEL_DALLE_2.equals(model) || MODEL_DALLE_3.equals(model) || MODEL_GPT_IMAGE_1.equals(model) || MODEL_GPT_IMAGE_1_MINI.equals(model) || MODEL_GPT_IMAGE_15.equals(model) || MODEL_GPT_IMAGE_2.equals(model)) {
+			return handleOpenAi(model, inputImage, prompt, useExactPrompt, bot);
+		}
+
+		if (MODEL_STABLE_IMAGE_CORE.equals(model)) {
+			return List.of(handleStableImageCore(prompt, bot));
+		}
+
+		if (MODEL_STABLE_DIFFUSION.equals(model) || MODEL_STABLE_DIFFUSION_TURBO.equals(model)) {
+			return List.of(handleStableDiffusion(model, inputImage, prompt, bot));
+		}
+
+		return List.of("Unsupported model: " + model);
+	}
+
 	private String embellish(String prompt) throws OpenAIException, IOException {
 		String model = (chatGPT == null) ? null : chatGPT.getModel();
-		
+
 		//@formatter:off
 		var apiRequest = new ResponsesApiRequest.Builder()
 			.model(model)

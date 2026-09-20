@@ -63,6 +63,7 @@ import oakbot.listener.WaveListener;
 import oakbot.listener.WelcomeListener;
 import oakbot.listener.chatgpt.ChatGPT;
 import oakbot.listener.chatgpt.ImagineCommand;
+import oakbot.listener.chatgpt.ImagineContextCommand;
 import oakbot.listener.chatgpt.ImagineCore;
 import oakbot.listener.chatgpt.ImagineExactCommand;
 import oakbot.listener.chatgpt.ImagineVagueCommand;
@@ -139,6 +140,7 @@ public class CommandsWikiPage {
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
 			commands.add(new HttpCommand());
 			commands.add(new ImagineCommand(imagineCore));
+			commands.add(new ImagineContextCommand(imagineCore, "gpt-image-1-min", 100, 10));
 			commands.add(new ImagineExactCommand(imagineCore));
 			commands.add(new ImagineVagueCommand(imagineCore));
 			commands.add(new JavadocCommand(null));

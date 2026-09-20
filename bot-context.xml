@@ -707,6 +707,24 @@
 	<bean class="oakbot.listener.chatgpt.ImagineVagueCommand">
 		<constructor-arg ref="imagineCore" />
 	</bean>
+	<bean class="oakbot.listener.chatgpt.ImagineContextCommand">
+		<constructor-arg ref="imagineCore" />
+		
+		<!--
+		Default model.
+		-->
+		<constructor-arg value="gpt-image-1-mini" />
+		
+		<!--
+		Each chat message will be truncated to this number of characters.
+		-->
+		<constructor-arg value="100" />
+		
+		<!--
+		The number of chat messages to include in the prompt.
+		-->
+		<constructor-arg value="10" />
+	</bean>
 	<bean class="oakbot.listener.chatgpt.VideoCommand">
 		<constructor-arg ref="stabilityAIClient" />
 		<constructor-arg ref="imgurClient" />
