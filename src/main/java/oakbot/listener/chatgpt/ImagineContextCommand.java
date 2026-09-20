@@ -1,5 +1,6 @@
 package oakbot.listener.chatgpt;
 
+import static java.util.function.Predicate.not;
 import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
@@ -80,11 +81,15 @@ public class ImagineContextCommand implements Command {
 			return reply("Chat room transcript is empty.", chatCommand);
 		}
 
-		var transcript = messages.stream().map(message -> {
-			var content = message.content().getContent();
-			var truncatedContent = (content.length() > maxMessageLength) ? content.substring(0, maxMessageLength) : content;
-			return message.username() + ": " + truncatedContent;
+		//@formatter:off
+		var transcript = messages.stream()
+			.filter(not(ChatMessage::isDeleted))
+			.map(message -> {
+				var content = message.content().getContent();
+				var truncatedContent = (content.length() > maxMessageLength) ? content.substring(0, maxMessageLength) : content;
+				return message.username() + ": " + truncatedContent;
 		}).collect(Collectors.joining("\n"));
+		//@formatter:off
 
 		var prompt = "Imagine what this scene would look like if it were in a movie. Anime style.\n\n" + transcript;
 
