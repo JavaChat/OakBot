@@ -717,11 +717,13 @@
 		
 		<!--
 		Each chat message will be truncated to this number of characters.
+		0 for no limit.
 		-->
 		<constructor-arg value="100" />
 		
 		<!--
 		The number of chat messages to include in the prompt.
+		Certain chat messages will be excluded, such as chat messages from system bots.
 		-->
 		<constructor-arg value="10" />
 	</bean>
