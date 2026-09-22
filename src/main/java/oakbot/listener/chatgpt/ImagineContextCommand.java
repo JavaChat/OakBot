@@ -6,8 +6,7 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,12 +30,14 @@ import oakbot.util.ChatBuilder;
 public class ImagineContextCommand implements Command {
 	private final ImagineCore core;
 	private final String defaultModel;
+	private final String prompt;
 	private final int maxMessageLength;
 	private final int contextSize;
 
-	public ImagineContextCommand(ImagineCore core, String defaultModel, int maxMessageLength, int contextSize) {
+	public ImagineContextCommand(ImagineCore core, String defaultModel, String prompt, int maxMessageLength, int contextSize) {
 		this.core = core;
 		this.defaultModel = defaultModel;
+		this.prompt = prompt;
 		this.maxMessageLength = maxMessageLength;
 		this.contextSize = contextSize;
 	}
@@ -74,33 +75,31 @@ public class ImagineContextCommand implements Command {
 			return reply(new ChatBuilder().append("Model ").code(model).append(" not recognized."), chatCommand);
 		}
 
-		List<ChatMessage> messagesAscending;
+		List<ChatMessage> messages;
 		try {
-			messagesAscending = bot.getLatestMessages(chatCommand.getMessage().roomId(), contextSize * 2);
+			messages = bot.getLatestMessages(chatCommand.getMessage().roomId(), contextSize * 2);
 		} catch (IOException e) {
 			return error("Problem getting chat message transcript.", e, chatCommand);
 		}
 
-		var messagesDescending = new ArrayList<>(messagesAscending);
-		Collections.reverse(messagesDescending);
-
 		//@formatter:off
-		var messagesFiltered = messagesDescending.stream()
+		var messagesFiltered = messages.stream()
+			.sorted(Comparator.comparing(ChatMessage::timestamp, Comparator.reverseOrder()))
 			.filter(not(ChatMessage::isDeleted))
 			.filter(not(ChatMessage::isUserSystemBot))
 			.filter(message -> !isMessageInvokingThisCommand(message, bot))
+			.filter(not(this::isMessageOneBox))
 			.limit(contextSize)
-		.collect(Collectors.toCollection(ArrayList::new)); //mutable
+		.toList();
 		//@formatter:on
 
 		if (messagesFiltered.isEmpty()) {
 			return reply("No useable chat messages found.", chatCommand);
 		}
 
-		Collections.reverse(messagesFiltered);
-
 		//@formatter:off
 		var transcript = messagesFiltered.stream()
+			.sorted(Comparator.comparing(ChatMessage::timestamp))
 			.map(message -> {
 				var content = message.content().getContent();
 				var contentToUse = (maxMessageLength > 0 && content.length() > maxMessageLength) ? content.substring(0, maxMessageLength) : content;
@@ -109,10 +108,10 @@ public class ImagineContextCommand implements Command {
 		.collect(Collectors.joining("\n"));
 		//@formatter:off
 
-		var prompt = "Imagine what this scene would look like if it were in a movie. Anime style. Each actor wears a name tag.\n\n" + transcript;
+		var promptToSend = prompt + "\n\n" + transcript;
 
 		try {
-			var messagesToPost = core.generateImage(model, null, prompt.toString(), false, bot);
+			var messagesToPost = core.generateImage(model, null, promptToSend, false, bot);
 
 			core.logQuota(chatCommand, bot);
 
@@ -132,5 +131,9 @@ public class ImagineContextCommand implements Command {
 
 	private boolean isMessageInvokingThisCommand(ChatMessage message, IBot bot) {
 		return message.content().getContent().startsWith(bot.getTrigger() + name());
+	}
+
+	private boolean isMessageOneBox(ChatMessage message) {
+		return message.content().isOnebox() || message.content().getContent().startsWith("&gt; "); //include Oak's hidden oneboxes
 	}
 }

@@ -709,18 +709,23 @@
 	</bean>
 	<bean class="oakbot.listener.chatgpt.ImagineContextCommand">
 		<constructor-arg ref="imagineCore" />
-		
+
 		<!--
 		Default model.
 		-->
 		<constructor-arg value="gpt-image-1-mini" />
-		
+
+		<!--
+		Prompt. The chat messages will be appended to this.
+		-->
+		<constructor-arg value="Create a manga comic strip panel from the following dialog. Each character wears a name tag. Include speech bubbles." />
+
 		<!--
 		Each chat message will be truncated to this number of characters.
 		0 for no limit.
 		-->
 		<constructor-arg value="100" />
-		
+
 		<!--
 		The number of chat messages to include in the prompt.
 		Certain chat messages will be excluded, such as chat messages from system bots.

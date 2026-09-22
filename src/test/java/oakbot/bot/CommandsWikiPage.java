@@ -140,7 +140,7 @@ public class CommandsWikiPage {
 			commands.add(new HelpCommand(commands, learnedCommands, listeners, tasks, ""));
 			commands.add(new HttpCommand());
 			commands.add(new ImagineCommand(imagineCore));
-			commands.add(new ImagineContextCommand(imagineCore, "gpt-image-1-min", 100, 10));
+			commands.add(new ImagineContextCommand(imagineCore, "gpt-image-1-min", "", 100, 10));
 			commands.add(new ImagineExactCommand(imagineCore));
 			commands.add(new ImagineVagueCommand(imagineCore));
 			commands.add(new JavadocCommand(null));
