@@ -88,7 +88,7 @@ public class ImagineContextCommand implements Command {
 			.filter(not(ChatMessage::isDeleted))
 			.filter(not(ChatMessage::isUserSystemBot))
 			.filter(message -> !isMessageInvokingThisCommand(message, bot))
-			.filter(not(this::isMessageOneBox))
+			.filter(message -> !isMessageOnebox(message, bot))
 			.limit(contextSize)
 		.toList();
 		//@formatter:on
@@ -133,7 +133,12 @@ public class ImagineContextCommand implements Command {
 		return message.content().getContent().startsWith(bot.getTrigger() + name());
 	}
 
-	private boolean isMessageOneBox(ChatMessage message) {
-		return message.content().isOnebox() || message.content().getContent().startsWith("&gt; "); //include Oak's hidden oneboxes
+	private boolean isMessageOnebox(ChatMessage message, IBot bot) {
+		if (message.content().isOnebox()) {
+			return true;
+		}
+
+		//include oneboxes that Oak has hidden (i.e. images)
+		return message.userId() == bot.getUserId() && message.content().getContent().startsWith("&gt; ");
 	}
 }
