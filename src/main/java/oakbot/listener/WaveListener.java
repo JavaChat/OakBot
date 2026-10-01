@@ -4,9 +4,6 @@ import static oakbot.bot.ChatActions.doNothing;
 import static oakbot.bot.ChatActions.post;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.github.mangstadt.sochat4j.ChatMessage;
@@ -24,11 +21,9 @@ public class WaveListener implements Listener {
 	private static final String WAVE_R = "o/";
 	private static final String WAVE_L = "\\o";
 	private static final Pattern waveRegex = Pattern.compile("(^|\\s)(o/|\\\\o)(\\s|$)");
-	private static final Duration timeBetweenWaves = Duration.ofMinutes(5);
 
 	private final Duration hesitation;
 	private final CatchAllMentionListener catchAllListener;
-	private final Map<Integer, Instant> lastWaveTimeByRoom = new HashMap<>();
 
 	/**
 	 * @param hesitation the amount of time to wait before waving back
@@ -56,7 +51,7 @@ public class WaveListener implements Listener {
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Waves back at you. " + WAVE_R)
-			.detail("Responds with the opposite \"wave\" emoticon when a user waves: " + WAVE_R + " or " + WAVE_L + ". Will only wave once every " + timeBetweenWaves.toMinutes() + " minutes at most.")
+			.detail("Responds with the opposite \"wave\" emoticon when a user waves: " + WAVE_R + " or " + WAVE_L)
 			.includeSummaryWithDetail(false)
 		.build();
 		//@formatter:on
@@ -90,21 +85,6 @@ public class WaveListener implements Listener {
 			if (!content.equals(WAVE_R) && !content.equals(WAVE_L)) {
 				return doNothing();
 			}
-
-			var roomId = message.roomId();
-			var lastWave = lastWaveTimeByRoom.get(roomId);
-
-			/*
-			 * Do not respond if the bot was not mentioned and it responded
-			 * recently. Always wave back to admins.
-			 */
-			var now = Instant.now();
-			var timeSinceLastWave = (lastWave == null) ? timeBetweenWaves : Duration.between(lastWave, now);
-			if (!bot.isAdminUser(message.userId()) && timeSinceLastWave.compareTo(timeBetweenWaves) < 0) {
-				return doNothing();
-			}
-
-			lastWaveTimeByRoom.put(roomId, now);
 			wave = content;
 		}
 
