@@ -227,12 +227,8 @@ public class AdventOfCode implements ScheduledTask, Command {
 
 	private void sortPlayersByScoreDescending(List<Player> players) {
 		players.sort((a, b) -> {
-			var c = b.score() - a.score();
-			if (c != 0) {
-				return c;
-			}
-
-			return b.stars() - a.stars();
+			var c = Integer.compare(b.score(), a.score());
+			return (c == 0) ? Integer.compare(b.stars(), a.stars()) : c;
 		});
 	}
 
