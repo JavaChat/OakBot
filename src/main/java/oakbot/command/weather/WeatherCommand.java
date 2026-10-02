@@ -4,7 +4,6 @@ import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 import oakbot.bot.ChatActions;
 import oakbot.bot.ChatCommand;
@@ -31,8 +30,6 @@ public class WeatherCommand implements Command {
 		return new HelpDoc.Builder(this)
 			.summary("Displays weather information using wttr.in.")
 			.example("paris", "Displays current weather in a given city.")
-			.example("paris c", "Use metric.")
-			.example("paris f", "Use fahrenheit.")
 			.example("eiffel tower", "Landmarks supported.")
 			.example("muc", "Three-letter airport codes supported.")
 			.example("94107", "Area codes supported.")
@@ -44,37 +41,39 @@ public class WeatherCommand implements Command {
 
 	@Override
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		var content = chatCommand.getContentAsArgs();
-		if (content.isEmpty()) {
+		var location = chatCommand.getContent();
+		if (location.isEmpty()) {
 			return reply("Specify a location.", chatCommand);
 		}
 
-		var last = content.get(content.size() - 1);
-		var unit = switch (last) {
-		case "c", "C" -> Unit.METRIC;
-		case "f", "F" -> Unit.US;
-		default -> null;
-		};
+		WttrInResponse<String> responseUs;
+		WttrInResponse<String> responseMetric;
 
-		var location = (unit == null) ? chatCommand.getContent() : content.stream().limit(content.size() - 1L).collect(Collectors.joining(" "));
-
-		var request = new SingleLineRequest();
-		request.setLocation(location);
-		request.setShowLocation(true);
-		request.setShowWind(true);
-		request.setUnit(unit);
-
-		String response;
 		try {
-			response = client.fetch(request);
-		} catch (IOException e) {
-			return error("Error querying wttr.in.", e, chatCommand);
+			responseUs = sendRequest(location, Unit.US, true);
+			responseMetric = sendRequest(location, Unit.METRIC, false);
+		} catch (IOException | WttrInException e) {
+			return error("Error querying wttr.in: ", e, chatCommand);
 		}
 
-		//remove trailing newline
-		response = response.trim();
+		//@formatter:off
+		var cb = new ChatBuilder()
+			.append(responseUs.content().trim()) //trim to remove trailing newline
+			.append("  |  ")
+			.append(responseMetric.content().trim())
+			.append(" (").link("source", responseUs.requestUri().toString()).append(")");
+		//@formatter:on
 
-		var cb = new ChatBuilder().append(response).append(" (").link("source", "https://wttr.in").append(")");
 		return reply(cb, chatCommand);
+	}
+
+	private WttrInResponse<String> sendRequest(String location, Unit unit, boolean showLocation) throws IOException, WttrInException {
+		var request = new SingleLineRequest();
+		request.setLocation(location);
+		request.setUnit(unit);
+		request.setShowLocation(showLocation);
+		request.setShowWind(true);
+
+		return client.fetch(request);
 	}
 }

@@ -1,19 +1,28 @@
 package oakbot.command.weather;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.mangstadt.sochat4j.util.Http;
 
 import oakbot.util.HttpFactory;
+import oakbot.util.JsonUtils;
 
 /**
  * Queries the wttr.in API.
@@ -28,24 +37,26 @@ public class WttrInClient {
 	 * Gets weather data in Prometheus format.
 	 * @param request the request
 	 * @return the response
+	 * @throws WttrInException if the API returned an error
 	 * @throws IOException if there was a problem querying the API
 	 */
-	public String fetch(PrometheusRequest request) throws IOException {
-		var uri = uri(request);
-		var response = send(uri);
-		return response.getBody();
+	public WttrInResponse<String> fetch(PrometheusRequest request) throws WttrInException, IOException {
+		var httpRequest = buildHttpRequest(request);
+		var response = sendRequestAndParseResponseAsString(httpRequest);
+		return new WttrInResponse<String>(httpRequest.getURI(), response);
 	}
 
 	/**
 	 * Gets weather data in JSON format.
 	 * @param request the request
 	 * @return the response
+	 * @throws WttrInException if the API returned an error
 	 * @throws IOException if there was a problem querying the API
 	 */
-	public JsonNode fetch(JsonRequest request) throws IOException {
-		var uri = uri(request);
-		var response = send(uri);
-		return response.getBodyAsJson();
+	public WttrInResponse<JsonNode> fetch(JsonRequest request) throws WttrInException, IOException {
+		var httpRequest = buildHttpRequest(request);
+		var response = sendRequestAndParseResponseAsJson(httpRequest);
+		return new WttrInResponse<JsonNode>(httpRequest.getURI(), response);
 	}
 
 	/**
@@ -53,12 +64,13 @@ public class WttrInClient {
 	 * https://wttr.in/?format=3
 	 * @param request the request
 	 * @return the response
+	 * @throws WttrInException if the API returned an error
 	 * @throws IOException if there was a problem querying the API
 	 */
-	public String fetch(SingleLineRequest request) throws IOException {
-		var uri = uri(request, false, null, null);
-		var response = send(uri);
-		return response.getBody();
+	public WttrInResponse<String> fetch(SingleLineRequest request) throws WttrInException, IOException {
+		var httpRequest = buildHttpRequest(request, false, null, null);
+		var response = sendRequestAndParseResponseAsString(httpRequest);
+		return new WttrInResponse<String>(httpRequest.getURI(), response);
 	}
 
 	/**
@@ -66,10 +78,11 @@ public class WttrInClient {
 	 * https://wttr.in/?format=3
 	 * @param request the request
 	 * @return the response
+	 * @throws WttrInException if the API returned an error
 	 * @throws IOException if there was a problem querying the API
 	 */
-	public byte[] fetchAsPng(SingleLineRequest request) throws IOException {
-		return fetchAsPng(request, null, null);
+	public WttrInResponse<byte[]> fetchPng(SingleLineRequest request) throws WttrInException, IOException {
+		return fetchPng(request, null, null);
 	}
 
 	/**
@@ -81,16 +94,17 @@ public class WttrInClient {
 	 * @param backgroundColor background color for the PNG (hexcode, e.g.
 	 * "aabbcc") or null not to specify a background color
 	 * @return the response
+	 * @throws WttrInException if the API returned an error
 	 * @throws IOException if there was a problem querying the API
 	 */
-	public byte[] fetchAsPng(SingleLineRequest request, Integer transparency, String backgroundColor) throws IOException {
+	public WttrInResponse<byte[]> fetchPng(SingleLineRequest request, Integer transparency, String backgroundColor) throws WttrInException, IOException {
 		/*
 		 * Method parameter for PNG border is missing because it doesn't work
 		 * with single line requests.
 		 */
-		var uri = uri(request, true, transparency, backgroundColor);
-		var response = send(uri);
-		return response.getBodyAsBytes();
+		var httpRequest = buildHttpRequest(request, true, transparency, backgroundColor);
+		var response = sendRequestAndParseResponseAsBytes(httpRequest);
+		return new WttrInResponse<byte[]>(httpRequest.getURI(), response);
 	}
 
 	/**
@@ -98,12 +112,13 @@ public class WttrInClient {
 	 * example: https://wttr.in
 	 * @param request the request
 	 * @return the response
+	 * @throws WttrInException if the API returned an error
 	 * @throws IOException if there was a problem querying the API
 	 */
-	public String fetch(AsciiArtRequest request) throws IOException {
-		var uri = uri(request, false, false, false, null, null);
-		var response = send(uri);
-		return response.getBody();
+	public WttrInResponse<String> fetch(AsciiArtRequest request) throws WttrInException, IOException {
+		var httpRequest = buildHttpRequest(request, false, false, false, null, null);
+		var response = sendRequestAndParseResponseAsString(httpRequest);
+		return new WttrInResponse<String>(httpRequest.getURI(), response);
 	}
 
 	/**
@@ -111,12 +126,13 @@ public class WttrInClient {
 	 * https://wttr.in
 	 * @param request the request
 	 * @return the response
+	 * @throws WttrInException if the API returned an error
 	 * @throws IOException if there was a problem querying the API
 	 */
-	public String fetchHtml(AsciiArtRequest request) throws IOException {
-		var uri = uri(request, true, false, false, null, null);
-		var response = send(uri);
-		return response.getBody();
+	public WttrInResponse<String> fetchHtml(AsciiArtRequest request) throws WttrInException, IOException {
+		var httpRequest = buildHttpRequest(request, true, false, false, null, null);
+		var response = sendRequestAndParseResponseAsString(httpRequest);
+		return new WttrInResponse<String>(httpRequest.getURI(), response);
 	}
 
 	/**
@@ -124,47 +140,65 @@ public class WttrInClient {
 	 * https://wttr.in/London.png
 	 * @param request the request
 	 * @return the response
+	 * @throws WttrInException if the API returned an error
 	 * @throws IOException if there was a problem querying the API
 	 */
-	public byte[] fetchPng(AsciiArtRequest request, boolean border, Integer transparency, String backgroundColor) throws IOException {
-		var uri = uri(request, false, true, border, transparency, backgroundColor);
-		var response = send(uri);
-		return response.getBodyAsBytes();
+	public WttrInResponse<byte[]> fetchPng(AsciiArtRequest request) throws WttrInException, IOException {
+		return fetchPng(request, false, null, null);
 	}
 
-	private String uri(PrometheusRequest request) {
-		var builder = baseUri(request);
-
-		builder.addParameter("format", "p1");
-
-		return builder.build();
+	/**
+	 * Gets weather data in ASCII art format as a PNG. For example:
+	 * https://wttr.in/London.png
+	 * @param request the request
+	 * @param border true to render a border around the PNG
+	 * @param transparency how transparent the PNG should be (0-255) or null to
+	 * not make it transparent
+	 * @param backgroundColor background color for the PNG (hexcode, e.g.
+	 * "aabbcc") or null not to specify a background color
+	 * @return the response
+	 * @throws WttrInException if the API returned an error
+	 * @throws IOException if there was a problem querying the API
+	 */
+	public WttrInResponse<byte[]> fetchPng(AsciiArtRequest request, boolean border, Integer transparency, String backgroundColor) throws WttrInException, IOException {
+		var httpRequest = buildHttpRequest(request, false, true, border, transparency, backgroundColor);
+		var response = sendRequestAndParseResponseAsBytes(httpRequest);
+		return new WttrInResponse<byte[]>(httpRequest.getURI(), response);
 	}
 
-	private String uri(JsonRequest request) {
-		var builder = baseUri(request);
+	private HttpUriRequest buildHttpRequest(PrometheusRequest request) {
+		var rc = buildBaseRequestComponents(request);
+
+		rc.addParameter("format", "p1");
+
+		return rc.build();
+	}
+
+	private HttpUriRequest buildHttpRequest(JsonRequest request) {
+		var rc = buildBaseRequestComponents(request);
 
 		var format = request.isIncludeHourlyData() ? "j1" : "j2";
-		builder.addParameter("format", format);
+		rc.addParameter("format", format);
 
-		return builder.build();
+		return rc.build();
 	}
 
-	private String uri(SingleLineRequest request, boolean png, Integer transparency, String backgroundColor) {
-		var builder = baseUri(request, png, false, transparency, backgroundColor);
+	private HttpUriRequest buildHttpRequest(SingleLineRequest request, boolean png, Integer transparency, String backgroundColor) {
+		var rc = buildBaseRequestComponents(request, png, false, transparency, backgroundColor);
 
 		if (request.getUnit() != null) {
 			var code = switch (request.getUnit()) {
 			case METRIC -> 'm';
 			case US -> 'u';
 			};
-			builder.flags.append(code);
+			rc.flags.append(code);
 		}
 
 		if (request.isUseMetricAndShowWindSpeedInMetersPerSec()) {
-			builder.flags.append("M");
+			rc.flags.append('M');
 		}
 		if (request.isIgnoreUserAgentAndForceANSIOutput()) {
-			builder.flags.append("A");
+			rc.flags.append('A');
 		}
 
 		var format = request.getCustomFormat();
@@ -179,24 +213,29 @@ public class WttrInClient {
 				format = "1";
 			}
 		}
-		builder.addParameter("format", format);
+		rc.addParameter("format", format);
 
-		return builder.build();
+		return rc.build();
 	}
 
-	private String uri(AsciiArtRequest request, boolean html, boolean png, boolean border, Integer transparency, String backgroundColor) {
-		var builder = baseUri(request, png, border, transparency, backgroundColor);
+	private HttpUriRequest buildHttpRequest(AsciiArtRequest request, boolean html, boolean png, boolean border, Integer transparency, String backgroundColor) {
+		var rc = buildBaseRequestComponents(request, png, border, transparency, backgroundColor);
+
+		if (html) {
+			rc.addHeader("User-Agent", ".");
+		}
 
 		if (request.getView() != null) {
 			var flag = switch (request.getView()) {
 			case CURRENT -> '0';
 			case CURRENT_TODAY_FORECAST -> '1';
 			case CURRENT_TODAY_TOMORROW_FORECAST -> '2';
+			case CURRENT_TODAY_TOMORROW_OVERMORROW_FORECAST -> '3';
 			};
-			builder.flags.append(flag);
+			rc.flags.append(flag);
 		}
 		if (request.isOnlyShowDayAndNight()) {
-			builder.flags.append('n');
+			rc.flags.append('n');
 		}
 
 		if (request.getUnit() != null) {
@@ -204,57 +243,41 @@ public class WttrInClient {
 			case METRIC -> 'm';
 			case US -> 'u';
 			};
-			builder.flags.append(code);
+			rc.flags.append(code);
 		}
 		if (request.isShowWindSpeedInMetersPerSec()) {
-			builder.flags.append('M');
+			rc.flags.append('M');
 		}
 
 		if (request.isHideWeatherReportHeading()) {
-			builder.flags.append('q');
+			rc.flags.append('q');
 		}
 		if (request.isHideWeatherReportHeadingAndCityName()) {
-			builder.flags.append('Q');
+			rc.flags.append('Q');
 		}
 		if (request.isHideSocialMedia()) {
-			builder.flags.append('F');
+			rc.flags.append('F');
 		}
 
 		if (request.isForceANSIOutput()) {
-			builder.flags.append('A');
+			rc.flags.append('A');
 		}
 		if (request.isDisableTerminalColorSequences()) {
-			builder.flags.append('T');
+			rc.flags.append('T');
 		}
 		if (request.isOnlyUseStandardConsoleFontGlyphs()) {
-			builder.flags.append('d');
+			rc.flags.append('d');
 		}
 
-		return builder.build();
+		return rc.build();
 	}
 
-	/**
-	 * Starts creating the request URI using information common to all requests.
-	 * @param request the request
-	 * @return the URI
-	 */
-	private WttrUriBuilder baseUri(WttrInRequest request) {
-		return baseUri(request, false, false, null, null);
+	private RequestComponents buildBaseRequestComponents(WttrInRequest request) {
+		return buildBaseRequestComponents(request, false, false, null, null);
 	}
 
-	/**
-	 * Starts creating the request URI using information common to all requests.
-	 * @param request the request
-	 * @param png true to generate a PNG
-	 * @param border true to render a border around the PNG
-	 * @param transparency how transparent the PNG should be (0-255) or null to
-	 * not make it transparent
-	 * @param backgroundColor background color for the PNG (hexcode, e.g.
-	 * "aabbcc") or null not to specify a background color
-	 * @return the URI
-	 */
-	private WttrUriBuilder baseUri(WttrInRequest request, boolean png, boolean border, Integer transparency, String backgroundColor) {
-		var builder = new WttrUriBuilder();
+	private RequestComponents buildBaseRequestComponents(WttrInRequest request, boolean png, boolean border, Integer transparency, String backgroundColor) {
+		var builder = new RequestComponents();
 
 		if (request.getLocation() != null) {
 			builder.locationPathSegment = request.getLocation() + (png ? ".png" : "");
@@ -279,25 +302,71 @@ public class WttrInClient {
 		return builder;
 	}
 
-	private Http.Response send(String uri) throws IOException {
-		try (var http = HttpFactory.connect()) {
-			return http.get(uri);
+	private <T> T sendRequest(HttpUriRequest request, EntityProcessor<T> entityProcessor) throws WttrInException, IOException {
+		try (var client = HttpFactory.connect().getClient()) {
+			try (var response = client.execute(request)) {
+				var entity = response.getEntity();
+				var responseBody = checkForError(entity);
+				return entityProcessor.apply(entity, responseBody);
+			}
 		} catch (IOException e) {
-			logger.atError().setCause(e).log(() -> "Problem sending wttr.in request: " + uri);
+			logger.atError().setCause(e).log(() -> "Problem sending wttr.in request: " + request.getURI());
 			throw e;
 		}
 	}
 
-	private static class WttrUriBuilder {
+	private String sendRequestAndParseResponseAsString(HttpUriRequest request) throws WttrInException, IOException {
+		return sendRequest(request, (entity, responseBody) -> responseBody.isEmpty() ? EntityUtils.toString(entity) : responseBody.get());
+	}
+
+	private JsonNode sendRequestAndParseResponseAsJson(HttpUriRequest request) throws WttrInException, IOException {
+		return sendRequest(request, (entity, responseBody) -> {
+			if (responseBody.isEmpty()) {
+				try (var in = entity.getContent()) {
+					return JsonUtils.parse(in);
+				}
+			}
+			return JsonUtils.parse(new StringReader(responseBody.get()));
+		});
+	}
+
+	private byte[] sendRequestAndParseResponseAsBytes(HttpUriRequest request) throws WttrInException, IOException {
+		return sendRequest(request, (entity, responseBody) -> responseBody.isEmpty() ? EntityUtils.toByteArray(entity) : responseBody.get().getBytes());
+	}
+
+	private Optional<String> checkForError(HttpEntity entity) throws WttrInException, IOException {
+		/*
+		 * All errors have a Content-Type of "text/plain".
+		 */
+		var contentType = entity.getContentType();
+		var notPlainTextResponse = (contentType == null || !contentType.getValue().startsWith("text/plain"));
+		if (notPlainTextResponse) {
+			return Optional.empty();
+		}
+
+		var responseBody = EntityUtils.toString(entity);
+		if (responseBody.startsWith("ERR")) {
+			throw new WttrInException(responseBody);
+		}
+
+		return Optional.of(responseBody);
+	}
+
+	private static class RequestComponents {
 		private String locationPathSegment;
 		private List<NameValuePair> parameters = new ArrayList<>();
+		private List<Header> headers = new ArrayList<>();
 		private StringBuilder flags = new StringBuilder();
 
 		private void addParameter(String name, String value) {
 			parameters.add(new BasicNameValuePair(name, value));
 		}
 
-		public String build() {
+		private void addHeader(String name, String value) {
+			headers.add(new BasicHeader(name, value));
+		}
+
+		private URI buildUri() {
 			/*
 			 * "You can safely use wttr.is anywhere you currently use wttr.in.
 			 * Both domains are served from the same backend and kept in sync.
@@ -305,10 +374,34 @@ public class WttrInClient {
 			 * tools, and CI/CD pipelines for improved reliability."
 			 */
 			var uri = new URIBuilder().setScheme("https").setHost("wttr.is");
-			uri.setPathSegments(locationPathSegment);
-			uri.addParameter(flags.toString(), "");
+			if (locationPathSegment != null) {
+				uri.setPathSegments(locationPathSegment);
+			}
+			if (!flags.isEmpty()) {
+				uri.addParameter(flags.toString(), null);
+			}
 			uri.addParameters(parameters);
-			return uri.toString();
+
+			return URI.create(uri.toString());
 		}
+
+		private HttpUriRequest build() {
+			var uri = buildUri();
+			var request = new HttpGet(uri);
+			headers.forEach(request::addHeader);
+			return request;
+		}
+	}
+
+	private interface EntityProcessor<T> {
+		/**
+		 * Extracts the content from the response body.
+		 * @param entity the response entity
+		 * @param consumedResponseBody the response body read as a string, or
+		 * empty if the response body hasn't been read yet
+		 * @return the parsed response
+		 * @throws IOException if there is a problem parsing the response
+		 */
+		T apply(HttpEntity entity, Optional<String> consumedResponseBody) throws IOException;
 	}
 }
