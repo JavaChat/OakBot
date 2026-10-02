@@ -71,6 +71,9 @@ public class WeatherCommand implements Command {
 			return error("Error querying wttr.in.", e, chatCommand);
 		}
 
+		//remove trailing newline
+		response = response.trim();
+
 		var cb = new ChatBuilder().append(response).append(" (").link("source", "https://wttr.in").append(")");
 		return reply(cb, chatCommand);
 	}
