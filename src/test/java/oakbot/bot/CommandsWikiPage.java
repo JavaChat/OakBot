@@ -51,6 +51,7 @@ import oakbot.command.stands4.ExplainCommand;
 import oakbot.command.stands4.GrammarCommand;
 import oakbot.command.stands4.RhymeCommand;
 import oakbot.command.urban.UrbanCommand;
+import oakbot.command.weather.WeatherCommand;
 import oakbot.filter.GrootFilter;
 import oakbot.filter.UpsidedownTextFilter;
 import oakbot.filter.WaduFilter;
@@ -164,6 +165,7 @@ public class CommandsWikiPage {
 			commands.add(new UpsidedownTextFilter());
 			commands.add(new UrbanCommand());
 			commands.add(new WaduFilter());
+			commands.add(new WeatherCommand());
 			commands.add(new WikiCommand());
 
 			commands.sort(Comparator.comparing(Command::name));

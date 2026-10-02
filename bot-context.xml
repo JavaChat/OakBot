@@ -504,6 +504,9 @@
 	<!-- /wadu ================================================== -->
 	<bean class="oakbot.filter.WaduFilter" />
 
+	<!-- /weather =============================================== -->
+	<bean class="oakbot.command.weather.WeatherCommand" />
+
 	<!-- /wiki ================================================== -->
 	<bean class="oakbot.command.WikiCommand" />
 
