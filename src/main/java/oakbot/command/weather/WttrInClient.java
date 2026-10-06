@@ -1,14 +1,13 @@
 package oakbot.command.weather;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -305,9 +304,9 @@ public class WttrInClient {
 	private <T> T sendRequest(HttpUriRequest request, EntityProcessor<T> entityProcessor) throws WttrInException, IOException {
 		try (var client = HttpFactory.connect().getClient()) {
 			try (var response = client.execute(request)) {
+				checkForError(response);
 				var entity = response.getEntity();
-				var responseBody = checkForError(entity);
-				return entityProcessor.apply(entity, responseBody);
+				return entityProcessor.apply(entity);
 			}
 		} catch (IOException e) {
 			logger.atError().setCause(e).log(() -> "Problem sending wttr.in request: " + request.getURI());
@@ -316,40 +315,38 @@ public class WttrInClient {
 	}
 
 	private String sendRequestAndParseResponseAsString(HttpUriRequest request) throws WttrInException, IOException {
-		return sendRequest(request, (entity, responseBody) -> responseBody.isEmpty() ? EntityUtils.toString(entity) : responseBody.get());
+		return sendRequest(request, EntityUtils::toString);
 	}
 
 	private JsonNode sendRequestAndParseResponseAsJson(HttpUriRequest request) throws WttrInException, IOException {
-		return sendRequest(request, (entity, responseBody) -> {
-			if (responseBody.isEmpty()) {
-				try (var in = entity.getContent()) {
-					return JsonUtils.parse(in);
-				}
+		return sendRequest(request, entity -> {
+			try (var in = entity.getContent()) {
+				return JsonUtils.parse(in);
 			}
-			return JsonUtils.parse(new StringReader(responseBody.get()));
 		});
 	}
 
 	private byte[] sendRequestAndParseResponseAsBytes(HttpUriRequest request) throws WttrInException, IOException {
-		return sendRequest(request, (entity, responseBody) -> responseBody.isEmpty() ? EntityUtils.toByteArray(entity) : responseBody.get().getBytes());
+		return sendRequest(request, EntityUtils::toByteArray);
 	}
 
-	private Optional<String> checkForError(HttpEntity entity) throws WttrInException, IOException {
+	/**
+	 * Checks the response for an error message and throws an exception an error
+	 * was found.
+	 * @param response the response
+	 * @throws WttrInException if the API returned an error
+	 * @throws IOException if there was a problem getting the response body
+	 */
+	private void checkForError(HttpResponse response) throws WttrInException, IOException {
 		/*
-		 * All errors have a Content-Type of "text/plain".
+		 * Treat all non-200 responses as an error.
 		 */
-		var contentType = entity.getContentType();
-		var notPlainTextResponse = (contentType == null || !contentType.getValue().startsWith("text/plain"));
-		if (notPlainTextResponse) {
-			return Optional.empty();
-		}
-
-		var responseBody = EntityUtils.toString(entity);
-		if (responseBody.startsWith("ERR")) {
+		var statusCode = response.getStatusLine().getStatusCode();
+		if (statusCode != 200) {
+			var entity = response.getEntity();
+			var responseBody = EntityUtils.toString(entity);
 			throw new WttrInException(responseBody);
 		}
-
-		return Optional.of(responseBody);
 	}
 
 	private static class RequestComponents {
@@ -397,11 +394,9 @@ public class WttrInClient {
 		/**
 		 * Extracts the content from the response body.
 		 * @param entity the response entity
-		 * @param consumedResponseBody the response body read as a string, or
-		 * empty if the response body hasn't been read yet
 		 * @return the parsed response
 		 * @throws IOException if there is a problem parsing the response
 		 */
-		T apply(HttpEntity entity, Optional<String> consumedResponseBody) throws IOException;
+		T apply(HttpEntity entity) throws IOException;
 	}
 }
