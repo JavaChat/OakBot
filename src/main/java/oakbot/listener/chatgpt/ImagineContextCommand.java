@@ -49,12 +49,16 @@ public class ImagineContextCommand implements Command {
 
 	@Override
 	public HelpDoc help() {
+		var requestsPerDay = core.getUsageQuota().getRequestsPerPeriod();
+		var requestLimit = (requestsPerDay > 0) ? "Users can make " + requestsPerDay + " requests per day. " : "";
+		var detail = requestLimit + "Supported models: " + ImagineCore.supportedModels;
+
 		//@formatter:off
 		return new HelpDoc.Builder(this)
 			.summary("Creates an image based on the latest " + contextSize + " messages in the chat room using OpenAI and Stability.ai.")
-			.detail(core.helpDetail())
+			.detail(detail)
 			.example("", "Generates an image using " + defaultModel + ".")
-			.example("gpt-image-2", "Include the model ID at the beginning of the message to define which model to use.")
+			.example("gpt-image-2", "Include the model ID to define which model to use.")
 		.build();
 		//@formatter:on
 	}
