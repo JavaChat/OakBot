@@ -1,7 +1,9 @@
 package oakbot.command.weather;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +14,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -320,8 +323,13 @@ public class WttrInClient {
 
 	private JsonNode sendRequestAndParseResponseAsJson(HttpUriRequest request) throws WttrInException, IOException {
 		return sendRequest(request, entity -> {
-			try (var in = entity.getContent()) {
-				return JsonUtils.parse(in);
+			var charset = ContentType.getOrDefault(entity).getCharset();
+			if (charset == null) {
+				charset = Charset.defaultCharset();
+			}
+
+			try (var reader = new InputStreamReader(entity.getContent(), charset)) {
+				return JsonUtils.parse(reader);
 			}
 		});
 	}
