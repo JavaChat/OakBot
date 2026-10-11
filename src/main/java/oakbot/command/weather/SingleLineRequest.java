@@ -8,8 +8,7 @@ public class SingleLineRequest extends WttrInRequest {
 	private boolean showWind;
 	private boolean showLocation;
 	private String customFormat;
-
-	protected Unit unit;
+	private Unit unit;
 	private boolean useMetricAndShowWindSpeedInMetersPerSec;
 	private boolean ignoreUserAgentAndForceANSIOutput;
 

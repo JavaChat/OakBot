@@ -7,7 +7,7 @@ package oakbot.command.weather;
 public class AsciiArtRequest extends WttrInRequest {
 	private boolean showWindSpeedInMetersPerSec;
 	private View view;
-	protected Unit unit;
+	private Unit unit;
 	private boolean forceANSIOutput;
 	private boolean onlyUseStandardConsoleFontGlyphs;
 	private boolean hideSocialMedia;
