@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.batik.transcoder.TranscoderException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.util.EntityUtils;
@@ -71,18 +72,14 @@ public class ImagineCore {
 	}
 
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
-		return onMessage(chatCommand, bot, false, false);
-	}
-
-	public ChatActions onMessageExact(ChatCommand chatCommand, IBot bot) {
-		return onMessage(chatCommand, bot, true, false);
+		return onMessage(chatCommand, bot, false);
 	}
 
 	public ChatActions onMessageEmbellish(ChatCommand chatCommand, IBot bot) {
-		return onMessage(chatCommand, bot, false, true);
+		return onMessage(chatCommand, bot, true);
 	}
 
-	private ChatActions onMessage(ChatCommand chatCommand, IBot bot, boolean useExactPrompt, boolean embellish) {
+	private ChatActions onMessage(ChatCommand chatCommand, IBot bot, boolean embellish) {
 		var quotaReached = checkQuota(chatCommand);
 		if (quotaReached != null) {
 			return quotaReached;
@@ -112,7 +109,7 @@ public class ImagineCore {
 				messagesToPost.add("Embellished prompt: " + promptToSend);
 			}
 
-			messagesToPost.addAll(generateImage(model, inputImage, promptToSend, useExactPrompt, bot));
+			messagesToPost.addAll(generateImage(model, inputImage, promptToSend, bot));
 
 			logQuota(chatCommand, bot);
 
@@ -125,7 +122,7 @@ public class ImagineCore {
 			//@formatter:on
 
 			return actions;
-		} catch (IllegalArgumentException | URISyntaxException | OpenAIException | StabilityAIException e) {
+		} catch (IllegalArgumentException | URISyntaxException | OpenAIException | StabilityAIException | TranscoderException e) {
 			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
 		} catch (IOException e) {
 			logger.atError().setCause(e).log(() -> "Network error.");
@@ -163,8 +160,6 @@ public class ImagineCore {
 	 * @param model the model
 	 * @param inputImage the input image or null if there is no input iamge
 	 * @param prompt the prompt
-	 * @param useExactPrompt true to use the exact prompt, false to allow the AI
-	 * to embellish it
 	 * @param bot
 	 * @return the response(s) to post to the chat. Includes the image URL if an
 	 * image was generated.
@@ -172,11 +167,12 @@ public class ImagineCore {
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public List<String> generateImage(Model model, String inputImage, String prompt, boolean useExactPrompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
+	public List<String> generateImage(Model model, String inputImage, String prompt, IBot bot) throws OpenAIException, IOException, URISyntaxException, TranscoderException {
 		return switch (model) {
 		case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2 -> handleOpenAi(model, inputImage, prompt, bot);
 		case STABLE_IMAGE_CORE -> List.of(handleStableImageCore(prompt, bot));
 		case STABLE_DIFFUSION, STABLE_DIFFUSION_TURBO -> List.of(handleStableDiffusion(model, inputImage, prompt, bot));
+		case SVG -> List.of(handleSvg(prompt, bot));
 		};
 	}
 
@@ -220,7 +216,7 @@ public class ImagineCore {
 
 		if (inputImage != null) {
 			return switch (model) {
-			case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2, STABLE_IMAGE_CORE -> "Model does not support image variations.";
+			case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2, STABLE_IMAGE_CORE, SVG -> "Model does not support image variations.";
 			case STABLE_DIFFUSION, STABLE_DIFFUSION_TURBO -> (prompt == null) ? "Prompt missing for image variation." : null;
 			};
 		}
@@ -311,6 +307,51 @@ public class ImagineCore {
 		var response = stabilityAIClient.generateImage(builder.build());
 
 		return uploadImage(bot, response.getImage());
+	}
+
+	private String handleSvg(String prompt, IBot bot) throws OpenAIException, TranscoderException, IOException {
+		String model = (chatGPT == null) ? null : chatGPT.getModel();
+
+		//@formatter:off
+		var apiRequest = new ResponsesApiRequest.Builder()
+			.model(model)
+			.reasoningEffort("none")
+			.verbosity("low")
+			.inputs(List.of(
+				new ResponsesApiRequest.Input.Builder()
+					.role("user")
+					.text("Generate SVG code representing the following: " + prompt)
+				.build()
+			))
+		.build();
+		//@formatter:on
+
+		final var MAX_TRIES = 3;
+		String content = null;
+		for (var tries = 0; tries < MAX_TRIES; tries++) {
+			var apiResponse = openAIClient.responsesApi(apiRequest);
+			content = apiResponse.getOutput().get(0).content();
+
+			var svg = extractSvgFromResponse(content);
+			if (svg != null) {
+				var pngBytes = ImageUtils.svgToPng(svg);
+				return uploadImage(bot, pngBytes);
+			}
+		}
+
+		return content;
+	}
+
+	private String extractSvgFromResponse(String response) {
+		final var END_TAG = "</svg>";
+		var startOfXml = response.indexOf("<svg");
+		var startOfEndTag = response.indexOf(END_TAG);
+		if (startOfXml < 0 || startOfEndTag < 0) {
+			return null;
+		}
+
+		var endOfXml = startOfEndTag + END_TAG.length();
+		return response.substring(startOfXml, endOfXml);
 	}
 
 	static class ImagineParameterParser {
@@ -421,7 +462,8 @@ public class ImagineCore {
 		GPT_IMAGE_2("gpt-image-2"), 
 		STABLE_IMAGE_CORE("si-core"), 
 		STABLE_DIFFUSION("sd3"), 
-		STABLE_DIFFUSION_TURBO("sd3-turbo");
+		STABLE_DIFFUSION_TURBO("sd3-turbo"),
+		SVG("svg");
 		//@formatter:on
 
 		private final String id;

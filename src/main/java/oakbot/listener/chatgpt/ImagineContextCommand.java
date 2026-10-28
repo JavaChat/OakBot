@@ -11,6 +11,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.batik.transcoder.TranscoderException;
+
 import com.github.mangstadt.sochat4j.ChatMessage;
 import com.github.mangstadt.sochat4j.SplitStrategy;
 
@@ -116,7 +118,7 @@ public class ImagineContextCommand implements Command {
 		var promptToSend = prompt + "\n\n" + transcript;
 
 		try {
-			var messagesToPost = core.generateImage(model, null, promptToSend, false, bot);
+			var messagesToPost = core.generateImage(model, null, promptToSend, bot);
 
 			core.logQuota(chatCommand, bot);
 
@@ -129,7 +131,7 @@ public class ImagineContextCommand implements Command {
 			//@formatter:on
 
 			return actions;
-		} catch (OpenAIException | IOException | URISyntaxException e) {
+		} catch (OpenAIException | IOException | URISyntaxException | TranscoderException e) {
 			return reply(new ChatBuilder().code().append("ERROR BEEP BOOP: ").append(e.getMessage()).code(), chatCommand);
 		}
 	}

@@ -4,10 +4,17 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
+
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.jsoup.UncheckedIOException;
 
 /**
  * @author Michael Angstadt
@@ -62,6 +69,28 @@ public class ImageUtils {
 			return out.toByteArray();
 		} finally {
 			jpgWriter.dispose();
+		}
+	}
+
+	/**
+	 * Converts an SVG image to PNG
+	 * @param svg the svg code
+	 * @return the PNG image
+	 * @throws TranscoderException if there is a problem converting the image
+	 */
+	public static byte[] svgToPng(String svg) throws TranscoderException {
+		var transInput = new TranscoderInput(new StringReader(svg));
+		PNGTranscoder transcoder = new PNGTranscoder();
+
+		try (var out = new ByteArrayOutputStream()) {
+			var transOutput = new TranscoderOutput(out);
+			transcoder.transcode(transInput, transOutput);
+			return out.toByteArray();
+		} catch (IOException e) {
+			/*
+			 * Should never be thrown because we're writing to a byte array.
+			 */
+			throw new UncheckedIOException(e);
 		}
 	}
 
