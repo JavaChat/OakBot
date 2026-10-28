@@ -5,7 +5,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
 
 /**
  * @author Michael Angstadt
@@ -31,6 +33,35 @@ public class ImageUtils {
 		try (var out = new ByteArrayOutputStream()) {
 			ImageIO.write(image, "PNG", out);
 			return out.toByteArray();
+		}
+	}
+
+	/**
+	 * Converts an image to JPEG.
+	 * @param image the image to convert
+	 * @return the JPEG data
+	 * @see "https://stackoverflow.com/q/17108234/13379"
+	 */
+	public static byte[] convertToJpeg(BufferedImage image) throws IOException {
+		/*
+		 * If the image has an alpha channel, an exception is thrown when it
+		 * tries to write the image as a JPEG.
+		 * 
+		 * javax.imageio.IIOException: Bogus input colorspace
+		 */
+		image = ImageUtils.removeAlphaChannel(image);
+
+		var jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
+		var jpgWriteParam = jpgWriter.getDefaultWriteParam();
+		jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+		jpgWriteParam.setCompressionQuality(0.9f);
+
+		try (var out = new ByteArrayOutputStream()) {
+			jpgWriter.setOutput(ImageIO.createImageOutputStream(out));
+			jpgWriter.write(null, new IIOImage(image, null, null), jpgWriteParam);
+			return out.toByteArray();
+		} finally {
+			jpgWriter.dispose();
 		}
 	}
 

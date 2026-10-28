@@ -40,7 +40,7 @@ class ImagineCommandTest {
 	@Test
 	void ImagineParameterParser() {
 		var actual = new ImagineCore.ImagineParameterParser("gpt-image-1 https://www.example.com/image.png prompt goes here").parse();
-		assertEquals("gpt-image-1", actual.model());
+		assertEquals(ImagineCore.Model.GPT_IMAGE_1, actual.model());
 		assertEquals("https://www.example.com/image.png", actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
@@ -50,7 +50,7 @@ class ImagineCommandTest {
 		assertEquals("prompt goes here", actual.prompt());
 
 		actual = new ImagineCore.ImagineParameterParser("gpt-image-1 prompt goes here").parse();
-		assertEquals("gpt-image-1", actual.model());
+		assertEquals(ImagineCore.Model.GPT_IMAGE_1, actual.model());
 		assertNull(actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
@@ -72,43 +72,31 @@ class ImagineCommandTest {
 
 	@Test
 	void validateParameters_image_variations() {
-		var model = ImagineCore.MODEL_DALLE_2;
+		var model = ImagineCore.Model.STABLE_IMAGE_CORE;
 		assertValidationError(model, null, null);
 		assertValidationPasses(model, null, "prompt");
-		assertValidationPasses(model, "image", null);
-		assertValidationError(model, "image", "prompt");
+		assertValidationError(model, "input image", null);
+		assertValidationError(model, "input image", "prompt");
 
-		model = ImagineCore.MODEL_DALLE_3;
+		model = ImagineCore.Model.STABLE_DIFFUSION;
 		assertValidationError(model, null, null);
 		assertValidationPasses(model, null, "prompt");
-		assertValidationError(model, "image", null);
-		assertValidationError(model, "image", "prompt");
+		assertValidationError(model, "input image", null);
+		assertValidationPasses(model, "input image", "prompt");
 
-		model = ImagineCore.MODEL_STABLE_IMAGE_CORE;
+		model = ImagineCore.Model.STABLE_DIFFUSION_TURBO;
 		assertValidationError(model, null, null);
 		assertValidationPasses(model, null, "prompt");
-		assertValidationError(model, "image", null);
-		assertValidationError(model, "image", "prompt");
-
-		model = ImagineCore.MODEL_STABLE_DIFFUSION;
-		assertValidationError(model, null, null);
-		assertValidationPasses(model, null, "prompt");
-		assertValidationError(model, "image", null);
-		assertValidationPasses(model, "image", "prompt");
-
-		model = ImagineCore.MODEL_STABLE_DIFFUSION_TURBO;
-		assertValidationError(model, null, null);
-		assertValidationPasses(model, null, "prompt");
-		assertValidationError(model, "image", null);
-		assertValidationPasses(model, "image", "prompt");
+		assertValidationError(model, "input image", null);
+		assertValidationPasses(model, "input image", "prompt");
 	}
 
-	private static void assertValidationError(String model, String image, String prompt) {
+	private static void assertValidationError(ImagineCore.Model model, String image, String prompt) {
 		var error = ImagineCore.validateParameters(model, image, prompt);
 		assertNotNull(error);
 	}
 
-	private static void assertValidationPasses(String model, String image, String prompt) {
+	private static void assertValidationPasses(ImagineCore.Model model, String image, String prompt) {
 		var error = ImagineCore.validateParameters(model, image, prompt);
 		assertNull(error);
 	}
@@ -116,14 +104,13 @@ class ImagineCommandTest {
 	@Test
 	void chooseWhichModelToUse() {
 		//no model provided
-		assertEquals(ImagineCore.MODEL_GPT_IMAGE_1_MINI, ImagineCore.chooseWhichModelToUse(null, null, "prompt"));
+		assertEquals(ImagineCore.Model.GPT_IMAGE_1_MINI, ImagineCore.chooseWhichModelToUse(null, null, "prompt"));
 
 		//no model provided with input images
-		assertEquals(ImagineCore.MODEL_DALLE_2, ImagineCore.chooseWhichModelToUse(null, "image", null));
-		assertEquals(ImagineCore.MODEL_STABLE_DIFFUSION, ImagineCore.chooseWhichModelToUse(null, "image", "prompt"));
+		assertEquals(ImagineCore.Model.STABLE_DIFFUSION, ImagineCore.chooseWhichModelToUse(null, "image", "prompt"));
 
 		//if a model was provided, use it
-		for (var model : ImagineCore.supportedModels) {
+		for (var model : ImagineCore.Model.values()) {
 			assertEquals(model, ImagineCore.chooseWhichModelToUse(model, null, "prompt"));
 		}
 	}

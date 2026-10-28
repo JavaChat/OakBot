@@ -6,6 +6,7 @@ import static oakbot.bot.ChatActions.reply;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,14 +30,17 @@ import oakbot.util.ChatBuilder;
  */
 public class ImagineContextCommand implements Command {
 	private final ImagineCore core;
-	private final String defaultModel;
+	private final ImagineCore.Model defaultModel;
 	private final String prompt;
 	private final int maxMessageLength;
 	private final int contextSize;
 
 	public ImagineContextCommand(ImagineCore core, String defaultModel, String prompt, int maxMessageLength, int contextSize) {
+		this.defaultModel = ImagineCore.Model.find(defaultModel);
+		if (this.defaultModel == null) {
+			throw new IllegalArgumentException("Model " + defaultModel + " not recognized.");
+		}
 		this.core = core;
-		this.defaultModel = defaultModel;
 		this.prompt = prompt;
 		this.maxMessageLength = maxMessageLength;
 		this.contextSize = contextSize;
@@ -51,7 +55,7 @@ public class ImagineContextCommand implements Command {
 	public HelpDoc help() {
 		var requestsPerDay = core.getUsageQuota().getRequestsPerPeriod();
 		var requestLimit = (requestsPerDay > 0) ? "Users can make " + requestsPerDay + " requests per day. " : "";
-		var detail = requestLimit + "Supported models: " + ImagineCore.supportedModels;
+		var detail = requestLimit + "Supported models: " + Arrays.toString(ImagineCore.Model.values());
 
 		//@formatter:off
 		return new HelpDoc.Builder(this)
@@ -70,13 +74,10 @@ public class ImagineContextCommand implements Command {
 			return quotaReached;
 		}
 
-		var model = chatCommand.getContent();
-		if (model.isEmpty()) {
-			model = defaultModel;
-		}
-
-		if (!ImagineCore.supportedModels.contains(model)) {
-			return reply(new ChatBuilder().append("Model ").code(model).append(" not recognized."), chatCommand);
+		var modelStr = chatCommand.getContent();
+		var model = modelStr.isEmpty() ? defaultModel : ImagineCore.Model.find(modelStr);
+		if (model == null) {
+			return reply(new ChatBuilder().append("Model ").code(modelStr).append(" not recognized."), chatCommand);
 		}
 
 		List<ChatMessage> messages;

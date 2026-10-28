@@ -704,9 +704,6 @@
 	<bean class="oakbot.listener.chatgpt.ImagineCommand">
 		<constructor-arg ref="imagineCore" />
 	</bean>
-	<bean class="oakbot.listener.chatgpt.ImagineExactCommand">
-		<constructor-arg ref="imagineCore" />
-	</bean>
 	<bean class="oakbot.listener.chatgpt.ImagineVagueCommand">
 		<constructor-arg ref="imagineCore" />
 	</bean>

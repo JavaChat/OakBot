@@ -4,19 +4,12 @@ import static oakbot.bot.ChatActions.error;
 import static oakbot.bot.ChatActions.reply;
 import static oakbot.util.StringUtils.plural;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
-
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -51,22 +44,6 @@ import oakbot.util.ImageUtils;
 public class ImagineCore {
 	private static final Logger logger = LoggerFactory.getLogger(ImagineCore.class);
 
-	static final String MODEL_DALLE_2 = "dall-e-2";
-	static final String MODEL_DALLE_3 = "dall-e-3";
-	static final String MODEL_GPT_IMAGE_1 = "gpt-image-1";
-	static final String MODEL_GPT_IMAGE_1_MINI = "gpt-image-1-mini";
-	static final String MODEL_GPT_IMAGE_15 = "gpt-image-1.5";
-	static final String MODEL_GPT_IMAGE_2 = "gpt-image-2";
-	static final String MODEL_STABLE_IMAGE_CORE = "si-core";
-	static final String MODEL_STABLE_DIFFUSION = "sd3";
-	static final String MODEL_STABLE_DIFFUSION_TURBO = "sd3-turbo";
-
-	static final List<String> supportedModels = List.of(MODEL_GPT_IMAGE_1, MODEL_GPT_IMAGE_1_MINI, MODEL_GPT_IMAGE_15, MODEL_GPT_IMAGE_2, MODEL_STABLE_IMAGE_CORE, MODEL_STABLE_DIFFUSION, MODEL_STABLE_DIFFUSION_TURBO);
-
-	private static final Collection<String> revisedPromptModels = Set.of(MODEL_DALLE_3);
-
-	private static final String EXACT_PROMPT_PHRASE = "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS.";
-
 	private final OpenAIClient openAIClient;
 	private final StabilityAIClient stabilityAIClient;
 	private final ChatGPT chatGPT;
@@ -90,7 +67,7 @@ public class ImagineCore {
 
 	public String helpDetail() {
 		var requestLimit = (requestsPer24Hours > 0) ? "Users can make " + requestsPer24Hours + " requests per day. " : "";
-		return requestLimit + "Syntax: [model] [input image URL] [prompt]. Supported models: " + supportedModels;
+		return requestLimit + "Syntax: [model] [input image URL] [prompt]. Supported models: " + Arrays.toString(Model.values());
 	}
 
 	public ChatActions onMessage(ChatCommand chatCommand, IBot bot) {
@@ -195,20 +172,12 @@ public class ImagineCore {
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public List<String> generateImage(String model, String inputImage, String prompt, boolean useExactPrompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
-		if (MODEL_DALLE_2.equals(model) || MODEL_DALLE_3.equals(model) || MODEL_GPT_IMAGE_1.equals(model) || MODEL_GPT_IMAGE_1_MINI.equals(model) || MODEL_GPT_IMAGE_15.equals(model) || MODEL_GPT_IMAGE_2.equals(model)) {
-			return handleOpenAi(model, inputImage, prompt, useExactPrompt, bot);
-		}
-
-		if (MODEL_STABLE_IMAGE_CORE.equals(model)) {
-			return List.of(handleStableImageCore(prompt, bot));
-		}
-
-		if (MODEL_STABLE_DIFFUSION.equals(model) || MODEL_STABLE_DIFFUSION_TURBO.equals(model)) {
-			return List.of(handleStableDiffusion(model, inputImage, prompt, bot));
-		}
-
-		return List.of("Unsupported model: " + model);
+	public List<String> generateImage(Model model, String inputImage, String prompt, boolean useExactPrompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
+		return switch (model) {
+		case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2 -> handleOpenAi(model, inputImage, prompt, bot);
+		case STABLE_IMAGE_CORE -> List.of(handleStableImageCore(prompt, bot));
+		case STABLE_DIFFUSION, STABLE_DIFFUSION_TURBO -> List.of(handleStableDiffusion(model, inputImage, prompt, bot));
+		};
 	}
 
 	private String embellish(String prompt) throws OpenAIException, IOException {
@@ -232,65 +201,42 @@ public class ImagineCore {
 		return apiResponse.getOutput().get(0).content();
 	}
 
-	static String chooseWhichModelToUse(String model, String inputImage, String prompt) {
-		/*
-		 * Use dall-e-2 if only a URL was provided. Use sd3 if a URL and
-		 * prompt was provided.
-		 */
-		if (model == null && inputImage != null) {
-			return (prompt == null) ? MODEL_DALLE_2 : MODEL_STABLE_DIFFUSION;
+	static Model chooseWhichModelToUse(Model model, String inputImage, String prompt) {
+		if (model != null) {
+			return model;
 		}
 
-		/*
-		 * Default to gpt-image-1-mini if no model was specified
-		 */
-		return (model == null) ? MODEL_GPT_IMAGE_1_MINI : model;
+		if (inputImage != null && prompt != null) {
+			return Model.STABLE_DIFFUSION;
+		}
+
+		return Model.GPT_IMAGE_1_MINI;
 	}
 
-	static String validateParameters(String model, String inputImage, String prompt) {
+	static String validateParameters(Model model, String inputImage, String prompt) {
 		if (inputImage == null && prompt == null) {
 			return "Imagine what?";
 		}
 
-		/*
-		 * Dall-e-2 is the only model that supports an input image without a
-		 * prompt.
-		 */
-		if (!MODEL_DALLE_2.equals(model) && prompt == null) {
-			return "Imagine what?";
-		}
-
 		if (inputImage != null) {
-			if (MODEL_DALLE_3.equals(model) || MODEL_GPT_IMAGE_1.equals(model) || MODEL_GPT_IMAGE_1_MINI.equals(model) || MODEL_GPT_IMAGE_15.equals(model) || MODEL_GPT_IMAGE_2.equals(model)) {
-				return "Model does not support image variations.";
-			}
-
-			if (MODEL_DALLE_2.equals(model) && prompt != null) {
-				return "Dall·E 2 does not support image variations with text prompts.";
-			}
-
-			if (MODEL_STABLE_IMAGE_CORE.equals(model)) {
-				return "Stable Image Core does not support image variations.";
-			}
+			return switch (model) {
+			case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2, STABLE_IMAGE_CORE -> "Model does not support image variations.";
+			case STABLE_DIFFUSION, STABLE_DIFFUSION_TURBO -> (prompt == null) ? "Prompt missing for image variation." : null;
+			};
 		}
 
 		return null;
 	}
 
-	private List<String> handleOpenAi(String model, String inputImageUrl, String prompt, boolean useExactPrompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
+	private List<String> handleOpenAi(Model model, String inputImageUrl, String prompt, IBot bot) throws OpenAIException, IOException, URISyntaxException {
 		CreateImageResponse response;
 		if (inputImageUrl == null) {
-			var lowestResolutionSupportedByModel = MODEL_DALLE_2.equals(model) ? "256x256" : "1024x1024";
-
-			var promptToSend = prompt;
-			if (revisedPromptModels.contains(model) && useExactPrompt) {
-				promptToSend += ". " + EXACT_PROMPT_PHRASE;
-			}
+			var lowestResolutionSupportedByModel = "1024x1024";
 
 			//@formatter:off
 			CreateGptImageRequest apiRequest = new CreateGptImageRequest.Builder()
-				.model(model)
-				.prompt(promptToSend)
+				.model(model.id)
+				.prompt(prompt)
 				.size(lowestResolutionSupportedByModel)
 				.outputCompression(90)
 				.outputFormat("jpeg")
@@ -303,22 +249,10 @@ public class ImagineCore {
 		}
 
 		String imageUrl;
-		if (MODEL_DALLE_3.equals(model)) {
-			/*
-			 * 5/1/2024: StackOverflow's new image hosting system has a file
-			 * size limit of 2 MiB. The PNGs that Dall-E 3 generates are usually
-			 * larger than that, so convert them to JPEGs (side note: it seems
-			 * that Stack Overflow's old image system (imgur) converted the PNGs
-			 * to JPEGs automatically).
-			 */
-			var jpegImage = convertToJpeg(response.url());
-			imageUrl = uploadImage(bot, jpegImage);
+		if (response.url() != null) {
+			imageUrl = uploadImageFromUrl(bot, response.url());
 		} else {
-			if (response.url() != null) {
-				imageUrl = uploadImageFromUrl(bot, response.url());
-			} else {
-				imageUrl = uploadImage(bot, response.data());
-			}
+			imageUrl = uploadImage(bot, response.data());
 		}
 
 		var messagesToPost = new ArrayList<String>();
@@ -341,10 +275,10 @@ public class ImagineCore {
 		return uploadImage(bot, response.getImage());
 	}
 
-	private String handleStableDiffusion(String model, String inputImage, String prompt, IBot bot) throws IOException {
+	private String handleStableDiffusion(Model model, String inputImage, String prompt, IBot bot) throws IOException {
 		//@formatter:off
 		var builder = new StableImageDiffusionRequest.Builder()
-			.model(model)
+			.model(model.id)
 			.prompt(prompt)
 			.outputFormat("jpeg");
 		//@formatter:on
@@ -379,52 +313,6 @@ public class ImagineCore {
 		return uploadImage(bot, response.getImage());
 	}
 
-	/**
-	 * @see "https://stackoverflow.com/q/17108234/13379"
-	 */
-	private byte[] convertToJpeg(String url) throws IOException {
-		var image = downloadImage(url);
-
-		/*
-		 * If the image has an alpha channel, an exception is thrown when it
-		 * tries to write the image as a JPEG.
-		 * 
-		 * javax.imageio.IIOException: Bogus input colorspace
-		 */
-		image = ImageUtils.removeAlphaChannel(image);
-
-		var jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
-		var jpgWriteParam = jpgWriter.getDefaultWriteParam();
-		jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-		jpgWriteParam.setCompressionQuality(0.9f);
-
-		try (var out = new ByteArrayOutputStream()) {
-			jpgWriter.setOutput(ImageIO.createImageOutputStream(out));
-			jpgWriter.write(null, new IIOImage(image, null, null), jpgWriteParam);
-			return out.toByteArray();
-		} finally {
-			jpgWriter.dispose();
-		}
-	}
-
-	private BufferedImage downloadImage(String url) throws IOException {
-		BufferedImage image;
-		try (var client = HttpFactory.connect().getClient()) {
-			var getRequest = new HttpGet(url);
-			try (var response = client.execute(getRequest)) {
-				try (var in = response.getEntity().getContent()) {
-					image = ImageIO.read(in);
-				}
-			}
-		}
-
-		if (image == null) {
-			throw new IOException("Cannot read image data: " + url);
-		}
-
-		return image;
-	}
-
 	static class ImagineParameterParser {
 		private final String content;
 		private final String token1;
@@ -441,8 +329,9 @@ public class ImagineCore {
 		}
 
 		public ImagineCommandParameters parse() {
-			if (supportedModels.contains(token1.toLowerCase())) {
-				return token1IsModel();
+			var model = Model.find(token1);
+			if (model != null) {
+				return token1IsModel(model);
 			}
 
 			if (isUrl(token1)) {
@@ -452,8 +341,7 @@ public class ImagineCore {
 			return new ImagineCommandParameters(null, null, content);
 		}
 
-		private ImagineCommandParameters token1IsModel() {
-			var model = token1.toLowerCase();
+		private ImagineCommandParameters token1IsModel(Model model) {
 			String inputImage = null;
 			String prompt = null;
 
@@ -471,7 +359,7 @@ public class ImagineCore {
 
 		private ImagineCommandParameters token1IsUrl() {
 			var inputImage = token1;
-			String model = null;
+			Model model = null;
 			String prompt = null;
 
 			if (token2 != null) {
@@ -490,7 +378,7 @@ public class ImagineCore {
 		}
 	}
 
-	record ImagineCommandParameters(String model, String inputImage, String prompt) {
+	record ImagineCommandParameters(Model model, String inputImage, String prompt) {
 	}
 
 	private String uploadImageFromUrl(IBot bot, String imageUrl) throws URISyntaxException {
@@ -523,5 +411,36 @@ public class ImagineCore {
 
 	public OpenAIClient getOpenAIClient() {
 		return openAIClient;
+	}
+
+	enum Model {
+		//@formatter:off
+		GPT_IMAGE_1("gpt-image-1"), 
+		GPT_IMAGE_1_MINI("gpt-image-1-mini"), 
+		GPT_IMAGE_15("gpt-image-1.5"), 
+		GPT_IMAGE_2("gpt-image-2"), 
+		STABLE_IMAGE_CORE("si-core"), 
+		STABLE_DIFFUSION("sd3"), 
+		STABLE_DIFFUSION_TURBO("sd3-turbo");
+		//@formatter:on
+
+		private final String id;
+
+		private Model(String id) {
+			this.id = id;
+		}
+
+		@Override
+		public String toString() {
+			return id;
+		}
+
+		public static Model find(String id) {
+			//@formatter:off
+			return Arrays.stream(Model.values())
+				.filter(model -> model.id.equalsIgnoreCase(id))
+			.findFirst().orElse(null);
+			//@formatter:on
+		}
 	}
 }
