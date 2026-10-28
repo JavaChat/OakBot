@@ -310,6 +310,11 @@ public class ImagineCore {
 	}
 
 	private List<String> handleSvg(String prompt, IBot bot) throws OpenAIException, TranscoderException, IOException {
+		/*
+		 * feDropShadow: Throws an exception when converting to PNG.
+		 */
+		var featuresToExclude = List.of("feDropShadow");
+
 		String model = (chatGPT == null) ? null : chatGPT.getModel();
 
 		//@formatter:off
@@ -320,7 +325,7 @@ public class ImagineCore {
 			.inputs(List.of(
 				new ResponsesApiRequest.Input.Builder()
 					.role("user")
-					.text("Generate SVG code representing the following: " + prompt)
+					.text("Generate SVG code representing the scene below. Do not use these SVG features: " + featuresToExclude + "\n\n" + prompt)
 				.build()
 			))
 		.build();
