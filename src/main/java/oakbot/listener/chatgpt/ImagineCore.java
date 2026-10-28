@@ -172,7 +172,7 @@ public class ImagineCore {
 		case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2 -> handleOpenAi(model, inputImage, prompt, bot);
 		case STABLE_IMAGE_CORE -> List.of(handleStableImageCore(prompt, bot));
 		case STABLE_DIFFUSION, STABLE_DIFFUSION_TURBO -> List.of(handleStableDiffusion(model, inputImage, prompt, bot));
-		case SVG -> handleSvg(prompt, bot);
+		case SVG, SVG_SRC -> handleSvg(model, prompt, bot);
 		};
 	}
 
@@ -216,7 +216,7 @@ public class ImagineCore {
 
 		if (inputImage != null) {
 			return switch (model) {
-			case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2, STABLE_IMAGE_CORE, SVG -> "Model does not support image variations.";
+			case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2, STABLE_IMAGE_CORE, SVG, SVG_SRC -> "Model does not support image variations.";
 			case STABLE_DIFFUSION, STABLE_DIFFUSION_TURBO -> (prompt == null) ? "Prompt missing for image variation." : null;
 			};
 		}
@@ -309,17 +309,17 @@ public class ImagineCore {
 		return uploadImage(bot, response.getImage());
 	}
 
-	private List<String> handleSvg(String prompt, IBot bot) throws OpenAIException, TranscoderException, IOException {
+	private List<String> handleSvg(Model model, String prompt, IBot bot) throws OpenAIException, TranscoderException, IOException {
 		/*
 		 * feDropShadow: Throws an exception when converting to PNG.
 		 */
 		var featuresToExclude = List.of("feDropShadow");
 
-		String model = (chatGPT == null) ? null : chatGPT.getModel();
+		String chatModel = (chatGPT == null) ? null : chatGPT.getModel();
 
 		//@formatter:off
 		var apiRequest = new ResponsesApiRequest.Builder()
-			.model(model)
+			.model(chatModel)
 			.reasoningEffort("none")
 			.verbosity("low")
 			.inputs(List.of(
@@ -342,7 +342,12 @@ public class ImagineCore {
 				var pngBytes = ImageUtils.svgToPng(svg);
 				var imageUrl = uploadImage(bot, pngBytes);
 
-				return List.of(imageUrl, new ChatBuilder().fixedWidth().append(svg).toString());
+				if (model == Model.SVG_SRC) {
+					var svcSrc = new ChatBuilder().fixedWidth().append(svg).toString();
+					return List.of(imageUrl, svcSrc);
+				} else {
+					return List.of(imageUrl);
+				}
 			}
 		}
 
@@ -470,7 +475,8 @@ public class ImagineCore {
 		STABLE_IMAGE_CORE("si-core"), 
 		STABLE_DIFFUSION("sd3"), 
 		STABLE_DIFFUSION_TURBO("sd3-turbo"),
-		SVG("svg");
+		SVG("svg"),
+		SVG_SRC("svg-src");
 		//@formatter:on
 
 		private final String id;
