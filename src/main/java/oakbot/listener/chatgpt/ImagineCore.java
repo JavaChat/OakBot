@@ -172,7 +172,7 @@ public class ImagineCore {
 		case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2 -> handleOpenAi(model, inputImage, prompt, bot);
 		case STABLE_IMAGE_CORE -> List.of(handleStableImageCore(prompt, bot));
 		case STABLE_DIFFUSION, STABLE_DIFFUSION_TURBO -> List.of(handleStableDiffusion(model, inputImage, prompt, bot));
-		case SVG -> List.of(handleSvg(prompt, bot));
+		case SVG -> handleSvg(prompt, bot);
 		};
 	}
 
@@ -309,7 +309,7 @@ public class ImagineCore {
 		return uploadImage(bot, response.getImage());
 	}
 
-	private String handleSvg(String prompt, IBot bot) throws OpenAIException, TranscoderException, IOException {
+	private List<String> handleSvg(String prompt, IBot bot) throws OpenAIException, TranscoderException, IOException {
 		String model = (chatGPT == null) ? null : chatGPT.getModel();
 
 		//@formatter:off
@@ -335,11 +335,13 @@ public class ImagineCore {
 			var svg = extractSvgFromResponse(content);
 			if (svg != null) {
 				var pngBytes = ImageUtils.svgToPng(svg);
-				return uploadImage(bot, pngBytes);
+				var imageUrl = uploadImage(bot, pngBytes);
+
+				return List.of(imageUrl, new ChatBuilder().fixedWidth().append(svg).toString());
 			}
 		}
 
-		return content;
+		return List.of(content);
 	}
 
 	private String extractSvgFromResponse(String response) {
