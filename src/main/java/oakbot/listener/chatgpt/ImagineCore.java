@@ -44,6 +44,7 @@ import oakbot.util.ImageUtils;
  */
 public class ImagineCore {
 	private static final Logger logger = LoggerFactory.getLogger(ImagineCore.class);
+	static final Model DEFAULT_MODEL = Model.GPT_IMAGE_2;
 
 	private final OpenAIClient openAIClient;
 	private final StabilityAIClient stabilityAIClient;
@@ -169,7 +170,7 @@ public class ImagineCore {
 	 */
 	public List<String> generateImage(Model model, String inputImage, String prompt, IBot bot) throws OpenAIException, IOException, URISyntaxException, TranscoderException {
 		return switch (model) {
-		case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2 -> handleOpenAi(model, inputImage, prompt, bot);
+		case GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2, GPT_IMAGE_25_FLARE, GPT_IMAGE_25_SUNBURST, GPT_IMAGE_26_SUNBURST, GPT_IMAGE_26_FLARE -> handleOpenAi(model, inputImage, prompt, bot);
 		case STABLE_IMAGE_CORE -> List.of(handleStableImageCore(prompt, bot));
 		case STABLE_DIFFUSION, STABLE_DIFFUSION_TURBO -> List.of(handleStableDiffusion(model, inputImage, prompt, bot));
 		case SVG, SVG_SRC -> handleSvg(model, prompt, bot);
@@ -206,7 +207,7 @@ public class ImagineCore {
 			return Model.STABLE_DIFFUSION;
 		}
 
-		return Model.GPT_IMAGE_1_MINI;
+		return DEFAULT_MODEL;
 	}
 
 	static String validateParameters(Model model, String inputImage, String prompt) {
@@ -216,7 +217,7 @@ public class ImagineCore {
 
 		if (inputImage != null) {
 			return switch (model) {
-			case GPT_IMAGE_1, GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2, STABLE_IMAGE_CORE, SVG, SVG_SRC -> "Model does not support image variations.";
+			case GPT_IMAGE_1_MINI, GPT_IMAGE_15, GPT_IMAGE_2, GPT_IMAGE_25_FLARE, GPT_IMAGE_25_SUNBURST, GPT_IMAGE_26_SUNBURST, GPT_IMAGE_26_FLARE, STABLE_IMAGE_CORE, SVG, SVG_SRC -> "Model does not support image variations.";
 			case STABLE_DIFFUSION, STABLE_DIFFUSION_TURBO -> (prompt == null) ? "Prompt missing for image variation." : null;
 			};
 		}
@@ -468,12 +469,15 @@ public class ImagineCore {
 
 	enum Model {
 		//@formatter:off
-		GPT_IMAGE_1("gpt-image-1"), 
-		GPT_IMAGE_1_MINI("gpt-image-1-mini"), 
-		GPT_IMAGE_15("gpt-image-1.5"), 
-		GPT_IMAGE_2("gpt-image-2"), 
-		STABLE_IMAGE_CORE("si-core"), 
-		STABLE_DIFFUSION("sd3"), 
+		GPT_IMAGE_1_MINI("gpt-image-1-mini"),
+		GPT_IMAGE_15("gpt-image-1.5"),
+		GPT_IMAGE_2("gpt-image-2"),
+		GPT_IMAGE_25_SUNBURST("gpt-image-2.5-sunburst"),
+		GPT_IMAGE_25_FLARE("gpt-image-2.5-flare"),
+		GPT_IMAGE_26_SUNBURST("gpt-image-2.6-sunburst"),
+		GPT_IMAGE_26_FLARE("gpt-image-2.6-flare"),
+		STABLE_IMAGE_CORE("si-core"),
+		STABLE_DIFFUSION("sd3"),
 		STABLE_DIFFUSION_TURBO("sd3-turbo"),
 		SVG("svg"),
 		SVG_SRC("svg-src");

@@ -39,8 +39,8 @@ class ImagineCommandTest {
 
 	@Test
 	void ImagineParameterParser() {
-		var actual = new ImagineCore.ImagineParameterParser("gpt-image-1 https://www.example.com/image.png prompt goes here").parse();
-		assertEquals(ImagineCore.Model.GPT_IMAGE_1, actual.model());
+		var actual = new ImagineCore.ImagineParameterParser("gpt-image-2 https://www.example.com/image.png prompt goes here").parse();
+		assertEquals(ImagineCore.Model.GPT_IMAGE_2, actual.model());
 		assertEquals("https://www.example.com/image.png", actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
@@ -49,8 +49,8 @@ class ImagineCommandTest {
 		assertEquals("https://www.example.com/image.png", actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
-		actual = new ImagineCore.ImagineParameterParser("gpt-image-1 prompt goes here").parse();
-		assertEquals(ImagineCore.Model.GPT_IMAGE_1, actual.model());
+		actual = new ImagineCore.ImagineParameterParser("gpt-image-2 prompt goes here").parse();
+		assertEquals(ImagineCore.Model.GPT_IMAGE_2, actual.model());
 		assertNull(actual.inputImage());
 		assertEquals("prompt goes here", actual.prompt());
 
@@ -104,7 +104,7 @@ class ImagineCommandTest {
 	@Test
 	void chooseWhichModelToUse() {
 		//no model provided
-		assertEquals(ImagineCore.Model.GPT_IMAGE_1_MINI, ImagineCore.chooseWhichModelToUse(null, null, "prompt"));
+		assertEquals(ImagineCore.DEFAULT_MODEL, ImagineCore.chooseWhichModelToUse(null, null, "prompt"));
 
 		//no model provided with input images
 		assertEquals(ImagineCore.Model.STABLE_DIFFUSION, ImagineCore.chooseWhichModelToUse(null, "image", "prompt"));
